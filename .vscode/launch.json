@@ -1,0 +1,21 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+    
+        {
+            "name": "openocd",
+            "request": "launch",
+            "type": "cortex-debug",
+            "cwd": "${workspaceRoot}",
+            "servertype": "openocd",
+            "executable": "build/electric_load_ctrl.elf",
+            "svdFile": "mcu/stm32f765ii/core/STM32F765.svd",
+            "showDevDebugOutput": true,
+            "searchDir": [
+                "/usr/share/openocd/scripts",],
+            "configFiles": [
+                "/usr/share/openocd/scripts/board/stm32f7discovery.cfg"
+            ]
+        }
+    ]
+}

@@ -1,0 +1,19 @@
+{
+    "configurations": [
+        {
+            "name": "vscode_stm32_c_cpp_properties",
+            "compilerPath": "/usr/local/share/gcc-arm-none-eabi-10-2020-q4-major/bin/arm-none-eabi-gcc",
+            "includePath": [
+                "${workspaceRoot}/**"
+            ],
+            "defines": [
+                "STM32F765"
+            ],
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "gcc-x64",
+            "configurationProvider": "ms-vscode.makefile-tools"
+        }
+    ],
+    "version": 4
+}

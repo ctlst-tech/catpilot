@@ -1,0 +1,6 @@
+*.o
+build/
+*.log
+.cortex*
+*.map
+docs/
