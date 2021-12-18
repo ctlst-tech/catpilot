@@ -8,7 +8,7 @@
             "type": "cortex-debug",
             "cwd": "${workspaceRoot}",
             "servertype": "openocd",
-            "executable": "build/electric_load_ctrl.elf",
+            "executable": "build/ctlst-fmuv5.elf",
             "svdFile": "mcu/stm32f765ii/core/STM32F765.svd",
             "showDevDebugOutput": true,
             "searchDir": [
