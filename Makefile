@@ -7,20 +7,26 @@ MCU = stm32f765ii
 OPENOCD_SCRIPT_DIR ?= /usr/share/openocd/scripts
 HEAP_SIZE = 0x400
 
+DIR_MCU = mcu/$(MCU)
+DIR_PERIPH = periph
+DIR_DRV = drv
+
 ################
 # Sources
 
 SOURCES_S = $(wildcard mcu/$(MCU)/core/*.s)
 
-SOURCES_C_MCU = $(wildcard mcu/$(MCU)/core/*.c)
-SOURCES_C_MCU += $(wildcard mcu/$(MCU)/hal/src/*.c)
+SOURCES_C_MCU = $(wildcard $(DIR_MCU)/core/*.c)
+SOURCES_C_MCU += $(wildcard $(DIR_MCU)/hal/src/*.c)
 
-SOURCES_C_MCU += $(wildcard mcu/$(MCU)/drivers/rcc/*.c)
-SOURCES_C_MCU += $(wildcard mcu/$(MCU)/drivers/gpio/*.c)
-SOURCES_C_MCU += $(wildcard mcu/$(MCU)/drivers/usart/*.c)
-SOURCES_C_MCU += $(wildcard mcu/$(MCU)/drivers/spi/*.c)
-SOURCES_C_MCU += $(wildcard mcu/$(MCU)/drivers/i2c/*.c)
-SOURCES_C_MCU += $(wildcard mcu/$(MCU)/drivers/adc/*.c)
+SOURCES_C_PERIPH += $(wildcard $(DIR_PERIPH)/rcc/*.c)
+SOURCES_C_PERIPH += $(wildcard $(DIR_PERIPH)/gpio/*.c)
+SOURCES_C_PERIPH += $(wildcard $(DIR_PERIPH)/usart/*.c)
+SOURCES_C_PERIPH += $(wildcard $(DIR_PERIPH)/spi/*.c)
+SOURCES_C_PERIPH += $(wildcard $(DIR_PERIPH)/i2c/*.c)
+SOURCES_C_PERIPH += $(wildcard $(DIR_PERIPH)/adc/*.c)
+
+SOURCES_C_DRV += $(wildcard $(DIR_DRV)/cli/*.c)
 
 SOURCES_C_RTOS = $(wildcard freertos/core/src/*.c)
 SOURCES_C_RTOS += $(wildcard freertos/port/$(MCU)/*.c)
@@ -28,6 +34,8 @@ SOURCES_C_HEAP = freertos/MemMang/heap_1.c
 
 SOURCES_C += $(wildcard *.c)
 SOURCES_C += $(SOURCES_C_MCU)
+SOURCES_C += $(SOURCES_C_PERIPH)
+SOURCES_C += $(SOURCES_C_DRV)
 SOURCES_C += $(SOURCES_C_RTOS)
 SOURCES_C += $(SOURCES_C_HEAP)
 
@@ -36,22 +44,23 @@ OBJS = $(SOURCES_S:.s=.o) $(SOURCES_C:.c=.o)
 
 # Includes and Defines
 
-DIR_MCU = mcu/$(MCU)
-DIR_MCU_DRV = $(DIR_MCU)/drivers
-
 INC_MCU = -I$(DIR_MCU)/core -I$(DIR_MCU)/hal/inc 
 
-INC_MCU += -I$(DIR_MCU_DRV)/rcc
-INC_MCU += -I$(DIR_MCU_DRV)/gpio
-INC_MCU += -I$(DIR_MCU_DRV)/usart
-INC_MCU += -I$(DIR_MCU_DRV)/spi
-INC_MCU += -I$(DIR_MCU_DRV)/i2c
-INC_MCU += -I$(DIR_MCU_DRV)/adc
+INC_PERIPH += -I$(DIR_PERIPH)/rcc
+INC_PERIPH += -I$(DIR_PERIPH)/gpio
+INC_PERIPH += -I$(DIR_PERIPH)/usart
+INC_PERIPH += -I$(DIR_PERIPH)/spi
+INC_PERIPH += -I$(DIR_PERIPH)/i2c
+INC_PERIPH += -I$(DIR_PERIPH)/adc
+
+INC_DRV += -I$(DIR_DRV)/cli
 
 INC_RTOS = -Ifreertos/core/inc -Ifreertos/port/$(MCU)
 INC_CONF = -Iconf
 
 INCLUDES += $(INC_MCU)
+INCLUDES += $(INC_PERIPH)
+INCLUDES += $(INC_DRV)
 INCLUDES += $(INC_RTOS)
 INCLUDES += $(INC_CONF)
 
@@ -113,7 +122,7 @@ erase:
 	st-flash erase
 
 gdb-server-ocd:
-	$(OPENOCD) -f $(OPENOCD_SCRIPT_DIR)/board/bluepill.cfg
+	$(OPENOCD) -f $(OPENOCD_SCRIPT_DIR)/board/stm32f7discovery.cfg
 
 gdb-server-st:
 	st-util

@@ -11,6 +11,8 @@ MEMORY
 ENTRY(Reset_Handler)
 
 _estack = ORIGIN(ITCM_RAM) + LENGTH(ITCM_RAM);
+_Min_Heap_Size = 0x200 ;
+_Min_Stack_Size = 0x400 ;
 
 SECTIONS
 {
@@ -63,7 +65,7 @@ SECTIONS
 		*(.data*)
 		. = ALIGN(4);
 		_edata = .;
-	} > SRAM1 AT > FLASH_BANK_2
+	} > SRAM_1 AT > FLASH_BANK_2
 
 	.bss : 
 	{
@@ -72,5 +74,27 @@ SECTIONS
 		*(COMMON)
 		. = ALIGN(4);
 		_ebss = .;
-	} > SRAM1
+	} > SRAM_1
+
+	._user_heap_stack :
+	{
+		. = ALIGN(8);
+		PROVIDE ( end = . );
+		PROVIDE ( _end = . );
+		. = . + _Min_Heap_Size;
+		. = . + _Min_Stack_Size;
+		. = ALIGN(8);
+	} > SRAM_1
+
+	/DISCARD/ :
+	{
+		libc.a ( * )
+		libm.a ( * )
+		libgcc.a ( * )
+	}
+
+	.ARM.attributes 0 : 
+	{
+		*(.ARM.attributes) 
+	}
 }

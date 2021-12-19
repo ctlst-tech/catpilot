@@ -1,5 +1,12 @@
 {
     "cortex-debug.armToolchainPath": "/usr/bin/",
     "cortex-debug.openocdPath": "/usr/bin/openocd",
-    "cortex-debug.registerUseNaturalFormat": false
+    "cortex-debug.registerUseNaturalFormat": false,
+    "makefile.launchConfigurations": [
+        {
+            "cwd": "/home/optim/ctlst/ctlst-fmuv5/build",
+            "binaryPath": "/home/optim/ctlst/ctlst-fmuv5/build/ctlst-fmuv5.elf",
+            "binaryArgs": []
+        }
+    ]
 }

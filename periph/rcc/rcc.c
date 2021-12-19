@@ -30,7 +30,7 @@ void RCC_Init() {
     RCC_PLLSAIInitStruct.PLLSAIP = 8;
     RCC_PLLSAIInitStruct.PLLSAIQ = 4;
     RCC_PLLSAIInitStruct.PLLSAIR = 2;
-    while(HAL_RCCEx_EnablePLLI2S(&RCC_PLLI2SInitStruct) != HAL_OK);
+    while(HAL_RCCEx_EnablePLLSAI(&RCC_PLLSAIInitStruct) != HAL_OK);
     
     RCC_PLLI2SInitStruct.PLLI2SN = 192;
     RCC_PLLI2SInitStruct.PLLI2SP = 2;

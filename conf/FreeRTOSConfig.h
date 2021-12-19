@@ -55,8 +55,17 @@
 #define configTIMER_TASK_STACK_DEPTH            configMINIMAL_STACK_SIZE
 
 /* Interrupt nesting behaviour configuration. */
-#define configKERNEL_INTERRUPT_PRIORITY         255
-#define configMAX_SYSCALL_INTERRUPT_PRIORITY    191
+#ifdef __NVIC_PRIO_BITS
+#define configPRIO_BITS __NVIC_PRIO_BITS
+#else
+#define configPRIO_BITS 4 /* 15 priority levels */
+#endif
+
+#define configLIBRARY_LOWEST_INTERRUPT_PRIORITY    15
+#define configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY    5
+
+#define configKERNEL_INTERRUPT_PRIORITY ( configLIBRARY_LOWEST_INTERRUPT_PRIORITY << (8 - configPRIO_BITS) )
+#define configMAX_SYSCALL_INTERRUPT_PRIORITY ( configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY << (8 - configPRIO_BITS) )
 //#define configMAX_API_CALL_INTERRUPT_PRIORITY   15
 
 /* Define to trap errors during development. */

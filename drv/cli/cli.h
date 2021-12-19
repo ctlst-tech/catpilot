@@ -1,0 +1,8 @@
+#pragma once
+#include "stm32_base.h"
+#include "stm32_periph.h"
+
+#define PIN_USART2_TX    {GPIOA, {GPIO_PIN_2, GPIO_MODE_AF_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_HIGH, GPIO_AF7_USART2}}
+#define PIN_USART2_RX    {GPIOA, {GPIO_PIN_3, GPIO_MODE_INPUT, GPIO_NOPULL, GPIO_SPEED_FREQ_HIGH, GPIO_AF7_USART2}}
+
+int CLI_Init();
