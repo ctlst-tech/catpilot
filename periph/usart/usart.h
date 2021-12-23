@@ -8,7 +8,7 @@ enum usart_state_t {
     USART_RECEIVE
 };
 
-struct usart_port_t {
+struct usart_inst_t {
     UART_HandleTypeDef USART_InitStruct;
     SemaphoreHandle_t semaphore;
     SemaphoreHandle_t mutex;
@@ -23,7 +23,7 @@ typedef struct {
     int speed;
     int timeout;
     int priority;
-    struct usart_port_t port;
+    struct usart_inst_t inst;
 } usart_cfg_t;
 
 

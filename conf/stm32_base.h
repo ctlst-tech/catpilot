@@ -1,8 +1,11 @@
+#pragma once
+
 /** CMSIS */
 #include "stm32f765xx.h"
 
 /** HAL */
-#include "stm32_hal_conf.h"
+#include "stm32f7xx_hal.h"
+#include "stm32f7xx_hal_conf.h"
 
 /** FreeRTOS */
 #include "FreeRTOS.h"

@@ -1,7 +1,7 @@
 #include "cli.h"
 
-gpio_cfg_t usart7_tx = PIN_USART7_TX;
-gpio_cfg_t usart7_rx = PIN_USART7_RX;
+gpio_cfg_t usart7_tx = GPIO_USART7_TX;
+gpio_cfg_t usart7_rx = GPIO_USART7_RX;
 
 usart_cfg_t usart7_cfg = {UART7, &usart7_tx, &usart7_rx, 115200, 20, 6, {NULL}};
 
