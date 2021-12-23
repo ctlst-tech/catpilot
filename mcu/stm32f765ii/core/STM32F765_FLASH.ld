@@ -25,6 +25,9 @@ SECTIONS
 	{
 		*(.text*)
 		. = ALIGN(4);
+		KEEP (*(.init))
+    	KEEP (*(.fini))
+		. = ALIGN(4);
 		*(.rodata*)
   	} > FLASH_BANK_1
 
@@ -34,6 +37,14 @@ SECTIONS
 		. = ALIGN(4);
 		*(.rodata*)
   	} > FLASH_BANK_2
+
+	.init_section : 
+	{
+	    . = ALIGN(4);
+		_sinit = .;
+		KEEP(*(.init_array*)) 
+		_einit = .;
+	} > FLASH_BANK_2
 
 	.ARM.extab : 
 	{
@@ -49,18 +60,11 @@ SECTIONS
 		__exidx_end = .;
 	} > FLASH_BANK_2
 
-	.init_section : 
-	{
-	    . = ALIGN(4);
-		_sinit = .;
-		KEEP(*(.init_array*)) 
-		_einit = .;
-	} > FLASH_BANK_2
-
 	_sidata = LOADADDR(.data);
 
 	.data : 
 	{
+		. = ALIGN(4);
 		_sdata = .;
 		*(.data*)
 		. = ALIGN(4);

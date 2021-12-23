@@ -3,10 +3,11 @@
 #include "stm32_periph.h"
 
 void vThread1(void *pvParameters) {
-    CLI_Init();
+    int rv;
+    rv = CLI_Init();
     while(1) {
         vTaskDelay(1000);
-        printf("/nTest/n");
+        printf("\nSerial Console Test\n");
     }
 }
 

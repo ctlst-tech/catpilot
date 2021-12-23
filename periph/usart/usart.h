@@ -12,6 +12,7 @@ struct usart_port_t {
     UART_HandleTypeDef USART_InitStruct;
     SemaphoreHandle_t semaphore;
     SemaphoreHandle_t mutex;
+    IRQn_Type IRQ;
     enum usart_state_t state;
 };
 

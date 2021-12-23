@@ -118,35 +118,12 @@ int USART_Handler(usart_cfg_t *cfg) {
 }
 
 int USART_EnableIRQ(usart_cfg_t *cfg) {
-    if(cfg->USART == USART1) {
-        NVIC_EnableIRQ(USART1_IRQn);
-        NVIC_SetPriority(USART1_IRQn, cfg->priority);
-    } else if(cfg->USART == USART2) {
-        HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
-        HAL_NVIC_SetPriority(USART2_IRQn, cfg->priority, 0);
-        HAL_NVIC_EnableIRQ(USART2_IRQn);
-        // NVIC_EnableIRQ(USART2_IRQn);
-        // NVIC_SetPriority(USART2_IRQn, cfg->priority);
-    } else if(cfg->USART == USART3) {
-        NVIC_EnableIRQ(USART3_IRQn);
-        NVIC_SetPriority(USART3_IRQn, cfg->priority);
-    } else {
-        return EINVAL;
-    }
-    return 0;
+    HAL_NVIC_SetPriority(cfg->port.IRQ, cfg->priority, 0);
+    HAL_NVIC_EnableIRQ(cfg->port.IRQ);
 }
 
 int USART_DisableIRQ(usart_cfg_t *cfg)  {
-    if(cfg->USART == USART1) {
-        NVIC_DisableIRQ(USART1_IRQn);
-    } else if(cfg->USART == USART2) {
-        NVIC_DisableIRQ(USART2_IRQn);
-    } else if(cfg->USART == USART3) {
-        NVIC_DisableIRQ(USART3_IRQn);
-    } else {
-        return EINVAL;
-    }
-    return 0;
+    HAL_NVIC_DisableIRQ(cfg->port.IRQ);
 }
 
 int USART_ClockEnable(usart_cfg_t *cfg) {
@@ -155,20 +132,59 @@ int USART_ClockEnable(usart_cfg_t *cfg) {
 #ifdef USART1
         case USART1_BASE:
             __HAL_RCC_USART1_CLK_ENABLE();
+            cfg->port.IRQ = USART1_IRQn;
             break;
 #endif
 
 #ifdef USART2
         case USART2_BASE:
             __HAL_RCC_USART2_CLK_ENABLE();
+            cfg->port.IRQ = USART2_IRQn;
             break;
 #endif
 
 #ifdef USART3
         case USART3_BASE:
             __HAL_RCC_USART3_CLK_ENABLE();
+            cfg->port.IRQ = USART3_IRQn;
             break;
 #endif
+
+#ifdef UART4
+        case UART4_BASE:
+            __HAL_RCC_UART4_CLK_ENABLE();
+            cfg->port.IRQ = UART4_IRQn;
+            break;
+#endif
+
+#ifdef UART5
+        case UART5_BASE:
+            __HAL_RCC_UART5_CLK_ENABLE();
+            cfg->port.IRQ = UART5_IRQn;
+            break;
+#endif
+
+#ifdef USART6
+        case USART6_BASE:
+            __HAL_RCC_USART6_CLK_ENABLE();
+            cfg->port.IRQ = USART6_IRQn;
+            break;
+#endif
+
+#ifdef UART7
+        case UART7_BASE:
+            __HAL_RCC_UART7_CLK_ENABLE();
+            cfg->port.IRQ = UART7_IRQn;
+            break;
+#endif
+
+#ifdef UART8
+        case UART8_BASE:
+            __HAL_RCC_UART8_CLK_ENABLE();
+            cfg->port.IRQ = UART8_IRQn;
+            break;
+#endif
+
     default:
         return EINVAL;
     }
