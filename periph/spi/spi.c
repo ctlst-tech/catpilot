@@ -7,12 +7,23 @@ int SPI_Init(spi_cfg_t *cfg) {
     int rv = 0;
     if((rv = SPI_ClockEnable(cfg)) != 0) return rv;
     
-    if((rv = GPIO_Init(cfg->miso_cfg)) != 0) return rv;
     if((rv = GPIO_Init(cfg->mosi_cfg)) != 0) return rv;
+    if((rv = GPIO_Init(cfg->miso_cfg)) != 0) return rv;
+    if((rv = GPIO_Init(cfg->sck_cfg)) != 0) return rv;
+    if((rv = GPIO_Init(cfg->cs_cfg)) != 0) return rv;
 
     cfg->inst.SPI_InitStruct.Instance = cfg->SPI;
+    cfg->inst.SPI_InitStruct.Init.Mode = SPI_MODE_MASTER;
     cfg->inst.SPI_InitStruct.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_16;
-    cfg->inst.SPI_InitStruct.Init.CLKPhase = SPI_PHASE_1EDGE;
+    cfg->inst.SPI_InitStruct.Init.CLKPhase = SPI_PHASE_2EDGE;
+    cfg->inst.SPI_InitStruct.Init.CLKPolarity = SPI_POLARITY_HIGH;
+    cfg->inst.SPI_InitStruct.Init.DataSize = SPI_DATASIZE_8BIT;
+    cfg->inst.SPI_InitStruct.Init.Direction = SPI_DIRECTION_2LINES;
+    cfg->inst.SPI_InitStruct.Init.FirstBit = SPI_FIRSTBIT_MSB;
+    cfg->inst.SPI_InitStruct.Init.NSS = SPI_NSS_SOFT;
+    cfg->inst.SPI_InitStruct.Init.TIMode = SPI_TIMODE_DISABLE;
+    cfg->inst.SPI_InitStruct.Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
+    cfg->inst.SPI_InitStruct.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
 
     if(HAL_SPI_Init(&cfg->inst.SPI_InitStruct) != HAL_OK) return EINVAL;
     
@@ -31,10 +42,12 @@ int SPI_ReInit(spi_cfg_t *cfg) {
 }
 
 int SPI_Transmit(spi_cfg_t *cfg, uint8_t *pdata, uint16_t length) {
+    HAL_SPI_Transmit(&cfg->inst.SPI_InitStruct, pdata, length, cfg->timeout);
     return 0;
 }
 
 int SPI_Receive(spi_cfg_t *cfg, uint8_t *pdata, uint16_t length) {
+    HAL_SPI_Receive(&cfg->inst.SPI_InitStruct, pdata, length, cfg->timeout);
     return 0;
 }
 
@@ -45,10 +58,12 @@ int SPI_Handler(spi_cfg_t *cfg) {
 int SPI_EnableIRQ(spi_cfg_t *cfg) {
     HAL_NVIC_SetPriority(cfg->inst.IRQ, cfg->priority, 0);
     HAL_NVIC_EnableIRQ(cfg->inst.IRQ);
+    return 0;
 }
 
 int SPI_DisableIRQ(spi_cfg_t *cfg)  {
     HAL_NVIC_DisableIRQ(cfg->inst.IRQ);
+    return 0;
 }
 
 int SPI_ClockEnable(spi_cfg_t *cfg) {

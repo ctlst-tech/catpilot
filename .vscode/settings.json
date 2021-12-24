@@ -8,5 +8,6 @@
             "binaryPath": "/home/optim/ctlst/ctlst-fmuv5/build/ctlst-fmuv5.elf",
             "binaryArgs": []
         }
-    ]
+    ],
+    "cortex-debug.variableUseNaturalFormat": false
 }

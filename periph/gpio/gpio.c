@@ -9,6 +9,14 @@ int GPIO_Init(gpio_cfg_t *cfg) {
     return rv;
 }
 
+void GPIO_Set(gpio_cfg_t *cfg) {
+    HAL_GPIO_WritePin(cfg->GPIO, cfg->GPIO_InitStruct.Pin, GPIO_PIN_SET);
+}
+
+void GPIO_Reset(gpio_cfg_t *cfg) {
+    HAL_GPIO_WritePin(cfg->GPIO, cfg->GPIO_InitStruct.Pin, GPIO_PIN_RESET);
+}
+
 int GPIO_ClockEnable(gpio_cfg_t *cfg) {
     switch((uint32_t)(cfg->GPIO)) {
 

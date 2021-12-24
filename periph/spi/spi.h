@@ -18,16 +18,14 @@ struct spi_inst_t {
 
 typedef struct {
     SPI_TypeDef *SPI;
-    gpio_cfg_t *miso_cfg;
     gpio_cfg_t *mosi_cfg;
+    gpio_cfg_t *miso_cfg;
     gpio_cfg_t *sck_cfg;
     gpio_cfg_t *cs_cfg;
-    int speed;
     int timeout;
     int priority;
     struct spi_inst_t inst;
 } spi_cfg_t;
-
 
 int SPI_Init(spi_cfg_t *cfg);
 int SPI_ClockEnable(spi_cfg_t *cfg);

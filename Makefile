@@ -27,6 +27,7 @@ SOURCES_C_PERIPH += $(wildcard $(DIR_PERIPH)/i2c/*.c)
 SOURCES_C_PERIPH += $(wildcard $(DIR_PERIPH)/adc/*.c)
 
 SOURCES_C_DRV += $(wildcard $(DIR_DRV)/cli/*.c)
+SOURCES_C_DRV += $(wildcard $(DIR_DRV)/icm20602/*.c)
 
 SOURCES_C_RTOS = $(wildcard freertos/core/src/*.c)
 SOURCES_C_RTOS += $(wildcard freertos/port/$(MCU)/*.c)
@@ -54,6 +55,7 @@ INC_PERIPH += -I$(DIR_PERIPH)/i2c
 INC_PERIPH += -I$(DIR_PERIPH)/adc
 
 INC_DRV += -I$(DIR_DRV)/cli
+INC_DRV += -I$(DIR_DRV)/icm20602
 
 INC_RTOS = -Ifreertos/core/inc -Ifreertos/port/$(MCU)
 INC_CONF = -Iconf

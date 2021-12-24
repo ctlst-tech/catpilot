@@ -3,6 +3,6 @@
 #include "stm32_periph.h"
 #include "gpio_cfg.h"
 
-extern usart_cfg_t usart7_cfg;
+extern usart_cfg_t cli_cfg;
 
 int CLI_Init();
