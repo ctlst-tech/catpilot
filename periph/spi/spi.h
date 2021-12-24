@@ -21,7 +21,7 @@ typedef struct {
     gpio_cfg_t *miso_cfg;
     gpio_cfg_t *mosi_cfg;
     gpio_cfg_t *sck_cfg;
-    gpio_cfg_t *sc_cfg;
+    gpio_cfg_t *cs_cfg;
     int speed;
     int timeout;
     int priority;
