@@ -2,6 +2,13 @@
 #include "stm32_drv.h"
 #include "stm32_periph.h"
 
+void Receive(void *pvParameters) {
+    uint8_t data;
+    while(1) {
+        
+    }
+}
+
 void Print(void *pvParameters) {
     CLI_Init();
     while(1) {
@@ -23,8 +30,9 @@ void Polling(void *pvParameters) {
 int main(void) {
     HAL_Init();
     RCC_Init();
-    xTaskCreate(Print, "Print", 512, NULL, 1, NULL);
+    xTaskCreate(Print, "Print", 512, NULL, 2, NULL);
     xTaskCreate(Polling, "Polling", 512, NULL, 1, NULL);
+    xTaskCreate(Receive, "Receive", 512, NULL, 1, NULL);
     vTaskStartScheduler();
     while(1) {
     }
