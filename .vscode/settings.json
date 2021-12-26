@@ -9,5 +9,12 @@
             "binaryArgs": []
         }
     ],
-    "cortex-debug.variableUseNaturalFormat": false
+    "cortex-debug.variableUseNaturalFormat": false,
+    "files.associations": {
+        "cli.h": "c",
+        "gpio_cfg.h": "c",
+        "stm32_periph.h": "c",
+        "usart.h": "c",
+        "stm32_base.h": "c"
+    }
 }

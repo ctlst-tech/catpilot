@@ -7,8 +7,18 @@ int USART_Init(usart_cfg_t *cfg) {
     int rv = 0;
     if((rv = USART_ClockEnable(cfg)) != 0) return rv;
     
-    if((rv = GPIO_Init(cfg->rx_cfg)) != 0) return rv;
-    if((rv = GPIO_Init(cfg->tx_cfg)) != 0) return rv;
+    if((rv = GPIO_Init(cfg->gpio_rx_cfg)) != 0) return rv;
+    if((rv = GPIO_Init(cfg->gpio_tx_cfg)) != 0) return rv;
+
+    if(cfg->dma_tx_cfg != NULL) {
+        cfg->dma_tx_cfg->DMA_InitStruct.Parent = &cfg->inst.USART_InitStruct;
+        if((rv = DMA_Init(cfg->dma_tx_cfg)) != 0) return rv;
+    }
+
+    if(cfg->dma_rx_cfg != NULL) {
+        cfg->dma_rx_cfg->DMA_InitStruct.Parent = &cfg->inst.USART_InitStruct;
+        if((rv = DMA_Init(cfg->dma_rx_cfg)) != 0) return rv;
+    }
 
     cfg->inst.USART_InitStruct.Instance = cfg->USART;
     cfg->inst.USART_InitStruct.Init.BaudRate = cfg->speed;
@@ -17,6 +27,9 @@ int USART_Init(usart_cfg_t *cfg) {
     cfg->inst.USART_InitStruct.Init.Parity = UART_PARITY_NONE;
     cfg->inst.USART_InitStruct.Init.StopBits = UART_STOPBITS_1;
     cfg->inst.USART_InitStruct.Init.WordLength = UART_WORDLENGTH_8B;
+
+    cfg->inst.USART_InitStruct.hdmatx = &cfg->dma_tx_cfg->DMA_InitStruct;
+    cfg->inst.USART_InitStruct.hdmarx = &cfg->dma_rx_cfg->DMA_InitStruct;
 
     if(HAL_UART_Init(&cfg->inst.USART_InitStruct) != HAL_OK) return EINVAL;
     
@@ -43,7 +56,7 @@ int USART_Transmit(usart_cfg_t *cfg, uint8_t *pdata, uint16_t length) {
         USART_ReInit(cfg);
         USART_EnableIRQ(cfg);
 
-        HAL_UART_Transmit_IT(&cfg->inst.USART_InitStruct, pdata, length);
+        HAL_UART_Transmit_DMA(&cfg->inst.USART_InitStruct, pdata, length);
 
         if(xSemaphoreTake(cfg->inst.semaphore, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE &&
         (__HAL_UART_GET_FLAG(&cfg->inst.USART_InitStruct, USART_ISR_TXE))) {
@@ -70,7 +83,7 @@ int USART_Receive(usart_cfg_t *cfg, uint8_t *pdata, uint16_t length) {
         HAL_UART_Init(&cfg->inst.USART_InitStruct);
         USART_EnableIRQ(cfg);
         
-        HAL_UART_Receive_IT(&cfg->inst.USART_InitStruct, pdata, length);
+        HAL_UART_Receive_DMA(&cfg->inst.USART_InitStruct, pdata, length);
 
         if(xSemaphoreTake(cfg->inst.semaphore, portMAX_DELAY) == pdFALSE &&
         !(__HAL_UART_GET_FLAG(&cfg->inst.USART_InitStruct, USART_ISR_RXNE))) {

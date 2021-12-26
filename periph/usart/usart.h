@@ -1,6 +1,7 @@
 #pragma once
 #include "stm32_base.h"
 #include "gpio.h"
+#include "dma.h"
 
 enum usart_state_t {
     USART_FREE,
@@ -18,8 +19,10 @@ struct usart_inst_t {
 
 typedef struct {
     USART_TypeDef *USART;
-    gpio_cfg_t *tx_cfg;
-    gpio_cfg_t *rx_cfg;
+    gpio_cfg_t *gpio_tx_cfg;
+    gpio_cfg_t *gpio_rx_cfg;
+    dma_cfg_t *dma_tx_cfg;
+    dma_cfg_t *dma_rx_cfg;
     int speed;
     int timeout;
     int priority;

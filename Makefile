@@ -25,6 +25,7 @@ SOURCES_C_PERIPH += $(wildcard $(DIR_PERIPH)/usart/*.c)
 SOURCES_C_PERIPH += $(wildcard $(DIR_PERIPH)/spi/*.c)
 SOURCES_C_PERIPH += $(wildcard $(DIR_PERIPH)/i2c/*.c)
 SOURCES_C_PERIPH += $(wildcard $(DIR_PERIPH)/adc/*.c)
+SOURCES_C_PERIPH += $(wildcard $(DIR_PERIPH)/dma/*.c)
 
 SOURCES_C_DRV += $(wildcard $(DIR_DRV)/cli/*.c)
 SOURCES_C_DRV += $(wildcard $(DIR_DRV)/icm20602/*.c)
@@ -53,6 +54,7 @@ INC_PERIPH += -I$(DIR_PERIPH)/usart
 INC_PERIPH += -I$(DIR_PERIPH)/spi
 INC_PERIPH += -I$(DIR_PERIPH)/i2c
 INC_PERIPH += -I$(DIR_PERIPH)/adc
+INC_PERIPH += -I$(DIR_PERIPH)/dma
 
 INC_DRV += -I$(DIR_DRV)/cli
 INC_DRV += -I$(DIR_DRV)/icm20602

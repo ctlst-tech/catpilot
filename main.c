@@ -24,7 +24,7 @@ int main(void) {
     HAL_Init();
     RCC_Init();
     xTaskCreate(Print, "Print", 512, NULL, 1, NULL);
-    xTaskCreate(Polling, "Polling", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
+    xTaskCreate(Polling, "Polling", 512, NULL, 1, NULL);
     vTaskStartScheduler();
     while(1) {
     }
