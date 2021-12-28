@@ -93,7 +93,7 @@ int USART_Receive(usart_cfg_t *cfg, uint8_t *pdata, uint16_t length) {
     
     HAL_UART_Receive_DMA(&cfg->inst.USART_InitStruct, pdata, length);
 
-    if(xSemaphoreTake(cfg->inst.semaphore, portMAX_DELAY) == pdFALSE) {
+    if(xSemaphoreTake(cfg->inst.semaphore, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
         rv = ETIMEDOUT;
     } else {
         rv = 0;
