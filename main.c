@@ -3,11 +3,9 @@
 #include "stm32_periph.h"
 
 void Receive(void *pvParameters) {
-    uint8_t data = 0x00;
+    uint8_t data;
+    USART_Receive(&cli_cfg, &data, 1);
     while(1) {
-        if(USART_Receive(&cli_cfg, &data, 1)) {
-            printf("\nReceived value = %d\n", data);
-        }
     }
 }
 
@@ -15,7 +13,6 @@ void Print(void *pvParameters) {
     CLI_Init();
     while(1) {
         vTaskDelay(1000);
-        // printf("\nSerial Console Test\n");
     }
 }
 
@@ -23,9 +20,9 @@ void Polling(void *pvParameters) {
     uint8_t reg;
     ICM20602_Init();
     while(1) {
-        vTaskDelay(200);
+        vTaskDelay(1000);
         reg = ICM20602_ReadReg((uint8_t)0x75);
-        // printf("\nICM20602 WHOAMI = 0x%x\n", reg);
+        printf("\nICM20602 WHOAMI = 0x%x\n", reg);
     }
 }
 
