@@ -12,6 +12,16 @@ int SPI_Init(spi_cfg_t *cfg) {
     if((rv = GPIO_Init(cfg->sck_cfg)) != 0) return rv;
     if((rv = GPIO_Init(cfg->cs_cfg)) != 0) return rv;
 
+    if(cfg->dma_mosi_cfg != NULL) {
+        cfg->dma_mosi_cfg->DMA_InitStruct.Parent = &cfg->inst.SPI_InitStruct;
+        if((rv = DMA_Init(cfg->dma_mosi_cfg)) != 0) return rv;
+    }
+
+    if(cfg->dma_miso_cfg != NULL) {
+        cfg->dma_miso_cfg->DMA_InitStruct.Parent = &cfg->inst.SPI_InitStruct;
+        if((rv = DMA_Init(cfg->dma_miso_cfg)) != 0) return rv;
+    }
+
     cfg->inst.SPI_InitStruct.Instance = cfg->SPI;
     cfg->inst.SPI_InitStruct.Init.Mode = SPI_MODE_MASTER;
     cfg->inst.SPI_InitStruct.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_16;
@@ -25,7 +35,11 @@ int SPI_Init(spi_cfg_t *cfg) {
     cfg->inst.SPI_InitStruct.Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
     cfg->inst.SPI_InitStruct.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
 
+    cfg->inst.SPI_InitStruct.hdmatx = &cfg->dma_mosi_cfg->DMA_InitStruct;
+    cfg->inst.SPI_InitStruct.hdmarx = &cfg->dma_miso_cfg->DMA_InitStruct;
+
     if(HAL_SPI_Init(&cfg->inst.SPI_InitStruct) != HAL_OK) return EINVAL;
+    SPI_EnableIRQ(cfg);
     
     if(cfg->inst.mutex == NULL) cfg->inst.mutex = xSemaphoreCreateMutex();
     if(cfg->inst.semaphore == NULL) cfg->inst.semaphore = xSemaphoreCreateBinary();
@@ -42,16 +56,73 @@ int SPI_ReInit(spi_cfg_t *cfg) {
 }
 
 int SPI_Transmit(spi_cfg_t *cfg, uint8_t *pdata, uint16_t length) {
-    HAL_SPI_Transmit(&cfg->inst.SPI_InitStruct, pdata, length, cfg->timeout);
-    return 0;
+    int rv = 0;
+
+    if(length == 0) return EINVAL;
+    if(pdata ==  NULL) return EINVAL;
+
+    if(xSemaphoreTake(cfg->inst.mutex, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
+        return ETIMEDOUT;
+    }
+
+    xSemaphoreTake(cfg->inst.semaphore, 0);
+    
+    cfg->inst.state = SPI_TRANSMIT;
+
+    HAL_SPI_Transmit_DMA(&cfg->inst.SPI_InitStruct, pdata, length);
+
+    if(xSemaphoreTake(cfg->inst.semaphore, pdMS_TO_TICKS(cfg->timeout))) {
+        rv = ETIMEDOUT;
+    } else {
+        rv = 0;
+    }
+
+    cfg->inst.state = SPI_FREE;
+    xSemaphoreGive(cfg->inst.mutex);
+
+    return rv;
 }
 
 int SPI_Receive(spi_cfg_t *cfg, uint8_t *pdata, uint16_t length) {
-    HAL_SPI_Receive(&cfg->inst.SPI_InitStruct, pdata, length, cfg->timeout);
-    return 0;
+    int rv = 0;
+
+    if(length == 0) return EINVAL;
+    if(pdata ==  NULL) return EINVAL;
+
+    if(xSemaphoreTake(cfg->inst.mutex, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
+        return ETIMEDOUT;
+    }
+
+    xSemaphoreTake(cfg->inst.semaphore, 0);
+
+    cfg->inst.state = SPI_RECEIVE;
+    
+    HAL_SPI_Receive_DMA(&cfg->inst.SPI_InitStruct, pdata, length);
+
+    if(xSemaphoreTake(cfg->inst.semaphore, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
+        rv = ETIMEDOUT;
+    } else {
+        rv = 0;
+    }
+
+    cfg->inst.state = SPI_FREE;
+    xSemaphoreGive(cfg->inst.mutex);
+
+    return rv;
 }
 
 int SPI_Handler(spi_cfg_t *cfg) {
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+
+    HAL_SPI_IRQHandler(&cfg->inst.SPI_InitStruct);
+
+    if(cfg->inst.SPI_InitStruct.State == HAL_UART_STATE_READY) {
+        xSemaphoreGiveFromISR(cfg->inst.semaphore, &xHigherPriorityTaskWoken);
+        if(xHigherPriorityTaskWoken == pdTRUE) {
+            portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+        }
+    }
+
     return 0;
 }
 
@@ -69,22 +140,22 @@ int SPI_DisableIRQ(spi_cfg_t *cfg)  {
 int SPI_ClockEnable(spi_cfg_t *cfg) {
     switch((uint32_t)(cfg->SPI)) {
 
-#ifdef USART1
+#ifdef SPI1
         case SPI1_BASE:
             __HAL_RCC_SPI1_CLK_ENABLE();
             cfg->inst.IRQ = SPI1_IRQn;
             break;
 #endif
 
-#ifdef USART2
-        case USART2_BASE:
+#ifdef SPI2
+        case SPI2_BASE:
             __HAL_RCC_SPI2_CLK_ENABLE();
             cfg->inst.IRQ = SPI2_IRQn;
             break;
 #endif
 
-#ifdef USART3
-        case USART3_BASE:
+#ifdef SPI3
+        case SPI3_BASE:
             __HAL_RCC_SPI3_CLK_ENABLE();
             cfg->inst.IRQ = SPI3_IRQn;
             break;

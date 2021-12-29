@@ -34,10 +34,18 @@ int DMA_DisableIRQ(dma_cfg_t *cfg)  {
 
 int DMA_IRQHandler(dma_cfg_t *cfg) {
     HAL_DMA_IRQHandler(&cfg->DMA_InitStruct);
+    return 0;
 }
 
 int DMA_ClockEnable(dma_cfg_t *cfg) {
     switch((uint32_t)(cfg->DMA_InitStruct.Instance)) {
+
+#ifdef DMA1_Stream0
+        case DMA1_Stream0_BASE:
+            __HAL_RCC_DMA1_CLK_ENABLE();
+            cfg->inst.IRQ = DMA1_Stream0_IRQn;
+            break;
+#endif    
 
 #ifdef DMA1_Stream1
         case DMA1_Stream1_BASE:
@@ -87,6 +95,13 @@ int DMA_ClockEnable(dma_cfg_t *cfg) {
             cfg->inst.IRQ = DMA1_Stream7_IRQn;
             break;
 #endif
+
+#ifdef DMA2_Stream0
+        case DMA2_Stream0_BASE:
+            __HAL_RCC_DMA2_CLK_ENABLE();
+            cfg->inst.IRQ = DMA2_Stream0_IRQn;
+            break;
+#endif    
 
 #ifdef DMA2_Stream1
         case DMA2_Stream1_BASE:

@@ -1,6 +1,7 @@
 #pragma once
 #include "stm32_base.h"
 #include "gpio.h"
+#include "dma.h"
 
 enum spi_state_t {
     SPI_FREE,
@@ -22,9 +23,12 @@ typedef struct {
     gpio_cfg_t *miso_cfg;
     gpio_cfg_t *sck_cfg;
     gpio_cfg_t *cs_cfg;
+    dma_cfg_t *dma_mosi_cfg;
+    dma_cfg_t *dma_miso_cfg;
     int timeout;
     int priority;
     struct spi_inst_t inst;
+    uint8_t buf[255];
 } spi_cfg_t;
 
 int SPI_Init(spi_cfg_t *cfg);

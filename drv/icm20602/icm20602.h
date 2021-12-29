@@ -4,7 +4,7 @@
 
 typedef struct {
     spi_cfg_t spi;
-    uint8_t data;
+    uint8_t data[255];
 } icm20602_cfg_t;
 
 int ICM20602_Init(void);
