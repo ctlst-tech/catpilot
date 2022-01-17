@@ -10,6 +10,7 @@ HEAP_SIZE = 0x400
 DIR_MCU = mcu/$(MCU)
 DIR_PERIPH = periph
 DIR_DRV = drv
+DIR_LIB = lib
 
 ################
 # Sources
@@ -31,6 +32,8 @@ SOURCES_C_PERIPH += $(wildcard $(DIR_PERIPH)/hal/*.c)
 SOURCES_C_DRV += $(wildcard $(DIR_DRV)/cli/*.c)
 SOURCES_C_DRV += $(wildcard $(DIR_DRV)/icm20602/*.c)
 
+#SOURCES_C_LIB += $(wildcard $(DIR_LIB)/bit/*.c)
+
 SOURCES_C_RTOS = $(wildcard freertos/core/src/*.c)
 SOURCES_C_RTOS += $(wildcard freertos/port/$(MCU)/*.c)
 SOURCES_C_HEAP = freertos/MemMang/heap_1.c
@@ -39,6 +42,7 @@ SOURCES_C += $(wildcard *.c)
 SOURCES_C += $(SOURCES_C_MCU)
 SOURCES_C += $(SOURCES_C_PERIPH)
 SOURCES_C += $(SOURCES_C_DRV)
+#SOURCES_C += $(SOURCES_C_LIB)
 SOURCES_C += $(SOURCES_C_RTOS)
 SOURCES_C += $(SOURCES_C_HEAP)
 
@@ -61,12 +65,15 @@ INC_PERIPH += -I$(DIR_PERIPH)/hal
 INC_DRV += -I$(DIR_DRV)/cli
 INC_DRV += -I$(DIR_DRV)/icm20602
 
+INC_LIB += -I$(DIR_LIB)/
+
 INC_RTOS = -Ifreertos/core/inc -Ifreertos/port/$(MCU)
 INC_CONF = -Iconf
 
 INCLUDES += $(INC_MCU)
 INCLUDES += $(INC_PERIPH)
 INCLUDES += $(INC_DRV)
+INCLUDES += $(INC_LIB)
 INCLUDES += $(INC_RTOS)
 INCLUDES += $(INC_CONF)
 

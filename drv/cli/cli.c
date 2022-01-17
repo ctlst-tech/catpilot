@@ -7,6 +7,8 @@ dma_cfg_t dma_cli_rx;
 
 usart_cfg_t cli_cfg;
 
+uint8_t data;
+
 int CLI_Init() {
     int rv = 0;
 
@@ -44,6 +46,8 @@ int CLI_Init() {
     dma_cli_rx.priority = 15;
 
     USART_Init(&cli_cfg);
+
+    USART_Receive(&cli_cfg, &data, 1);
 
     return rv;
 }

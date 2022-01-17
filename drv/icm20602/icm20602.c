@@ -19,6 +19,15 @@ dma_cfg_t dma_spi1_miso;
 
 icm20602_cfg_t icm20602_cfg;
 
+enum state_t {
+    ICM20602_RESET,
+    ICM20602_RESET_WAIT,
+    ICM20602_CONF,
+    ICM20602_FIFO_READ
+};
+
+enum state_t state;
+
 int ICM20602_Init() {
     int rv;
 
@@ -67,21 +76,82 @@ int ICM20602_Init() {
 
     rv = SPI_Init(&icm20602_cfg.spi);
 
+    state = ICM20602_RESET;
+
     return rv;
 }
 
+void ICM20602_Run() {
+    switch(state) {
+        case ICM20602_RESET:
+            ICM20602_WriteReg(PWR_MGMT_1, DEVICE_RESET);
+            state = ICM20602_RESET_WAIT;
+            vTaskDelay(2);
+            break;
+        case ICM20602_RESET_WAIT:
+            if ((ICM20602_ReadReg(WHO_AM_I) == WHOAMI)
+                && (ICM20602_ReadReg(PWR_MGMT_1) == 0x41)
+                && (ICM20602_ReadReg(CONFIG) == 0x80)) {
+                    ICM20602_WriteReg(I2C_IF, I2C_IF_DIS);
+                    ICM20602_WriteReg(PWR_MGMT_1, CLKSEL_0);
+                    ICM20602_WriteReg(SIGNAL_PATH_RESET, ACCEL_RST | TEMP_RST);
+                    ICM20602_SetClearReg(USER_CTRL, SIG_COND_RST, 0);
+                    state = ICM20602_CONF;
+                } else {
+                    vTaskDelay(1000);
+                }
+            break;
+        case ICM20602_CONF:
+            
+            break;
+        case ICM20602_FIFO_READ:
+            
+            break;
+    }
+}
+
 uint8_t ICM20602_ReadReg(uint8_t reg) {
-    uint8_t address = reg | icm20602_write_flag;
+    uint8_t cmd = reg | READ;
+    uint8_t data;
     // Chip selection
     GPIO_Reset(icm20602_cfg.spi.cs_cfg);
     // Transmit one byte with DMA
-    SPI_Transmit(&icm20602_cfg.spi, &address, 1);
+    SPI_Transmit(&icm20602_cfg.spi, &cmd, 1);
     // Receive one byte with DMA
-    SPI_Receive(&icm20602_cfg.spi, icm20602_cfg.data, 1);
+    SPI_Receive(&icm20602_cfg.spi, &data, 1);
     // Chip deselection
     GPIO_Set(icm20602_cfg.spi.cs_cfg);
+    return data;
+}
 
-    return icm20602_cfg.data[0];
+void ICM20602_WriteReg(uint8_t reg, uint8_t value) {
+    uint8_t data[2];
+    data[0] = reg;
+    data[1] = value;
+    // Chip selection
+    GPIO_Reset(icm20602_cfg.spi.cs_cfg);
+    // Transmit two bytes with DMA
+    SPI_Transmit(&icm20602_cfg.spi, &data, 2);
+    // Chip deselection
+    GPIO_Set(icm20602_cfg.spi.cs_cfg);
+}
+
+void ICM20602_SetClearReg(uint8_t reg, uint8_t setbits, uint8_t clearbits) {
+    uint8_t orig_val = ICM20602_ReadReg(reg);
+    uint8_t val = (orig_val & ~clearbits) | setbits;
+    if (orig_val != val) {
+        ICM20602_WriteReg(reg, val);
+    }
+}
+
+int ICM20602_Probe() {
+    uint8_t whoami;
+    whoami = ICM20602_ReadReg(WHO_AM_I);
+    if(whoami != WHOAMI) {
+        printf("unexpected WHO_AM_I reg 0x%02x", whoami);
+        return ENODEV;
+    }
+    return 0;
 }
 
 void SPI1_IRQHandler(void) {

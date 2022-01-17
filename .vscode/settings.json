@@ -15,6 +15,7 @@
         "gpio_cfg.h": "c",
         "stm32_periph.h": "c",
         "usart.h": "c",
-        "stm32_base.h": "c"
+        "stm32_base.h": "c",
+        "bit.h": "c"
     }
 }

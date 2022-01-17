@@ -1,37 +1,29 @@
 #include "stm32_base.h"
 #include "stm32_drv.h"
 #include "stm32_periph.h"
+#include "icm20602_reg.h"
 
-void Receive(void *pvParameters) {
-    uint8_t data;
-    USART_Receive(&cli_cfg, &data, 1);
-    while(1) {
-    }
-}
-
-void Print(void *pvParameters) {
+void Echo(void *pvParameters) {
     CLI_Init();
     while(1) {
         vTaskDelay(1000);
     }
 }
 
-void Polling(void *pvParameters) {
-    uint8_t reg;
+void Gyro(void *pvParameters) {
+    uint8_t high;
+    uint8_t low;
     ICM20602_Init();
     while(1) {
-        vTaskDelay(1000);
-        reg = ICM20602_ReadReg((uint8_t)0x75);
-        printf("\nICM20602 WHOAMI = 0x%x\n", reg);
+        ICM20602_Run();
     }
 }
 
 int main(void) {
     HAL_Init();
     RCC_Init();
-    xTaskCreate(Print, "Print", 512, NULL, 2, NULL);
-    xTaskCreate(Polling, "Polling", 512, NULL, 2, NULL);
-    xTaskCreate(Receive, "Receive", 512, NULL, 1, NULL);
+    xTaskCreate(Echo, "Echo", 512, NULL, 1, NULL);
+    xTaskCreate(Gyro, "Gyro", 512, NULL, 2, NULL);
     vTaskStartScheduler();
     while(1) {
     }
