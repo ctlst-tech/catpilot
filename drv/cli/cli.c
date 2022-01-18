@@ -7,10 +7,9 @@ dma_cfg_t dma_cli_rx;
 
 usart_cfg_t cli_cfg;
 
-uint8_t data;
-
 int CLI_Init() {
     int rv = 0;
+    uint8_t data;
 
     cli_cfg.USART = UART7;
     cli_cfg.gpio_tx_cfg = &gpio_cli_tx;

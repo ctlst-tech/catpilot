@@ -8,3 +8,5 @@
 #define BIT5 (1 << 5)
 #define BIT6 (1 << 6)
 #define BIT7 (1 << 7)
+
+uint16_t msblsb16(uint8_t msb, uint8_t lsb);

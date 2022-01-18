@@ -138,7 +138,7 @@ static const reg_cfg_t reg_cfg[SIZE_REG_CFG] = {
     {INT_ENABLE,    0, DATA_RDY_INT_EN},
     {FIFO_WM_TH1,   0, 0},
     {FIFO_WM_TH2,   0, 0},
-    {USER_CTRL,     FIFO_EN, 0},
+    {USER_CTRL,     USR_CTRL_FIFO_EN, 0},
     {PWR_MGMT_1,    CLKSEL_0, SLEEP},
     {I2C_IF,        I2C_IF_DIS, 0},
     {XG_OFFS_TC_H,  0, 0},

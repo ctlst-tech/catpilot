@@ -32,7 +32,7 @@ SOURCES_C_PERIPH += $(wildcard $(DIR_PERIPH)/hal/*.c)
 SOURCES_C_DRV += $(wildcard $(DIR_DRV)/cli/*.c)
 SOURCES_C_DRV += $(wildcard $(DIR_DRV)/icm20602/*.c)
 
-#SOURCES_C_LIB += $(wildcard $(DIR_LIB)/bit/*.c)
+SOURCES_C_LIB += $(wildcard $(DIR_LIB)/*.c)
 
 SOURCES_C_RTOS = $(wildcard freertos/core/src/*.c)
 SOURCES_C_RTOS += $(wildcard freertos/port/$(MCU)/*.c)
@@ -42,7 +42,7 @@ SOURCES_C += $(wildcard *.c)
 SOURCES_C += $(SOURCES_C_MCU)
 SOURCES_C += $(SOURCES_C_PERIPH)
 SOURCES_C += $(SOURCES_C_DRV)
-#SOURCES_C += $(SOURCES_C_LIB)
+SOURCES_C += $(SOURCES_C_LIB)
 SOURCES_C += $(SOURCES_C_RTOS)
 SOURCES_C += $(SOURCES_C_HEAP)
 
@@ -111,7 +111,7 @@ CFLAGS_EXTRA = -nostartfiles -nodefaultlibs -nostdlib \
 CFLAGS += $(DEFINES) $(MCUFLAGS) $(DEBUG_OPTIMIZE_FLAGS) $(CFLAGS_EXTRA) $(INCLUDES)
 
 LDFLAGS = -specs=nano.specs -specs=nosys.specs $(MCUFLAGS) -Wl,--start-group -lgcc -lc -lg -Wl,--end-group \
-          -Wl,--gc-sections -T mcu/$(MCU)/core/STM32F765_FLASH.ld
+          -Wl,--gc-sections -u _printf_float -T mcu/$(MCU)/core/STM32F765_FLASH.ld
 
 .PHONY: dirs all clean flash erase
 

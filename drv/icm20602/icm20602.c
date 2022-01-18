@@ -83,11 +83,13 @@ int ICM20602_Init() {
 
 void ICM20602_Run() {
     switch(state) {
+
         case ICM20602_RESET:
             ICM20602_WriteReg(PWR_MGMT_1, DEVICE_RESET);
             state = ICM20602_RESET_WAIT;
             vTaskDelay(2);
             break;
+            
         case ICM20602_RESET_WAIT:
             if ((ICM20602_ReadReg(WHO_AM_I) == WHOAMI)
                 && (ICM20602_ReadReg(PWR_MGMT_1) == 0x41)
@@ -97,15 +99,24 @@ void ICM20602_Run() {
                     ICM20602_WriteReg(SIGNAL_PATH_RESET, ACCEL_RST | TEMP_RST);
                     ICM20602_SetClearReg(USER_CTRL, SIG_COND_RST, 0);
                     state = ICM20602_CONF;
+                    vTaskDelay(1000);
                 } else {
                     vTaskDelay(1000);
                 }
             break;
+
         case ICM20602_CONF:
-            
+            if(ICM20602_Configure()) {
+                state = ICM20602_FIFO_READ;
+                ICM20602_FIFOReset();
+            } else {
+                state = ICM20602_RESET;
+                vTaskDelay(1000);
+            }
             break;
+
         case ICM20602_FIFO_READ:
-            
+            ICM20602_FIFORead();
             break;
     }
 }
@@ -131,7 +142,7 @@ void ICM20602_WriteReg(uint8_t reg, uint8_t value) {
     // Chip selection
     GPIO_Reset(icm20602_cfg.spi.cs_cfg);
     // Transmit two bytes with DMA
-    SPI_Transmit(&icm20602_cfg.spi, &data, 2);
+    SPI_Transmit(&icm20602_cfg.spi, data, 2);
     // Chip deselection
     GPIO_Set(icm20602_cfg.spi.cs_cfg);
 }
@@ -141,6 +152,89 @@ void ICM20602_SetClearReg(uint8_t reg, uint8_t setbits, uint8_t clearbits) {
     uint8_t val = (orig_val & ~clearbits) | setbits;
     if (orig_val != val) {
         ICM20602_WriteReg(reg, val);
+    }
+}
+
+int ICM20602_Configure() {
+    uint8_t orig_val;
+    int rv = 1;
+
+    // Set configure
+    for(int i = 0; i < SIZE_REG_CFG; i++) {
+        ICM20602_SetClearReg(reg_cfg[i].reg, reg_cfg[i].setbits, reg_cfg[i].clearbits);
+    }
+
+    // Check
+    for(int i = 0; i < SIZE_REG_CFG; i++) {
+        orig_val = ICM20602_ReadReg(reg_cfg[i].reg);
+
+        if((orig_val & reg_cfg[i].setbits) != reg_cfg[i].setbits) {
+            printf("\n0x%02x: 0x%02x (0x%02x not set)\n", 
+            (uint8_t)reg_cfg[i].reg, orig_val, reg_cfg[i].setbits);
+            rv = 0;
+        }
+
+        if((orig_val & reg_cfg[i].clearbits) != 0) {
+            printf("\n0x%02x: 0x%02x (0x%02x not cleared)\n", 
+            (uint8_t)reg_cfg[i].reg, orig_val, reg_cfg[i].clearbits);
+            rv = 0;
+        }
+    }
+
+    return rv;
+}
+
+uint16_t ICM20602_FIFOCount() {
+    uint8_t cmd = FIFO_COUNTH | READ;
+    uint8_t data[3];
+    GPIO_Reset(icm20602_cfg.spi.cs_cfg);
+    SPI_Transmit(&icm20602_cfg.spi, &cmd, 1);
+    SPI_Receive(&icm20602_cfg.spi, data, 3);
+    GPIO_Set(icm20602_cfg.spi.cs_cfg);
+    return (msblsb16(data[0], data[1]));
+}
+
+uint8_t data[255];
+
+int ICM20602_FIFORead() {
+    uint16_t bytes = ICM20602_FIFOCount();
+    uint16_t samples = bytes / sizeof(FIFO_t);
+    
+    uint8_t cmd = FIFO_COUNTH | READ;
+
+    uint8_t intrr = ICM20602_ReadReg(0x3a);
+
+    // Chip selection
+    GPIO_Reset(icm20602_cfg.spi.cs_cfg);
+    // Transmit cmd
+    SPI_Transmit(&icm20602_cfg.spi, &cmd, 1);
+    // Receive
+    SPI_Receive(&icm20602_cfg.spi, data, bytes);
+    // Chip deselection
+    GPIO_Set(icm20602_cfg.spi.cs_cfg);
+
+    int16_t accel_uint16_t = msblsb16(data[2], data[3]);
+    float accel_x = accel_uint16_t * 9.801 / 2048.f;
+
+    int16_t temp_uint16_t = msblsb16(data[8], data[9]);
+    float temp = temp_uint16_t / TEMP_SENS + TEMP_OFFSET;
+
+    printf("\naccel_x = %.2f\n", accel_x);
+    printf("\ntemp = %.2f\n", temp);
+
+    // int16_t comb = (int16_t)msblsb16(data[0], data[1]);
+    // float x =  comb * 2000 / 32768.f;
+    return 0;
+}
+
+void ICM20602_FIFOReset() {
+    ICM20602_WriteReg(FIFO_EN, 0);
+    ICM20602_SetClearReg(USER_CTRL, USR_CTRL_FIFO_RST, USR_CTRL_FIFO_EN);
+    
+    for(int i = 0; i < SIZE_REG_CFG; i++) {
+        if(reg_cfg[i].reg == FIFO_EN || reg_cfg[i].reg == USER_CTRL) {
+            ICM20602_SetClearReg(reg_cfg[i].reg, reg_cfg[i].setbits, reg_cfg[i].clearbits);
+        }    
     }
 }
 
