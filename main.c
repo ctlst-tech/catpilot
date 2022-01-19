@@ -6,13 +6,10 @@
 void Echo(void *pvParameters) {
     CLI_Init();
     while(1) {
-        vTaskDelay(1000);
     }
 }
 
 void Gyro(void *pvParameters) {
-    uint8_t high;
-    uint8_t low;
     ICM20602_Init();
     while(1) {
         ICM20602_Run();

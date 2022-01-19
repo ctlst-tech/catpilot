@@ -1,4 +1,3 @@
-#include "stm32_base.h"
 #include "gpio.h"
 
 int GPIO_Init(gpio_cfg_t *cfg) {

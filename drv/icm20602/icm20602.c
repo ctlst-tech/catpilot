@@ -5,7 +5,7 @@ gpio_cfg_t icm20602_mosi = GPIO_SPI1_MOSI;
 gpio_cfg_t icm20602_miso = GPIO_SPI1_MISO;
 gpio_cfg_t icm20602_sck  = GPIO_SPI1_SCK;
 gpio_cfg_t icm20602_cs   = GPIO_SPI1_CS2;
-gpio_cfg_t icm20602_drdy = GPIO_SPI1_DRDY2;
+exti_cfg_t icm20602_drdy = GPIO_SPI1_DRDY2;
 
 // Others sensors on this SPI bus
 // TODO move to driver sources
@@ -18,6 +18,7 @@ dma_cfg_t dma_spi1_mosi;
 dma_cfg_t dma_spi1_miso;
 
 icm20602_cfg_t icm20602_cfg;
+FIFOBuffer_t icm_20602_FIFO;
 
 enum state_t {
     ICM20602_RESET,
@@ -29,7 +30,7 @@ enum state_t {
 enum state_t state;
 
 int ICM20602_Init() {
-    int rv;
+    int rv = 0;
 
     // Chip deselect
     GPIO_Init(&cs1);
@@ -74,8 +75,9 @@ int ICM20602_Init() {
     dma_spi1_miso.DMA_InitStruct.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
     dma_spi1_miso.priority = 15;
 
-    rv = SPI_Init(&icm20602_cfg.spi);
-
+    rv |= SPI_Init(&icm20602_cfg.spi);
+    rv |= EXTI_Init(&icm20602_drdy);
+    
     state = ICM20602_RESET;
 
     return rv;
@@ -181,20 +183,60 @@ int ICM20602_Configure() {
         }
     }
 
+    // Set scale and range for processing
+    ICM20602_AccelConfigure();
+    ICM20602_GyroConfigure();
+
     return rv;
+}
+
+void ICM20602_AccelConfigure() {
+
+    const uint8_t ACCEL_FS_SEL = ICM20602_ReadReg(ACCEL_CONFIG) & (BIT4 | BIT3);
+
+    if(ACCEL_FS_SEL == ACCEL_FS_SEL_2G) {
+        icm20602_cfg.dim.accel_scale = (CONST_G / 16384.f);
+        icm20602_cfg.dim.accel_range = (2.f * CONST_G);
+    } else if(ACCEL_FS_SEL == ACCEL_FS_SEL_4G) {
+        icm20602_cfg.dim.accel_scale = (CONST_G / 8192.f);
+        icm20602_cfg.dim.accel_range = (4.f * CONST_G);
+    } else if(ACCEL_FS_SEL == ACCEL_FS_SEL_8G) {
+        icm20602_cfg.dim.accel_scale = (CONST_G / 4096.f);
+        icm20602_cfg.dim.accel_range = (8.f * CONST_G);
+    } else if(ACCEL_FS_SEL == ACCEL_FS_SEL_16G) {
+        icm20602_cfg.dim.accel_scale = (CONST_G / 2048.f);
+        icm20602_cfg.dim.accel_range = (16.f * CONST_G);
+    }
+}
+
+void ICM20602_GyroConfigure() {
+
+    const uint8_t FS_SEL = ICM20602_ReadReg(GYRO_CONFIG) & (BIT4 | BIT3);
+
+    if(FS_SEL == FS_SEL_250_DPS) {
+        icm20602_cfg.dim.gyro_range = 250.f;
+    } else if(FS_SEL == FS_SEL_500_DPS) {
+        icm20602_cfg.dim.gyro_range = 500.f;
+    } else if(FS_SEL == FS_SEL_1000_DPS) {
+        icm20602_cfg.dim.gyro_range = 1000.f;
+    } else if(FS_SEL == FS_SEL_2000_DPS) {
+        icm20602_cfg.dim.gyro_range = 2000.f;
+    }
+
+    icm20602_cfg.dim.gyro_scale = (icm20602_cfg.dim.gyro_range / 32768.f);
 }
 
 uint16_t ICM20602_FIFOCount() {
     uint8_t cmd = FIFO_COUNTH | READ;
-    uint8_t data[3];
+    uint8_t data[2];
+
     GPIO_Reset(icm20602_cfg.spi.cs_cfg);
     SPI_Transmit(&icm20602_cfg.spi, &cmd, 1);
-    SPI_Receive(&icm20602_cfg.spi, data, 3);
+    SPI_Receive(&icm20602_cfg.spi, data, 2);
     GPIO_Set(icm20602_cfg.spi.cs_cfg);
+
     return (msblsb16(data[0], data[1]));
 }
-
-uint8_t data[255];
 
 int ICM20602_FIFORead() {
     uint16_t bytes = ICM20602_FIFOCount();
@@ -202,28 +244,46 @@ int ICM20602_FIFORead() {
     
     uint8_t cmd = FIFO_COUNTH | READ;
 
-    uint8_t intrr = ICM20602_ReadReg(0x3a);
-
     // Chip selection
     GPIO_Reset(icm20602_cfg.spi.cs_cfg);
     // Transmit cmd
     SPI_Transmit(&icm20602_cfg.spi, &cmd, 1);
     // Receive
-    SPI_Receive(&icm20602_cfg.spi, data, bytes);
+    SPI_Receive(&icm20602_cfg.spi, (uint8_t *)&icm_20602_FIFO, bytes);
     // Chip deselection
     GPIO_Set(icm20602_cfg.spi.cs_cfg);
 
-    int16_t accel_uint16_t = msblsb16(data[2], data[3]);
-    float accel_x = accel_uint16_t * 9.801 / 2048.f;
+    int16_t accel_x_int16 = msblsb16(icm_20602_FIFO.buf[0].ACCEL_XOUT_H, icm_20602_FIFO.buf[0].ACCEL_XOUT_L);
+    float accel_x = accel_x_int16 * icm20602_cfg.dim.accel_scale;
 
-    int16_t temp_uint16_t = msblsb16(data[8], data[9]);
+    int16_t accel_y_int16 = msblsb16(icm_20602_FIFO.buf[0].ACCEL_YOUT_H, icm_20602_FIFO.buf[0].ACCEL_YOUT_L);
+    float accel_y = accel_y_int16 * icm20602_cfg.dim.accel_scale;
+
+    int16_t accel_z_int16 = msblsb16(icm_20602_FIFO.buf[0].ACCEL_ZOUT_H, icm_20602_FIFO.buf[0].ACCEL_ZOUT_L);
+    float accel_z = accel_z_int16 * icm20602_cfg.dim.accel_scale;
+
+    int16_t gyro_x_int16 = msblsb16(icm_20602_FIFO.buf[0].GYRO_XOUT_H, icm_20602_FIFO.buf[0].GYRO_XOUT_L);
+    float gyro_x = gyro_x_int16 * icm20602_cfg.dim.gyro_scale;
+
+    int16_t gyro_y_int16 = msblsb16(icm_20602_FIFO.buf[0].GYRO_YOUT_H, icm_20602_FIFO.buf[0].GYRO_YOUT_L);
+    float gyro_y = gyro_y_int16 * icm20602_cfg.dim.gyro_scale;
+
+    int16_t gyro_z_int16 = msblsb16(icm_20602_FIFO.buf[0].GYRO_ZOUT_H, icm_20602_FIFO.buf[0].GYRO_ZOUT_L);
+    float gyro_z = gyro_z_int16 * icm20602_cfg.dim.gyro_scale;
+
+    int16_t temp_uint16_t = msblsb16(icm_20602_FIFO.buf[0].TEMP_H, icm_20602_FIFO.buf[0].TEMP_L);
     float temp = temp_uint16_t / TEMP_SENS + TEMP_OFFSET;
 
+#ifdef ICM20602_DEBUG
     printf("\naccel_x = %.2f\n", accel_x);
+    printf("\naccel_y = %.2f\n", accel_y);
+    printf("\naccel_z = %.2f\n", accel_z);
+    printf("\ngyro_x  = %.2f\n", gyro_x);
+    printf("\ngyro_y  = %.2f\n", gyro_y);
+    printf("\ngyro_z  = %.2f\n", gyro_z);
     printf("\ntemp = %.2f\n", temp);
+#endif
 
-    // int16_t comb = (int16_t)msblsb16(data[0], data[1]);
-    // float x =  comb * 2000 / 32768.f;
     return 0;
 }
 
@@ -236,6 +296,10 @@ void ICM20602_FIFOReset() {
             ICM20602_SetClearReg(reg_cfg[i].reg, reg_cfg[i].setbits, reg_cfg[i].clearbits);
         }    
     }
+}
+
+void ICM20602_AccelProcess(){
+
 }
 
 int ICM20602_Probe() {

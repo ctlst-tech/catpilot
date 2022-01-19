@@ -22,6 +22,7 @@ SOURCES_C_MCU += $(wildcard $(DIR_MCU)/hal/src/*.c)
 
 SOURCES_C_PERIPH += $(wildcard $(DIR_PERIPH)/rcc/*.c)
 SOURCES_C_PERIPH += $(wildcard $(DIR_PERIPH)/gpio/*.c)
+SOURCES_C_PERIPH += $(wildcard $(DIR_PERIPH)/exti/*.c)
 SOURCES_C_PERIPH += $(wildcard $(DIR_PERIPH)/usart/*.c)
 SOURCES_C_PERIPH += $(wildcard $(DIR_PERIPH)/spi/*.c)
 SOURCES_C_PERIPH += $(wildcard $(DIR_PERIPH)/i2c/*.c)
@@ -55,6 +56,7 @@ INC_MCU = -I$(DIR_MCU)/core -I$(DIR_MCU)/hal/inc
 
 INC_PERIPH += -I$(DIR_PERIPH)/rcc
 INC_PERIPH += -I$(DIR_PERIPH)/gpio
+INC_PERIPH += -I$(DIR_PERIPH)/exti
 INC_PERIPH += -I$(DIR_PERIPH)/usart
 INC_PERIPH += -I$(DIR_PERIPH)/spi
 INC_PERIPH += -I$(DIR_PERIPH)/i2c

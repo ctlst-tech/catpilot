@@ -1,3 +1,4 @@
+#pragma once
 #include "stm32_base.h"
 
 #define BIT0 (1 << 0)

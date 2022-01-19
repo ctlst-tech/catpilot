@@ -87,7 +87,7 @@ type_t CLKSEL_0             = BIT0;
 type_t I2C_IF_DIS           = BIT6;
 
 // Registers values
-type_t WHOAMI      = 0x12;
+type_t WHOAMI               = 0x12;
 
 // Temp settings
 static const float TEMP_SENS     = 326.8f;
@@ -96,7 +96,7 @@ static const float TEMP_SENS_MIN = -40.f;
 static const float TEMP_SENS_MAX = 85.f;
 
 // FIFO settings
-static const size_t FIFO_SIZE = 1008;
+#define FIFO_SIZE 1008
 
 // Register read/write flag
 type_t READ = 0x80;
@@ -154,3 +154,9 @@ static const reg_cfg_t reg_cfg[SIZE_REG_CFG] = {
     {ZA_OFFSET_H,   0, 0},
     {ZA_OFFSET_L,   0, 0},
 };
+
+typedef struct {
+    uint8_t COUNTH;
+    uint8_t COUNTL;
+    FIFO_t buf[FIFO_SIZE / sizeof(FIFO_t)];
+} FIFOBuffer_t;
