@@ -1,11 +1,14 @@
 #include "icm20602.h"
 #include "icm20602_reg.h"
 
+static SemaphoreHandle_t drdy_semaphore;
+
 gpio_cfg_t icm20602_mosi = GPIO_SPI1_MOSI;
 gpio_cfg_t icm20602_miso = GPIO_SPI1_MISO;
 gpio_cfg_t icm20602_sck  = GPIO_SPI1_SCK;
 gpio_cfg_t icm20602_cs   = GPIO_SPI1_CS2;
-exti_cfg_t icm20602_drdy = GPIO_SPI1_DRDY2;
+
+exti_cfg_t icm20602_drdy = EXTI_SPI1_DRDY2;
 
 // Others sensors on this SPI bus
 // TODO move to driver sources
@@ -18,7 +21,11 @@ dma_cfg_t dma_spi1_mosi;
 dma_cfg_t dma_spi1_miso;
 
 icm20602_cfg_t icm20602_cfg;
-FIFOBuffer_t icm_20602_FIFO;
+
+FIFOBuffer_t FIFOBuffer;
+FIFOParam_t FIFOParam;
+
+icm20602_fifo_t icm20602_fifo;
 
 enum state_t {
     ICM20602_RESET,
@@ -75,6 +82,9 @@ int ICM20602_Init() {
     dma_spi1_miso.DMA_InitStruct.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
     dma_spi1_miso.priority = 15;
 
+    if(drdy_semaphore == NULL) drdy_semaphore = xSemaphoreCreateBinary();
+    xSemaphoreTake(drdy_semaphore, 0);
+
     rv |= SPI_Init(&icm20602_cfg.spi);
     rv |= EXTI_Init(&icm20602_drdy);
     
@@ -118,7 +128,11 @@ void ICM20602_Run() {
             break;
 
         case ICM20602_FIFO_READ:
-            ICM20602_FIFORead();
+            if(xSemaphoreTake(drdy_semaphore, portMAX_DELAY)) {
+                ICM20602_FIFORead();
+            } else {
+
+            }
             break;
     }
 }
@@ -239,8 +253,8 @@ uint16_t ICM20602_FIFOCount() {
 }
 
 int ICM20602_FIFORead() {
-    uint16_t bytes = ICM20602_FIFOCount();
-    uint16_t samples = bytes / sizeof(FIFO_t);
+    FIFOParam.bytes = ICM20602_FIFOCount();
+    FIFOParam.samples = FIFOParam.bytes / sizeof(FIFO_t);
     
     uint8_t cmd = FIFO_COUNTH | READ;
 
@@ -249,40 +263,23 @@ int ICM20602_FIFORead() {
     // Transmit cmd
     SPI_Transmit(&icm20602_cfg.spi, &cmd, 1);
     // Receive
-    SPI_Receive(&icm20602_cfg.spi, (uint8_t *)&icm_20602_FIFO, bytes);
+    SPI_Receive(&icm20602_cfg.spi, (uint8_t *)&FIFOBuffer, FIFOParam.bytes);
     // Chip deselection
     GPIO_Set(icm20602_cfg.spi.cs_cfg);
 
-    int16_t accel_x_int16 = msblsb16(icm_20602_FIFO.buf[0].ACCEL_XOUT_H, icm_20602_FIFO.buf[0].ACCEL_XOUT_L);
-    float accel_x = accel_x_int16 * icm20602_cfg.dim.accel_scale;
+    ICM20602_TempProcess();
+    ICM20602_AccelProcess();
+    ICM20602_GyroProcess();
 
-    int16_t accel_y_int16 = msblsb16(icm_20602_FIFO.buf[0].ACCEL_YOUT_H, icm_20602_FIFO.buf[0].ACCEL_YOUT_L);
-    float accel_y = accel_y_int16 * icm20602_cfg.dim.accel_scale;
-
-    int16_t accel_z_int16 = msblsb16(icm_20602_FIFO.buf[0].ACCEL_ZOUT_H, icm_20602_FIFO.buf[0].ACCEL_ZOUT_L);
-    float accel_z = accel_z_int16 * icm20602_cfg.dim.accel_scale;
-
-    int16_t gyro_x_int16 = msblsb16(icm_20602_FIFO.buf[0].GYRO_XOUT_H, icm_20602_FIFO.buf[0].GYRO_XOUT_L);
-    float gyro_x = gyro_x_int16 * icm20602_cfg.dim.gyro_scale;
-
-    int16_t gyro_y_int16 = msblsb16(icm_20602_FIFO.buf[0].GYRO_YOUT_H, icm_20602_FIFO.buf[0].GYRO_YOUT_L);
-    float gyro_y = gyro_y_int16 * icm20602_cfg.dim.gyro_scale;
-
-    int16_t gyro_z_int16 = msblsb16(icm_20602_FIFO.buf[0].GYRO_ZOUT_H, icm_20602_FIFO.buf[0].GYRO_ZOUT_L);
-    float gyro_z = gyro_z_int16 * icm20602_cfg.dim.gyro_scale;
-
-    int16_t temp_uint16_t = msblsb16(icm_20602_FIFO.buf[0].TEMP_H, icm_20602_FIFO.buf[0].TEMP_L);
-    float temp = temp_uint16_t / TEMP_SENS + TEMP_OFFSET;
-
-#ifdef ICM20602_DEBUG
-    printf("\naccel_x = %.2f\n", accel_x);
-    printf("\naccel_y = %.2f\n", accel_y);
-    printf("\naccel_z = %.2f\n", accel_z);
-    printf("\ngyro_x  = %.2f\n", gyro_x);
-    printf("\ngyro_y  = %.2f\n", gyro_y);
-    printf("\ngyro_z  = %.2f\n", gyro_z);
-    printf("\ntemp = %.2f\n", temp);
-#endif
+// #ifdef ICM20602_DEBUG
+//     printf("\naccel_x = %.2f\n", accel_x);
+//     printf("\naccel_y = %.2f\n", accel_y);
+//     printf("\naccel_z = %.2f\n", accel_z);
+//     printf("\ngyro_x  = %.2f\n", gyro_x);
+//     printf("\ngyro_y  = %.2f\n", gyro_y);
+//     printf("\ngyro_z  = %.2f\n", gyro_z);
+//     printf("\ntemp = %.2f\n", temp);
+// #endif
 
     return 0;
 }
@@ -299,7 +296,41 @@ void ICM20602_FIFOReset() {
 }
 
 void ICM20602_AccelProcess(){
+	for (int i = 0; i < FIFOParam.samples; i++) {
+		int16_t accel_x = msblsb16(FIFOBuffer.buf[i].ACCEL_XOUT_H, FIFOBuffer.buf[i].ACCEL_XOUT_L);
+		int16_t accel_y = msblsb16(FIFOBuffer.buf[i].ACCEL_YOUT_H, FIFOBuffer.buf[i].ACCEL_YOUT_L);
+		int16_t accel_z = msblsb16(FIFOBuffer.buf[i].ACCEL_ZOUT_H, FIFOBuffer.buf[i].ACCEL_ZOUT_L);
 
+		icm20602_fifo.accel_x[i] = accel_x;
+		icm20602_fifo.accel_y[i] = (accel_y == INT16_MIN) ? INT16_MAX : -accel_y;
+		icm20602_fifo.accel_z[i] = (accel_z == INT16_MIN) ? INT16_MAX : -accel_z;
+	}
+}
+
+void ICM20602_GyroProcess(){
+	for (int i = 0; i < FIFOParam.samples; i++) {
+		int16_t gyro_x = msblsb16(FIFOBuffer.buf[i].GYRO_XOUT_H, FIFOBuffer.buf[i].GYRO_XOUT_L);
+		int16_t gyro_y = msblsb16(FIFOBuffer.buf[i].GYRO_YOUT_H, FIFOBuffer.buf[i].GYRO_YOUT_L);
+		int16_t gyro_z = msblsb16(FIFOBuffer.buf[i].GYRO_ZOUT_H, FIFOBuffer.buf[i].GYRO_ZOUT_L);
+
+		icm20602_fifo.gyro_x[i] = gyro_x;
+		icm20602_fifo.gyro_y[i] = (gyro_y == INT16_MIN) ? INT16_MAX : -gyro_y;
+		icm20602_fifo.gyro_z[i] = (gyro_z == INT16_MIN) ? INT16_MAX : -gyro_z;
+	}
+}
+
+void ICM20602_TempProcess(){
+	float temperature_sum;
+
+	for (int i = 0; i < FIFOParam.samples; i++) {
+		const int16_t t = msblsb16(FIFOBuffer.buf[i].TEMP_H, FIFOBuffer.buf[i].TEMP_L);
+		temperature_sum += t;
+	}
+
+	const float temperature_avg = temperature_sum / FIFOParam.samples;
+    const float temperature_C = (temperature_avg / TEMP_SENS) + TEMP_OFFSET;
+
+    icm20602_fifo.temp = temperature_C;
 }
 
 int ICM20602_Probe() {
@@ -312,6 +343,18 @@ int ICM20602_Probe() {
     return 0;
 }
 
+void ICM20602_DataReadyHandler() {
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    
+    xSemaphoreGiveFromISR(drdy_semaphore, &xHigherPriorityTaskWoken);
+
+    HAL_EXTI_ClearPending((EXTI_HandleTypeDef *)&icm20602_drdy.EXTI_Handle, EXTI_TRIGGER_RISING_FALLING);
+
+    if(xHigherPriorityTaskWoken == pdTRUE) {
+        portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+    }
+}
+
 void SPI1_IRQHandler(void) {
     SPI_Handler(&icm20602_cfg.spi);
 }
@@ -322,4 +365,18 @@ void DMA2_Stream3_IRQHandler(void) {
 
 void DMA2_Stream0_IRQHandler(void) {
     DMA_IRQHandler(&dma_spi1_miso);
+}
+
+void EXTI9_5_IRQHandler(void) {
+    uint32_t line;
+
+    line = EXTI->PR;
+
+    switch(line) {
+        case GPIO_PIN_5:
+            ICM20602_DataReadyHandler();
+            break;
+        default:
+            break;
+    }
 }

@@ -4,16 +4,11 @@ int EXTI_Init(exti_cfg_t *cfg) {
     int rv = 0;
     if(cfg == NULL) return EINVAL;
     if((rv = GPIO_Init(&cfg->gpio)) != 0) return rv;
-    if((rv = EXTI_EnableIRQ(cfg)) != 0) return rv;
     rv = HAL_EXTI_SetConfigLine((EXTI_HandleTypeDef *)&cfg->EXTI_Handle, 
                                 (EXTI_ConfigTypeDef *)&cfg->EXTI_ConfigStruct);
-    return rv;
-}
-
-int EXTI_EnableIRQ(exti_cfg_t *cfg) {
-
-    int rv = 0;
-
+    
+    if(rv != 0) return rv;
+    
     if(cfg->gpio.GPIO_InitStruct.Pin == GPIO_PIN_0) {
         cfg->IRQ = EXTI0_IRQn;
     } else if(cfg->gpio.GPIO_InitStruct.Pin == GPIO_PIN_1) {
@@ -33,10 +28,20 @@ int EXTI_EnableIRQ(exti_cfg_t *cfg) {
     } else {
         rv = EINVAL;
     }
+    
+    return rv;
+}
+
+void EXTI_EnableIRQ(exti_cfg_t *cfg) {
 
     HAL_NVIC_SetPriority(cfg->IRQ, cfg->priority, 0);
     HAL_NVIC_EnableIRQ(cfg->IRQ);
 
-    return rv;
+}
+
+void EXTI_DisableIRQ(exti_cfg_t *cfg) {
+
+    HAL_NVIC_SetPriority(cfg->IRQ, cfg->priority, 0);
+    HAL_NVIC_DisableIRQ(cfg->IRQ);
 
 }

@@ -11,4 +11,5 @@ typedef struct {
 } exti_cfg_t;
 
 int EXTI_Init(exti_cfg_t *cfg);
-int EXTI_EnableIRQ(exti_cfg_t *cfg);
+void EXTI_EnableIRQ(exti_cfg_t *cfg);
+void EXTI_DisableIRQ(exti_cfg_t *cfg);

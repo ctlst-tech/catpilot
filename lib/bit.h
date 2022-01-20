@@ -11,3 +11,5 @@
 #define BIT7 (1 << 7)
 
 uint16_t msblsb16(uint8_t msb, uint8_t lsb);
+uint32_t GetNumFromMask(uint32_t reg);
+uint32_t GetMaskFromNum(uint32_t num);

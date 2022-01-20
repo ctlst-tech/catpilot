@@ -4,6 +4,8 @@
 #include "const.h"
 
 #define ICM20602_DEBUG 0
+#define FIFO_SIZE 1008
+#define FIFO_SAMPLES 72
 
 typedef struct {
     float gyro_scale;
@@ -16,6 +18,16 @@ typedef struct {
     spi_cfg_t spi;
     icm20602_dim_t dim;
 } icm20602_cfg_t;
+
+typedef struct {
+    float accel_x[FIFO_SAMPLES];
+    float accel_y[FIFO_SAMPLES];
+    float accel_z[FIFO_SAMPLES];
+    float gyro_x[FIFO_SAMPLES];
+    float gyro_y[FIFO_SAMPLES];
+    float gyro_z[FIFO_SAMPLES];
+    float temp;
+} icm20602_fifo_t;
 
 int ICM20602_Init();
 void ICM20602_Run();

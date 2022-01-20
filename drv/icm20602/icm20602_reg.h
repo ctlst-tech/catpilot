@@ -95,9 +95,6 @@ static const float TEMP_OFFSET   = 25.f;
 static const float TEMP_SENS_MIN = -40.f;
 static const float TEMP_SENS_MAX = 85.f;
 
-// FIFO settings
-#define FIFO_SIZE 1008
-
 // Register read/write flag
 type_t READ = 0x80;
 type_t WRITE = 0x00;
@@ -160,3 +157,8 @@ typedef struct {
     uint8_t COUNTL;
     FIFO_t buf[FIFO_SIZE / sizeof(FIFO_t)];
 } FIFOBuffer_t;
+
+typedef struct {
+    uint16_t bytes;
+    uint8_t samples;
+} FIFOParam_t;
