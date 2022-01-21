@@ -3,7 +3,7 @@
 #include "gpio_cfg.h"
 #include "const.h"
 
-#define ICM20602_DEBUG 0
+#define ICM20602_DEBUG
 #define FIFO_SIZE 1008
 #define FIFO_SAMPLES 72
 

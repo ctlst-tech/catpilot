@@ -83,7 +83,6 @@ int ICM20602_Init() {
     dma_spi1_miso.priority = 15;
 
     if(drdy_semaphore == NULL) drdy_semaphore = xSemaphoreCreateBinary();
-    xSemaphoreTake(drdy_semaphore, 0);
 
     rv |= SPI_Init(&icm20602_cfg.spi);
     rv |= EXTI_Init(&icm20602_drdy);
@@ -91,6 +90,14 @@ int ICM20602_Init() {
     state = ICM20602_RESET;
 
     return rv;
+}
+
+void ICM20602_ChipSelection() {
+    GPIO_Reset(icm20602_cfg.spi.cs_cfg);
+}
+
+void ICM20602_ChipDeselection() {
+    GPIO_Set(icm20602_cfg.spi.cs_cfg);
 }
 
 void ICM20602_Run() {
@@ -113,15 +120,18 @@ void ICM20602_Run() {
                     state = ICM20602_CONF;
                     vTaskDelay(1000);
                 } else {
+                    printf("\nWrong default registers values after reset\n");
                     vTaskDelay(1000);
                 }
             break;
 
         case ICM20602_CONF:
             if(ICM20602_Configure()) {
+                uint8_t reg = ICM20602_ReadReg(0x38);
                 state = ICM20602_FIFO_READ;
                 ICM20602_FIFOReset();
             } else {
+                printf("\nWrong configuration, reset\n");
                 state = ICM20602_RESET;
                 vTaskDelay(1000);
             }
@@ -129,9 +139,12 @@ void ICM20602_Run() {
 
         case ICM20602_FIFO_READ:
             if(xSemaphoreTake(drdy_semaphore, portMAX_DELAY)) {
+                ICM20602_FIFOCount();
                 ICM20602_FIFORead();
-            } else {
 
+                #ifdef ICM20602_DEBUG
+                ICM20602_Statistics();
+                #endif
             }
             break;
     }
@@ -140,14 +153,12 @@ void ICM20602_Run() {
 uint8_t ICM20602_ReadReg(uint8_t reg) {
     uint8_t cmd = reg | READ;
     uint8_t data;
-    // Chip selection
-    GPIO_Reset(icm20602_cfg.spi.cs_cfg);
-    // Transmit one byte with DMA
+
+    ICM20602_ChipSelection();
     SPI_Transmit(&icm20602_cfg.spi, &cmd, 1);
-    // Receive one byte with DMA
     SPI_Receive(&icm20602_cfg.spi, &data, 1);
-    // Chip deselection
-    GPIO_Set(icm20602_cfg.spi.cs_cfg);
+    ICM20602_ChipDeselection();
+
     return data;
 }
 
@@ -155,12 +166,10 @@ void ICM20602_WriteReg(uint8_t reg, uint8_t value) {
     uint8_t data[2];
     data[0] = reg;
     data[1] = value;
-    // Chip selection
-    GPIO_Reset(icm20602_cfg.spi.cs_cfg);
-    // Transmit two bytes with DMA
+
+    ICM20602_ChipSelection();
     SPI_Transmit(&icm20602_cfg.spi, data, 2);
-    // Chip deselection
-    GPIO_Set(icm20602_cfg.spi.cs_cfg);
+    ICM20602_ChipDeselection();
 }
 
 void ICM20602_SetClearReg(uint8_t reg, uint8_t setbits, uint8_t clearbits) {
@@ -200,6 +209,9 @@ int ICM20602_Configure() {
     // Set scale and range for processing
     ICM20602_AccelConfigure();
     ICM20602_GyroConfigure();
+
+    // Enable EXTI IRQ for DataReady pin
+    EXTI_EnableIRQ(&icm20602_drdy);
 
     return rv;
 }
@@ -244,42 +256,31 @@ uint16_t ICM20602_FIFOCount() {
     uint8_t cmd = FIFO_COUNTH | READ;
     uint8_t data[2];
 
-    GPIO_Reset(icm20602_cfg.spi.cs_cfg);
+    ICM20602_ChipSelection();
     SPI_Transmit(&icm20602_cfg.spi, &cmd, 1);
     SPI_Receive(&icm20602_cfg.spi, data, 2);
-    GPIO_Set(icm20602_cfg.spi.cs_cfg);
+    ICM20602_ChipDeselection();
 
-    return (msblsb16(data[0], data[1]));
+    FIFOParam.samples = msblsb16(data[0], data[1]);
+    FIFOParam.bytes = FIFOParam.samples * sizeof(FIFO_t);
+
 }
 
 int ICM20602_FIFORead() {
-    FIFOParam.bytes = ICM20602_FIFOCount();
-    FIFOParam.samples = FIFOParam.bytes / sizeof(FIFO_t);
     
     uint8_t cmd = FIFO_COUNTH | READ;
 
-    // Chip selection
-    GPIO_Reset(icm20602_cfg.spi.cs_cfg);
-    // Transmit cmd
+    ICM20602_ChipSelection();
     SPI_Transmit(&icm20602_cfg.spi, &cmd, 1);
-    // Receive
     SPI_Receive(&icm20602_cfg.spi, (uint8_t *)&FIFOBuffer, FIFOParam.bytes);
-    // Chip deselection
-    GPIO_Set(icm20602_cfg.spi.cs_cfg);
+    ICM20602_ChipDeselection();
 
     ICM20602_TempProcess();
     ICM20602_AccelProcess();
     ICM20602_GyroProcess();
 
-// #ifdef ICM20602_DEBUG
-//     printf("\naccel_x = %.2f\n", accel_x);
-//     printf("\naccel_y = %.2f\n", accel_y);
-//     printf("\naccel_z = %.2f\n", accel_z);
-//     printf("\ngyro_x  = %.2f\n", gyro_x);
-//     printf("\ngyro_y  = %.2f\n", gyro_y);
-//     printf("\ngyro_z  = %.2f\n", gyro_z);
-//     printf("\ntemp = %.2f\n", temp);
-// #endif
+    uint8_t reg = ICM20602_ReadReg(0x38);
+    EXTI_EnableIRQ(&icm20602_drdy);
 
     return 0;
 }
@@ -295,7 +296,7 @@ void ICM20602_FIFOReset() {
     }
 }
 
-void ICM20602_AccelProcess(){
+void ICM20602_AccelProcess() {
 	for (int i = 0; i < FIFOParam.samples; i++) {
 		int16_t accel_x = msblsb16(FIFOBuffer.buf[i].ACCEL_XOUT_H, FIFOBuffer.buf[i].ACCEL_XOUT_L);
 		int16_t accel_y = msblsb16(FIFOBuffer.buf[i].ACCEL_YOUT_H, FIFOBuffer.buf[i].ACCEL_YOUT_L);
@@ -307,7 +308,7 @@ void ICM20602_AccelProcess(){
 	}
 }
 
-void ICM20602_GyroProcess(){
+void ICM20602_GyroProcess() {
 	for (int i = 0; i < FIFOParam.samples; i++) {
 		int16_t gyro_x = msblsb16(FIFOBuffer.buf[i].GYRO_XOUT_H, FIFOBuffer.buf[i].GYRO_XOUT_L);
 		int16_t gyro_y = msblsb16(FIFOBuffer.buf[i].GYRO_YOUT_H, FIFOBuffer.buf[i].GYRO_YOUT_L);
@@ -319,7 +320,7 @@ void ICM20602_GyroProcess(){
 	}
 }
 
-void ICM20602_TempProcess(){
+void ICM20602_TempProcess() {
 	float temperature_sum;
 
 	for (int i = 0; i < FIFOParam.samples; i++) {
@@ -343,12 +344,24 @@ int ICM20602_Probe() {
     return 0;
 }
 
+int ICM20602_Statistics() {
+    // TODO add time between FIFO reading
+    printf("\naccel_x = %.2f\n", icm20602_fifo.accel_x[0] * icm20602_cfg.dim.accel_scale);
+    printf("\naccel_y = %.2f\n", icm20602_fifo.accel_y[0] * icm20602_cfg.dim.accel_scale);
+    printf("\naccel_z = %.2f\n", icm20602_fifo.accel_z[0] * icm20602_cfg.dim.accel_scale);
+    printf("\ngyro_x  = %.2f\n", icm20602_fifo.gyro_x[0] * icm20602_cfg.dim.gyro_scale);
+    printf("\ngyro_y  = %.2f\n", icm20602_fifo.gyro_y[0] * icm20602_cfg.dim.gyro_scale);
+    printf("\ngyro_z  = %.2f\n", icm20602_fifo.gyro_z[0] * icm20602_cfg.dim.gyro_scale);
+    printf("\ntemp = %.2f\n", icm20602_fifo.temp);
+}
+
 void ICM20602_DataReadyHandler() {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     
     xSemaphoreGiveFromISR(drdy_semaphore, &xHigherPriorityTaskWoken);
 
-    HAL_EXTI_ClearPending((EXTI_HandleTypeDef *)&icm20602_drdy.EXTI_Handle, EXTI_TRIGGER_RISING_FALLING);
+    HAL_EXTI_ClearPending((EXTI_HandleTypeDef *)&icm20602_drdy.EXTI_Handle, EXTI_TRIGGER_RISING);
+    EXTI_DisableIRQ(&icm20602_drdy);
 
     if(xHigherPriorityTaskWoken == pdTRUE) {
         portYIELD_FROM_ISR(xHigherPriorityTaskWoken);

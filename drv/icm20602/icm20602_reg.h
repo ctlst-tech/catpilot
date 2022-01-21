@@ -63,6 +63,7 @@ type_t ACCEL_FIFO_EN        = BIT3;
 
 // INT_PIN_CFG
 type_t INT_LEVEL            = BIT7;
+type_t INT_OPEN             = BIT6;
 type_t LATCH_INT_EN         = BIT5;
 type_t INT_RD_CLEAR         = BIT4;
 
@@ -131,8 +132,8 @@ static const reg_cfg_t reg_cfg[SIZE_REG_CFG] = {
     {ACCEL_CONFIG,  ACCEL_FS_SEL_16G, 0},
     {ACCEL_CONFIG2, ACCEL_FCHOICE_B, 0},
     {FIFO_EN,       GYRO_FIFO_EN | ACCEL_FIFO_EN, 0},
-    {INT_PIN_CFG,   INT_LEVEL | LATCH_INT_EN | INT_RD_CLEAR, 0},
-    {INT_ENABLE,    0, DATA_RDY_INT_EN},
+    {INT_PIN_CFG,   LATCH_INT_EN | INT_RD_CLEAR, 0},
+    {INT_ENABLE,    DATA_RDY_INT_EN, 0},
     {FIFO_WM_TH1,   0, 0},
     {FIFO_WM_TH2,   0, 0},
     {USER_CTRL,     USR_CTRL_FIFO_EN, 0},
