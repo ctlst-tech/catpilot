@@ -39,9 +39,11 @@ void ICM20602_SetClearReg(uint8_t reg, uint8_t setbits, uint8_t clearbits);
 int ICM20602_Configure();
 void ICM20602_AccelConfigure();
 void ICM20602_GyroConfigure();
-int ICM20602_Probe();
 
-uint16_t ICM20602_FIFOCount();
+int ICM20602_Probe();
+void ICM20602_Statistics();
+
+void ICM20602_FIFOCount();
 int ICM20602_FIFORead();
 void ICM20602_FIFOReset();
 

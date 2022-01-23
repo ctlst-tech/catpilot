@@ -27,14 +27,14 @@ FIFOParam_t FIFOParam;
 
 icm20602_fifo_t icm20602_fifo;
 
-enum state_t {
+enum icm20602_state_t {
     ICM20602_RESET,
     ICM20602_RESET_WAIT,
     ICM20602_CONF,
     ICM20602_FIFO_READ
 };
 
-enum state_t state;
+enum icm20602_state_t icm20602_state;
 
 int ICM20602_Init() {
     int rv = 0;
@@ -66,9 +66,9 @@ int ICM20602_Init() {
     dma_spi1_mosi.DMA_InitStruct.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
     dma_spi1_mosi.DMA_InitStruct.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
     dma_spi1_mosi.DMA_InitStruct.Init.Mode = DMA_NORMAL;
-    dma_spi1_mosi.DMA_InitStruct.Init.Priority = DMA_PRIORITY_LOW;
+    dma_spi1_mosi.DMA_InitStruct.Init.Priority = DMA_PRIORITY_VERY_HIGH;
     dma_spi1_mosi.DMA_InitStruct.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-    dma_spi1_mosi.priority = 15;
+    dma_spi1_mosi.priority = icm20602_cfg.spi.priority;
 
     dma_spi1_miso.DMA_InitStruct.Instance = DMA2_Stream0;
     dma_spi1_miso.DMA_InitStruct.Init.Channel = DMA_CHANNEL_3;
@@ -78,16 +78,16 @@ int ICM20602_Init() {
     dma_spi1_miso.DMA_InitStruct.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
     dma_spi1_miso.DMA_InitStruct.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
     dma_spi1_miso.DMA_InitStruct.Init.Mode = DMA_NORMAL;
-    dma_spi1_miso.DMA_InitStruct.Init.Priority = DMA_PRIORITY_LOW; 
+    dma_spi1_miso.DMA_InitStruct.Init.Priority = DMA_PRIORITY_VERY_HIGH;
     dma_spi1_miso.DMA_InitStruct.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-    dma_spi1_miso.priority = 15;
+    dma_spi1_miso.priority = icm20602_cfg.spi.priority;
 
     if(drdy_semaphore == NULL) drdy_semaphore = xSemaphoreCreateBinary();
 
     rv |= SPI_Init(&icm20602_cfg.spi);
     rv |= EXTI_Init(&icm20602_drdy);
-    
-    state = ICM20602_RESET;
+
+    icm20602_state = ICM20602_RESET;
 
     return rv;
 }
@@ -101,14 +101,14 @@ void ICM20602_ChipDeselection() {
 }
 
 void ICM20602_Run() {
-    switch(state) {
+    switch(icm20602_state) {
 
         case ICM20602_RESET:
             ICM20602_WriteReg(PWR_MGMT_1, DEVICE_RESET);
-            state = ICM20602_RESET_WAIT;
+            icm20602_state = ICM20602_RESET_WAIT;
             vTaskDelay(2);
             break;
-            
+
         case ICM20602_RESET_WAIT:
             if ((ICM20602_ReadReg(WHO_AM_I) == WHOAMI)
                 && (ICM20602_ReadReg(PWR_MGMT_1) == 0x41)
@@ -117,7 +117,7 @@ void ICM20602_Run() {
                     ICM20602_WriteReg(PWR_MGMT_1, CLKSEL_0);
                     ICM20602_WriteReg(SIGNAL_PATH_RESET, ACCEL_RST | TEMP_RST);
                     ICM20602_SetClearReg(USER_CTRL, SIG_COND_RST, 0);
-                    state = ICM20602_CONF;
+                    icm20602_state = ICM20602_CONF;
                     vTaskDelay(1000);
                 } else {
                     printf("\nWrong default registers values after reset\n");
@@ -127,12 +127,11 @@ void ICM20602_Run() {
 
         case ICM20602_CONF:
             if(ICM20602_Configure()) {
-                uint8_t reg = ICM20602_ReadReg(0x38);
-                state = ICM20602_FIFO_READ;
+                icm20602_state = ICM20602_FIFO_READ;
                 ICM20602_FIFOReset();
             } else {
                 printf("\nWrong configuration, reset\n");
-                state = ICM20602_RESET;
+                icm20602_state = ICM20602_RESET;
                 vTaskDelay(1000);
             }
             break;
@@ -141,10 +140,6 @@ void ICM20602_Run() {
             if(xSemaphoreTake(drdy_semaphore, portMAX_DELAY)) {
                 ICM20602_FIFOCount();
                 ICM20602_FIFORead();
-
-                #ifdef ICM20602_DEBUG
-                ICM20602_Statistics();
-                #endif
             }
             break;
     }
@@ -194,13 +189,13 @@ int ICM20602_Configure() {
         orig_val = ICM20602_ReadReg(reg_cfg[i].reg);
 
         if((orig_val & reg_cfg[i].setbits) != reg_cfg[i].setbits) {
-            printf("\n0x%02x: 0x%02x (0x%02x not set)\n", 
+            printf("\n0x%02x: 0x%02x (0x%02x not set)\n",
             (uint8_t)reg_cfg[i].reg, orig_val, reg_cfg[i].setbits);
             rv = 0;
         }
 
         if((orig_val & reg_cfg[i].clearbits) != 0) {
-            printf("\n0x%02x: 0x%02x (0x%02x not cleared)\n", 
+            printf("\n0x%02x: 0x%02x (0x%02x not cleared)\n",
             (uint8_t)reg_cfg[i].reg, orig_val, reg_cfg[i].clearbits);
             rv = 0;
         }
@@ -252,7 +247,7 @@ void ICM20602_GyroConfigure() {
     icm20602_cfg.dim.gyro_scale = (icm20602_cfg.dim.gyro_range / 32768.f);
 }
 
-uint16_t ICM20602_FIFOCount() {
+void ICM20602_FIFOCount() {
     uint8_t cmd = FIFO_COUNTH | READ;
     uint8_t data[2];
 
@@ -267,7 +262,7 @@ uint16_t ICM20602_FIFOCount() {
 }
 
 int ICM20602_FIFORead() {
-    
+
     uint8_t cmd = FIFO_COUNTH | READ;
 
     ICM20602_ChipSelection();
@@ -288,11 +283,11 @@ int ICM20602_FIFORead() {
 void ICM20602_FIFOReset() {
     ICM20602_WriteReg(FIFO_EN, 0);
     ICM20602_SetClearReg(USER_CTRL, USR_CTRL_FIFO_RST, USR_CTRL_FIFO_EN);
-    
+
     for(int i = 0; i < SIZE_REG_CFG; i++) {
         if(reg_cfg[i].reg == FIFO_EN || reg_cfg[i].reg == USER_CTRL) {
             ICM20602_SetClearReg(reg_cfg[i].reg, reg_cfg[i].setbits, reg_cfg[i].clearbits);
-        }    
+        }
     }
 }
 
@@ -344,7 +339,7 @@ int ICM20602_Probe() {
     return 0;
 }
 
-int ICM20602_Statistics() {
+void ICM20602_Statistics() {
     // TODO add time between FIFO reading
     printf("\naccel_x = %.2f\n", icm20602_fifo.accel_x[0] * icm20602_cfg.dim.accel_scale);
     printf("\naccel_y = %.2f\n", icm20602_fifo.accel_y[0] * icm20602_cfg.dim.accel_scale);
@@ -357,7 +352,7 @@ int ICM20602_Statistics() {
 
 void ICM20602_DataReadyHandler() {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-    
+
     xSemaphoreGiveFromISR(drdy_semaphore, &xHigherPriorityTaskWoken);
 
     HAL_EXTI_ClearPending((EXTI_HandleTypeDef *)&icm20602_drdy.EXTI_Handle, EXTI_TRIGGER_RISING);

@@ -16,6 +16,9 @@
         "stm32_periph.h": "c",
         "usart.h": "c",
         "stm32_base.h": "c",
-        "bit.h": "c"
+        "bit.h": "c",
+        "ist8310.h": "c",
+        "const.h": "c",
+        "ist8310_reg.h": "c"
     }
 }

@@ -32,6 +32,7 @@ SOURCES_C_PERIPH += $(wildcard $(DIR_PERIPH)/hal/*.c)
 
 SOURCES_C_DRV += $(wildcard $(DIR_DRV)/cli/*.c)
 SOURCES_C_DRV += $(wildcard $(DIR_DRV)/icm20602/*.c)
+SOURCES_C_DRV += $(wildcard $(DIR_DRV)/ist8310/*.c)
 
 SOURCES_C_LIB += $(wildcard $(DIR_LIB)/*.c)
 
@@ -52,7 +53,7 @@ OBJS = $(SOURCES_S:.s=.o) $(SOURCES_C:.c=.o)
 
 # Includes and Defines
 
-INC_MCU = -I$(DIR_MCU)/core -I$(DIR_MCU)/hal/inc 
+INC_MCU = -I$(DIR_MCU)/core -I$(DIR_MCU)/hal/inc
 
 INC_PERIPH += -I$(DIR_PERIPH)/rcc
 INC_PERIPH += -I$(DIR_PERIPH)/gpio
@@ -66,6 +67,7 @@ INC_PERIPH += -I$(DIR_PERIPH)/hal
 
 INC_DRV += -I$(DIR_DRV)/cli
 INC_DRV += -I$(DIR_DRV)/icm20602
+INC_DRV += -I$(DIR_DRV)/ist8310
 
 INC_LIB += -I$(DIR_LIB)/
 

@@ -6,10 +6,12 @@
 void Echo(void *pvParameters) {
     CLI_Init();
     while(1) {
+        ICM20602_Statistics();
+        vTaskDelay(100);
     }
 }
 
-void Gyro(void *pvParameters) {
+void Sensors(void *pvParameters) {
     ICM20602_Init();
     while(1) {
         ICM20602_Run();
@@ -20,7 +22,7 @@ int main(void) {
     HAL_Init();
     RCC_Init();
     xTaskCreate(Echo, "Echo", 512, NULL, 1, NULL);
-    xTaskCreate(Gyro, "Gyro", 512, NULL, 2, NULL);
+    xTaskCreate(Sensors, "Sensors", 512, NULL, 2, NULL);
     vTaskStartScheduler();
     while(1) {
     }
