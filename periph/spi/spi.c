@@ -71,7 +71,7 @@ int SPI_Transmit(spi_cfg_t *cfg, uint8_t *pdata, uint16_t length) {
 
     HAL_SPI_Transmit_DMA(&cfg->inst.SPI_InitStruct, pdata, length);
 
-    if(xSemaphoreTake(cfg->inst.semaphore, pdMS_TO_TICKS(cfg->timeout))) {
+    if(xSemaphoreTake(cfg->inst.semaphore, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
         rv = ETIMEDOUT;
     } else {
         rv = 0;
@@ -111,10 +111,40 @@ int SPI_Receive(spi_cfg_t *cfg, uint8_t *pdata, uint16_t length) {
     return rv;
 }
 
-int SPI_Handler(spi_cfg_t *cfg) {
+int SPI_IT_Handler(spi_cfg_t *cfg) {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
     HAL_SPI_IRQHandler(&cfg->inst.SPI_InitStruct);
+
+    if(cfg->inst.SPI_InitStruct.State == HAL_SPI_STATE_READY) {
+        xSemaphoreGiveFromISR(cfg->inst.semaphore, &xHigherPriorityTaskWoken);
+        if(xHigherPriorityTaskWoken == pdTRUE) {
+            portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+        }
+    }
+
+    return 0;
+}
+
+int SPI_DMA_MOSI_Handler(spi_cfg_t *cfg) {
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+
+    HAL_DMA_IRQHandler(&cfg->dma_mosi_cfg->DMA_InitStruct);
+
+    if(cfg->inst.SPI_InitStruct.State == HAL_SPI_STATE_READY) {
+        xSemaphoreGiveFromISR(cfg->inst.semaphore, &xHigherPriorityTaskWoken);
+        if(xHigherPriorityTaskWoken == pdTRUE) {
+            portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+        }
+    }
+
+    return 0;
+}
+
+int SPI_DMA_MISO_Handler(spi_cfg_t *cfg) {
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+
+    HAL_DMA_IRQHandler(&cfg->dma_miso_cfg->DMA_InitStruct);
 
     if(cfg->inst.SPI_InitStruct.State == HAL_SPI_STATE_READY) {
         xSemaphoreGiveFromISR(cfg->inst.semaphore, &xHigherPriorityTaskWoken);

@@ -316,7 +316,7 @@ void ICM20602_GyroProcess() {
 }
 
 void ICM20602_TempProcess() {
-	float temperature_sum;
+	float temperature_sum = 0;
 
 	for (int i = 0; i < FIFOParam.samples; i++) {
 		const int16_t t = msblsb16(FIFOBuffer.buf[i].TEMP_H, FIFOBuffer.buf[i].TEMP_L);
@@ -364,15 +364,15 @@ void ICM20602_DataReadyHandler() {
 }
 
 void SPI1_IRQHandler(void) {
-    SPI_Handler(&icm20602_cfg.spi);
+    SPI_IT_Handler(&icm20602_cfg.spi);
 }
 
 void DMA2_Stream3_IRQHandler(void) {
-    DMA_IRQHandler(&dma_spi1_mosi);
+    SPI_DMA_MOSI_Handler(&icm20602_cfg.spi);
 }
 
 void DMA2_Stream0_IRQHandler(void) {
-    DMA_IRQHandler(&dma_spi1_miso);
+    SPI_DMA_MISO_Handler(&icm20602_cfg.spi);
 }
 
 void EXTI9_5_IRQHandler(void) {

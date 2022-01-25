@@ -6,7 +6,7 @@ int USART_Init(usart_cfg_t *cfg) {
 
     int rv = 0;
     if((rv = USART_ClockEnable(cfg)) != 0) return rv;
-    
+
     if((rv = GPIO_Init(cfg->gpio_rx_cfg)) != 0) return rv;
     if((rv = GPIO_Init(cfg->gpio_tx_cfg)) != 0) return rv;
 
@@ -32,14 +32,14 @@ int USART_Init(usart_cfg_t *cfg) {
     cfg->inst.USART_InitStruct.hdmarx = &cfg->dma_rx_cfg->DMA_InitStruct;
 
     if(HAL_UART_Init(&cfg->inst.USART_InitStruct) != HAL_OK) return EINVAL;
-    
+
     if(cfg->inst.mutex == NULL) cfg->inst.mutex = xSemaphoreCreateMutex();
     if(cfg->inst.semaphore == NULL) cfg->inst.semaphore = xSemaphoreCreateBinary();
 
     USART_EnableIRQ(cfg);
 
     portEXIT_CRITICAL();
-    
+
     return rv;
 }
 
@@ -60,12 +60,12 @@ int USART_Transmit(usart_cfg_t *cfg, uint8_t *pdata, uint16_t length) {
     }
 
     xSemaphoreTake(cfg->inst.semaphore, 0);
-    
+
     cfg->inst.state = USART_TRANSMIT;
 
     HAL_UART_Transmit_DMA(&cfg->inst.USART_InitStruct, pdata, length);
 
-    if(xSemaphoreTake(cfg->inst.semaphore, pdMS_TO_TICKS(cfg->timeout))) {
+    if(xSemaphoreTake(cfg->inst.semaphore, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
         rv = ETIMEDOUT;
     } else {
         rv = 0;
@@ -90,7 +90,7 @@ int USART_Receive(usart_cfg_t *cfg, uint8_t *pdata, uint16_t length) {
     xSemaphoreTake(cfg->inst.semaphore, 0);
 
     cfg->inst.state = USART_RECEIVE;
-    
+
     HAL_UART_Receive_DMA(&cfg->inst.USART_InitStruct, pdata, length);
 
     if(xSemaphoreTake(cfg->inst.semaphore, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {

@@ -11,7 +11,7 @@ int DMA_Init(dma_cfg_t *cfg) {
     if((rv = HAL_DMA_Init(&cfg->DMA_InitStruct)) != 0) return rv;
 
     portEXIT_CRITICAL();
-    
+
     return rv;
 }
 
@@ -45,7 +45,7 @@ int DMA_ClockEnable(dma_cfg_t *cfg) {
             __HAL_RCC_DMA1_CLK_ENABLE();
             cfg->inst.IRQ = DMA1_Stream0_IRQn;
             break;
-#endif    
+#endif
 
 #ifdef DMA1_Stream1
         case DMA1_Stream1_BASE:
@@ -101,7 +101,7 @@ int DMA_ClockEnable(dma_cfg_t *cfg) {
             __HAL_RCC_DMA2_CLK_ENABLE();
             cfg->inst.IRQ = DMA2_Stream0_IRQn;
             break;
-#endif    
+#endif
 
 #ifdef DMA2_Stream1
         case DMA2_Stream1_BASE:
