@@ -4,7 +4,7 @@
 
 #define type_t static const uint8_t
 
-// Registers addresses
+// Register addresses
 type_t XG_OFFS_TC_H         = 0x04;
 type_t XG_OFFS_TC_L         = 0x05;
 type_t YG_OFFS_TC_H         = 0x07;
@@ -87,7 +87,7 @@ type_t CLKSEL_0             = BIT0;
 // I2C_IF_BIT
 type_t I2C_IF_DIS           = BIT6;
 
-// Registers values
+// Register values
 type_t WHOAMI               = 0x12;
 
 // Temp settings

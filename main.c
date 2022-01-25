@@ -13,8 +13,10 @@ void Echo(void *pvParameters) {
 
 void Sensors(void *pvParameters) {
     ICM20602_Init();
+    IST8310_Init();
     while(1) {
         ICM20602_Run();
+        IST8310_Probe();
     }
 }
 

@@ -27,7 +27,6 @@ typedef struct {
     int timeout;
     int priority;
     struct i2c_inst_t inst;
-    uint8_t buf[255];
 } i2c_cfg_t;
 
 int I2C_Init(i2c_cfg_t *cfg);
@@ -38,3 +37,5 @@ int I2C_EnableIRQ(i2c_cfg_t *cfg);
 int I2C_DisableIRQ(i2c_cfg_t *cfg);
 int I2C_EV_Handler(i2c_cfg_t *cfg);
 int I2C_ER_Handler(i2c_cfg_t *cfg);
+int I2C_DMA_TX_Handler(i2c_cfg_t *cfg);
+int I2C_DMA_RX_Handler(i2c_cfg_t *cfg);

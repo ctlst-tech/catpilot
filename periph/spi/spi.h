@@ -28,7 +28,6 @@ typedef struct {
     int timeout;
     int priority;
     struct spi_inst_t inst;
-    uint8_t buf[255];
 } spi_cfg_t;
 
 int SPI_Init(spi_cfg_t *cfg);

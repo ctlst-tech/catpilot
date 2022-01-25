@@ -25,7 +25,7 @@ int I2C_Init(i2c_cfg_t *cfg) {
     cfg->inst.I2C_InitStruct.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
     cfg->inst.I2C_InitStruct.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
     cfg->inst.I2C_InitStruct.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
-    cfg->inst.I2C_InitStruct.Init.Timing = 0x20404768; // From CubeMX configuration tool
+    cfg->inst.I2C_InitStruct.Init.Timing = 0x6000030D; // From CubeMX configuration tool for FAST MODE
 
     cfg->inst.I2C_InitStruct.hdmatx = &cfg->dma_tx_cfg->DMA_InitStruct;
     cfg->inst.I2C_InitStruct.hdmarx = &cfg->dma_rx_cfg->DMA_InitStruct;
@@ -63,7 +63,7 @@ int I2C_Transmit(i2c_cfg_t *cfg, uint8_t address, uint8_t *pdata, uint16_t lengt
 
     HAL_I2C_Master_Transmit_DMA(&cfg->inst.I2C_InitStruct, address, pdata, length);
 
-    if(xSemaphoreTake(cfg->inst.semaphore, pdMS_TO_TICKS(cfg->timeout))) {
+    if(xSemaphoreTake(cfg->inst.semaphore, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
         rv = ETIMEDOUT;
     } else {
         rv = 0;
@@ -120,6 +120,36 @@ int I2C_EV_Handler(i2c_cfg_t *cfg) {
 
 int I2C_ER_Handler(i2c_cfg_t *cfg) {
     HAL_I2C_ER_IRQHandler(&cfg->inst.I2C_InitStruct);
+    return 0;
+}
+
+int I2C_DMA_TX_Handler(i2c_cfg_t *cfg) {
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+
+    HAL_DMA_IRQHandler(&cfg->dma_tx_cfg->DMA_InitStruct);
+
+    if(cfg->inst.I2C_InitStruct.State == HAL_SPI_STATE_READY) {
+        xSemaphoreGiveFromISR(cfg->inst.semaphore, &xHigherPriorityTaskWoken);
+        if(xHigherPriorityTaskWoken == pdTRUE) {
+            portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+        }
+    }
+
+    return 0;
+}
+
+int I2C_DMA_RX_Handler(i2c_cfg_t *cfg) {
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+
+    HAL_DMA_IRQHandler(&cfg->dma_rx_cfg->DMA_InitStruct);
+
+    if(cfg->inst.I2C_InitStruct.State == HAL_I2C_STATE_READY) {
+        xSemaphoreGiveFromISR(cfg->inst.semaphore, &xHigherPriorityTaskWoken);
+        if(xHigherPriorityTaskWoken == pdTRUE) {
+            portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+        }
+    }
+
     return 0;
 }
 

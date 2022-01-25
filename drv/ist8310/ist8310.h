@@ -8,3 +8,8 @@ typedef struct {
 } ist8310_cfg_t;
 
 int IST8310_Init();
+
+uint8_t IST8310_ReadReg(uint8_t reg);
+void IST8310_WriteReg(uint8_t reg, uint8_t value);
+
+int IST8310_Probe();

@@ -62,6 +62,38 @@ int IST8310_Init() {
     return rv;
 }
 
+uint8_t IST8310_ReadReg(uint8_t reg) {
+    uint8_t buf[2];
+
+    buf[0] = (ADDRESS << 1) | READ;
+    buf[1] = reg;
+
+    I2C_Transmit(&ist8310_cfg.i2c, buf[0], &buf[1], 1);
+    I2C_Receive(&ist8310_cfg.i2c, buf[0], &buf[1], 1);
+
+    return buf[1];
+}
+
+void IST8310_WriteReg(uint8_t reg, uint8_t value) {
+    uint8_t buf[3];
+
+    buf[0] = (ADDRESS << 1) | WRITE;
+    buf[1] = reg;
+    buf[2] = value;
+
+    I2C_Transmit(&ist8310_cfg.i2c, buf[0], &buf[1], 2);
+}
+
+int IST8310_Probe() {
+    uint8_t whoami;
+    whoami = IST8310_ReadReg(WHO_AM_I);
+    if(whoami != DEVICE_ID) {
+        printf("unexpected WHO_AM_I reg 0x%02x", whoami);
+        return ENODEV;
+    }
+    return 0;
+}
+
 void I2C3_EV_IRQHandler(void) {
     I2C_EV_Handler(&ist8310_cfg.i2c);
 }
@@ -71,9 +103,9 @@ void I2C3_ER_IRQHandler(void) {
 }
 
 void DMA1_Stream0_IRQHandler(void) {
-    DMA_IRQHandler(&dma_i2c3_tx);
+    I2C_DMA_TX_Handler(&ist8310_cfg.i2c);
 }
 
 void DMA1_Stream2_IRQHandler(void) {
-    DMA_IRQHandler(&dma_i2c3_rx);
+    I2C_DMA_RX_Handler(&ist8310_cfg.i2c);
 }
