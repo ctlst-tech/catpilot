@@ -1,15 +1,19 @@
 #include "ist8310.h"
 #include "ist8310_reg.h"
 
-static char *device = "ICM20602";
+static char *device = "IST8310";
 
-gpio_cfg_t ist8310_sda = GPIO_I2C3_SDA;
-gpio_cfg_t ist8310_scl = GPIO_I2C3_SCL;
+static gpio_cfg_t ist8310_sda = GPIO_I2C3_SDA;
+static gpio_cfg_t ist8310_scl = GPIO_I2C3_SCL;
 
-dma_cfg_t dma_i2c3_tx;
-dma_cfg_t dma_i2c3_rx;
+static dma_cfg_t dma_i2c3_tx;
+static dma_cfg_t dma_i2c3_rx;
 
-ist8310_cfg_t ist8310_cfg;
+static ist8310_cfg_t ist8310_cfg;
+
+static buffer_t buffer;
+
+ist8310_data_t ist8310_data;
 
 enum ist8310_state_t {
     IST8310_RESET,
@@ -70,10 +74,11 @@ void IST8310_Run() {
     case IST8310_RESET:
         IST8310_WriteReg(CNTL2, SRST);
         ist8310_state = IST8310_RESET_WAIT;
-        vTaskDelay(30);
+        vTaskDelay(50);
         break;
 
     case IST8310_RESET_WAIT:
+        IST8310_ReadReg(CNTL2);
         if ((IST8310_ReadReg(WHO_AM_I) == DEVICE_ID)
             && ((IST8310_ReadReg(CNTL2) & SRST) == 0)) {
                 ist8310_state = IST8310_CONF;
@@ -81,6 +86,7 @@ void IST8310_Run() {
             } else {
                 printf("\n%s:Wrong default registers values after reset\n", device);
                 vTaskDelay(1000);
+                ist8310_state = IST8310_RESET;
             }
         break;
 
@@ -95,7 +101,16 @@ void IST8310_Run() {
         break;
 
     case IST8310_MEAS:
+        IST8310_WriteReg(CNTL1, SINGLE_MEAS);
+        vTaskDelay(20);
+        ist8310_state = IST8310_READ;
+        break;
 
+    case IST8310_READ:
+        IST8310_Meas();
+        IST8310_Process();
+        IST8310_WriteReg(CNTL1, SINGLE_MEAS);
+        vTaskDelay(20); // by PX4 IST8310 API
         break;
     }
 }
@@ -120,6 +135,27 @@ void IST8310_WriteReg(uint8_t reg, uint8_t value) {
     buf[2] = value;
 
     I2C_Transmit(&ist8310_cfg.i2c, buf[0], &buf[1], 2);
+}
+
+void IST8310_Meas() {
+    uint8_t buf[3];
+
+    buf[0] = (ADDRESS << 1) | READ;
+    buf[1] = STAT1;
+
+    I2C_Transmit(&ist8310_cfg.i2c, buf[0], &buf[1], 1);
+    I2C_Receive(&ist8310_cfg.i2c, buf[0], (uint8_t *)&buffer, sizeof(buffer_t));
+}
+
+int IST8310_Process() {
+    if(buffer.STAT1 & DRDY) {
+        ist8310_data.mag_x = msblsb16(buffer.DATAXH, buffer.DATAXL) * ist8310_cfg.dim.mag_scale;
+        ist8310_data.mag_y = msblsb16(buffer.DATAYH, buffer.DATAYL) * ist8310_cfg.dim.mag_scale;
+        ist8310_data.mag_z = msblsb16(buffer.DATAZH, buffer.DATAZL) * ist8310_cfg.dim.mag_scale;
+        return 0;
+    } else {
+        return EPROTO;
+    }
 }
 
 void IST8310_SetClearReg(uint8_t reg, uint8_t setbits, uint8_t clearbits) {
@@ -155,6 +191,8 @@ int IST8310_Configure() {
             rv = 0;
         }
     }
+
+    ist8310_cfg.dim.mag_scale = (1.f / 1320.f); // 1320 LSB/Gauss
 
     return rv;
 }

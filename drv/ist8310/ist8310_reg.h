@@ -91,3 +91,13 @@ static const reg_cfg_t reg_cfg[SIZE_REG_CFG] = {
     {AVGCNTL,   Y_16TIMES_S | XZ_16TIMES_S, Y_16TIMES_C | XZ_16TIMES_C},
     {PDCNTL,    PULSE_NORMAL, 0}
 };
+
+typedef struct {
+    uint8_t STAT1;
+    uint8_t DATAXH;
+    uint8_t DATAXL;
+    uint8_t DATAYH;
+    uint8_t DATAYL;
+    uint8_t DATAZH;
+    uint8_t DATAZL;
+} buffer_t;

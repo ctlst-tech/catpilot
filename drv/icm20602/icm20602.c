@@ -5,12 +5,12 @@ static char *device = "ICM20602";
 
 static SemaphoreHandle_t drdy_semaphore;
 
-gpio_cfg_t icm20602_mosi = GPIO_SPI1_MOSI;
-gpio_cfg_t icm20602_miso = GPIO_SPI1_MISO;
-gpio_cfg_t icm20602_sck  = GPIO_SPI1_SCK;
-gpio_cfg_t icm20602_cs   = GPIO_SPI1_CS2;
+static gpio_cfg_t icm20602_mosi = GPIO_SPI1_MOSI;
+static gpio_cfg_t icm20602_miso = GPIO_SPI1_MISO;
+static gpio_cfg_t icm20602_sck  = GPIO_SPI1_SCK;
+static gpio_cfg_t icm20602_cs   = GPIO_SPI1_CS2;
 
-exti_cfg_t icm20602_drdy = EXTI_SPI1_DRDY2;
+static exti_cfg_t icm20602_drdy = EXTI_SPI1_DRDY2;
 
 // Others sensors on this SPI bus
 // TODO move to driver sources
@@ -19,13 +19,13 @@ gpio_cfg_t cs3 = GPIO_SPI1_CS3;
 gpio_cfg_t cs4 = GPIO_SPI1_CS4;
 // TODO move to driver sources
 
-dma_cfg_t dma_spi1_mosi;
-dma_cfg_t dma_spi1_miso;
+static dma_cfg_t dma_spi1_mosi;
+static dma_cfg_t dma_spi1_miso;
 
-icm20602_cfg_t icm20602_cfg;
+static icm20602_cfg_t icm20602_cfg;
 
-FIFOBuffer_t FIFOBuffer;
-FIFOParam_t FIFOParam;
+static FIFOBuffer_t FIFOBuffer;
+static FIFOParam_t FIFOParam;
 
 icm20602_fifo_t icm20602_fifo;
 
@@ -276,7 +276,6 @@ int ICM20602_FIFORead() {
     ICM20602_AccelProcess();
     ICM20602_GyroProcess();
 
-    uint8_t reg = ICM20602_ReadReg(0x38);
     EXTI_EnableIRQ(&icm20602_drdy);
 
     return 0;

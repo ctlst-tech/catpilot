@@ -10,6 +10,9 @@ int I2C_Init(i2c_cfg_t *cfg) {
     if((rv = GPIO_Init(cfg->sda_cfg)) != 0) return rv;
     if((rv = GPIO_Init(cfg->scl_cfg)) != 0) return rv;
 
+    GPIO_Set(cfg->scl_cfg);
+    GPIO_Set(cfg->sda_cfg);
+
     if(cfg->dma_tx_cfg != NULL) {
         cfg->dma_tx_cfg->DMA_InitStruct.Parent = &cfg->inst.I2C_InitStruct;
         if((rv = DMA_Init(cfg->dma_tx_cfg)) != 0) return rv;
@@ -128,7 +131,7 @@ int I2C_DMA_TX_Handler(i2c_cfg_t *cfg) {
 
     HAL_DMA_IRQHandler(&cfg->dma_tx_cfg->DMA_InitStruct);
 
-    if(cfg->inst.I2C_InitStruct.State == HAL_SPI_STATE_READY) {
+    if(cfg->dma_tx_cfg->DMA_InitStruct.State == HAL_DMA_STATE_READY) {
         xSemaphoreGiveFromISR(cfg->inst.semaphore, &xHigherPriorityTaskWoken);
         if(xHigherPriorityTaskWoken == pdTRUE) {
             portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
@@ -143,7 +146,7 @@ int I2C_DMA_RX_Handler(i2c_cfg_t *cfg) {
 
     HAL_DMA_IRQHandler(&cfg->dma_rx_cfg->DMA_InitStruct);
 
-    if(cfg->inst.I2C_InitStruct.State == HAL_I2C_STATE_READY) {
+    if(cfg->dma_rx_cfg->DMA_InitStruct.State == HAL_DMA_STATE_READY) {
         xSemaphoreGiveFromISR(cfg->inst.semaphore, &xHigherPriorityTaskWoken);
         if(xHigherPriorityTaskWoken == pdTRUE) {
             portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
