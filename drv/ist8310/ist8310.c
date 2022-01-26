@@ -1,6 +1,8 @@
 #include "ist8310.h"
 #include "ist8310_reg.h"
 
+static char *device = "ICM20602";
+
 gpio_cfg_t ist8310_sda = GPIO_I2C3_SDA;
 gpio_cfg_t ist8310_scl = GPIO_I2C3_SCL;
 
@@ -62,6 +64,42 @@ int IST8310_Init() {
     return rv;
 }
 
+void IST8310_Run() {
+    switch(ist8310_state) {
+
+    case IST8310_RESET:
+        IST8310_WriteReg(CNTL2, SRST);
+        ist8310_state = IST8310_RESET_WAIT;
+        vTaskDelay(30);
+        break;
+
+    case IST8310_RESET_WAIT:
+        if ((IST8310_ReadReg(WHO_AM_I) == DEVICE_ID)
+            && ((IST8310_ReadReg(CNTL2) & SRST) == 0)) {
+                ist8310_state = IST8310_CONF;
+                vTaskDelay(10);
+            } else {
+                printf("\n%s:Wrong default registers values after reset\n", device);
+                vTaskDelay(1000);
+            }
+        break;
+
+    case IST8310_CONF:
+        if(IST8310_Configure()) {
+            ist8310_state = IST8310_MEAS;
+        } else {
+            printf("\n%sWrong configuration, reset\n", device);
+            ist8310_state = IST8310_RESET;
+            vTaskDelay(1000);
+        }
+        break;
+
+    case IST8310_MEAS:
+
+        break;
+    }
+}
+
 uint8_t IST8310_ReadReg(uint8_t reg) {
     uint8_t buf[2];
 
@@ -82,6 +120,43 @@ void IST8310_WriteReg(uint8_t reg, uint8_t value) {
     buf[2] = value;
 
     I2C_Transmit(&ist8310_cfg.i2c, buf[0], &buf[1], 2);
+}
+
+void IST8310_SetClearReg(uint8_t reg, uint8_t setbits, uint8_t clearbits) {
+    uint8_t orig_val = IST8310_ReadReg(reg);
+    uint8_t val = (orig_val & ~clearbits) | setbits;
+    if (orig_val != val) {
+        IST8310_WriteReg(reg, val);
+    }
+}
+
+int IST8310_Configure() {
+    uint8_t orig_val;
+    int rv = 1;
+
+    // Set configure
+    for(int i = 0; i < SIZE_REG_CFG; i++) {
+        IST8310_SetClearReg(reg_cfg[i].reg, reg_cfg[i].setbits, reg_cfg[i].clearbits);
+    }
+
+    // Check
+    for(int i = 0; i < SIZE_REG_CFG; i++) {
+        orig_val = IST8310_ReadReg(reg_cfg[i].reg);
+
+        if((orig_val & reg_cfg[i].setbits) != reg_cfg[i].setbits) {
+            printf("%s\n0x%02x: 0x%02x (0x%02x not set)\n", device,
+            (uint8_t)reg_cfg[i].reg, orig_val, reg_cfg[i].setbits);
+            rv = 0;
+        }
+
+        if((orig_val & reg_cfg[i].clearbits) != 0) {
+            printf("%s\n0x%02x: 0x%02x (0x%02x not cleared)\n", device,
+            (uint8_t)reg_cfg[i].reg, orig_val, reg_cfg[i].clearbits);
+            rv = 0;
+        }
+    }
+
+    return rv;
 }
 
 int IST8310_Probe() {

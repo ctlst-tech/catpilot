@@ -1,6 +1,8 @@
 #include "icm20602.h"
 #include "icm20602_reg.h"
 
+static char *device = "ICM20602";
+
 static SemaphoreHandle_t drdy_semaphore;
 
 gpio_cfg_t icm20602_mosi = GPIO_SPI1_MOSI;
@@ -103,45 +105,45 @@ void ICM20602_ChipDeselection() {
 void ICM20602_Run() {
     switch(icm20602_state) {
 
-        case ICM20602_RESET:
-            ICM20602_WriteReg(PWR_MGMT_1, DEVICE_RESET);
-            icm20602_state = ICM20602_RESET_WAIT;
-            vTaskDelay(2);
-            break;
+    case ICM20602_RESET:
+        ICM20602_WriteReg(PWR_MGMT_1, DEVICE_RESET);
+        icm20602_state = ICM20602_RESET_WAIT;
+        vTaskDelay(2);
+        break;
 
-        case ICM20602_RESET_WAIT:
-            if ((ICM20602_ReadReg(WHO_AM_I) == WHOAMI)
-                && (ICM20602_ReadReg(PWR_MGMT_1) == 0x41)
-                && (ICM20602_ReadReg(CONFIG) == 0x80)) {
-                    ICM20602_WriteReg(I2C_IF, I2C_IF_DIS);
-                    ICM20602_WriteReg(PWR_MGMT_1, CLKSEL_0);
-                    ICM20602_WriteReg(SIGNAL_PATH_RESET, ACCEL_RST | TEMP_RST);
-                    ICM20602_SetClearReg(USER_CTRL, SIG_COND_RST, 0);
-                    icm20602_state = ICM20602_CONF;
-                    vTaskDelay(1000);
-                } else {
-                    printf("\nWrong default registers values after reset\n");
-                    vTaskDelay(1000);
-                }
-            break;
-
-        case ICM20602_CONF:
-            if(ICM20602_Configure()) {
-                icm20602_state = ICM20602_FIFO_READ;
-                ICM20602_FIFOReset();
+    case ICM20602_RESET_WAIT:
+        if ((ICM20602_ReadReg(WHO_AM_I) == WHOAMI)
+            && (ICM20602_ReadReg(PWR_MGMT_1) == 0x41)
+            && (ICM20602_ReadReg(CONFIG) == 0x80)) {
+                ICM20602_WriteReg(I2C_IF, I2C_IF_DIS);
+                ICM20602_WriteReg(PWR_MGMT_1, CLKSEL_0);
+                ICM20602_WriteReg(SIGNAL_PATH_RESET, ACCEL_RST | TEMP_RST);
+                ICM20602_SetClearReg(USER_CTRL, SIG_COND_RST, 0);
+                icm20602_state = ICM20602_CONF;
+                vTaskDelay(1000);
             } else {
-                printf("\nWrong configuration, reset\n");
-                icm20602_state = ICM20602_RESET;
+                printf("\n%s:Wrong default registers values after reset\n", device);
                 vTaskDelay(1000);
             }
-            break;
+        break;
 
-        case ICM20602_FIFO_READ:
-            if(xSemaphoreTake(drdy_semaphore, portMAX_DELAY)) {
-                ICM20602_FIFOCount();
-                ICM20602_FIFORead();
-            }
-            break;
+    case ICM20602_CONF:
+        if(ICM20602_Configure()) {
+            icm20602_state = ICM20602_FIFO_READ;
+            ICM20602_FIFOReset();
+        } else {
+            printf("\n%sWrong configuration, reset\n", device);
+            icm20602_state = ICM20602_RESET;
+            vTaskDelay(1000);
+        }
+        break;
+
+    case ICM20602_FIFO_READ:
+        if(xSemaphoreTake(drdy_semaphore, portMAX_DELAY)) {
+            ICM20602_FIFOCount();
+            ICM20602_FIFORead();
+        }
+        break;
     }
 }
 
@@ -189,13 +191,13 @@ int ICM20602_Configure() {
         orig_val = ICM20602_ReadReg(reg_cfg[i].reg);
 
         if((orig_val & reg_cfg[i].setbits) != reg_cfg[i].setbits) {
-            printf("\n0x%02x: 0x%02x (0x%02x not set)\n",
+            printf("%s\n0x%02x: 0x%02x (0x%02x not set)\n", device,
             (uint8_t)reg_cfg[i].reg, orig_val, reg_cfg[i].setbits);
             rv = 0;
         }
 
         if((orig_val & reg_cfg[i].clearbits) != 0) {
-            printf("\n0x%02x: 0x%02x (0x%02x not cleared)\n",
+            printf("%s\n0x%02x: 0x%02x (0x%02x not cleared)\n", device,
             (uint8_t)reg_cfg[i].reg, orig_val, reg_cfg[i].clearbits);
             rv = 0;
         }
@@ -333,7 +335,7 @@ int ICM20602_Probe() {
     uint8_t whoami;
     whoami = ICM20602_ReadReg(WHO_AM_I);
     if(whoami != WHOAMI) {
-        printf("unexpected WHO_AM_I reg 0x%02x", whoami);
+        printf("%sunexpected WHO_AM_I reg 0x%02x", device, whoami);
         return ENODEV;
     }
     return 0;

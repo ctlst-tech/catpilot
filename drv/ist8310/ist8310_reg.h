@@ -6,7 +6,7 @@
 
 // Default settings
 type_t ADDRESS      = 0x0E;
-type_t DEVICE_ID    = 0x1D;
+type_t DEVICE_ID    = 0x10;
 
 // Register addresses
 type_t WHO_AM_I     = 0x00;
@@ -77,3 +77,17 @@ type_t XZ_16TIMES_C = BIT1 | BIT0;
 // PDCNTL
 type_t PULSE_NORMAL = BIT7 | BIT6;
 
+#define SIZE_REG_CFG 4
+
+typedef struct {
+    uint8_t reg;
+    uint8_t setbits;
+    uint8_t clearbits;
+} reg_cfg_t;
+
+static const reg_cfg_t reg_cfg[SIZE_REG_CFG] = {
+    {CNTL2,     0, 0},
+    {CNTL3,     X_16BIT | Y_16BIT | Z_16BIT, 0},
+    {AVGCNTL,   Y_16TIMES_S | XZ_16TIMES_S, Y_16TIMES_C | XZ_16TIMES_C},
+    {PDCNTL,    PULSE_NORMAL, 0}
+};
