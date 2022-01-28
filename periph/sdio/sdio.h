@@ -50,6 +50,8 @@ int SDIO_ReadBlocks(sdio_cfg_t *cfg, uint8_t *pdata, uint32_t address, uint32_t 
 int SDIO_WriteBlocks(sdio_cfg_t *cfg, uint8_t *pdata, uint32_t address, uint32_t num);
 int SDIO_Erase(sdio_cfg_t *cfg, uint32_t start_address, uint32_t end_address);
 int SDIO_GetCardInfo(sdio_cfg_t *cfg);
+int SDIO_Detect(sdio_cfg_t *cfg);
+int SDIO_GetStatus(sdio_cfg_t *cfg);
 
 int SDIO_DMA_TX_Handler(sdio_cfg_t *cfg);
 int SDIO_DMA_RX_Handler(sdio_cfg_t *cfg);

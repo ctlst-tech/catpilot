@@ -157,6 +157,12 @@ int SDIO_Detect(sdio_cfg_t *cfg) {
     }
 }
 
+int SDIO_GetStatus(sdio_cfg_t *cfg) {
+    int rv;
+    rv = cfg->inst.state;
+    return rv;
+}
+
 int SDIO_IT_Handler(sdio_cfg_t *cfg) {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 

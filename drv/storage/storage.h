@@ -7,3 +7,6 @@ typedef struct {
 } storage_cfg_t;
 
 int Storage_Init();
+int Storage_Read(uint8_t *pdata, uint32_t address, uint32_t num);
+int Storage_Write(uint8_t *pdata, uint32_t address, uint32_t num);
+int Storage_Status();

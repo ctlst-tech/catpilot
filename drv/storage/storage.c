@@ -1,6 +1,6 @@
 #include "storage.h"
 
-static char *device = "SDMMC1";
+static char *device = "Storage";
 
 static gpio_cfg_t storage_ck =  GPIO_SDMMC1_CK;
 static gpio_cfg_t storage_cmd = GPIO_SDMMC1_CMD;
@@ -62,5 +62,22 @@ int Storage_Init() {
     rv = SDIO_Init(&storage_cfg.sdio);
 
     return rv;
+}
 
+int Storage_Read(uint8_t *pdata, uint32_t address, uint32_t num) {
+    int rv;
+    rv = SDIO_ReadBlocks(&storage_cfg.sdio, pdata, address, num);
+    return rv;
+}
+
+int Storage_Write(uint8_t *pdata, uint32_t address, uint32_t num) {
+    int rv;
+    rv = SDIO_WriteBlocks(&storage_cfg.sdio, pdata, address, num);
+    return rv;
+}
+
+int Storage_Status() {
+    int rv;
+    rv = SDIO_GetStatus(&storage_cfg.sdio);
+    return rv;
 }
