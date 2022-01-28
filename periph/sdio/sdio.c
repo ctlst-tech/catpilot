@@ -141,6 +141,35 @@ int SDIO_Erase(sdio_cfg_t *cfg, uint32_t start_address, uint32_t end_address) {
     return rv;
 }
 
+int SDIO_Check(sdio_cfg_t *cfg) {
+    int rv = 0;
+
+    if(xSemaphoreTake(cfg->inst.mutex, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
+        rv = ETIMEDOUT;
+        goto free;
+    }
+
+    xSemaphoreTake(cfg->inst.semaphore, 0);
+
+    cfg->inst.state = SDIO_CHECK;
+
+    rv = SDMMC_CmdGoIdleState(cfg->SDIO);
+
+    if(rv != HAL_OK) {
+        goto free;
+    }
+
+    if(xSemaphoreTake(cfg->inst.semaphore, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
+        rv = ETIMEDOUT;
+    }
+
+    free:
+    cfg->inst.state = SDIO_FREE;
+    xSemaphoreGive(cfg->inst.mutex);
+
+    return rv;
+}
+
 int SDIO_GetCardInfo(sdio_cfg_t *cfg) {
     int rv = 0;
     rv = HAL_SD_GetCardInfo(&cfg->inst.SD_InitStruct, &cfg->inst.SD_CardInfo);

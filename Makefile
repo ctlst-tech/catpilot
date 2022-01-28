@@ -34,7 +34,7 @@ SOURCES_C_PERIPH += $(wildcard $(DIR_PERIPH)/sdio/*.c)
 SOURCES_C_DRV += $(wildcard $(DIR_DRV)/cli/*.c)
 SOURCES_C_DRV += $(wildcard $(DIR_DRV)/icm20602/*.c)
 SOURCES_C_DRV += $(wildcard $(DIR_DRV)/ist8310/*.c)
-SOURCES_C_DRV += $(wildcard $(DIR_DRV)/storage/*.c)
+SOURCES_C_DRV += $(wildcard $(DIR_DRV)/sdcard/*.c)
 
 SOURCES_C_LIB += $(wildcard $(DIR_LIB)/usr/*.c)
 SOURCES_C_LIB += $(wildcard $(DIR_LIB)/fatfs/*.c)
@@ -72,7 +72,7 @@ INC_PERIPH += -I$(DIR_PERIPH)/sdio
 INC_DRV += -I$(DIR_DRV)/cli
 INC_DRV += -I$(DIR_DRV)/icm20602
 INC_DRV += -I$(DIR_DRV)/ist8310
-INC_DRV += -I$(DIR_DRV)/storage
+INC_DRV += -I$(DIR_DRV)/sdcard
 
 INC_LIB += -I$(DIR_LIB)/usr
 INC_LIB += -I$(DIR_LIB)/fatfs
