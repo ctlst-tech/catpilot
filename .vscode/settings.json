@@ -19,6 +19,7 @@
         "bit.h": "c",
         "ist8310.h": "c",
         "const.h": "c",
-        "ist8310_reg.h": "c"
+        "ist8310_reg.h": "c",
+        "gpio.h": "c"
     }
 }

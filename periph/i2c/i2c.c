@@ -174,35 +174,35 @@ int I2C_ClockEnable(i2c_cfg_t *cfg) {
     switch((uint32_t)(cfg->I2C)) {
 
 #ifdef I2C1
-        case I2C1_BASE:
-            __HAL_RCC_I2C1_CLK_ENABLE();
-            cfg->inst.EV_IRQ = I2C1_EV_IRQn;
-            cfg->inst.ER_IRQ = I2C1_ER_IRQn;
-            break;
+    case I2C1_BASE:
+        __HAL_RCC_I2C1_CLK_ENABLE();
+        cfg->inst.EV_IRQ = I2C1_EV_IRQn;
+        cfg->inst.ER_IRQ = I2C1_ER_IRQn;
+        break;
 #endif
 
 #ifdef I2C2
-        case I2C2_BASE:
-            __HAL_RCC_I2C2_CLK_ENABLE();
-            cfg->inst.EV_IRQ = I2C2_EV_IRQn;
-            cfg->inst.ER_IRQ = I2C2_ER_IRQn;
-            break;
+    case I2C2_BASE:
+        __HAL_RCC_I2C2_CLK_ENABLE();
+        cfg->inst.EV_IRQ = I2C2_EV_IRQn;
+        cfg->inst.ER_IRQ = I2C2_ER_IRQn;
+        break;
 #endif
 
 #ifdef I2C3
-        case I2C3_BASE:
-            __HAL_RCC_I2C3_CLK_ENABLE();
-            cfg->inst.EV_IRQ = I2C3_EV_IRQn;
-            cfg->inst.ER_IRQ = I2C3_ER_IRQn;
-            break;
+    case I2C3_BASE:
+        __HAL_RCC_I2C3_CLK_ENABLE();
+        cfg->inst.EV_IRQ = I2C3_EV_IRQn;
+        cfg->inst.ER_IRQ = I2C3_ER_IRQn;
+        break;
 #endif
 
 #ifdef I2C4
-        case I2C4_BASE:
-            __HAL_RCC_I2C4_CLK_ENABLE();
-            cfg->inst.EV_IRQ = I2C4_EV_IRQn;
-            cfg->inst.ER_IRQ = I2C4_ER_IRQn;
-            break;
+    case I2C4_BASE:
+        __HAL_RCC_I2C4_CLK_ENABLE();
+        cfg->inst.EV_IRQ = I2C4_EV_IRQn;
+        cfg->inst.ER_IRQ = I2C4_ER_IRQn;
+        break;
 #endif
 
     default:

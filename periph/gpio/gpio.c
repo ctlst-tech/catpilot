@@ -16,55 +16,61 @@ void GPIO_Reset(gpio_cfg_t *cfg) {
     HAL_GPIO_WritePin(cfg->GPIO, cfg->GPIO_InitStruct.Pin, GPIO_PIN_RESET);
 }
 
+int GPIO_Read(gpio_cfg_t *cfg) {
+    int rv;
+    rv = HAL_GPIO_ReadPin(cfg->GPIO, cfg->GPIO_InitStruct.Pin);
+    return rv;
+}
+
 int GPIO_ClockEnable(gpio_cfg_t *cfg) {
     switch((uint32_t)(cfg->GPIO)) {
 
 #ifdef GPIOA
-        case GPIOA_BASE:
-            __HAL_RCC_GPIOA_CLK_ENABLE();
-            break;
+    case GPIOA_BASE:
+        __HAL_RCC_GPIOA_CLK_ENABLE();
+        break;
 #endif
 
 #ifdef GPIOB
-        case GPIOB_BASE:
-            __HAL_RCC_GPIOB_CLK_ENABLE();
-            break;
+    case GPIOB_BASE:
+        __HAL_RCC_GPIOB_CLK_ENABLE();
+        break;
 #endif
 
 #ifdef GPIOC
-        case GPIOC_BASE:
-            __HAL_RCC_GPIOC_CLK_ENABLE();
-            break;
+    case GPIOC_BASE:
+        __HAL_RCC_GPIOC_CLK_ENABLE();
+        break;
 #endif
 
 #ifdef GPIOD
-        case GPIOD_BASE:
-            __HAL_RCC_GPIOD_CLK_ENABLE();
-            break;
+    case GPIOD_BASE:
+        __HAL_RCC_GPIOD_CLK_ENABLE();
+        break;
 #endif
 
 #ifdef GPIOE
-        case GPIOE_BASE:
-            __HAL_RCC_GPIOE_CLK_ENABLE();
-            break;
+    case GPIOE_BASE:
+        __HAL_RCC_GPIOE_CLK_ENABLE();
+        break;
 #endif
 
 #ifdef GPIOF
-        case GPIOF_BASE:
-            __HAL_RCC_GPIOF_CLK_ENABLE();
-            break;
+    case GPIOF_BASE:
+        __HAL_RCC_GPIOF_CLK_ENABLE();
+        break;
 #endif
 
 #ifdef GPIOG
-        case GPIOG_BASE:
-            __HAL_RCC_GPIOG_CLK_ENABLE();
-            break;
+    case GPIOG_BASE:
+        __HAL_RCC_GPIOG_CLK_ENABLE();
+        break;
 #endif
 
 #ifdef GPIOH
-        case GPIOH_BASE:
-            __HAL_RCC_GPIOH_CLK_ENABLE();
-            break;
+    case GPIOH_BASE:
+        __HAL_RCC_GPIOH_CLK_ENABLE();
+        break;
 #endif
 
     default:

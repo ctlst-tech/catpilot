@@ -29,12 +29,14 @@ SOURCES_C_PERIPH += $(wildcard $(DIR_PERIPH)/i2c/*.c)
 SOURCES_C_PERIPH += $(wildcard $(DIR_PERIPH)/adc/*.c)
 SOURCES_C_PERIPH += $(wildcard $(DIR_PERIPH)/dma/*.c)
 SOURCES_C_PERIPH += $(wildcard $(DIR_PERIPH)/hal/*.c)
+SOURCES_C_PERIPH += $(wildcard $(DIR_PERIPH)/sdio/*.c)
 
 SOURCES_C_DRV += $(wildcard $(DIR_DRV)/cli/*.c)
 SOURCES_C_DRV += $(wildcard $(DIR_DRV)/icm20602/*.c)
 SOURCES_C_DRV += $(wildcard $(DIR_DRV)/ist8310/*.c)
 
-SOURCES_C_LIB += $(wildcard $(DIR_LIB)/*.c)
+SOURCES_C_LIB += $(wildcard $(DIR_LIB)/usr/*.c)
+SOURCES_C_LIB += $(wildcard $(DIR_LIB)/fatfs/*.c)
 
 SOURCES_C_RTOS = $(wildcard freertos/core/src/*.c)
 SOURCES_C_RTOS += $(wildcard freertos/port/$(MCU)/*.c)
@@ -64,12 +66,14 @@ INC_PERIPH += -I$(DIR_PERIPH)/i2c
 INC_PERIPH += -I$(DIR_PERIPH)/adc
 INC_PERIPH += -I$(DIR_PERIPH)/dma
 INC_PERIPH += -I$(DIR_PERIPH)/hal
+INC_PERIPH += -I$(DIR_PERIPH)/sdio
 
 INC_DRV += -I$(DIR_DRV)/cli
 INC_DRV += -I$(DIR_DRV)/icm20602
 INC_DRV += -I$(DIR_DRV)/ist8310
 
-INC_LIB += -I$(DIR_LIB)/
+INC_LIB += -I$(DIR_LIB)/usr
+INC_LIB += -I$(DIR_LIB)/fatfs
 
 INC_RTOS = -Ifreertos/core/inc -Ifreertos/port/$(MCU)
 INC_CONF = -Iconf

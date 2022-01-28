@@ -171,45 +171,45 @@ int SPI_ClockEnable(spi_cfg_t *cfg) {
     switch((uint32_t)(cfg->SPI)) {
 
 #ifdef SPI1
-        case SPI1_BASE:
-            __HAL_RCC_SPI1_CLK_ENABLE();
-            cfg->inst.IRQ = SPI1_IRQn;
-            break;
+    case SPI1_BASE:
+        __HAL_RCC_SPI1_CLK_ENABLE();
+        cfg->inst.IRQ = SPI1_IRQn;
+        break;
 #endif
 
 #ifdef SPI2
-        case SPI2_BASE:
-            __HAL_RCC_SPI2_CLK_ENABLE();
-            cfg->inst.IRQ = SPI2_IRQn;
-            break;
+    case SPI2_BASE:
+        __HAL_RCC_SPI2_CLK_ENABLE();
+        cfg->inst.IRQ = SPI2_IRQn;
+        break;
 #endif
 
 #ifdef SPI3
-        case SPI3_BASE:
-            __HAL_RCC_SPI3_CLK_ENABLE();
-            cfg->inst.IRQ = SPI3_IRQn;
-            break;
+    case SPI3_BASE:
+        __HAL_RCC_SPI3_CLK_ENABLE();
+        cfg->inst.IRQ = SPI3_IRQn;
+        break;
 #endif
 
 #ifdef SPI4
-        case SPI4_BASE:
-            __HAL_RCC_SPI4_CLK_ENABLE();
-            cfg->inst.IRQ = SPI4_IRQn;
-            break;
+    case SPI4_BASE:
+        __HAL_RCC_SPI4_CLK_ENABLE();
+        cfg->inst.IRQ = SPI4_IRQn;
+        break;
 #endif
 
 #ifdef SPI5
-        case SPI5_BASE:
-            __HAL_RCC_SPI5_CLK_ENABLE();
-            cfg->inst.IRQ = SPI5_IRQn;
-            break;
+    case SPI5_BASE:
+        __HAL_RCC_SPI5_CLK_ENABLE();
+        cfg->inst.IRQ = SPI5_IRQn;
+        break;
 #endif
 
 #ifdef SPI6
-        case SPI6_BASE:
-            __HAL_RCC_SPI6_CLK_ENABLE();
-            cfg->inst.IRQ = SPI6_IRQn;
-            break;
+    case SPI6_BASE:
+        __HAL_RCC_SPI6_CLK_ENABLE();
+        cfg->inst.IRQ = SPI6_IRQn;
+        break;
 #endif
 
     default:
