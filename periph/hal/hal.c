@@ -11,3 +11,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
         HAL_UART_Receive_DMA(huart, huart->pRxBuffPtr, 1);
     }
 }
+
+void HAL_Delay(uint32_t Delay) {
+    vTaskDelay(Delay);
+}

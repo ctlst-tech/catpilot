@@ -5,6 +5,7 @@ void RCC_Init() {
     RCC_ClkInitTypeDef RCC_ClkInitStruct;
     RCC_PLLSAIInitTypeDef RCC_PLLSAIInitStruct;
     RCC_PLLI2SInitTypeDef RCC_PLLI2SInitStruct;
+    RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
 
     // XTAL = 16 MHz, SYSCLK = 216 MHz
     RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
@@ -31,10 +32,14 @@ void RCC_Init() {
     RCC_PLLSAIInitStruct.PLLSAIQ = 4;
     RCC_PLLSAIInitStruct.PLLSAIR = 2;
     while(HAL_RCCEx_EnablePLLSAI(&RCC_PLLSAIInitStruct) != HAL_OK);
-    
+
     RCC_PLLI2SInitStruct.PLLI2SN = 192;
     RCC_PLLI2SInitStruct.PLLI2SP = 2;
     RCC_PLLI2SInitStruct.PLLI2SQ = 2;
     RCC_PLLI2SInitStruct.PLLI2SR = 2;
     while(HAL_RCCEx_EnablePLLI2S(&RCC_PLLI2SInitStruct) != HAL_OK);
+
+    PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_SDMMC1;
+    PeriphClkInitStruct.Sdmmc1ClockSelection = RCC_SDMMC1CLKSOURCE_CLK48;
+    while(HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK);
 }

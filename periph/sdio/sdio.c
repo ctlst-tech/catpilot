@@ -2,8 +2,6 @@
 
 int SDIO_Init(sdio_cfg_t *cfg) {
 
-    portENTER_CRITICAL();
-
     int rv = 0;
 
     if((rv = SDIO_ClockEnable(cfg)) != 0) return rv;
@@ -16,26 +14,21 @@ int SDIO_Init(sdio_cfg_t *cfg) {
     if((rv = GPIO_Init(cfg->d3_cfg)) != 0) return rv;
     if((rv = GPIO_Init(cfg->cd_cfg)) != 0) return rv;
 
-    if(cfg->dma_tx_cfg != NULL) {
-        cfg->dma_tx_cfg->DMA_InitStruct.Parent = &cfg->inst.SD_InitStruct;
-        if((rv = DMA_Init(cfg->dma_tx_cfg)) != 0) return rv;
-    }
-
-    if(cfg->dma_rx_cfg != NULL) {
-        cfg->dma_rx_cfg->DMA_InitStruct.Parent = &cfg->inst.SD_InitStruct;
-        if((rv = DMA_Init(cfg->dma_rx_cfg)) != 0) return rv;
+    if(cfg->dma_cfg != NULL) {
+        cfg->dma_cfg->DMA_InitStruct.Parent = &cfg->inst.SD_InitStruct;
+        if((rv = DMA_Init(cfg->dma_cfg)) != 0) return rv;
     }
 
     cfg->inst.SD_InitStruct.Instance = cfg->SDIO;
-    cfg->inst.SD_InitStruct.Init.ClockEdge = SDMMC_CLOCK_EDGE_RISING;
+    cfg->inst.SD_InitStruct.Init.ClockEdge = SDMMC_CLOCK_EDGE_FALLING;
     cfg->inst.SD_InitStruct.Init.ClockBypass = SDMMC_CLOCK_BYPASS_DISABLE;
     cfg->inst.SD_InitStruct.Init.ClockPowerSave = SDMMC_CLOCK_POWER_SAVE_DISABLE;
     cfg->inst.SD_InitStruct.Init.BusWide = SDMMC_BUS_WIDE_1B;
     cfg->inst.SD_InitStruct.Init.HardwareFlowControl = SDMMC_HARDWARE_FLOW_CONTROL_DISABLE;
-    cfg->inst.SD_InitStruct.Init.ClockDiv = 2;
+    cfg->inst.SD_InitStruct.Init.ClockDiv = 0;
 
-    cfg->inst.SD_InitStruct.hdmatx = &cfg->dma_tx_cfg->DMA_InitStruct;
-    cfg->inst.SD_InitStruct.hdmarx = &cfg->dma_rx_cfg->DMA_InitStruct;
+    cfg->inst.SD_InitStruct.hdmatx = &cfg->dma_cfg->DMA_InitStruct;
+    cfg->inst.SD_InitStruct.hdmarx = &cfg->dma_cfg->DMA_InitStruct;
 
     if(HAL_SD_Init(&cfg->inst.SD_InitStruct) != HAL_OK) return EINVAL;
     SDIO_EnableIRQ(cfg);
@@ -43,39 +36,37 @@ int SDIO_Init(sdio_cfg_t *cfg) {
     if(cfg->inst.mutex == NULL) cfg->inst.mutex = xSemaphoreCreateMutex();
     if(cfg->inst.semaphore == NULL) cfg->inst.semaphore = xSemaphoreCreateBinary();
 
-    portEXIT_CRITICAL();
-
     return rv;
 }
 
 int SDIO_ReadBlocks(sdio_cfg_t *cfg, uint8_t *pdata, uint32_t address, uint32_t num) {
     int rv = 0;
 
-    if(num == 0) return EINVAL;
-    if(pdata ==  NULL) return EINVAL;
+    // if(num == 0) return EINVAL;
+    // if(pdata ==  NULL) return EINVAL;
 
-    if(xSemaphoreTake(cfg->inst.mutex, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
-        rv = ETIMEDOUT;
-        goto free;
-    }
+    // if(xSemaphoreTake(cfg->inst.mutex, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
+    //     rv = ETIMEDOUT;
+    //     goto free;
+    // }
 
-    xSemaphoreTake(cfg->inst.semaphore, 0);
+    // xSemaphoreTake(cfg->inst.semaphore, 0);
 
-    cfg->inst.state = SDIO_READ;
+    // cfg->inst.state = SDIO_READ;
 
     rv = HAL_SD_ReadBlocks_DMA(&cfg->inst.SD_InitStruct, pdata, address, num);
 
-    if(rv != HAL_OK) {
-        goto free;
-    }
+    // if(rv != HAL_OK) {
+    //     goto free;
+    // }
 
-    if(xSemaphoreTake(cfg->inst.semaphore, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
-        rv = ETIMEDOUT;
-    }
+    // if(xSemaphoreTake(cfg->inst.semaphore, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
+    //     rv = ETIMEDOUT;
+    // }
 
-    free:
-    cfg->inst.state = SDIO_FREE;
-    xSemaphoreGive(cfg->inst.mutex);
+    // free:
+    // cfg->inst.state = SDIO_FREE;
+    // xSemaphoreGive(cfg->inst.mutex);
 
     return rv;
 }
@@ -83,31 +74,31 @@ int SDIO_ReadBlocks(sdio_cfg_t *cfg, uint8_t *pdata, uint32_t address, uint32_t 
 int SDIO_WriteBlocks(sdio_cfg_t *cfg, uint8_t *pdata, uint32_t address, uint32_t num) {
     int rv = 0;
 
-    if(num == 0) return EINVAL;
-    if(pdata ==  NULL) return EINVAL;
+    // if(num == 0) return EINVAL;
+    // if(pdata ==  NULL) return EINVAL;
 
-    if(xSemaphoreTake(cfg->inst.mutex, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
-        rv = ETIMEDOUT;
-        goto free;
-    }
+    // if(xSemaphoreTake(cfg->inst.mutex, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
+    //     rv = ETIMEDOUT;
+    //     goto free;
+    // }
 
-    xSemaphoreTake(cfg->inst.semaphore, 0);
+    // xSemaphoreTake(cfg->inst.semaphore, 0);
 
-    cfg->inst.state = SDIO_WRITE;
+    // cfg->inst.state = SDIO_WRITE;
 
     rv = HAL_SD_WriteBlocks_DMA(&cfg->inst.SD_InitStruct, pdata, address, num);
 
-    if(rv != HAL_OK) {
-        goto free;
-    }
+    // if(rv != HAL_OK) {
+    //     goto free;
+    // }
 
-    if(xSemaphoreTake(cfg->inst.semaphore, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
-        rv = ETIMEDOUT;
-    }
+    // if(xSemaphoreTake(cfg->inst.semaphore, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
+    //     rv = ETIMEDOUT;
+    // }
 
-    free:
-    cfg->inst.state = SDIO_FREE;
-    xSemaphoreGive(cfg->inst.mutex);
+    // free:
+    // cfg->inst.state = SDIO_FREE;
+    // xSemaphoreGive(cfg->inst.mutex);
 
     return rv;
 }
@@ -193,26 +184,21 @@ int SDIO_GetStatus(sdio_cfg_t *cfg) {
 }
 
 int SDIO_IT_Handler(sdio_cfg_t *cfg) {
-    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    // BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
     HAL_SD_IRQHandler(&cfg->inst.SD_InitStruct);
 
-    if(cfg->inst.SD_InitStruct.State == HAL_SD_STATE_READY) {
-        xSemaphoreGiveFromISR(cfg->inst.semaphore, &xHigherPriorityTaskWoken);
-        if(xHigherPriorityTaskWoken == pdTRUE) {
-            portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-        }
-    }
+    // if(cfg->inst.SD_InitStruct.State == HAL_SD_STATE_READY) {
+    //     xSemaphoreGiveFromISR(cfg->inst.semaphore, &xHigherPriorityTaskWoken);
+    //     if(xHigherPriorityTaskWoken == pdTRUE) {
+    //         portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+    //     }
+    // }
     return 0;
 }
 
-int SDIO_DMA_TX_Handler(sdio_cfg_t *cfg) {
-    HAL_DMA_IRQHandler(&cfg->dma_tx_cfg->DMA_InitStruct);
-    return 0;
-}
-
-int SDIO_DMA_RX_Handler(sdio_cfg_t *cfg) {
-    HAL_DMA_IRQHandler(&cfg->dma_rx_cfg->DMA_InitStruct);
+int SDIO_DMA_Handler(sdio_cfg_t *cfg) {
+    HAL_DMA_IRQHandler(&cfg->dma_cfg->DMA_InitStruct);
     return 0;
 }
 

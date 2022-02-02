@@ -9,7 +9,7 @@
             "binaryArgs": []
         }
     ],
-    "cortex-debug.variableUseNaturalFormat": false,
+    "cortex-debug.variableUseNaturalFormat": true,
     "files.associations": {
         "cli.h": "c",
         "gpio_cfg.h": "c",
@@ -20,6 +20,8 @@
         "ist8310.h": "c",
         "const.h": "c",
         "ist8310_reg.h": "c",
-        "gpio.h": "c"
+        "gpio.h": "c",
+        "stm32_drv.h": "c",
+        "icm20602.h": "c"
     }
 }
