@@ -407,7 +407,7 @@ HAL_StatusTypeDef HAL_SD_InitCard(SD_HandleTypeDef *hsd)
   SD_InitTypeDef Init;
 
   /* Default SDMMC peripheral configuration for SD card initialization */
-  Init.ClockEdge           = SDMMC_CLOCK_EDGE_FALLING;
+  Init.ClockEdge           = SDMMC_CLOCK_EDGE_RISING;
   Init.ClockBypass         = SDMMC_CLOCK_BYPASS_DISABLE;
   Init.ClockPowerSave      = SDMMC_CLOCK_POWER_SAVE_DISABLE;
   Init.BusWide             = SDMMC_BUS_WIDE_1B;

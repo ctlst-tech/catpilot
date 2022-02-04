@@ -20,15 +20,17 @@ int SDIO_Init(sdio_cfg_t *cfg) {
     }
 
     cfg->inst.SD_InitStruct.Instance = cfg->SDIO;
-    cfg->inst.SD_InitStruct.Init.ClockEdge = SDMMC_CLOCK_EDGE_FALLING;
+    cfg->inst.SD_InitStruct.Init.ClockEdge = SDMMC_CLOCK_EDGE_RISING;
     cfg->inst.SD_InitStruct.Init.ClockBypass = SDMMC_CLOCK_BYPASS_DISABLE;
     cfg->inst.SD_InitStruct.Init.ClockPowerSave = SDMMC_CLOCK_POWER_SAVE_DISABLE;
     cfg->inst.SD_InitStruct.Init.BusWide = SDMMC_BUS_WIDE_1B;
     cfg->inst.SD_InitStruct.Init.HardwareFlowControl = SDMMC_HARDWARE_FLOW_CONTROL_DISABLE;
-    cfg->inst.SD_InitStruct.Init.ClockDiv = 0;
+    cfg->inst.SD_InitStruct.Init.ClockDiv = SDMMC_INIT_CLK_DIV;
 
     cfg->inst.SD_InitStruct.hdmatx = &cfg->dma_cfg->DMA_InitStruct;
     cfg->inst.SD_InitStruct.hdmarx = &cfg->dma_cfg->DMA_InitStruct;
+
+    vTaskDelay(2);
 
     if(HAL_SD_Init(&cfg->inst.SD_InitStruct) != HAL_OK) return EINVAL;
     SDIO_EnableIRQ(cfg);
@@ -185,8 +187,10 @@ int SDIO_GetStatus(sdio_cfg_t *cfg) {
 
 int SDIO_IT_Handler(sdio_cfg_t *cfg) {
     // BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    int rv;
 
     HAL_SD_IRQHandler(&cfg->inst.SD_InitStruct);
+    rv = &cfg->inst.SD_InitStruct.ErrorCode;
 
     // if(cfg->inst.SD_InitStruct.State == HAL_SD_STATE_READY) {
     //     xSemaphoreGiveFromISR(cfg->inst.semaphore, &xHigherPriorityTaskWoken);
