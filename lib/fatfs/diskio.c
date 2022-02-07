@@ -29,33 +29,15 @@ DSTATUS disk_status (
 	DSTATUS stat;
 	int result;
 
-	switch (pdrv) {
-	// case DEV_RAM :
-		// result = RAM_disk_status();
+	result = SDCARD_Status();
 
-		// translate the reslut code here
-
-		// return stat;
-
-	case DEV_MMC :
-		result = SDCARD_Status();
-
-		if(result) {
-			stat = RES_ERROR;
-		} else {
-			stat = RES_OK;
-		}
-
-		return stat;
-
-	// case DEV_USB :
-		// result = USB_disk_status();
-
-		// translate the reslut code here
-
-		// return stat;
+	if(result) {
+		stat = RES_ERROR;
+	} else {
+		stat = RES_OK;
 	}
-	return STA_NOINIT;
+
+	return stat;
 }
 
 
@@ -71,33 +53,15 @@ DSTATUS disk_initialize (
 	DSTATUS stat;
 	int result;
 
-	switch (pdrv) {
-	// case DEV_RAM :
-		// result = RAM_disk_initialize();
+	result = SDCARD_Init();
 
-		// translate the reslut code here
-
-		// return stat;
-
-	case DEV_MMC :
-		result = SDCARD_Init();
-
-		if(result) {
-			stat = RES_PARERR;
-		} else {
-			stat = RES_OK;
-		}
-
-		return stat;
-
-	// case DEV_USB :
-		// result = USB_disk_initialize();
-
-		// translate the reslut code here
-
-		// return stat;
+	if(result) {
+		stat = RES_PARERR;
+	} else {
+		stat = RES_OK;
 	}
-	return STA_NOINIT;
+
+	return stat;
 }
 
 
@@ -116,38 +80,15 @@ DRESULT disk_read (
 	DRESULT res;
 	int result;
 
-	switch (pdrv) {
-	// case DEV_RAM :
-		// translate the arguments here
+	result = SDCARD_Read(buff, sector, count);
 
-		// result = RAM_disk_read(buff, sector, count);
-
-		// translate the reslut code here
-
-		// return res;
-
-	case DEV_MMC :
-		result = SDCARD_Read(buff, sector, count);
-
-		if(result) {
-			res = RES_ERROR;
-		} else {
-			res = RES_OK;
-		}
-
-		return res;
-
-	// case DEV_USB :
-		// translate the arguments here
-
-		// result = USB_disk_read(buff, sector, count);
-
-		// translate the reslut code here
-
-		// return res;
+	if(result) {
+		res = RES_ERROR;
+	} else {
+		res = RES_OK;
 	}
 
-	return RES_PARERR;
+	return res;
 }
 
 
@@ -168,38 +109,15 @@ DRESULT disk_write (
 	DRESULT res;
 	int result;
 
-	switch (pdrv) {
-	// case DEV_RAM :
-		// translate the arguments here
+	result = SDCARD_Write((uint8_t *)buff, sector, count);
 
-		// result = RAM_disk_write(buff, sector, count);
-
-		// translate the reslut code here
-
-		// return res;
-
-	case DEV_MMC :
-		result = SDCARD_Write((uint8_t *)buff, sector, count);
-
-		if(result) {
-			res = RES_ERROR;
-		} else {
-			res = RES_OK;
-		}
-
-		return res;
-
-	// case DEV_USB :
-		// translate the arguments here
-
-		// result = USB_disk_write(buff, sector, count);
-
-		// translate the reslut code here
-
-		// return res;
+	if(result) {
+		res = RES_ERROR;
+	} else {
+		res = RES_OK;
 	}
 
-	return RES_PARERR;
+	return res;
 }
 
 #endif
@@ -218,32 +136,15 @@ DRESULT disk_ioctl (
 	DRESULT res;
 	int result;
 
-	switch (pdrv) {
-	// case DEV_RAM :
+	(void)buff;
+	result = SDCARD_SendCommand(cmd);
 
-		// Process of the command for the RAM drive
-
-		// return res;
-
-	case DEV_MMC :
-		(void)buff;
-		result = SDCARD_SendCommand(cmd);
-
-		if(result) {
-			res = RES_ERROR;
-		} else {
-			res = RES_OK;
-		}
-
-		return res;
-
-	// case DEV_USB :
-
-		// Process of the command the USB drive
-
-		// return res;
+	if(result) {
+		res = RES_ERROR;
+	} else {
+		res = RES_OK;
 	}
 
-	return RES_PARERR;
+	return res;
 }
 

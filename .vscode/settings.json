@@ -22,6 +22,7 @@
         "ist8310_reg.h": "c",
         "gpio.h": "c",
         "stm32_drv.h": "c",
-        "icm20602.h": "c"
+        "icm20602.h": "c",
+        "diskio.h": "c"
     }
 }

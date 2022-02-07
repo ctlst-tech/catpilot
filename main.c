@@ -2,6 +2,7 @@
 #include "stm32_drv.h"
 #include "stm32_periph.h"
 #include "icm20602_reg.h"
+#include "ff.h"
 
 void Echo(void *pvParameters) {
     CLI_Init();
@@ -21,24 +22,26 @@ void Sensors(void *pvParameters) {
     }
 }
 
+uint8_t data[512] = {};
+
 void SDCARD(void *pvParameters) {
-    if(SDCARD_Init()) {
-        while(1);
-    }
-    uint8_t data[2];
-    uint8_t rec[2] = {};
+    FATFS fileSystem;
+    FIL testFile;
+    uint8_t testBuffer[16] = "SD write success";
+    UINT testBytes;
+    FRESULT res;
+
+    fileSystem.pdrv = 1;
+
+    res = f_mount(&fileSystem, "0:", 1);
     while(1) {
-        data[0] = 0x05;
-        data[1] = 0x07;
-        SDCARD_Write(data, 0, 2);
-        SDCARD_Read(rec, 0, 2);
     }
 }
 
 int main(void) {
     RCC_Init();
     HAL_Init();
-    // xTaskCreate(Echo, "Echo", 512, NULL, 1, NULL);
+    xTaskCreate(Echo, "Echo", 512, NULL, 1, NULL);
     // xTaskCreate(Sensors, "Sensors", 512, NULL, 2, NULL);
     xTaskCreate(SDCARD, "SDCARD", 512, NULL, 3, NULL);
     vTaskStartScheduler();
