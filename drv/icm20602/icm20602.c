@@ -298,9 +298,9 @@ void ICM20602_AccelProcess() {
 		int16_t accel_y = msblsb16(FIFOBuffer.buf[i].ACCEL_YOUT_H, FIFOBuffer.buf[i].ACCEL_YOUT_L);
 		int16_t accel_z = msblsb16(FIFOBuffer.buf[i].ACCEL_ZOUT_H, FIFOBuffer.buf[i].ACCEL_ZOUT_L);
 
-		icm20602_fifo.accel_x[i] = accel_x;
-		icm20602_fifo.accel_y[i] = (accel_y == INT16_MIN) ? INT16_MAX : -accel_y;
-		icm20602_fifo.accel_z[i] = (accel_z == INT16_MIN) ? INT16_MAX : -accel_z;
+		icm20602_fifo.accel_x[i] = accel_x * icm20602_cfg.dim.accel_scale;
+		icm20602_fifo.accel_y[i] = ((accel_y == INT16_MIN) ? INT16_MAX : -accel_y) * icm20602_cfg.dim.accel_scale;
+		icm20602_fifo.accel_z[i] = ((accel_z == INT16_MIN) ? INT16_MAX : -accel_z) * icm20602_cfg.dim.accel_scale;
 	}
 }
 
@@ -310,9 +310,9 @@ void ICM20602_GyroProcess() {
 		int16_t gyro_y = msblsb16(FIFOBuffer.buf[i].GYRO_YOUT_H, FIFOBuffer.buf[i].GYRO_YOUT_L);
 		int16_t gyro_z = msblsb16(FIFOBuffer.buf[i].GYRO_ZOUT_H, FIFOBuffer.buf[i].GYRO_ZOUT_L);
 
-		icm20602_fifo.gyro_x[i] = gyro_x;
-		icm20602_fifo.gyro_y[i] = (gyro_y == INT16_MIN) ? INT16_MAX : -gyro_y;
-		icm20602_fifo.gyro_z[i] = (gyro_z == INT16_MIN) ? INT16_MAX : -gyro_z;
+		icm20602_fifo.gyro_x[i] = gyro_x * icm20602_cfg.dim.gyro_scale;
+		icm20602_fifo.gyro_y[i] = ((gyro_y == INT16_MIN) ? INT16_MAX : -gyro_y) * icm20602_cfg.dim.gyro_scale;
+		icm20602_fifo.gyro_z[i] = ((gyro_z == INT16_MIN) ? INT16_MAX : -gyro_z) * icm20602_cfg.dim.gyro_scale;
 	}
 }
 
@@ -342,12 +342,12 @@ int ICM20602_Probe() {
 
 void ICM20602_Statistics() {
     // TODO add time between FIFO reading
-    printf("\naccel_x = %.2f\n", icm20602_fifo.accel_x[0] * icm20602_cfg.dim.accel_scale);
-    printf("\naccel_y = %.2f\n", icm20602_fifo.accel_y[0] * icm20602_cfg.dim.accel_scale);
-    printf("\naccel_z = %.2f\n", icm20602_fifo.accel_z[0] * icm20602_cfg.dim.accel_scale);
-    printf("\ngyro_x  = %.2f\n", icm20602_fifo.gyro_x[0] * icm20602_cfg.dim.gyro_scale);
-    printf("\ngyro_y  = %.2f\n", icm20602_fifo.gyro_y[0] * icm20602_cfg.dim.gyro_scale);
-    printf("\ngyro_z  = %.2f\n", icm20602_fifo.gyro_z[0] * icm20602_cfg.dim.gyro_scale);
+    printf("\naccel_x = %.2f\n", icm20602_fifo.accel_x[0]);
+    printf("\naccel_y = %.2f\n", icm20602_fifo.accel_y[0]);
+    printf("\naccel_z = %.2f\n", icm20602_fifo.accel_z[0]);
+    printf("\ngyro_x  = %.2f\n", icm20602_fifo.gyro_x[0]);
+    printf("\ngyro_y  = %.2f\n", icm20602_fifo.gyro_y[0]);
+    printf("\ngyro_z  = %.2f\n", icm20602_fifo.gyro_z[0]);
     printf("\ntemp = %.2f\n", icm20602_fifo.temp);
 }
 

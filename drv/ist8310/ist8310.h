@@ -18,6 +18,8 @@ typedef struct {
     float mag_z;
 } ist8310_data_t;
 
+extern ist8310_data_t ist8310_data;
+
 int IST8310_Init();
 void IST8310_Run();
 

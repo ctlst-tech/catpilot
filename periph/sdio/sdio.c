@@ -20,19 +20,20 @@ int SDIO_Init(sdio_cfg_t *cfg) {
     }
 
     cfg->inst.SD_InitStruct.Instance = cfg->SDIO;
-    cfg->inst.SD_InitStruct.Init.ClockEdge = SDMMC_CLOCK_EDGE_RISING;
+    cfg->inst.SD_InitStruct.Init.ClockEdge = SDMMC_CLOCK_EDGE_FALLING;
     cfg->inst.SD_InitStruct.Init.ClockBypass = SDMMC_CLOCK_BYPASS_DISABLE;
     cfg->inst.SD_InitStruct.Init.ClockPowerSave = SDMMC_CLOCK_POWER_SAVE_DISABLE;
     cfg->inst.SD_InitStruct.Init.BusWide = SDMMC_BUS_WIDE_1B;
     cfg->inst.SD_InitStruct.Init.HardwareFlowControl = SDMMC_HARDWARE_FLOW_CONTROL_DISABLE;
-    cfg->inst.SD_InitStruct.Init.ClockDiv = SDMMC_INIT_CLK_DIV;
+    cfg->inst.SD_InitStruct.Init.ClockDiv = 0;
 
     cfg->inst.SD_InitStruct.hdmatx = &cfg->dma_cfg->DMA_InitStruct;
     cfg->inst.SD_InitStruct.hdmarx = &cfg->dma_cfg->DMA_InitStruct;
 
-    vTaskDelay(2);
-
     if(HAL_SD_Init(&cfg->inst.SD_InitStruct) != HAL_OK) return EINVAL;
+
+    // if(HAL_SD_ConfigWideBusOperation(&cfg->inst.SD_InitStruct, SDMMC_BUS_WIDE_4B) != HAL_OK) return EINVAL;
+
     SDIO_EnableIRQ(cfg);
 
     if(cfg->inst.mutex == NULL) cfg->inst.mutex = xSemaphoreCreateMutex();
@@ -44,31 +45,32 @@ int SDIO_Init(sdio_cfg_t *cfg) {
 int SDIO_ReadBlocks(sdio_cfg_t *cfg, uint8_t *pdata, uint32_t address, uint32_t num) {
     int rv = 0;
 
-    // if(num == 0) return EINVAL;
-    // if(pdata ==  NULL) return EINVAL;
+    if(num == 0) return EINVAL;
+    if(pdata ==  NULL) return EINVAL;
 
-    // if(xSemaphoreTake(cfg->inst.mutex, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
-    //     rv = ETIMEDOUT;
-    //     goto free;
-    // }
+    if(xSemaphoreTake(cfg->inst.mutex, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
+        rv = ETIMEDOUT;
+        goto free;
+    }
 
-    // xSemaphoreTake(cfg->inst.semaphore, 0);
+    xSemaphoreTake(cfg->inst.semaphore, 0);
 
-    // cfg->inst.state = SDIO_READ;
+    cfg->inst.state = SDIO_READ;
 
+    SDIO_CheckStatusWithTimeout(cfg, cfg->timeout);
     rv = HAL_SD_ReadBlocks_DMA(&cfg->inst.SD_InitStruct, pdata, address, num);
 
-    // if(rv != HAL_OK) {
-    //     goto free;
-    // }
+    if(rv != HAL_OK) {
+        goto free;
+    }
 
-    // if(xSemaphoreTake(cfg->inst.semaphore, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
-    //     rv = ETIMEDOUT;
-    // }
+    if(xSemaphoreTake(cfg->inst.semaphore, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
+        rv = ETIMEDOUT;
+    }
 
-    // free:
-    // cfg->inst.state = SDIO_FREE;
-    // xSemaphoreGive(cfg->inst.mutex);
+    free:
+    cfg->inst.state = SDIO_FREE;
+    xSemaphoreGive(cfg->inst.mutex);
 
     return rv;
 }
@@ -76,49 +78,22 @@ int SDIO_ReadBlocks(sdio_cfg_t *cfg, uint8_t *pdata, uint32_t address, uint32_t 
 int SDIO_WriteBlocks(sdio_cfg_t *cfg, uint8_t *pdata, uint32_t address, uint32_t num) {
     int rv = 0;
 
-    // if(num == 0) return EINVAL;
-    // if(pdata ==  NULL) return EINVAL;
+    if(num == 0) return EINVAL;
+    if(pdata ==  NULL) return EINVAL;
 
-    // if(xSemaphoreTake(cfg->inst.mutex, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
-    //     rv = ETIMEDOUT;
-    //     goto free;
-    // }
+    if(xSemaphoreTake(cfg->inst.mutex, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
+        rv = ETIMEDOUT;
+        goto free;
+    }
 
-    // xSemaphoreTake(cfg->inst.semaphore, 0);
 
-    // cfg->inst.state = SDIO_WRITE;
+    xSemaphoreTake(cfg->inst.semaphore, 0);
 
+    cfg->inst.state = SDIO_WRITE;
+
+    SDIO_CheckStatusWithTimeout(cfg, cfg->timeout);
     rv = HAL_SD_WriteBlocks_DMA(&cfg->inst.SD_InitStruct, pdata, address, num);
 
-    // if(rv != HAL_OK) {
-    //     goto free;
-    // }
-
-    // if(xSemaphoreTake(cfg->inst.semaphore, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
-    //     rv = ETIMEDOUT;
-    // }
-
-    // free:
-    // cfg->inst.state = SDIO_FREE;
-    // xSemaphoreGive(cfg->inst.mutex);
-
-    return rv;
-}
-
-int SDIO_Erase(sdio_cfg_t *cfg, uint32_t start_address, uint32_t end_address) {
-    int rv = 0;
-
-    if(xSemaphoreTake(cfg->inst.mutex, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
-        rv = ETIMEDOUT;
-        goto free;
-    }
-
-    xSemaphoreTake(cfg->inst.semaphore, 0);
-
-    cfg->inst.state = SDIO_ERASE;
-
-    rv = HAL_SD_Erase(&cfg->inst.SD_InitStruct, start_address, end_address);
-
     if(rv != HAL_OK) {
         goto free;
     }
@@ -134,39 +109,16 @@ int SDIO_Erase(sdio_cfg_t *cfg, uint32_t start_address, uint32_t end_address) {
     return rv;
 }
 
-int SDIO_Check(sdio_cfg_t *cfg) {
-    int rv = 0;
+int SDIO_CheckStatusWithTimeout(sdio_cfg_t *cfg, uint32_t timeout) {
+    uint32_t start = xTaskGetTickCount();
 
-    if(xSemaphoreTake(cfg->inst.mutex, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
-        rv = ETIMEDOUT;
-        goto free;
+    while(xTaskGetTickCount() - start < timeout) {
+        if (HAL_SD_GetCardState(&cfg->inst.SD_InitStruct) == HAL_SD_CARD_READY) {
+            return 0;
+        }
     }
 
-    xSemaphoreTake(cfg->inst.semaphore, 0);
-
-    cfg->inst.state = SDIO_CHECK;
-
-    rv = SDMMC_CmdGoIdleState(cfg->SDIO);
-
-    if(rv != HAL_OK) {
-        goto free;
-    }
-
-    if(xSemaphoreTake(cfg->inst.semaphore, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
-        rv = ETIMEDOUT;
-    }
-
-    free:
-    cfg->inst.state = SDIO_FREE;
-    xSemaphoreGive(cfg->inst.mutex);
-
-    return rv;
-}
-
-int SDIO_GetCardInfo(sdio_cfg_t *cfg) {
-    int rv = 0;
-    rv = HAL_SD_GetCardInfo(&cfg->inst.SD_InitStruct, &cfg->inst.SD_CardInfo);
-    return rv;
+    return ETIMEDOUT;
 }
 
 int SDIO_Detect(sdio_cfg_t *cfg) {
@@ -179,30 +131,47 @@ int SDIO_Detect(sdio_cfg_t *cfg) {
     }
 }
 
-int SDIO_GetStatus(sdio_cfg_t *cfg) {
+int SDIO_GetInfo(sdio_cfg_t *cfg, HAL_SD_CardInfoTypeDef *info) {
     int rv;
-    rv = cfg->inst.state;
+    rv = HAL_SD_GetCardInfo(&cfg->inst.SD_InitStruct, info);
     return rv;
 }
 
-int SDIO_IT_Handler(sdio_cfg_t *cfg) {
-    // BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+int SDIO_GetStatus(sdio_cfg_t *cfg) {
     int rv;
+    rv = HAL_SD_GetCardState(&cfg->inst.SD_InitStruct);
+    if((rv == HAL_SD_CARD_ERROR) || (rv == HAL_SD_CARD_DISCONNECTED)) {
+        return rv;
+    } else {
+        return 0;
+    }
+}
 
+int SDIO_IT_Handler(sdio_cfg_t *cfg) {
     HAL_SD_IRQHandler(&cfg->inst.SD_InitStruct);
-    rv = &cfg->inst.SD_InitStruct.ErrorCode;
-
-    // if(cfg->inst.SD_InitStruct.State == HAL_SD_STATE_READY) {
-    //     xSemaphoreGiveFromISR(cfg->inst.semaphore, &xHigherPriorityTaskWoken);
-    //     if(xHigherPriorityTaskWoken == pdTRUE) {
-    //         portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-    //     }
-    // }
     return 0;
 }
 
 int SDIO_DMA_Handler(sdio_cfg_t *cfg) {
     HAL_DMA_IRQHandler(&cfg->dma_cfg->DMA_InitStruct);
+    return 0;
+}
+
+int SDIO_TX_Complete(sdio_cfg_t *cfg) {
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    xSemaphoreGiveFromISR(cfg->inst.semaphore, &xHigherPriorityTaskWoken);
+    if(xHigherPriorityTaskWoken == pdTRUE) {
+        portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+    }
+    return 0;
+}
+
+int SDIO_RX_Complete(sdio_cfg_t *cfg) {
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    xSemaphoreGiveFromISR(cfg->inst.semaphore, &xHigherPriorityTaskWoken);
+    if(xHigherPriorityTaskWoken == pdTRUE) {
+        portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+    }
     return 0;
 }
 

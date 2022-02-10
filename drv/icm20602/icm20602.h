@@ -29,6 +29,8 @@ typedef struct {
     float temp;
 } icm20602_fifo_t;
 
+extern icm20602_fifo_t icm20602_fifo;
+
 int ICM20602_Init();
 void ICM20602_Run();
 

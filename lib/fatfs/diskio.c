@@ -17,27 +17,28 @@
 #define DEV_MMC		1	/* Example: Map MMC/SD card to physical drive 1 */
 #define DEV_USB		2	/* Example: Map USB MSD to physical drive 2 */
 
+#define SD_DEFAULT_BLOCK_SIZE 512
 
 /*-----------------------------------------------------------------------*/
 /* Get Drive Status                                                      */
 /*-----------------------------------------------------------------------*/
 
 DSTATUS disk_status (
-	BYTE pdrv		/* Physical drive nmuber to identify the drive */
+    BYTE pdrv		/* Physical drive nmuber to identify the drive */
 )
 {
-	DSTATUS stat;
-	int result;
+    DSTATUS stat;
+    int result;
 
-	result = SDCARD_Status();
+    result = SDCARD_GetStatus();
 
-	if(result) {
-		stat = RES_ERROR;
-	} else {
-		stat = RES_OK;
-	}
+    if(result) {
+        stat = RES_NOTRDY;
+    } else {
+        stat = RES_OK;
+    }
 
-	return stat;
+    return stat;
 }
 
 
@@ -47,21 +48,21 @@ DSTATUS disk_status (
 /*-----------------------------------------------------------------------*/
 
 DSTATUS disk_initialize (
-	BYTE pdrv				/* Physical drive nmuber to identify the drive */
+    BYTE pdrv				/* Physical drive nmuber to identify the drive */
 )
 {
-	DSTATUS stat;
-	int result;
+    DSTATUS stat;
+    int result;
 
-	result = SDCARD_Init();
+    result = SDCARD_Init();
 
-	if(result) {
-		stat = RES_PARERR;
-	} else {
-		stat = RES_OK;
-	}
+    if(result) {
+        stat = RES_PARERR;
+    } else {
+        stat = RES_OK;
+    }
 
-	return stat;
+    return stat;
 }
 
 
@@ -71,24 +72,24 @@ DSTATUS disk_initialize (
 /*-----------------------------------------------------------------------*/
 
 DRESULT disk_read (
-	BYTE pdrv,		/* Physical drive nmuber to identify the drive */
-	BYTE *buff,		/* Data buffer to store read data */
-	LBA_t sector,	/* Start sector in LBA */
-	UINT count		/* Number of sectors to read */
+    BYTE pdrv,		/* Physical drive nmuber to identify the drive */
+    BYTE *buff,		/* Data buffer to store read data */
+    LBA_t sector,	/* Start sector in LBA */
+    UINT count		/* Number of sectors to read */
 )
 {
-	DRESULT res;
-	int result;
+    DRESULT res;
+    int result;
 
-	result = SDCARD_Read(buff, sector, count);
+    result = SDCARD_Read(buff, sector, count);
 
-	if(result) {
-		res = RES_ERROR;
-	} else {
-		res = RES_OK;
-	}
+    if(result) {
+        res = RES_ERROR;
+    } else {
+        res = RES_OK;
+    }
 
-	return res;
+    return res;
 }
 
 
@@ -100,24 +101,24 @@ DRESULT disk_read (
 #if FF_FS_READONLY == 0
 
 DRESULT disk_write (
-	BYTE pdrv,			/* Physical drive nmuber to identify the drive */
-	const BYTE *buff,	/* Data to be written */
-	LBA_t sector,		/* Start sector in LBA */
-	UINT count			/* Number of sectors to write */
+    BYTE pdrv,			/* Physical drive nmuber to identify the drive */
+    const BYTE *buff,	/* Data to be written */
+    LBA_t sector,		/* Start sector in LBA */
+    UINT count			/* Number of sectors to write */
 )
 {
-	DRESULT res;
-	int result;
+    DRESULT res;
+    int result;
 
-	result = SDCARD_Write((uint8_t *)buff, sector, count);
+    result = SDCARD_Write((uint8_t *)buff, sector, count);
 
-	if(result) {
-		res = RES_ERROR;
-	} else {
-		res = RES_OK;
-	}
+    if(result) {
+        res = RES_ERROR;
+    } else {
+        res = RES_OK;
+    }
 
-	return res;
+    return res;
 }
 
 #endif
@@ -128,23 +129,51 @@ DRESULT disk_write (
 /*-----------------------------------------------------------------------*/
 
 DRESULT disk_ioctl (
-	BYTE pdrv,		/* Physical drive nmuber (0..) */
-	BYTE cmd,		/* Control code */
-	void *buff		/* Buffer to send/receive control data */
+    BYTE pdrv,		/* Physical drive nmuber (0..) */
+    BYTE cmd,		/* Control code */
+    void *buff		/* Buffer to send/receive control data */
 )
 {
-	DRESULT res;
-	int result;
+    DRESULT res = RES_ERROR;
+    HAL_SD_CardInfoTypeDef CardInfo;
 
-	(void)buff;
-	result = SDCARD_SendCommand(cmd);
+    switch (cmd)
+    {
+    /* Make sure that no pending write process */
+    case CTRL_SYNC :
+        res = RES_OK;
+        break;
 
-	if(result) {
-		res = RES_ERROR;
-	} else {
-		res = RES_OK;
-	}
+    /* Get number of sectors on the disk (DWORD) */
+    case GET_SECTOR_COUNT :
+        SDCARD_GetInfo(&CardInfo);
+        *(DWORD*)buff = CardInfo.LogBlockNbr;
+        res = RES_OK;
+        break;
 
-	return res;
+    /* Get R/W sector size (WORD) */
+    case GET_SECTOR_SIZE :
+        SDCARD_GetInfo(&CardInfo);
+        *(WORD*)buff = CardInfo.LogBlockSize;
+        res = RES_OK;
+        break;
+
+    /* Get erase block size in unit of sector (DWORD) */
+    case GET_BLOCK_SIZE :
+        SDCARD_GetInfo(&CardInfo);
+        *(DWORD*)buff = CardInfo.LogBlockSize / SD_DEFAULT_BLOCK_SIZE;
+        res = RES_OK;
+        break;
+
+    default:
+        res = RES_PARERR;
+    }
+
+    return res;
+}
+
+__weak DWORD get_fattime (void)
+{
+  return 0;
 }
 

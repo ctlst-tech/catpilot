@@ -23,6 +23,10 @@
         "gpio.h": "c",
         "stm32_drv.h": "c",
         "icm20602.h": "c",
-        "diskio.h": "c"
+        "diskio.h": "c",
+        "sdcard.h": "c",
+        "icm20602_reg.h": "c",
+        "i2c.h": "c",
+        "rcc.h": "c"
     }
 }

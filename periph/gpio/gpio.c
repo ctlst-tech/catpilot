@@ -3,7 +3,7 @@
 int GPIO_Init(gpio_cfg_t *cfg) {
     int rv = 0;
     if(cfg == NULL) return EINVAL;
-    if((rv = GPIO_ClockEnable(cfg) != 0)) return rv;
+    if((rv = GPIO_ClockEnable(cfg)) != 0) return rv;
     HAL_GPIO_Init(cfg->GPIO, (GPIO_InitTypeDef *)&cfg->GPIO_InitStruct);
     return rv;
 }

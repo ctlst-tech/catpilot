@@ -1215,6 +1215,10 @@ HAL_StatusTypeDef HAL_SD_ReadBlocks_DMA(SD_HandleTypeDef *hsd, uint8_t *pData, u
     /* Set the DMA Abort callback */
     hsd->hdmarx->XferAbortCallback = NULL;
 
+    /* Force DMA Direction */
+    hsd->hdmarx->Init.Direction = DMA_PERIPH_TO_MEMORY;
+    MODIFY_REG(hsd->hdmarx->Instance->CR, DMA_SxCR_DIR, hsd->hdmarx->Init.Direction);
+
     /* Enable the DMA Channel */
     if(HAL_DMA_Start_IT(hsd->hdmarx, (uint32_t)&hsd->Instance->FIFO, (uint32_t)pData, (uint32_t)(BLOCKSIZE * NumberOfBlocks)/4U) != HAL_OK)
     {
@@ -1232,17 +1236,6 @@ HAL_StatusTypeDef HAL_SD_ReadBlocks_DMA(SD_HandleTypeDef *hsd, uint8_t *pData, u
       if(hsd->SdCard.CardType != CARD_SDHC_SDXC)
       {
         add *= 512U;
-      }
-
-      /* Set Block Size for Card */
-      errorstate = SDMMC_CmdBlockLength(hsd->Instance, BLOCKSIZE);
-      if(errorstate != HAL_SD_ERROR_NONE)
-      {
-        /* Clear all the static flags */
-        __HAL_SD_CLEAR_FLAG(hsd, SDMMC_STATIC_FLAGS);
-        hsd->ErrorCode |= errorstate;
-        hsd->State = HAL_SD_STATE_READY;
-        return HAL_ERROR;
       }
 
       /* Configure the SD DPSM (Data Path State Machine) */
@@ -1345,17 +1338,6 @@ HAL_StatusTypeDef HAL_SD_WriteBlocks_DMA(SD_HandleTypeDef *hsd, uint8_t *pData, 
       add *= 512U;
     }
 
-    /* Set Block Size for Card */
-    errorstate = SDMMC_CmdBlockLength(hsd->Instance, BLOCKSIZE);
-    if(errorstate != HAL_SD_ERROR_NONE)
-    {
-      /* Clear all the static flags */
-      __HAL_SD_CLEAR_FLAG(hsd, SDMMC_STATIC_FLAGS);
-      hsd->ErrorCode |= errorstate;
-      hsd->State = HAL_SD_STATE_READY;
-      return HAL_ERROR;
-    }
-
     /* Write Blocks in Polling mode */
     if(NumberOfBlocks > 1U)
     {
@@ -1383,6 +1365,10 @@ HAL_StatusTypeDef HAL_SD_WriteBlocks_DMA(SD_HandleTypeDef *hsd, uint8_t *pData, 
 
     /* Enable SDMMC DMA transfer */
     __HAL_SD_DMA_ENABLE(hsd);
+
+    /* Force DMA Direction */
+    hsd->hdmatx->Init.Direction = DMA_MEMORY_TO_PERIPH;
+    MODIFY_REG(hsd->hdmatx->Instance->CR, DMA_SxCR_DIR, hsd->hdmatx->Init.Direction);
 
     /* Enable the DMA Channel */
     if(HAL_DMA_Start_IT(hsd->hdmatx, (uint32_t)pData, (uint32_t)&hsd->Instance->FIFO, (uint32_t)(BLOCKSIZE * NumberOfBlocks)/4U) != HAL_OK)

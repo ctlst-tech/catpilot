@@ -15,3 +15,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 void HAL_Delay(uint32_t Delay) {
     vTaskDelay(Delay);
 }
+
+uint32_t HAL_GetTick(void) {
+    return xTaskGetTickCount();
+}
