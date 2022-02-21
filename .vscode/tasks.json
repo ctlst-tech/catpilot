@@ -1,0 +1,17 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Flash",
+            "type": "shell",
+            "command": "st-flash write ${workspaceRoot}/build/ctlst-fmuv5.bin 0x08000000",
+            "problemMatcher": []
+        },
+        {
+            "label": "Erase",
+            "type": "shell",
+            "command": "st-flash erase",
+            "problemMatcher": []
+        }
+    ]
+}

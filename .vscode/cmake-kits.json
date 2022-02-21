@@ -1,0 +1,15 @@
+[
+    {
+        "name": "MCU",
+        "compilers": {
+        "C": "/usr/bin/arm-none-eabi-gcc-11.2.0"
+        }
+    },
+    {
+        "name": "UNIX",
+        "compilers": {
+            "C": "/usr/bin/x86_64-pc-linux-gnu-gcc-10.3.0"
+        }
+    }
+]
+

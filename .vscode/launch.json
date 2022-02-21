@@ -1,7 +1,6 @@
 {
     "version": "0.2.0",
     "configurations": [
-    
         {
             "name": "openocd",
             "request": "launch",
@@ -10,12 +9,12 @@
             "servertype": "openocd",
             "executable": "build/ctlst-fmuv5.elf",
             "svdFile": "mcu/stm32f765ii/core/STM32F765.svd",
-            "showDevDebugOutput": true,
             "searchDir": [
                 "/usr/share/openocd/scripts",],
             "configFiles": [
                 "/usr/share/openocd/scripts/board/stm32f7discovery.cfg"
-            ]
-        }
+            ],
+            "preLaunchTask": "Flash"
+        },
     ]
 }

@@ -1,8 +1,22 @@
-cmake_minimum_required(VERSION 2.6...3.13)
-project(ctlst-fmuv5 C ASM)
-set(CMAKE_VERBOSE_MAKEFILE ON)
+cmake_minimum_required(VERSION 3.15)
 
-set(MCU stm32f765ii)
+set(PROJ_NAME "ctlst-fmuv5")
+
+set(CMAKE_VERBOSE_MAKEFILE OFF)
+if (TYPE STREQUAL "PX4")
+    set(MAP_CREATION "ON")
+    set(MCU stm32f765ii)
+    set(ASM_FILE ${PROJECT_BINARY_DIR}/${PROJ_NAME}.asm)
+    set(CMAKE_TOOLCHAIN_FILE ./f7_toolchain.cmake)
+else ()
+    message(FATAL_ERROR "TYPE is not set!")
+endif ()
+
+project(${PROJ_NAME} C ASM)
+
+set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "" )
+set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "" )
+
 set(DIR_MCU mcu/${MCU})
 set(DIR_PERIPH periph)
 set(DIR_DRV drv)
@@ -11,30 +25,11 @@ set(DIR_RTOS freertos)
 set(DIR_CONF conf)
 set(HEAP_SIZE 0x400)
 
-set(TOOLCHAIN_PATH      "/usr/bin")
-set(CMAKE_C_COMPILER    ${TOOLCHAIN_PATH}/arm-none-eabi-gcc)
-set(CMAKE_CXX_COMPILER  ${TOOLCHAIN_PATH}/arm-none-eabi-g++)
-set(CMAKE_ASM_COMPILER  ${TOOLCHAIN_PATH}/arm-none-eabi-gcc)
-set(CMAKE_AR            ${TOOLCHAIN_PATH}/arm-none-eabi-ar)
-set(CMAKE_OBJCOPY       ${TOOLCHAIN_PATH}/arm-none-eabi-objcopy)
-set(CMAKE_OBJDUMP       ${TOOLCHAIN_PATH}/arm-none-eabi-objdump)
-set(CMAKE_SIZE          ${TOOLCHAIN_PATH}/arm-none-eabi-size)
-set(CMAKE_GDB           ${TOOLCHAIN_PATH}/arm-none-eabi-gdb)
-set(CMAKE_SIZE          ${TOOLCHAIN_PATH}/arm-none-eabi-size)
-
 add_definitions(
--DSTM32
--DSTM32F7
--DHEAP_SIZE=${HEAP_SIZE}
+    -DSTM32
+    -DSTM32F7
+    -DHEAP_SIZE=${HEAP_SIZE}
 )
-
-set(CMAKE_BUILD_TYPE "Debug")
-set(MCU_FLAGS "-mcpu=cortex-m7 -mlittle-endian -mfloat-abi=hard -mthumb -mno-unaligned-access")
-
-set(CMAKE_C_FLAGS_EXTRA "-nostartfiles -nodefaultlibs -nostdlib -fdata-sections -ffunction-sections")
-set(CMAKE_C_FLAGS "${MCU_FLAGS} -Wall -Wextra -std=gnu99")
-set(CMAKE_C_FLAGS_DEBUG "-O0 -g3")
-add_definitions(${CMAKE_C_FLAGS_EXTRA})
 
 include_directories(
     ${DIR_MCU}/core
@@ -79,14 +74,6 @@ set(SOURCES
     ${SRC_RTOS}
 )
 
-set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "" )
-set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "" )
-
-file(GLOB LINKER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/${DIR_MCU}/core/*.ld)
-set(CMAKE_EXE_LINKER_FLAGS
-"-specs=nano.specs ${MCU_FLAGS} -Wl,--start-group -lgcc -lc -lg -Wl,--end-group -Wl,--gc-sections -u _printf_float -T${LINKER_SCRIPT}"
-)
-
 add_executable(${PROJECT_NAME}.elf ${SOURCES})
 target_link_libraries(${PROJECT_NAME}.elf -lc -lm -lnosys)
 
@@ -97,12 +84,10 @@ set(BIN_FILE ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.bin)
 add_custom_command(TARGET "${PROJECT_NAME}.elf" POST_BUILD
     COMMAND ${CMAKE_OBJCOPY} -Obinary ${ELF_FILE} ${BIN_FILE}
     COMMAND ${CMAKE_OBJCOPY} -Oihex  ${ELF_FILE} ${HEX_FILE}
-    COMMENT "Building ${PROJECT_NAME}.bin and ${PROJECT_NAME}.hex"
-
+)
+add_custom_command(TARGET "${PROJECT_NAME}.elf" POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy ${HEX_FILE} "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.hex"
     COMMAND ${CMAKE_COMMAND} -E copy ${BIN_FILE} "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.bin"
     COMMAND ${CMAKE_SIZE} -A ${PROJECT_NAME}.elf
     COMMAND ${CMAKE_SIZE} --format=berkeley ${PROJECT_NAME}.hex
-
-    COMMENT "Invoking: Cross ARM GNU Print Size"
 )

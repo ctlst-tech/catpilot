@@ -1,6 +1,11 @@
 {
-    "cortex-debug.armToolchainPath": "/usr/bin/",
+    "cmake.setBuildTypeOnMultiConfig": true,
+    "cmake.configureSettings": {
+        "TYPE": "PX4"
+    },
+    "cortex-debug.armToolchainPath": "usr/bin",
     "cortex-debug.openocdPath": "/usr/bin/openocd",
+    "cortex-debug.gdbPath": "/usr/bin/gdb-multiarch",
     "cortex-debug.registerUseNaturalFormat": false,
     "makefile.launchConfigurations": [
         {
