@@ -1,5 +1,5 @@
 #include "ist8310.h"
-#include "ist8310_reg.h"
+#include "ist8310_conf.h"
 
 static char *device = "IST8310";
 
@@ -37,8 +37,8 @@ int IST8310_Init() {
     ist8310_cfg.i2c.dma_tx_cfg = &dma_i2c3_tx;
     ist8310_cfg.i2c.dma_rx_cfg = &dma_i2c3_rx;
 
-    dma_i2c3_tx.DMA_InitStruct.Instance = DMA1_Stream0;
-    dma_i2c3_tx.DMA_InitStruct.Init.Channel = DMA_CHANNEL_8;
+    dma_i2c3_tx.DMA_InitStruct.Instance = DMA1_Stream4;
+    dma_i2c3_tx.DMA_InitStruct.Init.Channel = DMA_CHANNEL_3;
     dma_i2c3_tx.DMA_InitStruct.Init.Direction = DMA_MEMORY_TO_PERIPH;
     dma_i2c3_tx.DMA_InitStruct.Init.PeriphInc = DMA_PINC_DISABLE;
     dma_i2c3_tx.DMA_InitStruct.Init.MemInc = DMA_MINC_ENABLE;
@@ -215,7 +215,7 @@ void I2C3_ER_IRQHandler(void) {
     I2C_ER_Handler(&ist8310_cfg.i2c);
 }
 
-void DMA1_Stream0_IRQHandler(void) {
+void DMA1_Stream4_IRQHandler(void) {
     I2C_DMA_TX_Handler(&ist8310_cfg.i2c);
 }
 

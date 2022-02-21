@@ -48,6 +48,7 @@ include_directories(
     ${DIR_DRV}/icm20602
     ${DIR_DRV}/ist8310
     ${DIR_DRV}/sdcard
+    ${DIR_DRV}/px4io
     ${DIR_LIB}/usr
     ${DIR_LIB}/fatfs
     ${DIR_RTOS}/core/inc

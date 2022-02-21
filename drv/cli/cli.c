@@ -1,7 +1,10 @@
 #include "cli.h"
 
+static char *device = "CLI";
+
 gpio_cfg_t gpio_cli_tx = GPIO_USART7_TX;
 gpio_cfg_t gpio_cli_rx = GPIO_USART7_RX;
+
 dma_cfg_t dma_cli_tx;
 dma_cfg_t dma_cli_rx;
 
@@ -40,13 +43,13 @@ int CLI_Init() {
     dma_cli_rx.DMA_InitStruct.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
     dma_cli_rx.DMA_InitStruct.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
     dma_cli_rx.DMA_InitStruct.Init.Mode = DMA_NORMAL;
-    dma_cli_rx.DMA_InitStruct.Init.Priority = DMA_PRIORITY_LOW; 
+    dma_cli_rx.DMA_InitStruct.Init.Priority = DMA_PRIORITY_LOW;
     dma_cli_rx.DMA_InitStruct.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
     dma_cli_rx.priority = 15;
 
-    USART_Init(&cli_cfg);
+    rv = USART_Init(&cli_cfg);
 
-    USART_Receive(&cli_cfg, &data, 1);
+    rv = USART_Receive(&cli_cfg, &data, 1);
 
     return rv;
 }

@@ -1,5 +1,5 @@
 #include "icm20602.h"
-#include "icm20602_reg.h"
+#include "icm20602_conf.h"
 
 static char *device = "ICM20602";
 

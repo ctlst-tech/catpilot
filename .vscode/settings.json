@@ -7,31 +7,14 @@
     "cortex-debug.openocdPath": "/usr/bin/openocd",
     "cortex-debug.gdbPath": "/usr/bin/gdb-multiarch",
     "cortex-debug.registerUseNaturalFormat": false,
-    "makefile.launchConfigurations": [
-        {
-            "cwd": "/home/optim/ctlst/ctlst-fmuv5/build",
-            "binaryPath": "/home/optim/ctlst/ctlst-fmuv5/build/ctlst-fmuv5.elf",
-            "binaryArgs": []
-        }
-    ],
+
     "cortex-debug.variableUseNaturalFormat": true,
     "files.associations": {
-        "cli.h": "c",
-        "gpio_cfg.h": "c",
-        "stm32_periph.h": "c",
-        "usart.h": "c",
+        "pxio.h": "c",
         "stm32_base.h": "c",
-        "bit.h": "c",
-        "ist8310.h": "c",
-        "const.h": "c",
-        "ist8310_reg.h": "c",
-        "gpio.h": "c",
-        "stm32_drv.h": "c",
-        "icm20602.h": "c",
-        "diskio.h": "c",
-        "sdcard.h": "c",
-        "icm20602_reg.h": "c",
-        "i2c.h": "c",
-        "rcc.h": "c"
-    }
+        "stm32_periph.h": "c",
+        "gpio_cfg.h": "c",
+        "pxio_conf.h": "c",
+        "stm32_lib.h": "c"
+    },
 }
