@@ -11,9 +11,9 @@ set(DIR_RTOS freertos)
 set(DIR_CONF conf)
 set(HEAP_SIZE 0x400)
 
-set(TOOLCHAIN_PATH  "/usr/bin")
-SET(CMAKE_C_COMPILER    ${TOOLCHAIN_PATH}/arm-none-eabi-gcc)
-SET(CMAKE_CXX_COMPILER  ${TOOLCHAIN_PATH}/arm-none-eabi-g++)
+set(TOOLCHAIN_PATH      "/usr/bin")
+set(CMAKE_C_COMPILER    ${TOOLCHAIN_PATH}/arm-none-eabi-gcc)
+set(CMAKE_CXX_COMPILER  ${TOOLCHAIN_PATH}/arm-none-eabi-g++)
 set(CMAKE_ASM_COMPILER  ${TOOLCHAIN_PATH}/arm-none-eabi-gcc)
 set(CMAKE_AR            ${TOOLCHAIN_PATH}/arm-none-eabi-ar)
 set(CMAKE_OBJCOPY       ${TOOLCHAIN_PATH}/arm-none-eabi-objcopy)
@@ -30,11 +30,11 @@ add_definitions(
 
 set(CMAKE_BUILD_TYPE "Debug")
 set(MCU_FLAGS "-mcpu=cortex-m7 -mlittle-endian -mfloat-abi=hard -mthumb -mno-unaligned-access")
-set(CMAKE_C_FLAGS_EXTRA "-nostartfiles -nodefaultlibs -nostdlib -fdata-sections -ffunction-sections")
-set(CMAKE_C_FLAGS "${MCU_FLAGS} -Wall -Wextra ${CMAKE_C_FLAGS_EXTRA}")
-set(CMAKE_C_DEBUG "-O0 -g3")
 
-# SET(CMAKE_C_FLAGS_INIT "-std=gnu99")
+set(CMAKE_C_FLAGS_EXTRA "-nostartfiles -nodefaultlibs -nostdlib -fdata-sections -ffunction-sections")
+set(CMAKE_C_FLAGS "${MCU_FLAGS} -Wall -Wextra -std=gnu99")
+set(CMAKE_C_FLAGS_DEBUG "-O0 -g3")
+add_definitions(${CMAKE_C_FLAGS_EXTRA})
 
 include_directories(
     ${DIR_MCU}/core
@@ -101,7 +101,8 @@ add_custom_command(TARGET "${PROJECT_NAME}.elf" POST_BUILD
 
     COMMAND ${CMAKE_COMMAND} -E copy ${HEX_FILE} "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.hex"
     COMMAND ${CMAKE_COMMAND} -E copy ${BIN_FILE} "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.bin"
+    COMMAND ${CMAKE_SIZE} -A ${PROJECT_NAME}.elf
+    COMMAND ${CMAKE_SIZE} --format=berkeley ${PROJECT_NAME}.hex
 
-    COMMAND ${CMAKE_SIZE} --format=berkeley ${PROJECT_NAME}.elf ${PROJECT_NAME}.hex
     COMMENT "Invoking: Cross ARM GNU Print Size"
 )
