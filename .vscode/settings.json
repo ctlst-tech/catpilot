@@ -7,8 +7,6 @@
     "cortex-debug.openocdPath": "/usr/bin/openocd",
     "cortex-debug.gdbPath": "/usr/bin/gdb-multiarch",
     "cortex-debug.registerUseNaturalFormat": false,
-
-    "cortex-debug.variableUseNaturalFormat": true,
     "files.associations": {
         "pxio.h": "c",
         "stm32_base.h": "c",

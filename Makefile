@@ -35,6 +35,7 @@ SOURCES_C_DRV += $(wildcard $(DIR_DRV)/cli/*.c)
 SOURCES_C_DRV += $(wildcard $(DIR_DRV)/icm20602/*.c)
 SOURCES_C_DRV += $(wildcard $(DIR_DRV)/ist8310/*.c)
 SOURCES_C_DRV += $(wildcard $(DIR_DRV)/sdcard/*.c)
+SOURCES_C_DRV += $(wildcard $(DIR_DRV)/px4io/*.c)
 
 SOURCES_C_LIB += $(wildcard $(DIR_LIB)/usr/*.c)
 SOURCES_C_LIB += $(wildcard $(DIR_LIB)/fatfs/*.c)
@@ -73,6 +74,7 @@ INC_DRV += -I$(DIR_DRV)/cli
 INC_DRV += -I$(DIR_DRV)/icm20602
 INC_DRV += -I$(DIR_DRV)/ist8310
 INC_DRV += -I$(DIR_DRV)/sdcard
+INC_DRV += -I$(DIR_DRV)/px4io
 
 INC_LIB += -I$(DIR_LIB)/usr
 INC_LIB += -I$(DIR_LIB)/fatfs
@@ -118,7 +120,7 @@ CFLAGS = -Wall -Wextra
 CFLAGS_EXTRA = -nostartfiles -nodefaultlibs -nostdlib \
                -fdata-sections -ffunction-sections
 
-CFLAGS += $(DEFINES) $(MCUFLAGS) $(DEBUG_OPTIMIZE_FLAGS) $(CFLAGS_EXTRA) $(INCLUDES)
+CFLAGS += $(DEFINES) $(INCLUDES) $(MCUFLAGS) $(DEBUG_OPTIMIZE_FLAGS) $(CFLAGS_EXTRA)
 
 LDFLAGS = -specs=nano.specs -specs=nosys.specs $(MCUFLAGS) -Wl,--start-group -lgcc -lc -lg -Wl,--end-group \
           -Wl,--gc-sections -u _printf_float -T mcu/$(MCU)/core/STM32F765_FLASH.ld

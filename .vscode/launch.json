@@ -14,7 +14,6 @@
             "configFiles": [
                 "/usr/share/openocd/scripts/board/stm32f7discovery.cfg"
             ],
-            "preLaunchTask": "Flash"
         },
     ]
 }
