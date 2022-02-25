@@ -4,15 +4,17 @@
         "TYPE": "PX4"
     },
     "cortex-debug.armToolchainPath": "usr/bin",
-    "cortex-debug.openocdPath": "/usr/bin/openocd",
+    "cortex-debug.openocdPath": "/usr/local/bin/openocd",
     "cortex-debug.gdbPath": "/usr/bin/gdb-multiarch",
-    "cortex-debug.registerUseNaturalFormat": false,
+    "cortex-debug.registerUseNaturalFormat": true,
     "files.associations": {
         "pxio.h": "c",
         "stm32_base.h": "c",
         "stm32_periph.h": "c",
         "gpio_cfg.h": "c",
         "pxio_conf.h": "c",
-        "stm32_lib.h": "c"
+        "stm32_lib.h": "c",
+        "stm32_drv.h": "c",
+        "px4io.h": "c"
     },
 }

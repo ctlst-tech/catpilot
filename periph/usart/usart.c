@@ -105,25 +105,65 @@ int USART_Receive(usart_cfg_t *cfg, uint8_t *pdata, uint16_t length) {
     return rv;
 }
 
+int USART_TransmitReceive(usart_cfg_t *cfg, uint8_t *tx_pdata, uint8_t *rx_pdata, uint16_t tx_length, uint16_t rx_length) {
+    int rv = 0;
+
+    if(tx_length == 0) return EINVAL;
+    if(rx_length == 0) return EINVAL;
+    if(tx_pdata ==  NULL) return EINVAL;
+    if(rx_pdata ==  NULL) return EINVAL;
+
+    if(xSemaphoreTake(cfg->inst.mutex, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
+        return ETIMEDOUT;
+    }
+
+    xSemaphoreTake(cfg->inst.semaphore, 0);
+
+    cfg->inst.state = USART_RECEIVE;
+
+    HAL_UART_Receive_DMA(&cfg->inst.USART_InitStruct, rx_pdata, rx_length);
+    HAL_UART_Transmit_DMA(&cfg->inst.USART_InitStruct, tx_pdata, tx_length);
+
+    if(xSemaphoreTake(cfg->inst.semaphore, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
+        rv = ETIMEDOUT;
+    } else {
+        rv = 0;
+    }
+
+    cfg->inst.state = USART_FREE;
+    xSemaphoreGive(cfg->inst.mutex);
+
+    return rv;
+}
+
 int USART_Handler(usart_cfg_t *cfg) {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
     HAL_UART_IRQHandler(&cfg->inst.USART_InitStruct);
 
     if(cfg->inst.USART_InitStruct.gState == HAL_UART_STATE_READY &&
-    cfg->inst.state == USART_TRANSMIT) {
-        xSemaphoreGiveFromISR(cfg->inst.semaphore, &xHigherPriorityTaskWoken);
-        if(xHigherPriorityTaskWoken == pdTRUE) {
-            portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-        }
+        cfg->inst.state == USART_TRANSMIT) {
+            xSemaphoreGiveFromISR(cfg->inst.semaphore, &xHigherPriorityTaskWoken);
+            if(xHigherPriorityTaskWoken == pdTRUE) {
+                portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+            }
     }
 
     if(cfg->inst.USART_InitStruct.RxState == HAL_UART_STATE_READY &&
-    cfg->inst.state == USART_RECEIVE) {
-        xSemaphoreGiveFromISR(cfg->inst.semaphore, &xHigherPriorityTaskWoken);
-        if(xHigherPriorityTaskWoken == pdTRUE) {
-            portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-        }
+        cfg->inst.state == USART_RECEIVE) {
+            xSemaphoreGiveFromISR(cfg->inst.semaphore, &xHigherPriorityTaskWoken);
+            if(xHigherPriorityTaskWoken == pdTRUE) {
+                portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+            }
+    }
+
+    if(cfg->USART->ISR & USART_ISR_IDLE &&
+        cfg->inst.state == USART_RECEIVE &&
+        cfg->mode == USART_IDLE) {
+            xSemaphoreGiveFromISR(cfg->inst.semaphore, &xHigherPriorityTaskWoken);
+            if(xHigherPriorityTaskWoken == pdTRUE) {
+                portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+            }
     }
 
     return 0;

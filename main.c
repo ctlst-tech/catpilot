@@ -54,14 +54,22 @@ void FS(void *pvParameters) {
     }
 }
 
+void PX4IO(void *pvParameters) {
+    PX4IO_Init();
+    while(1) {
+        PX4IO_Run();
+    }
+}
+
 int main(void) {
     // SCB_EnableDCache();
     // SCB_EnableICache();
     HAL_Init();
     RCC_Init();
-    xTaskCreate(Echo, "Echo", 512, NULL, 1, NULL);
-    xTaskCreate(Sensors, "Sensors", 512, NULL, 2, NULL);
-    xTaskCreate(FS, "FileSystem", 1024, NULL, 3, NULL);
+    // xTaskCreate(Echo, "Echo", 512, NULL, 1, NULL);
+    // xTaskCreate(Sensors, "Sensors", 512, NULL, 2, NULL);
+    // xTaskCreate(FS, "FileSystem", 1024, NULL, 3, NULL);
+    xTaskCreate(PX4IO, "PX4IO exchange", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
     vTaskStartScheduler();
     while(1) {
     }

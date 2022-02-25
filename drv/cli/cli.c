@@ -22,6 +22,7 @@ int CLI_Init() {
     cli_cfg.speed = 115200;
     cli_cfg.timeout = 20;
     cli_cfg.priority = 15;
+    cli_cfg.mode = USART_TIMEOUT;
 
     dma_cli_tx.DMA_InitStruct.Instance = DMA1_Stream1;
     dma_cli_tx.DMA_InitStruct.Init.Channel = DMA_CHANNEL_5;

@@ -147,14 +147,14 @@ enum {                                              /* DSM bind states */
 #define PKT_MAX_REGS                    32 // by agreement w/FMU
 
 #pragma pack(push, 1)
-struct IOPacket {
-    uint8_t     count_code;
-    uint8_t     crc;
-    uint8_t     page;
-    uint8_t     offset;
-    uint16_t    regs[PKT_MAX_REGS];
-};
+typedef struct {
+    uint8_t  count_code;
+    uint8_t  crc;
+    uint8_t  page;
+    uint8_t  offset;
+    uint16_t regs[PKT_MAX_REGS];
 #pragma pack(pop)
+} px4io_packet_t;
 
 #if (PX4IO_MAX_TRANSFER_LEN > PKT_MAX_REGS * 2)
 #error The max transfer length of the IO protocol must not be larger than the IO packet size
@@ -208,8 +208,8 @@ static const uint8_t crc8_tab[256] __attribute__((unused)) = {
     0xE6, 0xE1, 0xE8, 0xEF, 0xFA, 0xFD, 0xF4, 0xF3
 };
 
-static uint8_t crc_packet(struct IOPacket *pkt) __attribute__((unused));
-static uint8_t crc_packet(struct IOPacket *pkt)
+static uint8_t crc_packet(px4io_packet_t *pkt) __attribute__((unused));
+static uint8_t crc_packet(px4io_packet_t *pkt)
 {
     uint8_t *end = (uint8_t *)(&pkt->regs[PKT_COUNT(*pkt)]);
     uint8_t *p = (uint8_t *)pkt;

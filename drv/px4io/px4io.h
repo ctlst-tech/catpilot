@@ -7,5 +7,7 @@ typedef struct {
 } px4io_cfg_t;
 
 int PX4IO_Init();
-int PX4IO_Write(uint8_t address, uint8_t *data, uint8_t length);
-int PX4IO_Read(uint8_t address, uint8_t *data, uint8_t length);
+void PX4IO_Run();
+int PX4IO_Write(uint8_t address, uint16_t *data, uint16_t length);
+int PX4IO_Read(uint8_t address, uint16_t *data, uint16_t length);
+int PX4IO_ReadReg(uint8_t page, uint8_t offset, uint16_t *data, uint8_t num);

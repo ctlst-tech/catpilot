@@ -10,9 +10,9 @@
             "executable": "build/ctlst-fmuv5.elf",
             "svdFile": "mcu/stm32f765ii/core/STM32F765.svd",
             "searchDir": [
-                "/usr/share/openocd/scripts",],
+                "/usr/local/share/openocd/scripts",],
             "configFiles": [
-                "/usr/share/openocd/scripts/board/stm32f7discovery.cfg"
+                "/usr/local/share/openocd/scripts/board/stm32f7discovery.cfg"
             ],
         },
     ]
