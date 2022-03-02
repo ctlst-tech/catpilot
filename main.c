@@ -57,6 +57,7 @@ void FS(void *pvParameters) {
 void PX4IO(void *pvParameters) {
     PX4IO_Init();
     while(1) {
+        vTaskDelay(2000);
         PX4IO_Run();
     }
 }
