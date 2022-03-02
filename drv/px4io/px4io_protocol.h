@@ -6,6 +6,7 @@
 
 /* maximum allowable sizes on this protocol version */
 #define PX4IO_PROTOCOL_MAX_CONTROL_COUNT  8    /**< The protocol does not support more than set here, individual units might support less - see PX4IO_P_CONFIG_CONTROL_COUNT */
+#define PX4IO_MAX_ACTUATORS              8
 
 /* static configuration page */
 #define PX4IO_PAGE_CONFIG                 0
@@ -169,9 +170,22 @@ typedef struct {
 #define PKT_CODE_MASK       0xc0
 #define PKT_COUNT_MASK      0x3f
 
-#define PKT_COUNT(_p)   ((_p).count_code & PKT_COUNT_MASK)
-#define PKT_CODE(_p)    ((_p).count_code & PKT_CODE_MASK)
-#define PKT_SIZE(_p)    ((size_t)((uint8_t *)&((_p).regs[PKT_COUNT(_p)]) - ((uint8_t *)&(_p))))
+#define PKT_COUNT(_str)   ((_str).count_code & PKT_COUNT_MASK)
+#define PKT_CODE(_str)    ((_str).count_code & PKT_CODE_MASK)
+#define PKT_SIZE(_str)    ((size_t)((uint8_t *)&((_str).regs[PKT_COUNT(_str)]) - ((uint8_t *)&(_str))))
+
+uint16_t get_pkt_count(px4io_packet_t *pkt) {
+    uint16_t rv = pkt->count_code & PKT_COUNT_MASK;
+    return (pkt->count_code & PKT_COUNT_MASK);
+}
+
+uint16_t get_pkt_code(px4io_packet_t *pkt) {
+    return (pkt->count_code & PKT_CODE_MASK);
+}
+
+uint16_t get_pkt_size(px4io_packet_t *pkt) {
+    return ((size_t)((uint8_t *)(pkt->regs[get_pkt_count(pkt)]) - ((uint8_t *)(pkt))));
+}
 
 static const uint8_t crc8_tab[256] __attribute__((unused)) = {
     0x00, 0x07, 0x0E, 0x09, 0x1C, 0x1B, 0x12, 0x15,
