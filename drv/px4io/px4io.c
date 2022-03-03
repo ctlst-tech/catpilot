@@ -87,13 +87,16 @@ void PX4IO_Run() {
             uint16_t max_controls  = PX4IO_ReadReg(PX4IO_PAGE_CONFIG, PX4IO_P_CONFIG_CONTROL_COUNT);
             uint16_t max_transfer  = PX4IO_ReadReg(PX4IO_PAGE_CONFIG, PX4IO_P_CONFIG_MAX_TRANSFER) - 2;
             uint16_t max_rc_input  = PX4IO_ReadReg(PX4IO_PAGE_CONFIG, PX4IO_P_CONFIG_RC_INPUT_COUNT);
-            reg = PX4IO_ReadReg(PX4IO_PAGE_CONFIG, PX4IO_P_CONFIG_PROTOCOL_VERSION);
+            (void)hardware;
+            (void)max_controls;
             if ((max_actuators < 1) || (max_actuators > PX4IO_MAX_ACTUATORS) ||
                 (max_transfer < 16) || (max_transfer > 255)  ||
                 (max_rc_input < 1)  || (max_rc_input > 255)) {
                     // TODO Add error processing
+                    while(1);
+            } else {
+                px4io_state = PX4IO_CONF;
             }
-            px4io_state = PX4IO_CONF;
         }
 
     case PX4IO_CONF:
@@ -155,8 +158,9 @@ int PX4IO_Read(uint8_t address, uint16_t length) {
 				rv = EINVAL;
 			} else if (get_pkt_count(&px4io_rx_packet) != length) {
 				rv = EIO;
-			}
-            break;
+			} else {
+                break;
+            }
         } else {
             (void)rv;
             //TODO Add error proccessing
@@ -169,19 +173,14 @@ int PX4IO_Read(uint8_t address, uint16_t length) {
 int PX4IO_ReadRegs(uint8_t page, uint8_t offset, uint8_t num) {
     int rv = 0;
     rv = PX4IO_Read((page << 8) | offset, num);
-    if(px4io_rx_packet.count_code != (PKT_CODE_SUCCESS | px4io_tx_packet.count_code)) {
-        return px4io_rx_packet.count_code;
-    }
     return rv;
 }
 
-uint16_t PX4IO_ReadReg(uint8_t page, uint8_t offset) {
+int PX4IO_ReadReg(uint8_t page, uint8_t offset) {
     int rv = 0;
     rv = PX4IO_ReadRegs(page, offset, 1);
-    if(rv == SUCCESS) {
-        return px4io_rx_packet.regs[0];
-    }
-    return rv;
+    if(rv != SUCCESS) return ERROR;
+    return px4io_rx_packet.regs[0];
 }
 
 void UART8_IRQHandler(void) {

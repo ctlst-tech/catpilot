@@ -175,7 +175,6 @@ typedef struct {
 #define PKT_SIZE(_str)    ((size_t)((uint8_t *)&((_str).regs[PKT_COUNT(_str)]) - ((uint8_t *)&(_str))))
 
 uint16_t get_pkt_count(px4io_packet_t *pkt) {
-    uint16_t rv = pkt->count_code & PKT_COUNT_MASK;
     return (pkt->count_code & PKT_COUNT_MASK);
 }
 

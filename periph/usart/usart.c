@@ -121,6 +121,8 @@ int USART_TransmitReceive(usart_cfg_t *cfg, uint8_t *tx_pdata, uint8_t *rx_pdata
 
     cfg->inst.state = USART_RECEIVE;
 
+    SET_BIT(cfg->USART->ICR, USART_ICR_IDLECF);
+    SET_BIT(cfg->USART->CR1, USART_CR1_IDLEIE);
     HAL_UART_Receive_DMA(&cfg->inst.USART_InitStruct, rx_pdata, rx_length);
     HAL_UART_Transmit_DMA(&cfg->inst.USART_InitStruct, tx_pdata, tx_length);
 
@@ -150,7 +152,8 @@ int USART_Handler(usart_cfg_t *cfg) {
     }
 
     if(cfg->inst.USART_InitStruct.RxState == HAL_UART_STATE_READY &&
-        cfg->inst.state == USART_RECEIVE) {
+        cfg->inst.state == USART_RECEIVE &&
+        cfg->mode == USART_TIMEOUT) {
             xSemaphoreGiveFromISR(cfg->inst.semaphore, &xHigherPriorityTaskWoken);
             if(xHigherPriorityTaskWoken == pdTRUE) {
                 portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
@@ -160,6 +163,8 @@ int USART_Handler(usart_cfg_t *cfg) {
     if(cfg->USART->ISR & USART_ISR_IDLE &&
         cfg->inst.state == USART_RECEIVE &&
         cfg->mode == USART_IDLE) {
+            SET_BIT(cfg->USART->ICR, USART_ICR_IDLECF);
+            HAL_UART_AbortReceive(&cfg->inst.USART_InitStruct);
             xSemaphoreGiveFromISR(cfg->inst.semaphore, &xHigherPriorityTaskWoken);
             if(xHigherPriorityTaskWoken == pdTRUE) {
                 portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
