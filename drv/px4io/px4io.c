@@ -77,18 +77,19 @@ void PX4IO_Run() {
     switch(px4io_state) {
 
     case PX4IO_RESET:
+        int rv;
         vTaskDelay(2000);
-        uint16_t reg;
-        reg = PX4IO_ReadReg(PX4IO_PAGE_CONFIG, PX4IO_P_CONFIG_PROTOCOL_VERSION);
 
-        if(reg == PX4IO_PROTOCOL_VERSION) {
+        rv = PX4IO_ReadReg(PX4IO_PAGE_CONFIG, PX4IO_P_CONFIG_PROTOCOL_VERSION);
+
+        if(rv == PX4IO_PROTOCOL_VERSION) {
+
+            // Check PX4IO configuration
             uint16_t hardware      = PX4IO_ReadReg(PX4IO_PAGE_CONFIG, PX4IO_P_CONFIG_HARDWARE_VERSION);
             uint16_t max_actuators = PX4IO_ReadReg(PX4IO_PAGE_CONFIG, PX4IO_P_CONFIG_ACTUATOR_COUNT);
             uint16_t max_controls  = PX4IO_ReadReg(PX4IO_PAGE_CONFIG, PX4IO_P_CONFIG_CONTROL_COUNT);
             uint16_t max_transfer  = PX4IO_ReadReg(PX4IO_PAGE_CONFIG, PX4IO_P_CONFIG_MAX_TRANSFER) - 2;
             uint16_t max_rc_input  = PX4IO_ReadReg(PX4IO_PAGE_CONFIG, PX4IO_P_CONFIG_RC_INPUT_COUNT);
-            (void)hardware;
-            (void)max_controls;
             if ((max_actuators < 1) || (max_actuators > PX4IO_MAX_ACTUATORS) ||
                 (max_transfer < 16) || (max_transfer > 255)  ||
                 (max_rc_input < 1)  || (max_rc_input > 255)) {
@@ -97,6 +98,11 @@ void PX4IO_Run() {
             } else {
                 px4io_state = PX4IO_CONF;
             }
+
+            // Get last IO state
+            uint16_t arm = PX4IO_ReadReg(PX4IO_PAGE_SETUP, PX4IO_P_SETUP_ARMING);
+            (void)arm;
+
         }
 
     case PX4IO_CONF:
@@ -104,14 +110,16 @@ void PX4IO_Run() {
     }
 }
 
-int PX4IO_Write(uint8_t address, uint16_t length) {
+int PX4IO_Write(uint8_t address, uint16_t *data, uint16_t length) {
     int rv = 0;
     uint8_t page = address >> 8;
-	uint8_t offset = address & 0xFF;
+    uint8_t offset = address & 0xFF;
 
     px4io_tx_packet.count_code = length | PKT_CODE_WRITE;
     px4io_tx_packet.page = page;
     px4io_tx_packet.offset = offset;
+
+    memcpy((void *)&px4io_tx_packet.regs[0], (void *)data, (2 * length));
 
     for(uint16_t i = length; i < PKT_MAX_REGS; i++) {
         px4io_tx_packet.regs[i] = 0x55AA;
@@ -127,9 +135,12 @@ int PX4IO_Write(uint8_t address, uint16_t length) {
 
         if(rv == SUCCESS) {
             if (get_pkt_code(&px4io_rx_packet) == PKT_CODE_ERROR) {
-				rv = EINVAL;
+                rv = EINVAL;
             }
             break;
+        } else {
+            //TODO Add error proccessing
+            rv = EPROTO;
         }
     }
 
@@ -139,7 +150,7 @@ int PX4IO_Write(uint8_t address, uint16_t length) {
 int PX4IO_Read(uint8_t address, uint16_t length) {
     int rv = 0;
     uint8_t page = address >> 8;
-	uint8_t offset = address & 0xFF;
+    uint8_t offset = address & 0xFF;
 
     px4io_tx_packet.count_code = length | PKT_CODE_READ;
     px4io_tx_packet.page = page;
@@ -155,15 +166,15 @@ int PX4IO_Read(uint8_t address, uint16_t length) {
 
         if(rv == SUCCESS) {
             if (get_pkt_code(&px4io_rx_packet) == PKT_CODE_ERROR) {
-				rv = EINVAL;
-			} else if (get_pkt_count(&px4io_rx_packet) != length) {
-				rv = EIO;
-			} else {
+                rv = EINVAL;
+            } else if (get_pkt_count(&px4io_rx_packet) != length) {
+                rv = EIO;
+            } else {
                 break;
             }
         } else {
-            (void)rv;
             //TODO Add error proccessing
+            rv = EPROTO;
         }
     }
 
@@ -176,11 +187,36 @@ int PX4IO_ReadRegs(uint8_t page, uint8_t offset, uint8_t num) {
     return rv;
 }
 
-int PX4IO_ReadReg(uint8_t page, uint8_t offset) {
+int PX4IO_WriteRegs(uint8_t page, uint8_t offset, uint16_t *data, uint8_t num) {
+    int rv = 0;
+    rv = PX4IO_Write((page << 8) | offset, data, num);
+    return rv;
+}
+
+uint16_t PX4IO_ReadReg(uint8_t page, uint8_t offset) {
     int rv = 0;
     rv = PX4IO_ReadRegs(page, offset, 1);
-    if(rv != SUCCESS) return ERROR;
+    if(rv != SUCCESS) return 0xFFFF;
     return px4io_rx_packet.regs[0];
+}
+
+int PX4IO_WriteReg(uint8_t page, uint8_t offset, uint16_t data) {
+    int rv = 0;
+    rv = PX4IO_WriteRegs(page, offset, &data, 1);
+    if(rv != SUCCESS) return ERROR;
+    return rv;
+}
+
+int PX4IO_SetClearReg(uint8_t page, uint8_t offset, uint16_t clearbits, uint16_t setbits) {
+    uint16_t value = 0;
+
+    value = PX4IO_ReadReg(page, offset);
+    if(value < 0) return ERROR;
+
+    value &= ~clearbits;
+    value |= setbits;
+
+    return PX4IO_WriteReg(page, offset, value);
 }
 
 void UART8_IRQHandler(void) {
