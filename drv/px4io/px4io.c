@@ -19,7 +19,9 @@ px4io_packet_t px4io_rx_packet;
 
 enum px4io_state_t {
     PX4IO_RESET,
-    PX4IO_CONF
+    PX4IO_CONF,
+    PX4IO_OPERATION,
+    PX4IO_ERROR,
 };
 
 enum px4io_state_t px4io_state;
@@ -94,23 +96,87 @@ void PX4IO_Run() {
                 (max_transfer < 16) || (max_transfer > 255)  ||
                 (max_rc_input < 1)  || (max_rc_input > 255)) {
                     // TODO Add error processing
-                    while(1);
+                    px4io_state = PX4IO_ERROR;
             } else {
                 px4io_state = PX4IO_CONF;
             }
 
             // Get last IO state
-            uint16_t arm = PX4IO_ReadReg(PX4IO_PAGE_SETUP, PX4IO_P_SETUP_ARMING);
-            (void)arm;
+            rv = PX4IO_ReadRegs(PX4IO_PAGE_SETUP, PX4IO_P_SETUP_ARMING, 1);
+            if(rv) px4io_state = PX4IO_ERROR;
 
+            // Disarm IO
+            rv = PX4IO_SetClearReg(PX4IO_PAGE_SETUP, PX4IO_P_SETUP_ARMING, 0, PX4IO_P_SETUP_ARMING_FMU_ARMED | PX4IO_P_SETUP_ARMING_LOCKDOWN);
+            if(rv) px4io_state = PX4IO_ERROR;
         }
 
     case PX4IO_CONF:
+        // Here we set number of rc channels, actuators, max/min rate, max/min pwm
+        px4io_state = PX4IO_OPERATION;
+        break;
+
+    case PX4IO_OPERATION:
+        uint16_t outputs[PWM_OUTPUT_MAX_CHANNELS];
+        for(int i = 0; i < PWM_OUTPUT_MAX_CHANNELS; i++) {
+            outputs[i] = 1000;
+        }
+        PX4IO_GetIOStatus();
+        PX4IO_GetRC();
+        PX4IO_SetArmingState();
+        PX4IO_SetPWM(outputs, PWM_OUTPUT_MAX_CHANNELS);
+        break;
+
+    case PX4IO_ERROR:
+        // Nothing to do
         break;
     }
 }
 
-int PX4IO_Write(uint8_t address, uint16_t *data, uint16_t length) {
+int PX4IO_SetArmingState() {
+    int rv = 0;
+    uint16_t set = 0;
+    uint16_t clear = 0;
+
+    // Only for testing, when we don't have a broker
+    set |= PX4IO_P_SETUP_ARMING_FMU_ARMED;
+    set |= PX4IO_P_SETUP_ARMING_FMU_PREARMED;
+    set |= PX4IO_P_SETUP_ARMING_IO_ARM_OK;
+
+    clear |= PX4IO_P_SETUP_ARMING_LOCKDOWN;
+    clear |= PX4IO_P_SETUP_ARMING_FORCE_FAILSAFE;
+
+    rv = PX4IO_SetClearReg(PX4IO_PAGE_SETUP, PX4IO_P_SETUP_ARMING, set, clear);
+    return rv;
+}
+
+int PX4IO_GetIOStatus() {
+	int rv = 0;
+
+    rv = PX4IO_ReadRegs(PX4IO_PAGE_STATUS, PX4IO_P_STATUS_FLAGS, 6);
+    if(rv) return rv;
+
+    uint16_t STATUS_FLAGS  = px4io_rx_packet.regs[0];
+    uint16_t STATUS_ALARMS = px4io_rx_packet.regs[1];
+    uint16_t STATUS_VSERVO = px4io_rx_packet.regs[4];
+    uint16_t STATUS_VRSSI  = px4io_rx_packet.regs[5];
+
+    uint16_t SETUP_ARMING  = PX4IO_ReadReg(PX4IO_PAGE_SETUP, PX4IO_P_SETUP_ARMING);
+}
+
+int PX4IO_GetRC() {
+    int rv = 0;
+    const uint32_t prolog = (PX4IO_P_RAW_RC_BASE - PX4IO_P_RAW_RC_COUNT);
+    rv = PX4IO_ReadRegs(PX4IO_PAGE_RAW_RC_INPUT, PX4IO_P_RAW_RC_COUNT, prolog + 9);
+    return rv;
+}
+
+int PX4IO_SetPWM(uint16_t *outputs, uint16_t num) {
+    int rv = 0;
+    rv = PX4IO_WriteRegs(PX4IO_PAGE_DIRECT_PWM, 0, outputs, num);
+    return rv;
+}
+
+int PX4IO_Write(uint16_t address, uint16_t *data, uint16_t length) {
     int rv = 0;
     uint8_t page = address >> 8;
     uint8_t offset = address & 0xFF;
@@ -140,14 +206,14 @@ int PX4IO_Write(uint8_t address, uint16_t *data, uint16_t length) {
             break;
         } else {
             //TODO Add error proccessing
-            rv = EPROTO;
+            return rv;
         }
     }
 
     return rv;
 }
 
-int PX4IO_Read(uint8_t address, uint16_t length) {
+int PX4IO_Read(uint16_t address, uint16_t length) {
     int rv = 0;
     uint8_t page = address >> 8;
     uint8_t offset = address & 0xFF;
@@ -174,7 +240,7 @@ int PX4IO_Read(uint8_t address, uint16_t length) {
             }
         } else {
             //TODO Add error proccessing
-            rv = EPROTO;
+            return rv;
         }
     }
 
@@ -193,10 +259,10 @@ int PX4IO_WriteRegs(uint8_t page, uint8_t offset, uint16_t *data, uint8_t num) {
     return rv;
 }
 
-uint16_t PX4IO_ReadReg(uint8_t page, uint8_t offset) {
+uint32_t PX4IO_ReadReg(uint8_t page, uint8_t offset) {
     int rv = 0;
     rv = PX4IO_ReadRegs(page, offset, 1);
-    if(rv != SUCCESS) return 0xFFFF;
+    if(rv != SUCCESS) return PX4IO_READREG_ERROR;
     return px4io_rx_packet.regs[0];
 }
 
@@ -207,8 +273,8 @@ int PX4IO_WriteReg(uint8_t page, uint8_t offset, uint16_t data) {
     return rv;
 }
 
-int PX4IO_SetClearReg(uint8_t page, uint8_t offset, uint16_t clearbits, uint16_t setbits) {
-    uint16_t value = 0;
+int PX4IO_SetClearReg(uint8_t page, uint8_t offset, uint16_t setbits, uint16_t clearbits) {
+    int value = 0;
 
     value = PX4IO_ReadReg(page, offset);
     if(value < 0) return ERROR;

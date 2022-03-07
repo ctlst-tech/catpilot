@@ -2,11 +2,14 @@
 #include "stm32_base.h"
 #include "stm32_lib.h"
 
-#define PX4IO_PROTOCOL_VERSION            5
+#define PX4IO_PROTOCOL_VERSION             5
+
+static const uint32_t PX4IO_READREG_ERROR  = 0x80000000;
 
 /* maximum allowable sizes on this protocol version */
 #define PX4IO_PROTOCOL_MAX_CONTROL_COUNT  8    /**< The protocol does not support more than set here, individual units might support less - see PX4IO_P_CONFIG_CONTROL_COUNT */
-#define PX4IO_MAX_ACTUATORS              8
+#define PX4IO_MAX_ACTUATORS               8
+#define PWM_OUTPUT_MAX_CHANNELS           16
 
 /* static configuration page */
 #define PX4IO_PAGE_CONFIG                 0
