@@ -18,6 +18,16 @@
         "px4io.h": "c",
         "icm20602_protocol.h": "c",
         "px4io_conf.h": "c",
-        "string.h": "c"
+        "string.h": "c",
+        "logger.h": "c",
+        "ff.h": "c",
+        "sensors_conf.h": "c",
+        "sensors.h": "c",
+        "exti.h": "c",
+        "stm32f7xx_hal.h": "c",
+        "icm20602.h": "c",
+        "sdcard.h": "c",
+        "ist8310.h": "c",
+        "logger_conf.h": "c"
     },
 }

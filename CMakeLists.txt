@@ -20,6 +20,7 @@ set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "" )
 set(DIR_MCU mcu/${MCU})
 set(DIR_PERIPH periph)
 set(DIR_DRV drv)
+set(DIR_MDL modules)
 set(DIR_LIB lib)
 set(DIR_RTOS freertos)
 set(DIR_CONF conf)
@@ -44,11 +45,14 @@ include_directories(
     ${DIR_PERIPH}/dma
     ${DIR_PERIPH}/hal
     ${DIR_PERIPH}/sdio
-    ${DIR_DRV}/cli
     ${DIR_DRV}/icm20602
     ${DIR_DRV}/ist8310
     ${DIR_DRV}/sdcard
     ${DIR_DRV}/px4io
+    ${DIR_MDL}/cli
+    ${DIR_MDL}/sensors
+    ${DIR_MDL}/logger
+    ${DIR_MDL}/io
     ${DIR_LIB}/usr
     ${DIR_LIB}/fatfs
     ${DIR_RTOS}/core/inc
@@ -62,6 +66,7 @@ file(GLOB STARTUP ${DIR_MCU}/core/*.s)
 file(GLOB_RECURSE SRC_MCU ${DIR_MCU}/*.c)
 file(GLOB_RECURSE SRC_PERIPH ${DIR_PERIPH}/*.c)
 file(GLOB_RECURSE SRC_DRV ${DIR_DRV}/*.c)
+file(GLOB_RECURSE SRC_MDL ${DIR_MDL}/*.c)
 file(GLOB_RECURSE SRC_LIB ${DIR_LIB}/*.c)
 file(GLOB_RECURSE SRC_RTOS ${DIR_RTOS}/core/*.c ${DIR_RTOS}/port/*.c ${DIR_RTOS}/MemMang/heap_1.c)
 
@@ -71,6 +76,7 @@ set(SOURCES
     ${SRC_MCU}
     ${SRC_PERIPH}
     ${SRC_DRV}
+    ${SRC_MDL}
     ${SRC_LIB}
     ${SRC_RTOS}
 )

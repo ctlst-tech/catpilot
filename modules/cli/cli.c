@@ -13,7 +13,6 @@ usart_cfg_t cli_cfg;
 
 int CLI_Init() {
     int rv = 0;
-    uint8_t data;
 
     cli_cfg.USART = UART7;
     cli_cfg.gpio_tx_cfg = &gpio_cli_tx;
@@ -35,7 +34,7 @@ int CLI_Init() {
     dma_cli_tx.DMA_InitStruct.Init.Mode = DMA_NORMAL;
     dma_cli_tx.DMA_InitStruct.Init.Priority = DMA_PRIORITY_LOW;
     dma_cli_tx.DMA_InitStruct.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-    dma_cli_tx.priority = 15;
+    dma_cli_tx.priority = CLI_IRQ_PRIORITY;
 
     dma_cli_rx.DMA_InitStruct.Instance = DMA1_Stream3;
     dma_cli_rx.DMA_InitStruct.Init.Channel = DMA_CHANNEL_5;
@@ -47,13 +46,32 @@ int CLI_Init() {
     dma_cli_rx.DMA_InitStruct.Init.Mode = DMA_NORMAL;
     dma_cli_rx.DMA_InitStruct.Init.Priority = DMA_PRIORITY_LOW;
     dma_cli_rx.DMA_InitStruct.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-    dma_cli_rx.priority = 15;
+    dma_cli_rx.priority = CLI_IRQ_PRIORITY;
 
     rv = USART_Init(&cli_cfg);
 
-    rv = USART_Receive(&cli_cfg, &data, 1);
-
     return rv;
+}
+
+void CLI_Task(void *pvParameters) {
+    int rv = 0;
+    uint8_t data;
+
+    rv = CLI_Init();
+
+    if(rv) {
+        // Delete task
+    }
+
+    USART_Receive(&cli_cfg, &data, 1);
+
+    while(1) {
+        // Nothing to do
+    }
+}
+
+void CLI_Start() {
+    xTaskCreate(CLI_Task, "CLI", 512, NULL, CLI_TASK_PRIORITY, NULL);
 }
 
 void retarget_put_char(uint8_t c) {
