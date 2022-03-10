@@ -15,6 +15,9 @@
         "pxio_conf.h": "c",
         "stm32_lib.h": "c",
         "stm32_drv.h": "c",
-        "px4io.h": "c"
+        "px4io.h": "c",
+        "icm20602_protocol.h": "c",
+        "px4io_conf.h": "c",
+        "string.h": "c"
     },
 }

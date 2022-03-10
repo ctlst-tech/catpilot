@@ -57,12 +57,11 @@ int SDIO_ReadBlocks(sdio_cfg_t *cfg, uint8_t *pdata, uint32_t address, uint32_t 
 
     cfg->inst.state = SDIO_READ;
 
-    SDIO_CheckStatusWithTimeout(cfg, cfg->timeout);
-    rv = HAL_SD_ReadBlocks_DMA(&cfg->inst.SD_InitStruct, pdata, address, num);
+    rv = SDIO_CheckStatusWithTimeout(cfg, cfg->timeout);
+    if(rv != SUCCESS) goto free;
 
-    if(rv != HAL_OK) {
-        goto free;
-    }
+    rv = HAL_SD_ReadBlocks_DMA(&cfg->inst.SD_InitStruct, pdata, address, num);
+    if(rv != HAL_OK) goto free;
 
     if(xSemaphoreTake(cfg->inst.semaphore, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
         rv = ETIMEDOUT;
@@ -91,12 +90,11 @@ int SDIO_WriteBlocks(sdio_cfg_t *cfg, uint8_t *pdata, uint32_t address, uint32_t
 
     cfg->inst.state = SDIO_WRITE;
 
-    SDIO_CheckStatusWithTimeout(cfg, cfg->timeout);
-    rv = HAL_SD_WriteBlocks_DMA(&cfg->inst.SD_InitStruct, pdata, address, num);
+    rv = SDIO_CheckStatusWithTimeout(cfg, cfg->timeout);
+    if(rv != SUCCESS) goto free;
 
-    if(rv != HAL_OK) {
-        goto free;
-    }
+    rv = HAL_SD_WriteBlocks_DMA(&cfg->inst.SD_InitStruct, pdata, address, num);
+    if(rv != HAL_OK) goto free;
 
     if(xSemaphoreTake(cfg->inst.semaphore, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
         rv = ETIMEDOUT;
@@ -110,10 +108,12 @@ int SDIO_WriteBlocks(sdio_cfg_t *cfg, uint8_t *pdata, uint32_t address, uint32_t
 }
 
 int SDIO_CheckStatusWithTimeout(sdio_cfg_t *cfg, uint32_t timeout) {
+    uint32_t status;
     uint32_t start = xTaskGetTickCount();
 
     while(xTaskGetTickCount() - start < timeout) {
-        if (HAL_SD_GetCardState(&cfg->inst.SD_InitStruct) == HAL_SD_CARD_READY) {
+        status = HAL_SD_GetCardState(&cfg->inst.SD_InitStruct);
+        if (status == HAL_SD_CARD_TRANSFER) {
             return 0;
         }
     }

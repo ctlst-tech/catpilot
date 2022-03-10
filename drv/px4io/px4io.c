@@ -1,6 +1,6 @@
 #include "px4io.h"
 #include "px4io_conf.h"
-#include "px4io_protocol.h"
+#include "px4io_reg.h"
 #include <string.h>
 
 static char *device = "PX4IO";
@@ -13,7 +13,6 @@ static dma_cfg_t dma_px4io_rx;
 
 static px4io_cfg_t px4io_cfg;
 
-static uint8_t px4io_buf[32];
 px4io_packet_t px4io_tx_packet;
 px4io_packet_t px4io_rx_packet;
 
@@ -109,6 +108,7 @@ void PX4IO_Run() {
             rv = PX4IO_SetClearReg(PX4IO_PAGE_SETUP, PX4IO_P_SETUP_ARMING, 0, PX4IO_P_SETUP_ARMING_FMU_ARMED | PX4IO_P_SETUP_ARMING_LOCKDOWN);
             if(rv) px4io_state = PX4IO_ERROR;
         }
+        break;
 
     case PX4IO_CONF:
         // Here we set number of rc channels, actuators, max/min rate, max/min pwm
@@ -120,10 +120,11 @@ void PX4IO_Run() {
         for(int i = 0; i < PWM_OUTPUT_MAX_CHANNELS; i++) {
             outputs[i] = 1000;
         }
+        PX4IO_SetPWM(outputs, PWM_OUTPUT_MAX_CHANNELS);
+
         PX4IO_GetIOStatus();
         PX4IO_GetRC();
         PX4IO_SetArmingState();
-        PX4IO_SetPWM(outputs, PWM_OUTPUT_MAX_CHANNELS);
         break;
 
     case PX4IO_ERROR:
@@ -161,6 +162,8 @@ int PX4IO_GetIOStatus() {
     uint16_t STATUS_VRSSI  = px4io_rx_packet.regs[5];
 
     uint16_t SETUP_ARMING  = PX4IO_ReadReg(PX4IO_PAGE_SETUP, PX4IO_P_SETUP_ARMING);
+
+    return rv;
 }
 
 int PX4IO_GetRC() {

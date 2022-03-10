@@ -1,4 +1,5 @@
 #include "icm20602.h"
+#include "icm20602_reg.h"
 #include "icm20602_conf.h"
 
 static char *device = "ICM20602";
@@ -27,6 +28,8 @@ static icm20602_cfg_t icm20602_cfg;
 static FIFOBuffer_t FIFOBuffer;
 static FIFOParam_t FIFOParam;
 
+static TickType_t t_last = 0;
+
 icm20602_fifo_t icm20602_fifo;
 
 enum icm20602_state_t {
@@ -54,8 +57,8 @@ int ICM20602_Init() {
     icm20602_cfg.spi.miso_cfg = &icm20602_miso;
     icm20602_cfg.spi.sck_cfg  = &icm20602_sck;
     icm20602_cfg.spi.cs_cfg   = &icm20602_cs;
-    icm20602_cfg.spi.timeout  = 20;
-    icm20602_cfg.spi.priority = 6;
+    icm20602_cfg.spi.timeout  = ICM20602_TIMEOUT;
+    icm20602_cfg.spi.priority = ICM20602_IRQ_PRIORITY;
 
     icm20602_cfg.spi.dma_miso_cfg = &dma_spi1_miso;
     icm20602_cfg.spi.dma_mosi_cfg = &dma_spi1_mosi;
@@ -70,7 +73,7 @@ int ICM20602_Init() {
     dma_spi1_mosi.DMA_InitStruct.Init.Mode = DMA_NORMAL;
     dma_spi1_mosi.DMA_InitStruct.Init.Priority = DMA_PRIORITY_VERY_HIGH;
     dma_spi1_mosi.DMA_InitStruct.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-    dma_spi1_mosi.priority = icm20602_cfg.spi.priority;
+    dma_spi1_mosi.priority = ICM20602_IRQ_PRIORITY;
 
     dma_spi1_miso.DMA_InitStruct.Instance = DMA2_Stream0;
     dma_spi1_miso.DMA_InitStruct.Init.Channel = DMA_CHANNEL_3;
@@ -82,7 +85,7 @@ int ICM20602_Init() {
     dma_spi1_miso.DMA_InitStruct.Init.Mode = DMA_NORMAL;
     dma_spi1_miso.DMA_InitStruct.Init.Priority = DMA_PRIORITY_VERY_HIGH;
     dma_spi1_miso.DMA_InitStruct.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-    dma_spi1_miso.priority = icm20602_cfg.spi.priority;
+    dma_spi1_miso.priority = ICM20602_IRQ_PRIORITY;
 
     if(drdy_semaphore == NULL) drdy_semaphore = xSemaphoreCreateBinary();
 
@@ -132,7 +135,7 @@ void ICM20602_Run() {
             icm20602_state = ICM20602_FIFO_READ;
             ICM20602_FIFOReset();
         } else {
-            printf("\n%sWrong configuration, reset\n", device);
+            printf("\n%s:Wrong configuration, reset\n", device);
             icm20602_state = ICM20602_RESET;
             vTaskDelay(1000);
         }
@@ -142,6 +145,9 @@ void ICM20602_Run() {
         if(xSemaphoreTake(drdy_semaphore, portMAX_DELAY)) {
             ICM20602_FIFOCount();
             ICM20602_FIFORead();
+            icm20602_fifo.dt = xTaskGetTickCount() - t_last;
+            icm20602_fifo.samples = FIFOParam.samples;
+            t_last = xTaskGetTickCount();
         }
         break;
     }
@@ -191,13 +197,13 @@ int ICM20602_Configure() {
         orig_val = ICM20602_ReadReg(reg_cfg[i].reg);
 
         if((orig_val & reg_cfg[i].setbits) != reg_cfg[i].setbits) {
-            printf("%s\n0x%02x: 0x%02x (0x%02x not set)\n", device,
+            printf("\n%s:0x%02x: 0x%02x (0x%02x not set)\n", device,
             (uint8_t)reg_cfg[i].reg, orig_val, reg_cfg[i].setbits);
             rv = 0;
         }
 
         if((orig_val & reg_cfg[i].clearbits) != 0) {
-            printf("%s\n0x%02x: 0x%02x (0x%02x not cleared)\n", device,
+            printf("\n%s:0x%02x: 0x%02x (0x%02x not cleared)\n", device,
             (uint8_t)reg_cfg[i].reg, orig_val, reg_cfg[i].clearbits);
             rv = 0;
         }
@@ -260,11 +266,9 @@ void ICM20602_FIFOCount() {
 
     FIFOParam.samples = msblsb16(data[0], data[1]);
     FIFOParam.bytes = FIFOParam.samples * sizeof(FIFO_t);
-
 }
 
 int ICM20602_FIFORead() {
-
     uint8_t cmd = FIFO_COUNTH | READ;
 
     ICM20602_ChipSelection();
@@ -334,7 +338,7 @@ int ICM20602_Probe() {
     uint8_t whoami;
     whoami = ICM20602_ReadReg(WHO_AM_I);
     if(whoami != WHOAMI) {
-        printf("%sunexpected WHO_AM_I reg 0x%02x", device, whoami);
+        printf("\n%s:unexpected WHO_AM_I reg 0x%02x\n", device, whoami);
         return ENODEV;
     }
     return 0;
@@ -342,13 +346,16 @@ int ICM20602_Probe() {
 
 void ICM20602_Statistics() {
     // TODO add time between FIFO reading
-    printf("\naccel_x = %.2f\n", icm20602_fifo.accel_x[0]);
-    printf("\naccel_y = %.2f\n", icm20602_fifo.accel_y[0]);
-    printf("\naccel_z = %.2f\n", icm20602_fifo.accel_z[0]);
-    printf("\ngyro_x  = %.2f\n", icm20602_fifo.gyro_x[0]);
-    printf("\ngyro_y  = %.2f\n", icm20602_fifo.gyro_y[0]);
-    printf("\ngyro_z  = %.2f\n", icm20602_fifo.gyro_z[0]);
-    printf("\ntemp = %.2f\n", icm20602_fifo.temp);
+    printf("\n%s:Statistics:\n", device);
+    printf("\naccel_x = %.3f [m/s2]\n", icm20602_fifo.accel_x[0]);
+    printf("\naccel_y = %.3f [m/s2]\n", icm20602_fifo.accel_y[0]);
+    printf("\naccel_z = %.3f [m/s2]\n", icm20602_fifo.accel_z[0]);
+    printf("\ngyro_x  = %.3f [deg/s]\n", icm20602_fifo.gyro_x[0]);
+    printf("\ngyro_y  = %.3f [deg/s]\n", icm20602_fifo.gyro_y[0]);
+    printf("\ngyro_z  = %.3f [deg/s]\n", icm20602_fifo.gyro_z[0]);
+    printf("\ntemp    = %.3f [C]\n", icm20602_fifo.temp);
+    printf("\nN       = %lu [samples]\n", icm20602_fifo.samples);
+    printf("\ndt      = %lu [ms]\n", icm20602_fifo.dt);
 }
 
 void ICM20602_DataReadyHandler() {

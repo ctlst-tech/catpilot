@@ -16,6 +16,7 @@ typedef struct {
     float mag_x;
     float mag_y;
     float mag_z;
+    uint32_t dt;
 } ist8310_data_t;
 
 extern ist8310_data_t ist8310_data;

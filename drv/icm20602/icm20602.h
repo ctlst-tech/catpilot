@@ -27,6 +27,8 @@ typedef struct {
     float gyro_y[FIFO_SAMPLES];
     float gyro_z[FIFO_SAMPLES];
     float temp;
+    uint32_t samples;
+    uint32_t dt;
 } icm20602_fifo_t;
 
 extern icm20602_fifo_t icm20602_fifo;

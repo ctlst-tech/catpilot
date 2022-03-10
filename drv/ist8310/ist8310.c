@@ -1,4 +1,5 @@
 #include "ist8310.h"
+#include "ist8310_reg.h"
 #include "ist8310_conf.h"
 
 static char *device = "IST8310";
@@ -12,6 +13,9 @@ static dma_cfg_t dma_i2c3_rx;
 static ist8310_cfg_t ist8310_cfg;
 
 static buffer_t buffer;
+
+static TickType_t t_now  = 0;
+static TickType_t t_last = 0;
 
 ist8310_data_t ist8310_data;
 
@@ -31,8 +35,8 @@ int IST8310_Init() {
     ist8310_cfg.i2c.I2C = I2C3;
     ist8310_cfg.i2c.sda_cfg = &ist8310_sda;
     ist8310_cfg.i2c.scl_cfg = &ist8310_scl;
-    ist8310_cfg.i2c.timeout = 20;
-    ist8310_cfg.i2c.priority = 6;
+    ist8310_cfg.i2c.timeout = IST8310_TIMEOUT;
+    ist8310_cfg.i2c.priority = IST8310_IRQ_PRIORITY;
 
     ist8310_cfg.i2c.dma_tx_cfg = &dma_i2c3_tx;
     ist8310_cfg.i2c.dma_rx_cfg = &dma_i2c3_rx;
@@ -47,7 +51,7 @@ int IST8310_Init() {
     dma_i2c3_tx.DMA_InitStruct.Init.Mode = DMA_NORMAL;
     dma_i2c3_tx.DMA_InitStruct.Init.Priority = DMA_PRIORITY_VERY_HIGH;
     dma_i2c3_tx.DMA_InitStruct.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-    dma_i2c3_tx.priority = ist8310_cfg.i2c.priority;
+    dma_i2c3_tx.priority = IST8310_IRQ_PRIORITY;
 
     dma_i2c3_rx.DMA_InitStruct.Instance = DMA1_Stream2;
     dma_i2c3_rx.DMA_InitStruct.Init.Channel = DMA_CHANNEL_3;
@@ -59,7 +63,7 @@ int IST8310_Init() {
     dma_i2c3_rx.DMA_InitStruct.Init.Mode = DMA_NORMAL;
     dma_i2c3_rx.DMA_InitStruct.Init.Priority = DMA_PRIORITY_VERY_HIGH;
     dma_i2c3_rx.DMA_InitStruct.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-    dma_i2c3_rx.priority = ist8310_cfg.i2c.priority;
+    dma_i2c3_rx.priority = IST8310_IRQ_PRIORITY;
 
     rv |= I2C_Init(&ist8310_cfg.i2c);
 
@@ -94,7 +98,7 @@ void IST8310_Run() {
         if(IST8310_Configure()) {
             ist8310_state = IST8310_MEAS;
         } else {
-            printf("\n%sWrong configuration, reset\n", device);
+            printf("\n%s:Wrong configuration, reset\n", device);
             ist8310_state = IST8310_RESET;
             vTaskDelay(1000);
         }
@@ -102,15 +106,21 @@ void IST8310_Run() {
 
     case IST8310_MEAS:
         IST8310_WriteReg(CNTL1, SINGLE_MEAS);
-        vTaskDelay(20);
+        t_last = xTaskGetTickCount();
         ist8310_state = IST8310_READ;
         break;
 
     case IST8310_READ:
-        IST8310_Meas();
-        IST8310_Process();
-        IST8310_WriteReg(CNTL1, SINGLE_MEAS);
-        vTaskDelay(20); // by PX4 IST8310 API
+        t_now = xTaskGetTickCount();
+        if((t_now - t_last) >= 20) {
+            IST8310_Meas();
+            IST8310_Process();
+            IST8310_WriteReg(CNTL1, SINGLE_MEAS);
+            t_last = t_now;
+            ist8310_data.dt = t_now - t_last;
+        } else if(t_last > t_now) {
+            t_last = t_now;
+        }
         break;
     }
 }

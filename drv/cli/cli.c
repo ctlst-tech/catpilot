@@ -1,4 +1,5 @@
 #include "cli.h"
+#include "cli_conf.h"
 
 static char *device = "CLI";
 
@@ -19,9 +20,9 @@ int CLI_Init() {
     cli_cfg.gpio_rx_cfg = &gpio_cli_rx;
     cli_cfg.dma_tx_cfg = &dma_cli_tx;
     cli_cfg.dma_rx_cfg = &dma_cli_rx;
-    cli_cfg.speed = 115200;
-    cli_cfg.timeout = 20;
-    cli_cfg.priority = 15;
+    cli_cfg.speed = CLI_BITRATE;
+    cli_cfg.timeout = CLI_TIMEOUT;
+    cli_cfg.priority = CLI_IRQ_PRIORITY;;
     cli_cfg.mode = USART_TIMEOUT;
 
     dma_cli_tx.DMA_InitStruct.Instance = DMA1_Stream1;

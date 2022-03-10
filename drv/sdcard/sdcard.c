@@ -1,4 +1,5 @@
 #include "sdcard.h"
+#include "sdcard_conf.h"
 
 static char *device = "SDMMC1";
 
@@ -32,8 +33,8 @@ int SDCARD_Init() {
     sdcard_cfg.sdio.d2_cfg   = &sdcard_d2;
     sdcard_cfg.sdio.d3_cfg   = &sdcard_d3;
     sdcard_cfg.sdio.cd_cfg   = &sdcard_cd;
-    sdcard_cfg.sdio.timeout  = 20;
-    sdcard_cfg.sdio.priority = 8;
+    sdcard_cfg.sdio.timeout  = SDCARD_TIMEOUT;
+    sdcard_cfg.sdio.priority = SDCARD_IRQ_PRIORITY;
 
     sdcard_cfg.sdio.dma_cfg = &dma_sdcard;
 
