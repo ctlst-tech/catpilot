@@ -1,2 +1,2 @@
-#define SDCARD_TIMEOUT      20
-#define SDCARD_IRQ_PRIORITY 8
+#define SDCARD_TIMEOUT      1000
+#define SDCARD_IRQ_PRIORITY 5

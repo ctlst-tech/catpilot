@@ -133,7 +133,7 @@
 /  ff_memfree() exemplified in ffsystem.c, need to be added to the project. */
 
 
-#define FF_LFN_UNICODE	0
+#define FF_LFN_UNICODE	2
 /* This option switches the character encoding on the API when LFN is enabled.
 /
 /   0: ANSI/OEM in current CP (TCHAR = char)
@@ -194,7 +194,7 @@
 
 
 #define FF_MIN_SS		512
-#define FF_MAX_SS		4096
+#define FF_MAX_SS		512
 /* This set of options configures the range of sector size to be supported. (512,
 /  1024, 2048 or 4096) Always set both 512 for most systems, generic memory card and
 /  harddisk, but a larger value may be required for on-board flash memory and some
@@ -238,7 +238,7 @@
 
 
 #define FF_FS_NORTC		0
-#define FF_NORTC_MON	1
+#define FF_NORTC_MON	   1
 #define FF_NORTC_MDAY	1
 #define FF_NORTC_YEAR	2020
 /* The option FF_FS_NORTC switches timestamp functiton. If the system does not have

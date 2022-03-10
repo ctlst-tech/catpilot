@@ -46,12 +46,12 @@ int SDCARD_Init() {
     dma_sdcard.DMA_InitStruct.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
     dma_sdcard.DMA_InitStruct.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
     dma_sdcard.DMA_InitStruct.Init.Mode = DMA_PFCTRL;
-    dma_sdcard.DMA_InitStruct.Init.Priority = DMA_PRIORITY_HIGH;
+    dma_sdcard.DMA_InitStruct.Init.Priority = DMA_PRIORITY_VERY_HIGH;
     dma_sdcard.DMA_InitStruct.Init.FIFOMode = DMA_FIFOMODE_ENABLE;
     dma_sdcard.DMA_InitStruct.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
     dma_sdcard.DMA_InitStruct.Init.MemBurst = DMA_MBURST_INC4;
     dma_sdcard.DMA_InitStruct.Init.PeriphBurst = DMA_PBURST_INC4;
-    dma_sdcard.priority = 8;
+    dma_sdcard.priority = SDCARD_IRQ_PRIORITY;
 
     rv = SDIO_Init(&sdcard_cfg.sdio);
 

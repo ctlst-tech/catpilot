@@ -25,7 +25,7 @@ int SDIO_Init(sdio_cfg_t *cfg) {
     cfg->inst.SD_InitStruct.Init.ClockPowerSave = SDMMC_CLOCK_POWER_SAVE_DISABLE;
     cfg->inst.SD_InitStruct.Init.BusWide = SDMMC_BUS_WIDE_1B;
     cfg->inst.SD_InitStruct.Init.HardwareFlowControl = SDMMC_HARDWARE_FLOW_CONTROL_DISABLE;
-    cfg->inst.SD_InitStruct.Init.ClockDiv = 0;
+    cfg->inst.SD_InitStruct.Init.ClockDiv = 168;
 
     cfg->inst.SD_InitStruct.hdmatx = &cfg->dma_cfg->DMA_InitStruct;
     cfg->inst.SD_InitStruct.hdmarx = &cfg->dma_cfg->DMA_InitStruct;
@@ -111,7 +111,7 @@ int SDIO_CheckStatusWithTimeout(sdio_cfg_t *cfg, uint32_t timeout) {
     uint32_t status;
     uint32_t start = xTaskGetTickCount();
 
-    while(xTaskGetTickCount() - start < timeout) {
+    while((xTaskGetTickCount() - start) < timeout) {
         status = HAL_SD_GetCardState(&cfg->inst.SD_InitStruct);
         if (status == HAL_SD_CARD_TRANSFER) {
             return 0;
