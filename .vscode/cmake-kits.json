@@ -6,7 +6,7 @@
         }
     },
     {
-        "name": "UNIX",
+        "name": "POSIX",
         "compilers": {
             "C": "/usr/bin/x86_64-pc-linux-gnu-gcc-10.3.0"
         }

@@ -53,7 +53,7 @@ int CLI_Init() {
     return rv;
 }
 
-void CLI_Task(void *pvParameters) {
+void CLI_Task() {
     int rv = 0;
     uint8_t data;
 

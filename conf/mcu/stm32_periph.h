@@ -1,3 +1,4 @@
+#pragma once
 #include "rcc.h"
 #include "gpio.h"
 #include "exti.h"

@@ -2,13 +2,10 @@
 #include "stm32_drv.h"
 #include "stm32_periph.h"
 
-void PX4IO(void *pvParameters) {
-    PX4IO_Init();
-    while(1) {
-        vTaskDelay(2000);
-        PX4IO_Run();
-    }
-}
+#include "cli.h"
+#include "io.h"
+#include "logger.h"
+#include "sensors.h"
 
 int main(void) {
     HAL_Init();

@@ -1,7 +1,17 @@
 {
     "configurations": [
         {
-            "name": "vscode_stm32_c_cpp_properties",
+            "name": "Posix",
+            "compilerPath": "/usr/bin/gcc",
+            "includePath": [
+                "${workspaceRoot}/**"
+            ],
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "gcc-x64"
+        },
+        {
+            "name": "MCU",
             "compilerPath": "/usr/bin/arm-none-eabi-gcc",
             "includePath": [
                 "${workspaceRoot}/**"
@@ -11,7 +21,7 @@
             ],
             "cStandard": "c11",
             "cppStandard": "c++17",
-            "intelliSenseMode": "gcc-x64",
+            "intelliSenseMode": "gcc-x64"
         }
     ],
     "version": 4

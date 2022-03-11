@@ -1,7 +1,7 @@
 {
     "cmake.setBuildTypeOnMultiConfig": true,
     "cmake.configureSettings": {
-        "TYPE": "PX4"
+        "TYPE": "Posix"
     },
     "cortex-debug.armToolchainPath": "usr/bin",
     "cortex-debug.openocdPath": "/usr/local/bin/openocd",
@@ -28,6 +28,9 @@
         "icm20602.h": "c",
         "sdcard.h": "c",
         "ist8310.h": "c",
-        "logger_conf.h": "c"
+        "logger_conf.h": "c",
+        "pthread.h": "c",
+        "freertos.h": "c",
+        "posix_base.h": "c"
     },
 }

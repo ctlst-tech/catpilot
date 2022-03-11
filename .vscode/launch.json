@@ -2,7 +2,27 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "openocd",
+            "name": "Posix",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/ctlst-fmuv5",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "miDebuggerPath": "/usr/bin/gdb",
+        },
+        {
+            "name": "PX4",
             "request": "launch",
             "type": "cortex-debug",
             "cwd": "${workspaceRoot}",
