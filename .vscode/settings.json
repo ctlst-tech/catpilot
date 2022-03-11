@@ -31,6 +31,7 @@
         "logger_conf.h": "c",
         "pthread.h": "c",
         "freertos.h": "c",
-        "posix_base.h": "c"
+        "posix_base.h": "c",
+        "usart.h": "c"
     },
 }
