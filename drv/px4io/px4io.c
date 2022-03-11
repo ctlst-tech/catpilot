@@ -16,6 +16,8 @@ static px4io_cfg_t px4io_cfg;
 px4io_packet_t px4io_tx_packet;
 px4io_packet_t px4io_rx_packet;
 
+static uint16_t rc[PX4IO_RC_CHANNELS];
+
 enum px4io_state_t {
     PX4IO_RESET,
     PX4IO_CONF,
@@ -112,19 +114,19 @@ void PX4IO_Run() {
 
     case PX4IO_CONF:
         // Here we set number of rc channels, actuators, max/min rate, max/min pwm
+        PX4IO_SetArmingState();
         px4io_state = PX4IO_OPERATION;
         break;
 
     case PX4IO_OPERATION:
-        uint16_t outputs[PWM_OUTPUT_MAX_CHANNELS];
-        for(int i = 0; i < PWM_OUTPUT_MAX_CHANNELS; i++) {
-            outputs[i] = 1000;
-        }
-        PX4IO_SetPWM(outputs, PWM_OUTPUT_MAX_CHANNELS);
-
-        PX4IO_GetIOStatus();
+        uint16_t outputs[PX4IO_MAX_ACTUATORS];
         PX4IO_GetRC();
-        PX4IO_SetArmingState();
+        for(int i = 0; i < PX4IO_MAX_ACTUATORS; i++) {
+            outputs[i] = rc[i];
+        }
+        PX4IO_SetPWM(outputs, PX4IO_MAX_ACTUATORS);
+        PX4IO_ReadRegs(PX4IO_PAGE_DIRECT_PWM, 0, PX4IO_MAX_ACTUATORS);
+        PX4IO_GetIOStatus();
         break;
 
     case PX4IO_ERROR:
@@ -138,6 +140,11 @@ int PX4IO_SetArmingState() {
     uint16_t set = 0;
     uint16_t clear = 0;
 
+    rv = PX4IO_SetClearReg(PX4IO_PAGE_DISARMED_PWM, 0, 90, PX4IO_MAX_ACTUATORS);
+
+    rv = PX4IO_SetClearReg(PX4IO_PAGE_STATUS, PX4IO_P_STATUS_FLAGS,
+                PX4IO_P_STATUS_FLAGS_SAFETY_OFF | PX4IO_P_STATUS_FLAGS_ARM_SYNC | PX4IO_P_STATUS_FLAGS_INIT_OK, 0);
+
     // Only for testing, when we don't have a broker
     set |= PX4IO_P_SETUP_ARMING_FMU_ARMED;
     set |= PX4IO_P_SETUP_ARMING_FMU_PREARMED;
@@ -147,6 +154,7 @@ int PX4IO_SetArmingState() {
     clear |= PX4IO_P_SETUP_ARMING_FORCE_FAILSAFE;
 
     rv = PX4IO_SetClearReg(PX4IO_PAGE_SETUP, PX4IO_P_SETUP_ARMING, set, clear);
+
     return rv;
 }
 
@@ -170,6 +178,9 @@ int PX4IO_GetRC() {
     int rv = 0;
     const uint32_t prolog = (PX4IO_P_RAW_RC_BASE - PX4IO_P_RAW_RC_COUNT);
     rv = PX4IO_ReadRegs(PX4IO_PAGE_RAW_RC_INPUT, PX4IO_P_RAW_RC_COUNT, prolog + PX4IO_RC_CHANNELS);
+    for(int i = 0; i < PX4IO_RC_CHANNELS; i++){
+        rc[i] = px4io_rx_packet.regs[i + prolog];
+    }
     return rv;
 }
 

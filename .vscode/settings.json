@@ -1,7 +1,7 @@
 {
     "cmake.setBuildTypeOnMultiConfig": true,
     "cmake.configureSettings": {
-        "TYPE": "Posix"
+        "TYPE": "PX4"
     },
     "cortex-debug.armToolchainPath": "usr/bin",
     "cortex-debug.openocdPath": "/usr/local/bin/openocd",
