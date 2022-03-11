@@ -18,9 +18,11 @@ project(${PROJ_NAME} C ASM)
 
 if (TYPE STREQUAL "PX4")
 
+    set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/build/px4)
+    set(CMAKE_BINARY_DIR ./build/px4)
+
     set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "" )
     set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "" )
-    set(CMAKE_CURRENT_BINARY_DIR ./build/px4)
 
     set(DIR_MCU mcu/${MCU})
     set(DIR_PERIPH periph)
@@ -89,25 +91,27 @@ if (TYPE STREQUAL "PX4")
     add_executable(${PROJECT_NAME}.elf ${SOURCES})
     target_link_libraries(${PROJECT_NAME}.elf -lc -lm -lnosys)
 
-    set(ELF_FILE ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.elf)
-    set(HEX_FILE ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.hex)
-    set(BIN_FILE ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.bin)
+    set(ELF_FILE ${EXECUTABLE_OUTPUT_PATH}/${PROJECT_NAME}.elf)
+    set(HEX_FILE ${EXECUTABLE_OUTPUT_PATH}/${PROJECT_NAME}.hex)
+    set(BIN_FILE ${EXECUTABLE_OUTPUT_PATH}/${PROJECT_NAME}.bin)
 
     add_custom_command(TARGET "${PROJECT_NAME}.elf" POST_BUILD
         COMMAND ${CMAKE_OBJCOPY} -Obinary ${ELF_FILE} ${BIN_FILE}
         COMMAND ${CMAKE_OBJCOPY} -Oihex  ${ELF_FILE} ${HEX_FILE}
     )
     add_custom_command(TARGET "${PROJECT_NAME}.elf" POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy ${HEX_FILE} "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.hex"
-        COMMAND ${CMAKE_COMMAND} -E copy ${BIN_FILE} "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.bin"
-        COMMAND ${CMAKE_SIZE} -A ${PROJECT_NAME}.elf
-        COMMAND ${CMAKE_SIZE} --format=berkeley ${PROJECT_NAME}.hex
+        COMMAND ${CMAKE_COMMAND} -E copy ${HEX_FILE} "${EXECUTABLE_OUTPUT_PATH}/${PROJECT_NAME}.hex"
+        COMMAND ${CMAKE_COMMAND} -E copy ${BIN_FILE} "${EXECUTABLE_OUTPUT_PATH}/${PROJECT_NAME}.bin"
+        COMMAND ${CMAKE_SIZE} -A ${EXECUTABLE_OUTPUT_PATH}/${PROJECT_NAME}.elf
+        COMMAND ${CMAKE_SIZE} --format=berkeley ${EXECUTABLE_OUTPUT_PATH}/${PROJECT_NAME}.hex
     )
 
 elseif (TYPE STREQUAL "Posix")
 
-    set(CMAKE_CURRENT_BINARY_DIR build/posix)
     find_package(Threads)
+
+    set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/build/posix)
+    set(CMAKE_BINARY_DIR build/posix)
 
     set(DIR_POSIX posix)
     set(DIR_RTOS freertos)

@@ -5,7 +5,7 @@
             "name": "Posix",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/ctlst-fmuv5",
+            "program": "${workspaceFolder}/build/posix/ctlst-fmuv5",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
@@ -27,7 +27,7 @@
             "type": "cortex-debug",
             "cwd": "${workspaceRoot}",
             "servertype": "openocd",
-            "executable": "build/ctlst-fmuv5.elf",
+            "executable": "build/px4/ctlst-fmuv5.elf",
             "svdFile": "mcu/stm32f765ii/core/STM32F765.svd",
             "searchDir": [
                 "/usr/local/share/openocd/scripts",],
