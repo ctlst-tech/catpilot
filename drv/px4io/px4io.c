@@ -169,7 +169,7 @@ int PX4IO_GetIOStatus() {
 int PX4IO_GetRC() {
     int rv = 0;
     const uint32_t prolog = (PX4IO_P_RAW_RC_BASE - PX4IO_P_RAW_RC_COUNT);
-    rv = PX4IO_ReadRegs(PX4IO_PAGE_RAW_RC_INPUT, PX4IO_P_RAW_RC_COUNT, prolog + 9);
+    rv = PX4IO_ReadRegs(PX4IO_PAGE_RAW_RC_INPUT, PX4IO_P_RAW_RC_COUNT, prolog + PX4IO_RC_CHANNELS);
     return rv;
 }
 

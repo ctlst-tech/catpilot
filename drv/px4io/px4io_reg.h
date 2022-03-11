@@ -68,7 +68,7 @@ static const uint32_t PX4IO_READREG_ERROR  = 0x80000000;
 #define PX4IO_P_RAW_RC_DATA             3    /* [1] + [2] Details about the RC source (PPM frame length, Spektrum protocol type) */
 #define PX4IO_P_RAW_FRAME_COUNT         4    /* Number of total received frames (wrapping counter) */
 #define PX4IO_P_RAW_LOST_FRAME_COUNT    5    /* Number of total dropped frames (wrapping counter) */
-#define PX4IO_P_RAW_RC_BASE             16   /* CONFIG_RC_INPUT_COUNT channels from here */
+#define PX4IO_P_RAW_RC_BASE             6    /* CONFIG_RC_INPUT_COUNT channels from here */
 
 /* array of raw ADC values */
 #define PX4IO_PAGE_RAW_ADC_INPUT        6    /* 0..CONFIG_ADC_INPUT_COUNT-1 */
