@@ -90,6 +90,10 @@ void HAL_SD_TxCpltCallback(SD_HandleTypeDef *hsd) {
     SDIO_TX_Complete(&sdcard_cfg.sdio);
 }
 
+void HAL_SD_ErrorCallback(SD_HandleTypeDef *hsd) {
+    while(1);
+}
+
 void SDMMC1_IRQHandler(void) {
     SDIO_IT_Handler(&sdcard_cfg.sdio);
 }

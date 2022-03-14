@@ -32,6 +32,7 @@
         "pthread.h": "c",
         "freertos.h": "c",
         "posix_base.h": "c",
-        "usart.h": "c"
+        "usart.h": "c",
+        "string_view": "c"
     },
 }

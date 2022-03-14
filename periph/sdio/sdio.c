@@ -25,14 +25,14 @@ int SDIO_Init(sdio_cfg_t *cfg) {
     cfg->inst.SD_InitStruct.Init.ClockPowerSave = SDMMC_CLOCK_POWER_SAVE_DISABLE;
     cfg->inst.SD_InitStruct.Init.BusWide = SDMMC_BUS_WIDE_1B;
     cfg->inst.SD_InitStruct.Init.HardwareFlowControl = SDMMC_HARDWARE_FLOW_CONTROL_DISABLE;
-    cfg->inst.SD_InitStruct.Init.ClockDiv = 168;
+    cfg->inst.SD_InitStruct.Init.ClockDiv = 2;
 
     cfg->inst.SD_InitStruct.hdmatx = &cfg->dma_cfg->DMA_InitStruct;
     cfg->inst.SD_InitStruct.hdmarx = &cfg->dma_cfg->DMA_InitStruct;
 
     if(HAL_SD_Init(&cfg->inst.SD_InitStruct) != HAL_OK) return EINVAL;
 
-    // if(HAL_SD_ConfigWideBusOperation(&cfg->inst.SD_InitStruct, SDMMC_BUS_WIDE_4B) != HAL_OK) return EINVAL;
+    if(HAL_SD_ConfigWideBusOperation(&cfg->inst.SD_InitStruct, SDMMC_BUS_WIDE_4B) != HAL_OK) return EINVAL;
 
     SDIO_EnableIRQ(cfg);
 
@@ -85,7 +85,6 @@ int SDIO_WriteBlocks(sdio_cfg_t *cfg, uint8_t *pdata, uint32_t address, uint32_t
         goto free;
     }
 
-
     xSemaphoreTake(cfg->inst.semaphore, 0);
 
     cfg->inst.state = SDIO_WRITE;
@@ -110,8 +109,11 @@ int SDIO_WriteBlocks(sdio_cfg_t *cfg, uint8_t *pdata, uint32_t address, uint32_t
 int SDIO_CheckStatusWithTimeout(sdio_cfg_t *cfg, uint32_t timeout) {
     uint32_t status;
     uint32_t start = xTaskGetTickCount();
+    uint32_t dt;
 
-    while((xTaskGetTickCount() - start) < timeout) {
+    dt = xTaskGetTickCount() - start;
+
+    while(dt < timeout) {
         status = HAL_SD_GetCardState(&cfg->inst.SD_InitStruct);
         if (status == HAL_SD_CARD_TRANSFER) {
             return 0;
