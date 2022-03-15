@@ -5,74 +5,60 @@
 static FATFS fs;
 static FIL file;
 
-static char buf[LOGGER_BUFFER_SIZE];
+static QueueHandle_t LoggerQueue;
+static char str_buf[LOGGER_BUFFER_SIZE];
+static char wr_buf[LOGGER_WRITE_SIZE];
 
-void Logger_Task() {
-    FRESULT res;
-    UINT ptr;
+void Logger_Buffer_Task() {
     uint32_t length;
-    float t_now, t_last;
+    uint32_t time;
+    LoggerQueue = xQueueCreate(LOGGER_WRITE_SIZE, LOGGER_WRITE_SIZE);
+    length = sprintf(str_buf, "time\tax\tay\taz\twx\twy\twz\tmagx\tmagy\tmagz\t\n");
+    while(1) {
+        time = xTaskGetTickCount();
+        length += sprintf((str_buf + length), "%f\t", time);
+        length += sprintf((str_buf + length), "%f\t", icm20602_fifo.accel_x[0]);
+        length += sprintf((str_buf + length), "%f\t", icm20602_fifo.accel_y[0]);
+        length += sprintf((str_buf + length), "%f\t", icm20602_fifo.accel_z[0]);
+        length += sprintf((str_buf + length), "%f\t", icm20602_fifo.gyro_x[0]);
+        length += sprintf((str_buf + length), "%f\t", icm20602_fifo.gyro_y[0]);
+        length += sprintf((str_buf + length), "%f\t", icm20602_fifo.gyro_z[0]);
+        length += sprintf((str_buf + length), "%f\t", ist8310_data.mag_x);
+        length += sprintf((str_buf + length), "%f\t", ist8310_data.mag_y);
+        length += sprintf((str_buf + length), "%f\t", ist8310_data.mag_z);
+        length += sprintf((str_buf + length), "\n");
+        xQueueSend(LoggerQueue, str_buf, portMAX_DELAY);
+        length = 0;
+    }
+}
+
+void Logger_Write_Task() {
+    FRESULT res;
+    uint32_t ptr;
+
     uint32_t t0, t1, t2, t3;
 
     res = f_mount(&fs, "0:", 1);
-
-    length = sprintf(buf, "time\tax\tay\taz\twx\twy\twz\tmagx\tmagy\tmagz\t\n");
-
     res = f_open(&file, "log.txt", FA_CREATE_ALWAYS | FA_WRITE);
-    res = f_write(&file, buf, length, &ptr);
     res = f_close(&file);
 
-    length = 0;
-
     while(1) {
-        t_now = xTaskGetTickCount();
-        t0 = xTaskGetTickCount();
-        length += sprintf((buf + length), "%f\t", t_now);
-        length += sprintf((buf + length), "%f\t", icm20602_fifo.accel_x[0]);
-        length += sprintf((buf + length), "%f\t", icm20602_fifo.accel_y[0]);
-        length += sprintf((buf + length), "%f\t", icm20602_fifo.accel_z[0]);
-        length += sprintf((buf + length), "%f\t", icm20602_fifo.gyro_x[0]);
-        length += sprintf((buf + length), "%f\t", icm20602_fifo.gyro_y[0]);
-        length += sprintf((buf + length), "%f\t", icm20602_fifo.gyro_z[0]);
-        length += sprintf((buf + length), "%f\t", ist8310_data.mag_x);
-        length += sprintf((buf + length), "%f\t", ist8310_data.mag_y);
-        length += sprintf((buf + length), "%f\t", ist8310_data.mag_z);
-        length += sprintf((buf + length), "\n");
-
-        if(length > LOGGER_WRITE_SIZE) {
+        if(xQueueReceive(LoggerQueue, wr_buf, portMAX_DELAY)) {
+            t0 = xTaskGetTickCount();
             res = f_open(&file, "log.txt", FA_OPEN_EXISTING | FA_WRITE);
+            
             if(res) {
                 vTaskDelay(0);
             }
 
             t1 = xTaskGetTickCount();
+            res = f_write(&file, wr_buf, LOGGER_BLOCK_SIZE, &ptr);
 
-            for(uint32_t i = 0; i < length;) {
-                if(length - i > LOGGER_BLOCK_SIZE) {
-                    f_lseek(&file, f_size(&file));
-                    res = f_write(&file, buf + i, LOGGER_BLOCK_SIZE, &ptr);
-
-                    if(res) {
-                        vTaskDelay(0);
-                    }
-
-                    i = i + LOGGER_BLOCK_SIZE;
-                } else if(length == i) {
-                    length = 0;
-                } else {
-                    length = length - i;
-                    res = f_write(&file, buf + i, length, &ptr);
-
-                    if(res) {
-                        vTaskDelay(0);
-                    }
-
-                    length = 0;
-                }
+            if(res) {
+                vTaskDelay(0);
             }
 
             t2 = xTaskGetTickCount();
-
             res = f_close(&file);
 
             if(res) {
@@ -80,17 +66,14 @@ void Logger_Task() {
             }
 
             t3 = xTaskGetTickCount();
-
             if((t3 - t0) > 100U) {
                 vTaskDelay(0);
             }
-
-        } else {
-            vTaskDelay(4);
         }
     }
 }
 
 void Logger_Start() {
-    xTaskCreate(Logger_Task, "Logger", 10024, NULL, LOGGER_TASK_PRIORITY, NULL);
+    xTaskCreate(Logger_Write_Task, "Write to SD", 1024, NULL, LOGGER_WRITE_TASK_PRIORITY, NULL);
+    xTaskCreate(Logger_Buffer_Task, "Bufferization", 1024, NULL, LOGGER_BUFFER_TASK_PRIORITY, NULL);
 }
