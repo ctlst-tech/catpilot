@@ -77,10 +77,11 @@ int PX4IO_Init() {
 }
 
 void PX4IO_Run() {
+    int rv;
+    uint16_t outputs[PX4IO_MAX_ACTUATORS];
     switch(px4io_state) {
 
     case PX4IO_RESET:
-        int rv;
         vTaskDelay(2000);
 
         rv = PX4IO_ReadReg(PX4IO_PAGE_CONFIG, PX4IO_P_CONFIG_PROTOCOL_VERSION);
@@ -119,7 +120,6 @@ void PX4IO_Run() {
         break;
 
     case PX4IO_OPERATION:
-        uint16_t outputs[PX4IO_MAX_ACTUATORS];
         PX4IO_GetRC();
         for(int i = 0; i < PX4IO_MAX_ACTUATORS; i++) {
             outputs[i] = rc[i];
