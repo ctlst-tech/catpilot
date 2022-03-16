@@ -11,8 +11,8 @@ static char wr_buf[LOGGER_WRITE_SIZE];
 
 void Logger_Buffer_Task() {
     uint32_t length;
-    uint32_t time;
-    LoggerQueue = xQueueCreate(LOGGER_WRITE_SIZE, LOGGER_WRITE_SIZE);
+    float time;
+    LoggerQueue = xQueueCreate(1, LOGGER_WRITE_SIZE);
     length = sprintf(str_buf, "time\tax\tay\taz\twx\twy\twz\tmagx\tmagy\tmagz\t\n");
     while(1) {
         time = xTaskGetTickCount();
@@ -27,8 +27,11 @@ void Logger_Buffer_Task() {
         length += sprintf((str_buf + length), "%f\t", ist8310_data.mag_y);
         length += sprintf((str_buf + length), "%f\t", ist8310_data.mag_z);
         length += sprintf((str_buf + length), "\n");
-        xQueueSend(LoggerQueue, str_buf, portMAX_DELAY);
-        length = 0;
+        if(length > LOGGER_WRITE_SIZE) {
+            xQueueSend(LoggerQueue, str_buf, portMAX_DELAY);
+            length = length - LOGGER_WRITE_SIZE;
+            memcpy(str_buf, str_buf + LOGGER_WRITE_SIZE, length);
+        }
     }
 }
 
@@ -45,8 +48,8 @@ void Logger_Write_Task() {
     while(1) {
         if(xQueueReceive(LoggerQueue, wr_buf, portMAX_DELAY)) {
             t0 = xTaskGetTickCount();
-            res = f_open(&file, "log.txt", FA_OPEN_EXISTING | FA_WRITE);
-            
+            res = f_open(&file, "log.txt", FA_OPEN_APPEND | FA_WRITE);
+
             if(res) {
                 vTaskDelay(0);
             }
