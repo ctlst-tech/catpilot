@@ -113,6 +113,10 @@ int SDIO_CheckStatusWithTimeout(sdio_cfg_t *cfg, uint32_t timeout) {
 
     dt = xTaskGetTickCount() - start;
 
+    if(dt > 100) {
+        vTaskDelay(0);
+    }
+
     while(dt < timeout) {
         status = HAL_SD_GetCardState(&cfg->inst.SD_InitStruct);
         if (status == HAL_SD_CARD_TRANSFER) {

@@ -11,9 +11,9 @@ int main(void) {
     HAL_Init();
     RCC_Init();
 
-    CLI_Start();
-    Sensors_Start();
-    IO_Start();
+    // CLI_Start();
+    // Sensors_Start();
+    // IO_Start();
     Logger_Start();
 
     vTaskStartScheduler();
