@@ -45,10 +45,11 @@ void Logger_Write_Task() {
     res = f_open(&file, "log.txt", FA_CREATE_ALWAYS | FA_WRITE);
     res = f_close(&file);
 
+    res = f_open(&file, "log.txt", FA_OPEN_EXISTING | FA_WRITE);
+    res = f_lseek(&file, f_size(&file));
     while(1) {
         if(xQueueReceive(LoggerQueue, wr_buf, portMAX_DELAY)) {
             t0 = xTaskGetTickCount();
-            res = f_open(&file, "log.txt", FA_OPEN_APPEND | FA_WRITE);
 
             if(res) {
                 vTaskDelay(0);
@@ -62,7 +63,6 @@ void Logger_Write_Task() {
             }
 
             t2 = xTaskGetTickCount();
-            res = f_close(&file);
 
             if(res) {
                 vTaskDelay(0);
@@ -70,14 +70,18 @@ void Logger_Write_Task() {
 
             t3 = xTaskGetTickCount();
 
-            printf("\nLogger: Statistics\n");
-            printf("Logger: f_open  time = %lu\n", t1 - t0);
-            printf("Logger: f_wirte time = %lu\n", t2 - t1);
-            printf("Logger: f_close time = %lu\n", t3 - t2);
-            printf("Logger: Total time   = %lu\n", t3 - t0);
+            // printf("\nLogger: Statistics\n");
+            // printf("Logger: f_open  time = %lu\n", t1 - t0);
+            // printf("Logger: f_wirte time = %lu\n", t2 - t1);
+            // printf("Logger: f_close time = %lu\n", t3 - t2);
+            // printf("Logger: Total time   = %lu\n", t3 - t0);
 
             if((t3 - t0) > 100U) {
                 vTaskDelay(0);
+            }
+            if(t0 > 60000) {
+                res = f_close(&file);
+                while(1);
             }
         }
     }

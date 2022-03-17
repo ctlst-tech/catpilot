@@ -122,7 +122,7 @@ int SDIO_CheckStatusWithTimeout(sdio_cfg_t *cfg, uint32_t timeout) {
         if (status == HAL_SD_CARD_TRANSFER) {
             return 0;
         } else {
-            vTaskDelay(1);
+            vTaskDelay(0);
         }
     }
 
