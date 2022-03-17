@@ -69,6 +69,13 @@ void Logger_Write_Task() {
             }
 
             t3 = xTaskGetTickCount();
+
+            printf("\nLogger: Statistics\n");
+            printf("Logger: f_open  time = %lu\n", t1 - t0);
+            printf("Logger: f_wirte time = %lu\n", t2 - t1);
+            printf("Logger: f_close time = %lu\n", t3 - t2);
+            printf("Logger: Total time   = %lu\n", t3 - t0);
+
             if((t3 - t0) > 100U) {
                 vTaskDelay(0);
             }
