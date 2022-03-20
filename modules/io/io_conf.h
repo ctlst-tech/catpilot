@@ -1,1 +1,1 @@
-#define IO_TASK_PRIORITY 2
+#define IO_TASK_PRIORITY 4

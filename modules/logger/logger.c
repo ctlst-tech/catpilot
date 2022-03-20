@@ -12,7 +12,7 @@ static char wr_buf[LOGGER_WRITE_SIZE];
 void Logger_Buffer_Task() {
     uint32_t length;
     float time;
-    LoggerQueue = xQueueCreate(1, LOGGER_WRITE_SIZE);
+    LoggerQueue = xQueueCreate(300, LOGGER_WRITE_SIZE);
     length = sprintf(str_buf, "time\tax\tay\taz\twx\twy\twz\tmagx\tmagy\tmagz\t\n");
     while(1) {
         time = xTaskGetTickCount();
@@ -32,6 +32,7 @@ void Logger_Buffer_Task() {
             length = length - LOGGER_WRITE_SIZE;
             memcpy(str_buf, str_buf + LOGGER_WRITE_SIZE, length);
         }
+        vTaskDelay(1);
     }
 }
 

@@ -8,6 +8,7 @@ void Sensors_Task(void *pvParameters) {
     while(1) {
         ICM20602_Run();
         IST8310_Run();
+        vTaskDelay(5);
     }
 }
 
