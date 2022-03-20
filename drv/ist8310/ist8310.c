@@ -88,7 +88,7 @@ void IST8310_Run() {
                 ist8310_state = IST8310_CONF;
                 vTaskDelay(10);
             } else {
-                printf("\n%s:Wrong default registers values after reset\n", device);
+                printf("%s: Wrong default registers values after reset\n", device);
                 vTaskDelay(1000);
                 ist8310_state = IST8310_RESET;
             }
@@ -98,7 +98,7 @@ void IST8310_Run() {
         if(IST8310_Configure()) {
             ist8310_state = IST8310_MEAS;
         } else {
-            printf("\n%s:Wrong configuration, reset\n", device);
+            printf("%s: Wrong configuration, reset\n", device);
             ist8310_state = IST8310_RESET;
             vTaskDelay(1000);
         }
@@ -190,13 +190,13 @@ int IST8310_Configure() {
         orig_val = IST8310_ReadReg(reg_cfg[i].reg);
 
         if((orig_val & reg_cfg[i].setbits) != reg_cfg[i].setbits) {
-            printf("%s\n0x%02x: 0x%02x (0x%02x not set)\n", device,
+            printf("%s: 0x%02x: 0x%02x (0x%02x not set)\n", device,
             (uint8_t)reg_cfg[i].reg, orig_val, reg_cfg[i].setbits);
             rv = 0;
         }
 
         if((orig_val & reg_cfg[i].clearbits) != 0) {
-            printf("%s\n0x%02x: 0x%02x (0x%02x not cleared)\n", device,
+            printf("%s: 0x%02x: 0x%02x (0x%02x not cleared)\n", device,
             (uint8_t)reg_cfg[i].reg, orig_val, reg_cfg[i].clearbits);
             rv = 0;
         }
@@ -211,7 +211,7 @@ int IST8310_Probe() {
     uint8_t whoami;
     whoami = IST8310_ReadReg(WHO_AM_I);
     if(whoami != DEVICE_ID) {
-        printf("unexpected WHO_AM_I reg 0x%02x", whoami);
+        printf("%s: Unexpected WHO_AM_I reg 0x%02x\n", device, whoami);
         return ENODEV;
     }
     return 0;

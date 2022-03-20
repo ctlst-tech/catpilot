@@ -125,7 +125,7 @@ void ICM20602_Run() {
                 icm20602_state = ICM20602_CONF;
                 vTaskDelay(1000);
             } else {
-                printf("\n%s:Wrong default registers values after reset\n", device);
+                printf("%s: Wrong default registers values after reset\n", device);
                 vTaskDelay(1000);
             }
         break;
@@ -135,7 +135,7 @@ void ICM20602_Run() {
             icm20602_state = ICM20602_FIFO_READ;
             ICM20602_FIFOReset();
         } else {
-            printf("\n%s:Wrong configuration, reset\n", device);
+            printf("%s: Wrong configuration, reset\n", device);
             icm20602_state = ICM20602_RESET;
             vTaskDelay(1000);
         }
@@ -197,13 +197,13 @@ int ICM20602_Configure() {
         orig_val = ICM20602_ReadReg(reg_cfg[i].reg);
 
         if((orig_val & reg_cfg[i].setbits) != reg_cfg[i].setbits) {
-            printf("\n%s:0x%02x: 0x%02x (0x%02x not set)\n", device,
+            printf("%s: 0x%02x: 0x%02x (0x%02x not set)\n", device,
             (uint8_t)reg_cfg[i].reg, orig_val, reg_cfg[i].setbits);
             rv = 0;
         }
 
         if((orig_val & reg_cfg[i].clearbits) != 0) {
-            printf("\n%s:0x%02x: 0x%02x (0x%02x not cleared)\n", device,
+            printf("%s: 0x%02x: 0x%02x (0x%02x not cleared)\n", device,
             (uint8_t)reg_cfg[i].reg, orig_val, reg_cfg[i].clearbits);
             rv = 0;
         }
@@ -338,7 +338,7 @@ int ICM20602_Probe() {
     uint8_t whoami;
     whoami = ICM20602_ReadReg(WHO_AM_I);
     if(whoami != WHOAMI) {
-        printf("\n%s:unexpected WHO_AM_I reg 0x%02x\n", device, whoami);
+        printf("%s: unexpected WHO_AM_I reg 0x%02x\n", device, whoami);
         return ENODEV;
     }
     return 0;
@@ -346,16 +346,16 @@ int ICM20602_Probe() {
 
 void ICM20602_Statistics() {
     // TODO add time between FIFO reading
-    printf("\n%s:Statistics:\n", device);
-    printf("\naccel_x = %.3f [m/s2]\n", icm20602_fifo.accel_x[0]);
-    printf("\naccel_y = %.3f [m/s2]\n", icm20602_fifo.accel_y[0]);
-    printf("\naccel_z = %.3f [m/s2]\n", icm20602_fifo.accel_z[0]);
-    printf("\ngyro_x  = %.3f [deg/s]\n", icm20602_fifo.gyro_x[0]);
-    printf("\ngyro_y  = %.3f [deg/s]\n", icm20602_fifo.gyro_y[0]);
-    printf("\ngyro_z  = %.3f [deg/s]\n", icm20602_fifo.gyro_z[0]);
-    printf("\ntemp    = %.3f [C]\n", icm20602_fifo.temp);
-    printf("\nN       = %lu [samples]\n", icm20602_fifo.samples);
-    printf("\ndt      = %lu [ms]\n", icm20602_fifo.dt);
+    printf("%s: Statistics:\n", device);
+    printf("accel_x = %.3f [m/s2]\n", icm20602_fifo.accel_x[0]);
+    printf("accel_y = %.3f [m/s2]\n", icm20602_fifo.accel_y[0]);
+    printf("accel_z = %.3f [m/s2]\n", icm20602_fifo.accel_z[0]);
+    printf("gyro_x  = %.3f [deg/s]\n", icm20602_fifo.gyro_x[0]);
+    printf("gyro_y  = %.3f [deg/s]\n", icm20602_fifo.gyro_y[0]);
+    printf("gyro_z  = %.3f [deg/s]\n", icm20602_fifo.gyro_z[0]);
+    printf("temp    = %.3f [C]\n", icm20602_fifo.temp);
+    printf("N       = %lu [samples]\n", icm20602_fifo.samples);
+    printf("dt      = %lu [ms]\n", icm20602_fifo.dt);
 }
 
 void ICM20602_DataReadyHandler() {

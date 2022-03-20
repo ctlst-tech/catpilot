@@ -13,10 +13,10 @@ static dma_cfg_t dma_px4io_rx;
 
 static px4io_cfg_t px4io_cfg;
 
-px4io_packet_t px4io_tx_packet;
-px4io_packet_t px4io_rx_packet;
+static px4io_packet_t px4io_tx_packet;
+static px4io_packet_t px4io_rx_packet;
 
-static uint16_t rc[PX4IO_RC_CHANNELS];
+px4io_reg_t px4io_reg;
 
 enum px4io_state_t {
     PX4IO_RESET,
@@ -84,19 +84,20 @@ void PX4IO_Run() {
     case PX4IO_RESET:
         vTaskDelay(2000);
 
-        rv = PX4IO_ReadReg(PX4IO_PAGE_CONFIG, PX4IO_P_CONFIG_PROTOCOL_VERSION);
+        px4io_reg.protocol_version = PX4IO_ReadReg(PX4IO_PAGE_CONFIG, PX4IO_P_CONFIG_PROTOCOL_VERSION);
 
-        if(rv == PX4IO_PROTOCOL_VERSION) {
+        if(px4io_reg.protocol_version == PX4IO_PROTOCOL_VERSION) {
 
             // Check PX4IO configuration
-            uint16_t hardware      = PX4IO_ReadReg(PX4IO_PAGE_CONFIG, PX4IO_P_CONFIG_HARDWARE_VERSION);
-            uint16_t max_actuators = PX4IO_ReadReg(PX4IO_PAGE_CONFIG, PX4IO_P_CONFIG_ACTUATOR_COUNT);
-            uint16_t max_controls  = PX4IO_ReadReg(PX4IO_PAGE_CONFIG, PX4IO_P_CONFIG_CONTROL_COUNT);
-            uint16_t max_transfer  = PX4IO_ReadReg(PX4IO_PAGE_CONFIG, PX4IO_P_CONFIG_MAX_TRANSFER) - 2;
-            uint16_t max_rc_input  = PX4IO_ReadReg(PX4IO_PAGE_CONFIG, PX4IO_P_CONFIG_RC_INPUT_COUNT);
-            if ((max_actuators < 1) || (max_actuators > PX4IO_MAX_ACTUATORS) ||
-                (max_transfer < 16) || (max_transfer > 255)  ||
-                (max_rc_input < 1)  || (max_rc_input > 255)) {
+            px4io_reg.hardware_version = PX4IO_ReadReg(PX4IO_PAGE_CONFIG, PX4IO_P_CONFIG_HARDWARE_VERSION);
+            px4io_reg.max_actuators    = PX4IO_ReadReg(PX4IO_PAGE_CONFIG, PX4IO_P_CONFIG_ACTUATOR_COUNT);
+            px4io_reg.max_controls     = PX4IO_ReadReg(PX4IO_PAGE_CONFIG, PX4IO_P_CONFIG_CONTROL_COUNT);
+            px4io_reg.max_transfer     = PX4IO_ReadReg(PX4IO_PAGE_CONFIG, PX4IO_P_CONFIG_MAX_TRANSFER) - 2;
+            px4io_reg.max_rc_input     = PX4IO_ReadReg(PX4IO_PAGE_CONFIG, PX4IO_P_CONFIG_RC_INPUT_COUNT);
+
+            if ((px4io_reg.max_actuators < 1) || (px4io_reg.max_actuators > PX4IO_MAX_ACTUATORS) ||
+                (px4io_reg.max_transfer < 16) || (px4io_reg.max_transfer > 255)  ||
+                (px4io_reg.max_rc_input < 1)  || (px4io_reg.max_rc_input > 255)) {
                     // TODO Add error processing
                     px4io_state = PX4IO_ERROR;
             } else {
@@ -104,12 +105,14 @@ void PX4IO_Run() {
             }
 
             // Get last IO state
-            rv = PX4IO_ReadRegs(PX4IO_PAGE_SETUP, PX4IO_P_SETUP_ARMING, 1);
-            if(rv) px4io_state = PX4IO_ERROR;
+            px4io_reg.arming = PX4IO_ReadRegs(PX4IO_PAGE_SETUP, PX4IO_P_SETUP_ARMING, 1);
+            if(px4io_reg.arming == PX4IO_READREG_ERROR) px4io_state = PX4IO_ERROR;
 
             // Disarm IO
             rv = PX4IO_SetClearReg(PX4IO_PAGE_SETUP, PX4IO_P_SETUP_ARMING, 0, PX4IO_P_SETUP_ARMING_FMU_ARMED | PX4IO_P_SETUP_ARMING_LOCKDOWN);
             if(rv) px4io_state = PX4IO_ERROR;
+        } else {
+            printf("%s: Wrong protocol version: %lu\n", device, px4io_reg.protocol_version);
         }
         break;
 
@@ -120,11 +123,11 @@ void PX4IO_Run() {
         break;
 
     case PX4IO_OPERATION:
-        PX4IO_GetRC();
+        PX4IO_GetRC(&px4io_reg.rc);
         for(int i = 0; i < PX4IO_MAX_ACTUATORS; i++) {
-            outputs[i] = rc[i];
+            px4io_reg.outputs[i] = px4io_reg.rc[i];
         }
-        PX4IO_SetPWM(outputs, PX4IO_MAX_ACTUATORS);
+        PX4IO_SetPWM(&px4io_reg.outputs, PX4IO_MAX_ACTUATORS);
         PX4IO_ReadRegs(PX4IO_PAGE_DIRECT_PWM, 0, PX4IO_MAX_ACTUATORS);
         PX4IO_GetIOStatus();
         break;
@@ -164,22 +167,22 @@ int PX4IO_GetIOStatus() {
     rv = PX4IO_ReadRegs(PX4IO_PAGE_STATUS, PX4IO_P_STATUS_FLAGS, 6);
     if(rv) return rv;
 
-    uint16_t STATUS_FLAGS  = px4io_rx_packet.regs[0];
-    uint16_t STATUS_ALARMS = px4io_rx_packet.regs[1];
-    uint16_t STATUS_VSERVO = px4io_rx_packet.regs[4];
-    uint16_t STATUS_VRSSI  = px4io_rx_packet.regs[5];
+    px4io_reg.status = px4io_rx_packet.regs[0];
+    px4io_reg.alarms = px4io_rx_packet.regs[1];
+    px4io_reg.vservo = px4io_rx_packet.regs[4];
+    px4io_reg.vrssi  = px4io_rx_packet.regs[5];
 
-    uint16_t SETUP_ARMING  = PX4IO_ReadReg(PX4IO_PAGE_SETUP, PX4IO_P_SETUP_ARMING);
+    px4io_reg.arming = PX4IO_ReadReg(PX4IO_PAGE_SETUP, PX4IO_P_SETUP_ARMING);
 
     return rv;
 }
 
-int PX4IO_GetRC() {
+int PX4IO_GetRC(uint16_t *data) {
     int rv = 0;
     const uint32_t prolog = (PX4IO_P_RAW_RC_BASE - PX4IO_P_RAW_RC_COUNT);
     rv = PX4IO_ReadRegs(PX4IO_PAGE_RAW_RC_INPUT, PX4IO_P_RAW_RC_COUNT, prolog + PX4IO_RC_CHANNELS);
     for(int i = 0; i < PX4IO_RC_CHANNELS; i++){
-        rc[i] = px4io_rx_packet.regs[i + prolog];
+        data[i] = px4io_rx_packet.regs[i + prolog];
     }
     return rv;
 }
