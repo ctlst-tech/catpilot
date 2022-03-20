@@ -10,22 +10,39 @@ static char str_buf[LOGGER_BUFFER_SIZE];
 static char wr_buf[LOGGER_WRITE_SIZE];
 
 void Logger_Buffer_Task() {
-    uint32_t length;
-    float time;
-    LoggerQueue = xQueueCreate(300, LOGGER_WRITE_SIZE);
-    length = sprintf(str_buf, "time\tax\tay\taz\twx\twy\twz\tmagx\tmagy\tmagz\t\n");
+    uint32_t length = 0;
+    float time = 0;
+
+    LoggerQueue = xQueueCreate(1, LOGGER_WRITE_SIZE);
+
+    for(int i = 0; i < 10; i++) {
+        length += sprintf(str_buf + length, "time%d\t", i);
+        length += sprintf(str_buf + length, "ax%d\t", i);
+        length += sprintf(str_buf + length, "ay%d\t", i);
+        length += sprintf(str_buf + length, "az%d\t", i);
+        length += sprintf(str_buf + length, "wx%d\t", i);
+        length += sprintf(str_buf + length, "wy%d\t", i);
+        length += sprintf(str_buf + length, "wz%d\t", i);
+        length += sprintf(str_buf + length, "magx%d\t", i);
+        length += sprintf(str_buf + length, "magy%d\t", i);
+        length += sprintf(str_buf + length, "magz%d\t", i);
+    }
+    length += sprintf(str_buf + length, "\n");
+
     while(1) {
         time = xTaskGetTickCount();
-        length += sprintf((str_buf + length), "%f\t", time);
-        length += sprintf((str_buf + length), "%f\t", icm20602_fifo.accel_x[0]);
-        length += sprintf((str_buf + length), "%f\t", icm20602_fifo.accel_y[0]);
-        length += sprintf((str_buf + length), "%f\t", icm20602_fifo.accel_z[0]);
-        length += sprintf((str_buf + length), "%f\t", icm20602_fifo.gyro_x[0]);
-        length += sprintf((str_buf + length), "%f\t", icm20602_fifo.gyro_y[0]);
-        length += sprintf((str_buf + length), "%f\t", icm20602_fifo.gyro_z[0]);
-        length += sprintf((str_buf + length), "%f\t", ist8310_data.mag_x);
-        length += sprintf((str_buf + length), "%f\t", ist8310_data.mag_y);
-        length += sprintf((str_buf + length), "%f\t", ist8310_data.mag_z);
+        for(int i = 0; i < 10; i++) {
+            length += sprintf((str_buf + length), "%f\t", time);
+            length += sprintf((str_buf + length), "%f\t", icm20602_fifo.accel_x[0]);
+            length += sprintf((str_buf + length), "%f\t", icm20602_fifo.accel_y[0]);
+            length += sprintf((str_buf + length), "%f\t", icm20602_fifo.accel_z[0]);
+            length += sprintf((str_buf + length), "%f\t", icm20602_fifo.gyro_x[0]);
+            length += sprintf((str_buf + length), "%f\t", icm20602_fifo.gyro_y[0]);
+            length += sprintf((str_buf + length), "%f\t", icm20602_fifo.gyro_z[0]);
+            length += sprintf((str_buf + length), "%f\t", ist8310_data.mag_x);
+            length += sprintf((str_buf + length), "%f\t", ist8310_data.mag_y);
+            length += sprintf((str_buf + length), "%f\t", ist8310_data.mag_z);
+        }
         length += sprintf((str_buf + length), "\n");
         if(length > LOGGER_WRITE_SIZE) {
             xQueueSend(LoggerQueue, str_buf, portMAX_DELAY);
@@ -71,16 +88,10 @@ void Logger_Write_Task() {
 
             t3 = xTaskGetTickCount();
 
-            // printf("\nLogger: Statistics\n");
-            // printf("Logger: f_open  time = %lu\n", t1 - t0);
-            // printf("Logger: f_wirte time = %lu\n", t2 - t1);
-            // printf("Logger: f_close time = %lu\n", t3 - t2);
-            // printf("Logger: Total time   = %lu\n", t3 - t0);
-
             if((t3 - t0) > 100U) {
                 vTaskDelay(0);
             }
-            if(t0 > 60000) {
+            if(t0 > 120000) {
                 res = f_close(&file);
                 while(1);
             }
