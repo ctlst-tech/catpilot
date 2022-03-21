@@ -57,7 +57,7 @@ DSTATUS disk_initialize (
     result = SDCARD_Init();
 
     if(result) {
-        stat = RES_PARERR;
+        stat = STA_NOINIT;
     } else {
         stat = RES_OK;
     }

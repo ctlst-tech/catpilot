@@ -13,9 +13,9 @@ void Logger_Buffer_Task() {
     uint32_t length = 0;
     float time = 0;
 
-    LoggerQueue = xQueueCreate(1, LOGGER_WRITE_SIZE);
+    LoggerQueue = xQueueCreate(3, LOGGER_WRITE_SIZE);
 
-    for(int i = 0; i < 10; i++) {
+    for(int i = 0; i < 20; i++) {
         length += sprintf(str_buf + length, "time%d\t", i);
         length += sprintf(str_buf + length, "ax%d\t", i);
         length += sprintf(str_buf + length, "ay%d\t", i);
@@ -31,7 +31,7 @@ void Logger_Buffer_Task() {
 
     while(1) {
         time = xTaskGetTickCount();
-        for(int i = 0; i < 10; i++) {
+        for(int i = 0; i < 20; i++) {
             length += sprintf((str_buf + length), "%f\t", time);
             length += sprintf((str_buf + length), "%f\t", icm20602_fifo.accel_x[0]);
             length += sprintf((str_buf + length), "%f\t", icm20602_fifo.accel_y[0]);
@@ -49,6 +49,7 @@ void Logger_Buffer_Task() {
             length = length - LOGGER_WRITE_SIZE;
             memcpy(str_buf, str_buf + LOGGER_WRITE_SIZE, length);
         }
+        time = xTaskGetTickCount();
         vTaskDelay(1);
     }
 }
@@ -59,7 +60,9 @@ void Logger_Write_Task() {
 
     uint32_t t0, t1, t2, t3;
 
-    res = f_mount(&fs, "0:", 1);
+    while(f_mount(&fs, "0:", 1)) {
+        vTaskDelay(10);
+    }
     res = f_open(&file, "log.txt", FA_CREATE_ALWAYS | FA_WRITE);
     res = f_close(&file);
 
