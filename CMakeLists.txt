@@ -27,6 +27,7 @@ if (TYPE STREQUAL "PX4")
     set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "" )
 
     set(DIR_OS os/freertos)
+    set(DIR_OSA osa/)
     set(DIR_FS os/fatfs)
 
     set(DIR_PERIPH ${DIR_MCU}/periph)
@@ -50,9 +51,10 @@ if (TYPE STREQUAL "PX4")
         ${DIR_MCU}/core
         ${DIR_MCU}/hal/inc
 
-        ${DIR_FS}
         ${DIR_OS}/core/inc
         ${DIR_OS}/port/${MCU}
+        ${DIR_OSA}
+        ${DIR_FS}
 
         ${DIR_PERIPH}
         ${DIR_PERIPH}/rcc
