@@ -6,10 +6,12 @@ set(CMAKE_VERBOSE_MAKEFILE OFF)
 if (TYPE STREQUAL "PX4")
     set(MAP_CREATION "ON")
     set(MCU stm32f765ii)
+    set(DIR_MCU board/mcu/${MCU})
     set(ASM_FILE ${PROJECT_BINARY_DIR}/${PROJ_NAME}.asm)
-    set(CMAKE_TOOLCHAIN_FILE mcu/${MCU}/core/f7_toolchain.cmake)
+    set(CMAKE_TOOLCHAIN_FILE ${DIR_MCU}/core/f7_toolchain.cmake)
 elseif (TYPE STREQUAL "Posix")
-    set(CMAKE_TOOLCHAIN_FILE posix/posix_toolchain.cmake)
+    set(DIR_POSIX board/posix)
+    set(CMAKE_TOOLCHAIN_FILE ${DIR_POSIX}/posix_toolchain.cmake)
 else ()
     message(FATAL_ERROR "TYPE is not set!")
 endif ()
@@ -24,13 +26,17 @@ if (TYPE STREQUAL "PX4")
     set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "" )
     set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "" )
 
-    set(DIR_MCU mcu/${MCU})
-    set(DIR_PERIPH periph)
-    set(DIR_DRV drv)
+    set(DIR_OS os/freertos)
+    set(DIR_FS os/fatfs)
+
+    set(DIR_PERIPH ${DIR_MCU}/periph)
+    set(DIR_CONF ${DIR_MCU}/conf)
+    set(DIR_DRV ${DIR_MCU}/drv)
+
+    # Temporarily
     set(DIR_MDL modules)
     set(DIR_LIB lib)
-    set(DIR_RTOS freertos)
-    set(DIR_CONF conf/mcu)
+
     set(HEAP_SIZE 0x400)
 
     add_definitions(
@@ -40,8 +46,15 @@ if (TYPE STREQUAL "PX4")
     )
 
     include_directories(
+        ${DIR_MCU}
         ${DIR_MCU}/core
         ${DIR_MCU}/hal/inc
+
+        ${DIR_FS}
+        ${DIR_OS}/core/inc
+        ${DIR_OS}/port/${MCU}
+
+        ${DIR_PERIPH}
         ${DIR_PERIPH}/rcc
         ${DIR_PERIPH}/gpio
         ${DIR_PERIPH}/exti
@@ -52,30 +65,33 @@ if (TYPE STREQUAL "PX4")
         ${DIR_PERIPH}/dma
         ${DIR_PERIPH}/hal
         ${DIR_PERIPH}/sdio
+
+        ${DIR_DRV}
         ${DIR_DRV}/icm20602
         ${DIR_DRV}/ist8310
         ${DIR_DRV}/sdcard
         ${DIR_DRV}/px4io
+
         ${DIR_MDL}/cli
         ${DIR_MDL}/sensors
         ${DIR_MDL}/logger
         ${DIR_MDL}/io
-        ${DIR_LIB}/usr
-        ${DIR_LIB}/fatfs
-        ${DIR_RTOS}/core/inc
-        ${DIR_RTOS}/port/${MCU}
+
+        ${DIR_LIB}/
+
         ${DIR_CONF}
         ${CMAKE_CURRENT_BINARY_DIR}
     )
 
-    set(SRC_MAIN mcu/main.c)
-    file(GLOB STARTUP ${DIR_MCU}/core/*.s)
-    file(GLOB_RECURSE SRC_MCU ${DIR_MCU}/*.c)
+    set(SRC_MAIN main.c)
+    file(GLOB STARTUP            ${DIR_MCU}/core/*.s)
+    file(GLOB_RECURSE SRC_MCU    ${DIR_MCU}/*.c)
     file(GLOB_RECURSE SRC_PERIPH ${DIR_PERIPH}/*.c)
-    file(GLOB_RECURSE SRC_DRV ${DIR_DRV}/*.c)
-    file(GLOB_RECURSE SRC_MDL ${DIR_MDL}/*.c)
-    file(GLOB_RECURSE SRC_LIB ${DIR_LIB}/*.c)
-    file(GLOB_RECURSE SRC_RTOS ${DIR_RTOS}/core/*.c ${DIR_RTOS}/port/${MCU}/*.c ${DIR_RTOS}/MemMang/heap_1.c)
+    file(GLOB_RECURSE SRC_DRV    ${DIR_DRV}/*.c)
+    file(GLOB_RECURSE SRC_MDL    ${DIR_MDL}/*.c)
+    file(GLOB_RECURSE SRC_LIB    ${DIR_LIB}/*.c)
+    file(GLOB_RECURSE SRC_FS     ${DIR_FS}/*.c)
+    file(GLOB_RECURSE SRC_OS     ${DIR_OS}/core/*.c ${DIR_OS}/port/${MCU}/*.c ${DIR_OS}/MemMang/heap_1.c)
 
     set(SOURCES
         ${SRC_MAIN}
@@ -85,7 +101,8 @@ if (TYPE STREQUAL "PX4")
         ${SRC_DRV}
         ${SRC_MDL}
         ${SRC_LIB}
-        ${SRC_RTOS}
+        ${SRC_OS}
+        ${SRC_FS}
     )
 
     add_executable(${PROJECT_NAME}.elf ${SOURCES})
@@ -113,24 +130,24 @@ elseif (TYPE STREQUAL "Posix")
     set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/build/posix)
     set(CMAKE_BINARY_DIR build/posix)
 
-    set(DIR_POSIX posix)
-    set(DIR_RTOS freertos)
-    set(DIR_CONF conf/posix)
+    set(DIR_POSIX board/posix)
+    set(DIR_OS os/freertos)
+    set(DIR_CONF ${DIR_POSIX}/conf)
 
     include_directories(
-        ${DIR_RTOS}/core/inc
-        ${DIR_RTOS}/port/posix
-        ${DIR_RTOS}/port/posix/utils
+        ${DIR_OS}/core/inc
+        ${DIR_OS}/port/posix
+        ${DIR_OS}/port/posix/utils
         ${DIR_CONF}
         ${CMAKE_CURRENT_BINARY_DIR}
     )
 
-    set(SRC_MAIN posix/main.c)
-    file(GLOB_RECURSE SRC_RTOS ${DIR_RTOS}/core/*.c ${DIR_RTOS}/port/posix/*.c ${DIR_RTOS}/MemMang/heap_1.c)
+    set(SRC_MAIN ${DIR_POSIX}/main.c)
+    file(GLOB_RECURSE SRC_OS ${DIR_OS}/core/*.c ${DIR_OS}/port/posix/*.c ${DIR_OS}/MemMang/heap_1.c)
 
     set(SOURCES
         ${SRC_MAIN}
-        ${SRC_RTOS}
+        ${SRC_OS}
     )
 
     add_executable(${PROJECT_NAME} ${SOURCES})
