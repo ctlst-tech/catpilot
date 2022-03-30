@@ -1,5 +1,5 @@
 #include  <errno.h>
-#include  <sys/unistd.h>
+#include  <unistd.h>
 
 #define __weak   __attribute__((weak))
 

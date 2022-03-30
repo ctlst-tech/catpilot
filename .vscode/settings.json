@@ -34,6 +34,18 @@
         "freertos.h": "c",
         "posix_base.h": "c",
         "usart.h": "c",
-        "string_view": "c"
+        "string_view": "c",
+        "syscalls.h": "c",
+        "errno.h": "c",
+        "unistd.h": "c",
+        "_types.h": "c",
+        "types.h": "c",
+        "cdefs.h": "c",
+        "ist8310_conf.h": "c",
+        "ist8310_reg.h": "c",
+        "stm32f7xx_hal_conf.h": "c",
+        "stdio.h": "c",
+        "cerrno": "c",
+        "event_groups.h": "c"
     },
 }

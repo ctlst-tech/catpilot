@@ -103,6 +103,9 @@
 #define vPortSVCHandler SVC_Handler
 #define xPortSysTickHandler SysTick_Handler
 
+/* For POSIX compatibility */
+#define configUSE_POSIX_ERRNO 1
+
 /* A header file that defines trace macro can be included here. */
 
 #endif /* FREERTOS_CONFIG_H */

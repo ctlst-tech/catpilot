@@ -27,7 +27,8 @@ if (TYPE STREQUAL "PX4")
     set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "" )
 
     set(DIR_OS os/freertos)
-    set(DIR_OSA osa/)
+    set(DIR_OSA osa/freertos_posix)
+
     set(DIR_FS os/fatfs)
 
     set(DIR_PERIPH ${DIR_MCU}/periph)
@@ -51,9 +52,17 @@ if (TYPE STREQUAL "PX4")
         ${DIR_MCU}/core
         ${DIR_MCU}/hal/inc
 
+        ${DIR_OS}
         ${DIR_OS}/core/inc
         ${DIR_OS}/port/${MCU}
-        ${DIR_OSA}
+
+        ${DIR_OSA}/include
+        ${DIR_OSA}/include/private
+        ${DIR_OSA}/include/FreeRTOS_POSIX
+        ${DIR_OSA}/include/FreeRTOS_POSIX/sys
+        ${DIR_OSA}/FreeRTOS-Plus-POSIX/include/
+        ${DIR_OSA}/FreeRTOS-Plus-POSIX/include/portable
+
         ${DIR_FS}
 
         ${DIR_PERIPH}
@@ -94,6 +103,7 @@ if (TYPE STREQUAL "PX4")
     file(GLOB_RECURSE SRC_LIB    ${DIR_LIB}/*.c)
     file(GLOB_RECURSE SRC_FS     ${DIR_FS}/*.c)
     file(GLOB_RECURSE SRC_OS     ${DIR_OS}/core/*.c ${DIR_OS}/port/${MCU}/*.c ${DIR_OS}/MemMang/heap_1.c)
+    file(GLOB_RECURSE SRC_OSA    ${DIR_OSA}/FreeRTOS-Plus-POSIX/source/*.c)
 
     set(SOURCES
         ${SRC_MAIN}
@@ -104,6 +114,7 @@ if (TYPE STREQUAL "PX4")
         ${SRC_MDL}
         ${SRC_LIB}
         ${SRC_OS}
+        ${SRC_OSA}
         ${SRC_FS}
     )
 
