@@ -46,6 +46,10 @@
         "stm32f7xx_hal_conf.h": "c",
         "stdio.h": "c",
         "cerrno": "c",
-        "event_groups.h": "c"
+        "event_groups.h": "c",
+        "cli.h": "c",
+        "stm32f765xx.h": "c",
+        "thread": "c",
+        "freertos_posix.h": "c"
     },
 }

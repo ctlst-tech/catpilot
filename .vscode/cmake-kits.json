@@ -2,7 +2,7 @@
     {
         "name": "MCU_unix",
         "compilers": {
-        "C": "/usr/bin/arm-none-eabi-gcc-11.2.0"
+        "C": "/usr/bin/arm-none-eabi-gcc"
         }
     },
     {

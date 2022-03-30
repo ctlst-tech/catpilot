@@ -14,7 +14,7 @@
 #define configUSE_TASK_NOTIFICATIONS            1
 #define configTASK_NOTIFICATION_ARRAY_ENTRIES   3
 #define configUSE_MUTEXES                       1
-#define configUSE_RECURSIVE_MUTEXES             0
+#define configUSE_RECURSIVE_MUTEXES             1
 #define configUSE_COUNTING_SEMAPHORES           1
 #define configUSE_ALTERNATIVE_API               0 /* Deprecated! */
 #define configQUEUE_REGISTRY_SIZE               10
@@ -27,7 +27,7 @@
 #define configMESSAGE_BUFFER_LENGTH_TYPE        size_t
 
 /* Memory allocation related definitions. */
-#define configSUPPORT_STATIC_ALLOCATION         0
+#define configSUPPORT_STATIC_ALLOCATION         1
 #define configSUPPORT_DYNAMIC_ALLOCATION        1
 #define configTOTAL_HEAP_SIZE                   ( size_t ) ( 300 * 1024 )
 #define configAPPLICATION_ALLOCATED_HEAP        0 //change
@@ -105,6 +105,7 @@
 
 /* For POSIX compatibility */
 #define configUSE_POSIX_ERRNO 1
+#define configUSE_APPLICATION_TASK_TAG 1
 
 /* A header file that defines trace macro can be included here. */
 

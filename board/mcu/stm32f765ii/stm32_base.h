@@ -14,6 +14,9 @@
 #include "timers.h"
 #include "semphr.h"
 
+/** FreeRTOS POSIX implementation */
+#include "FreeRTOS_POSIX.h"
+
 /** ERRNO */
 #include "errno.h"
 

@@ -5,7 +5,11 @@
             "label": "Flash",
             "type": "shell",
             "command": "st-flash write ${workspaceRoot}/build/px4/ctlst-fmuv5.bin 0x08000000",
-            "problemMatcher": []
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         },
         {
             "label": "Erase",
