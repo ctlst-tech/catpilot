@@ -8,4 +8,6 @@
 - [x] PTHREAD_MUTEX_INITIALIZER for mutex?
 - [x] Replace system includes with local
 - [x] Comment eswb tests
-- [ ] Move c-atom example from mock to main, fix dependencies
+- [x] Move c-atom example from mock to main, fix dependencies
+- [x] Stubs for getpid and gettimeofday
+- [ ] How to integrate FATFS to xml parser

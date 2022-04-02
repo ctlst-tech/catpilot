@@ -38,7 +38,7 @@ endif ()
 
 set(MCU_FLAGS "-mcpu=cortex-m7 -mlittle-endian -mfloat-abi=hard -mthumb -mno-unaligned-access")
 
-set(COMMON_FLAGS "${MCU_FLAGS} -Wall -Wextra  -fdata-sections -ffunction-sections -Wl,--gc-sections")
+set(COMMON_FLAGS "${MCU_FLAGS} -Wall -Wextra  -fdata-sections -ffunction-sections -Wl,--gc-sections -Wno-unused-variable -Wno-unused-function -Wno-unused-parameter")
 set(LINKER_FLAGS "${LINK_MAP_CREATION_FLAG} --specs=nosys.specs --specs=nano.specs ${MCU_FLAGS} -Wl,--start-group -lgcc -lc -lg -Wl,--end-group -Wl,--gc-sections -u _printf_float -T ${LINKER_SCRIPT}")
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug-target")

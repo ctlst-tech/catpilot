@@ -9,6 +9,10 @@
 
 #include "pthread.h"
 
+#include "swsys.h"
+#include "function.h"
+#include "fsminst.h"
+
 void posix(void *param);
 void *thread(void *param);
 
@@ -42,8 +46,11 @@ void posix(void *param) {
 }
 
 void *thread(void *param) {
-    (void)param;
-    while(1) {
-        usleep(1000);
-    }
+    swsys_t sys;
+
+    swsys_load("tests/sens/mvp_swsys.xml", &sys);
+
+    swsys_top_module_start(&sys);
+
+    while(1);
 }

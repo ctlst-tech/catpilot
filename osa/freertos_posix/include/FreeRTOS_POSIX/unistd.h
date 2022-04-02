@@ -62,6 +62,8 @@ unsigned sleep( unsigned seconds );
  */
 int usleep( useconds_t usec );
 
+pid_t getpid();
+
 #ifdef __cplusplus
 }
 #endif

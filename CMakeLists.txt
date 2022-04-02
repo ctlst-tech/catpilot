@@ -26,6 +26,7 @@ if (TYPE STREQUAL "PX4")
     set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "" )
     set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "" )
 
+    ## Defines
     set(DIR_OS os/freertos)
     set(DIR_OSA osa/ osa/freertos_posix)
 
@@ -34,6 +35,9 @@ if (TYPE STREQUAL "PX4")
     set(DIR_PERIPH ${DIR_MCU}/periph)
     set(DIR_CONF ${DIR_MCU}/conf)
     set(DIR_DRV ${DIR_MCU}/drv)
+
+    set(DIR_C_ATOM c-atom-lib)
+    set(DIR_ESWB c-atom-lib/eswb)
 
     # Temporarily
     set(DIR_MDL modules)
@@ -120,8 +124,46 @@ if (TYPE STREQUAL "PX4")
         ${SRC_FS}
     )
 
-    add_executable(${PROJECT_NAME}.elf ${SOURCES})
-    target_link_libraries(${PROJECT_NAME}.elf -lc -lm -lnosys)
+    # add_executable(${PROJECT_NAME}.elf ${SOURCES})
+    add_executable(${PROJECT_NAME}.elf
+        ${SOURCES}
+        ${DIR_C_ATOM}/flow/flow.c
+        ${DIR_C_ATOM}/f_specs/function.c
+        ${DIR_C_ATOM}/f_specs/error.c
+        ${DIR_C_ATOM}/swsys/swsys.c
+        ${DIR_C_ATOM}/swsys/swsys.h
+        ${DIR_C_ATOM}/swsys/swsys_parser_xml.c
+        ${DIR_C_ATOM}/xml/xml.c
+        ${DIR_C_ATOM}/xml/xml.h
+        ${DIR_C_ATOM}/f_specs/common_parser_xml.c
+        ${DIR_C_ATOM}/flow/flow_parser_xml.c
+        ${DIR_C_ATOM}/flow/flow.h
+    )
+
+    target_include_directories(${PROJECT_NAME}.elf PUBLIC
+        ${DIR_C_ATOM}/f_specs
+        ${DIR_C_ATOM}/f_specs/include
+        ${DIR_C_ATOM}/fsm
+        ${DIR_C_ATOM}/fsm/clk
+    )
+
+    target_include_directories(${PROJECT_NAME}.elf PUBLIC
+        ${DIR_C_ATOM}/eswb/src/lib/include/public
+        ${DIR_C_ATOM}/xml
+        ${DIR_C_ATOM}/flow
+        ${DIR_C_ATOM}/fsminst
+        ${DIR_C_ATOM}/fsm
+    )
+
+    target_link_libraries(${PROJECT_NAME}.elf PRIVATE
+        -lc -lm -lnosys
+        fspec-registry
+        eswb-static
+        fsminst-static
+        fsm-static
+        xml-static
+        swsys-static
+    )
 
     set(ELF_FILE ${EXECUTABLE_OUTPUT_PATH}/${PROJECT_NAME}.elf)
     set(HEX_FILE ${EXECUTABLE_OUTPUT_PATH}/${PROJECT_NAME}.hex)

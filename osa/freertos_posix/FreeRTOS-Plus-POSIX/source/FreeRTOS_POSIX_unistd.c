@@ -51,4 +51,8 @@ int usleep( useconds_t usec )
     return 0;
 }
 
+pid_t getpid() {
+    return 1;
+}
+
 /*-----------------------------------------------------------*/
