@@ -65,6 +65,7 @@ extern "C" {
 /**@{ */
 #define EPERM           1   /**< Operation not permitted. */
 #define ENOENT          2   /**< No such file or directory. */
+#define EINTR           4   /**< Interrupted system call. */
 #define EIO             5   /**< Input/output error. */
 #define ENXIO           6   /**< No such device or address. */
 #define EBADF           9   /**< Bad file descriptor. */
@@ -84,6 +85,10 @@ extern "C" {
 #define EMSGSIZE        90  /**< Message too long. */
 #define ENOTSUP         95  /**< Operation not supported. */
 #define ETIMEDOUT       116 /**< Connection timed out. */
+
+/* for robust mutexes */
+#define	EOWNERDEAD	    130	/**< Owner died */
+#define	ENOTRECOVERABLE	131	/**< State not recoverable */
 /**@} */
 
 /**

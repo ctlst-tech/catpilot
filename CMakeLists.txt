@@ -27,7 +27,7 @@ if (TYPE STREQUAL "PX4")
     set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "" )
 
     set(DIR_OS os/freertos)
-    set(DIR_OSA osa/freertos_posix)
+    set(DIR_OSA osa/ osa/freertos_posix)
 
     set(DIR_FS os/fatfs)
 
@@ -56,12 +56,12 @@ if (TYPE STREQUAL "PX4")
         ${DIR_OS}/core/inc
         ${DIR_OS}/port/${MCU}
 
+        ${DIR_OSA}/FreeRTOS-Plus-POSIX/include/portable
         ${DIR_OSA}/include
         ${DIR_OSA}/include/private
         ${DIR_OSA}/include/FreeRTOS_POSIX
         ${DIR_OSA}/include/FreeRTOS_POSIX/sys
         ${DIR_OSA}/FreeRTOS-Plus-POSIX/include/
-        ${DIR_OSA}/FreeRTOS-Plus-POSIX/include/portable
 
         ${DIR_FS}
 
@@ -93,6 +93,8 @@ if (TYPE STREQUAL "PX4")
         ${DIR_CONF}
         ${CMAKE_CURRENT_BINARY_DIR}
     )
+
+    add_subdirectory(c-atom-lib)
 
     set(SRC_MAIN main.c)
     file(GLOB STARTUP            ${DIR_MCU}/core/*.s)
