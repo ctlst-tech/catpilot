@@ -74,6 +74,12 @@
         "clk.h": "c",
         "task.h": "c",
         "semphr.h": "c",
-        "freertos_posix_internal.h": "c"
+        "freertos_posix_internal.h": "c",
+        "atomic": "c",
+        "*.tcc": "c",
+        "fstream": "c",
+        "sstream": "c",
+        "regex": "c",
+        "fcntl.h": "c"
     },
 }

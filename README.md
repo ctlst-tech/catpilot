@@ -10,4 +10,4 @@
 - [x] Comment eswb tests
 - [x] Move c-atom example from mock to main, fix dependencies
 - [x] Stubs for getpid and gettimeofday
-- [ ] How to integrate FATFS to xml parser
+- [ ] Add FS wrappers in OSA
