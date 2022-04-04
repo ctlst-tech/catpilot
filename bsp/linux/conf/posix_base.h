@@ -11,7 +11,7 @@
 #include "semphr.h"
 
 /** ERRNO */
-#include "errno.h"
+#include <errno.h>
 
 /** STD */
 #include "stdio.h"

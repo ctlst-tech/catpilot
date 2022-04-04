@@ -23,8 +23,8 @@ if (TYPE STREQUAL "PX4")
     set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/build/px4)
     set(CMAKE_BINARY_DIR ./build/px4)
 
-    set(CMAKE_SHARED_MISCRARY_LINK_C_FLAGS "" )
-    set(CMAKE_SHARED_MISCRARY_LINK_CXX_FLAGS "" )
+    set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "" )
+    set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "" )
 
     ## Defines
     set(DIR_OS os/freertos)
@@ -61,11 +61,11 @@ if (TYPE STREQUAL "PX4")
         ${DIR_OS}/port/${MCU}
 
         ${DIR_OSA}/FreeRTOS-Plus-POSIX/include/portable
-        ${DIR_OSA}/include
+        ${DIR_OSA}/FreeRTOS-Plus-POSIX/include
         ${DIR_OSA}/include/private
+        ${DIR_OSA}/include
         ${DIR_OSA}/include/FreeRTOS_POSIX
         ${DIR_OSA}/include/FreeRTOS_POSIX/sys
-        ${DIR_OSA}/FreeRTOS-Plus-POSIX/include/
 
         ${DIR_FS}
 
@@ -106,7 +106,7 @@ if (TYPE STREQUAL "PX4")
     file(GLOB_RECURSE SRC_PERIPH ${DIR_PERIPH}/*.c)
     file(GLOB_RECURSE SRC_DRV    ${DIR_DRV}/*.c)
     file(GLOB_RECURSE SRC_MDL    ${DIR_MDL}/*.c)
-    file(GLOB_RECURSE SRC_MISC    ${DIR_MISC}/*.c)
+    file(GLOB_RECURSE SRC_MISC   ${DIR_MISC}/*.c)
     file(GLOB_RECURSE SRC_FS     ${DIR_FS}/*.c)
     file(GLOB_RECURSE SRC_OS     ${DIR_OS}/core/*.c ${DIR_OS}/port/${MCU}/*.c ${DIR_OS}/MemMang/heap_1.c)
     file(GLOB_RECURSE SRC_OSA    ${DIR_OSA}/FreeRTOS-Plus-POSIX/source/*.c)
@@ -209,6 +209,6 @@ elseif (TYPE STREQUAL "Posix")
 
     add_executable(${PROJECT_NAME} ${SOURCES})
 
-    target_link_MISCraries(${PROJECT_NAME} PRIVATE Threads::Threads)
+    target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads)
 
 endif ()

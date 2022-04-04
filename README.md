@@ -11,5 +11,7 @@
 - [x] Move c-atom example from mock to main, fix dependencies
 - [x] Stubs for getpid and gettimeofday
 - [ ] Rename board -> bsp, lib -> misc
-- [ ] Sys lib
+- [ ] Add posix impl as sys lib
+- [ ] Add CMakeLists in board directories
 - [ ] Add FS wrappers in OSA
+- [ ] Add modules as f_specs functions

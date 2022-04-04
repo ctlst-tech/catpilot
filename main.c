@@ -7,7 +7,7 @@
 // #include "logger.h"
 // #include "sensors.h"
 
-#include "pthread.h"
+#include <pthread.h>
 
 #include "swsys.h"
 #include "function.h"
