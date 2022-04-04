@@ -10,4 +10,6 @@
 - [x] Comment eswb tests
 - [x] Move c-atom example from mock to main, fix dependencies
 - [x] Stubs for getpid and gettimeofday
+- [ ] Rename board -> bsp, lib -> misc
+- [ ] Sys lib
 - [ ] Add FS wrappers in OSA

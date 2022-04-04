@@ -6,7 +6,7 @@ set(CMAKE_VERBOSE_MAKEFILE OFF)
 if (TYPE STREQUAL "PX4")
     set(MAP_CREATION "ON")
     set(MCU stm32f765ii)
-    set(DIR_MCU board/mcu/${MCU})
+    set(DIR_MCU bsp/mcu/${MCU})
     set(ASM_FILE ${PROJECT_BINARY_DIR}/${PROJ_NAME}.asm)
     set(CMAKE_TOOLCHAIN_FILE ${DIR_MCU}/core/f7_toolchain.cmake)
 elseif (TYPE STREQUAL "Posix")
@@ -23,8 +23,8 @@ if (TYPE STREQUAL "PX4")
     set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/build/px4)
     set(CMAKE_BINARY_DIR ./build/px4)
 
-    set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "" )
-    set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "" )
+    set(CMAKE_SHARED_MISCRARY_LINK_C_FLAGS "" )
+    set(CMAKE_SHARED_MISCRARY_LINK_CXX_FLAGS "" )
 
     ## Defines
     set(DIR_OS os/freertos)
@@ -41,7 +41,7 @@ if (TYPE STREQUAL "PX4")
 
     # Temporarily
     set(DIR_MDL modules)
-    set(DIR_LIB lib)
+    set(DIR_MISC misc)
 
     set(HEAP_SIZE 0x400)
 
@@ -92,7 +92,7 @@ if (TYPE STREQUAL "PX4")
         ${DIR_MDL}/logger
         ${DIR_MDL}/io
 
-        ${DIR_LIB}/
+        ${DIR_MISC}/
 
         ${DIR_CONF}
         ${CMAKE_CURRENT_BINARY_DIR}
@@ -106,7 +106,7 @@ if (TYPE STREQUAL "PX4")
     file(GLOB_RECURSE SRC_PERIPH ${DIR_PERIPH}/*.c)
     file(GLOB_RECURSE SRC_DRV    ${DIR_DRV}/*.c)
     file(GLOB_RECURSE SRC_MDL    ${DIR_MDL}/*.c)
-    file(GLOB_RECURSE SRC_LIB    ${DIR_LIB}/*.c)
+    file(GLOB_RECURSE SRC_MISC    ${DIR_MISC}/*.c)
     file(GLOB_RECURSE SRC_FS     ${DIR_FS}/*.c)
     file(GLOB_RECURSE SRC_OS     ${DIR_OS}/core/*.c ${DIR_OS}/port/${MCU}/*.c ${DIR_OS}/MemMang/heap_1.c)
     file(GLOB_RECURSE SRC_OSA    ${DIR_OSA}/FreeRTOS-Plus-POSIX/source/*.c)
@@ -118,7 +118,7 @@ if (TYPE STREQUAL "PX4")
         ${SRC_PERIPH}
         ${SRC_DRV}
         ${SRC_MDL}
-        ${SRC_LIB}
+        ${SRC_MISC}
         ${SRC_OS}
         ${SRC_OSA}
         ${SRC_FS}
@@ -209,6 +209,6 @@ elseif (TYPE STREQUAL "Posix")
 
     add_executable(${PROJECT_NAME} ${SOURCES})
 
-    target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads)
+    target_link_MISCraries(${PROJECT_NAME} PRIVATE Threads::Threads)
 
 endif ()
