@@ -47,6 +47,12 @@ extern int snprintf( char * s,
 
 /*-----------------------------------------------------------*/
 
+extern int sprintf( char * s,
+                     const char * format,
+                     ... );
+
+/*-----------------------------------------------------------*/
+
 clock_t clock( void )
 {
     /* This function is currently unsupported. It will always return -1. */

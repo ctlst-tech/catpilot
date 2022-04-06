@@ -334,4 +334,7 @@ int timer_gettime( timer_t timerid,
     return 0;
 }
 
+// struct tm *gmtime  ( const time_t *timer ) {
+// }
+
 /*-----------------------------------------------------------*/

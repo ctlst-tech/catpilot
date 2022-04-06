@@ -8,6 +8,8 @@
 // #include "sensors.h"
 
 #include <pthread.h>
+#include <stdio.h>
+#include "ff.h"
 
 #include "swsys.h"
 #include "function.h"
@@ -15,6 +17,8 @@
 
 void posix(void *param);
 void *thread(void *param);
+
+static FATFS fs;
 
 int main(void) {
     HAL_Init();
@@ -26,7 +30,7 @@ int main(void) {
     // Logger_Start();
 
     // vTaskStartScheduler();
-    xTaskCreate(posix, "posix", configMINIMAL_STACK_SIZE, NULL, 1, NULL );
+    xTaskCreate(posix, "posix", 12000, NULL, 1, NULL );
 
     vTaskStartScheduler();
     while(1) {
@@ -47,8 +51,18 @@ void posix(void *param) {
 
 void *thread(void *param) {
     swsys_t sys;
+    FILE *file;
 
-    swsys_load("tests/sens/mvp_swsys.xml", &sys);
+    char foo[255];
+    int length;
+
+    f_mount(&fs, "0:", 1);
+    file = fopen("blah\n", "w");
+    length = sprintf(foo, "check fs\nfile buf ptr: %p\n", &file->buf);
+    fwrite(foo, 1, length, file);
+    __wrap_fclose(file);
+
+    swsys_load("mvp_swsys.xml", &sys);
 
     swsys_top_module_start(&sys);
 

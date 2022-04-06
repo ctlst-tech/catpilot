@@ -196,4 +196,10 @@ typedef void                         * pthread_barrierattr_t;
 }
 #endif
 
+typedef short dev_t;
+typedef unsigned short ino_t;
+typedef	unsigned short	nlink_t;
+typedef unsigned short uid_t;
+typedef unsigned short gid_t;
+
 #endif /* ifndef _FREERTOS_POSIX_TYPES_H_ */

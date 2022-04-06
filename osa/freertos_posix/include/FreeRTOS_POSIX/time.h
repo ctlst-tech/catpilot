@@ -98,6 +98,25 @@ extern "C" {
     };
 #endif
 
+struct tm
+{
+    int	tm_sec;
+    int	tm_min;
+    int	tm_hour;
+    int	tm_mday;
+    int	tm_mon;
+    int	tm_year;
+    int	tm_wday;
+    int	tm_yday;
+    int	tm_isdst;
+#ifdef __TM_GMTOFF
+    long	__TM_GMTOFF;
+#endif
+#ifdef __TM_ZONE
+    const char *__TM_ZONE;
+#endif
+};
+
 /**
  * @brief Report CPU time used.
  *
@@ -258,6 +277,9 @@ int timer_settime( timer_t timerid,
                    int flags,
                    const struct itimerspec * value,
                    struct itimerspec * ovalue );
+
+
+// struct tm *gmtime  ( const time_t *timer );
 
 #ifdef __cplusplus
 }

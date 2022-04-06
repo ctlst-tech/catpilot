@@ -28,7 +28,7 @@ if (TYPE STREQUAL "PX4")
 
     ## Defines
     set(DIR_OS os/freertos)
-    set(DIR_OSA osa/ osa/freertos_posix)
+    set(DIR_OSA osa)
 
     set(DIR_FS os/fatfs)
 
@@ -60,14 +60,16 @@ if (TYPE STREQUAL "PX4")
         ${DIR_OS}/core/inc
         ${DIR_OS}/port/${MCU}
 
-        ${DIR_OSA}/FreeRTOS-Plus-POSIX/include/portable
-        ${DIR_OSA}/FreeRTOS-Plus-POSIX/include
-        ${DIR_OSA}/include/private
-        ${DIR_OSA}/include
-        ${DIR_OSA}/include/FreeRTOS_POSIX
-        ${DIR_OSA}/include/FreeRTOS_POSIX/sys
+        ${DIR_OSA}/freertos_posix/FreeRTOS-Plus-POSIX/include/portable
+        ${DIR_OSA}/freertos_posix/FreeRTOS-Plus-POSIX/include
+        ${DIR_OSA}/freertos_posix/include/private
+        ${DIR_OSA}/freertos_posix/include
+        ${DIR_OSA}/freertos_posix/include/FreeRTOS_POSIX
+        ${DIR_OSA}/freertos_posix/include/FreeRTOS_POSIX/sys
 
         ${DIR_FS}
+
+        ${DIR_OSA}/fatfs_posix
 
         ${DIR_PERIPH}
         ${DIR_PERIPH}/rcc
@@ -109,7 +111,7 @@ if (TYPE STREQUAL "PX4")
     file(GLOB_RECURSE SRC_MISC   ${DIR_MISC}/*.c)
     file(GLOB_RECURSE SRC_FS     ${DIR_FS}/*.c)
     file(GLOB_RECURSE SRC_OS     ${DIR_OS}/core/*.c ${DIR_OS}/port/${MCU}/*.c ${DIR_OS}/MemMang/heap_1.c)
-    file(GLOB_RECURSE SRC_OSA    ${DIR_OSA}/FreeRTOS-Plus-POSIX/source/*.c)
+    file(GLOB_RECURSE SRC_OSA    ${DIR_OSA}/*.c)
 
     set(SOURCES
         ${SRC_MAIN}
@@ -119,9 +121,9 @@ if (TYPE STREQUAL "PX4")
         ${SRC_DRV}
         ${SRC_MDL}
         ${SRC_MISC}
+        ${SRC_FS}
         ${SRC_OS}
         ${SRC_OSA}
-        ${SRC_FS}
     )
 
     # add_executable(${PROJECT_NAME}.elf ${SOURCES})
@@ -138,6 +140,7 @@ if (TYPE STREQUAL "PX4")
         ${DIR_C_ATOM}/f_specs/common_parser_xml.c
         ${DIR_C_ATOM}/flow/flow_parser_xml.c
         ${DIR_C_ATOM}/flow/flow.h
+        ${DIR_OSA}/fatfs_posix/posix.c
     )
 
     target_include_directories(${PROJECT_NAME}.elf PUBLIC

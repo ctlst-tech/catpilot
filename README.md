@@ -13,5 +13,11 @@
 - [x] Rename board -> bsp, lib -> misc
 - [x] Add posix impl as sys lib
 - [ ] Add FS wrappers in OSA
+    - [x] Add stdio without open, close...
+    - [x] Bind freertos posix impl and fatfs wrappers
+        - [x] types.h
+        - [ ] comment missing implementations of std functions
+        - [ ] realize std functions
+    - [ ]
 - [ ] Add CMakeLists in board directories
 - [ ] Add modules as f_specs functions
