@@ -282,6 +282,9 @@
  char *gets (char *p);
  //void dump_stat ( struct stat *sp );
 
+ int fclose ( FILE *stream );
+ size_t fread ( void *ptr , size_t size , size_t nmemb , FILE *stream );
+
  #if 0
  int fstat ( int fd , struct stat *buf );
  #endif

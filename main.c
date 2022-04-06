@@ -57,10 +57,13 @@ void *thread(void *param) {
     int length;
 
     f_mount(&fs, "0:", 1);
-    file = fopen("blah\n", "w");
+    file = fopen("blah\n", "a");
     length = sprintf(foo, "check fs\nfile buf ptr: %p\n", &file->buf);
     fwrite(foo, 1, length, file);
-    __wrap_fclose(file);
+    fclose(file);
+    file = fopen("blah\n", "r");
+    fread(foo, 1, length, file);
+    fclose(file);
 
     swsys_load("mvp_swsys.xml", &sys);
 
