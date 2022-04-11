@@ -1816,7 +1816,7 @@
  */
 
  int
- fprintf(FILE *fp, const char *fmt, ...)
+ __wrap_fprintf(FILE *fp, const char *fmt, ...)
  {
      va_list va;
      char* buf;

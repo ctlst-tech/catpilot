@@ -192,7 +192,7 @@
  #define stderr (__iob[2])
 
  // =============================================
- //#define IO_MACROS
+//  #define IO_MACROS
  #ifdef IO_MACROS
  #define putc(__c, __stream) fputc(__c, __stream)
  #define getc(__stream) fgetc(__stream)
@@ -329,6 +329,7 @@
  int new_file_descriptor ( void );
  int posix_fopen_modes_to_open ( const char *mode );
 
+ int __wrap_fprintf(FILE *fp, const char *format, ...);
  int fprintf(FILE *fp, const char *format, ...);
 
  #ifdef __cplusplus

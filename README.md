@@ -16,8 +16,13 @@
     - [x] Add stdio without open, close...
     - [x] Bind freertos posix impl and fatfs wrappers
         - [x] types.h
-        - [ ] comment missing implementations of std functions
-        - [ ] realize std functions
-    - [ ]
+        - [x] comment missing implementations of std functions
+        - [x] realize std functions
+- [x] Start c-atom on fmuv5
+    - [x] With empty function
+    - [x] Add IMU in spec update function
+- [ ] Add stdout, stdin, stderr streams in cli
+    - [x] Add stdout stub for printf use
+    - [ ] Problems with vasprintf (memory? stack overflow?)
 - [ ] Add CMakeLists in board directories
 - [ ] Add modules as f_specs functions

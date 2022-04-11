@@ -90,9 +90,9 @@ if (TYPE STREQUAL "PX4")
         ${DIR_DRV}/px4io
 
         ${DIR_MDL}/cli
-        ${DIR_MDL}/sensors
-        ${DIR_MDL}/logger
-        ${DIR_MDL}/io
+        # ${DIR_MDL}/sensors
+        # ${DIR_MDL}/logger
+        # ${DIR_MDL}/io
 
         ${DIR_MISC}/
 
@@ -107,10 +107,10 @@ if (TYPE STREQUAL "PX4")
     file(GLOB_RECURSE SRC_MCU    ${DIR_MCU}/*.c)
     file(GLOB_RECURSE SRC_PERIPH ${DIR_PERIPH}/*.c)
     file(GLOB_RECURSE SRC_DRV    ${DIR_DRV}/*.c)
-    file(GLOB_RECURSE SRC_MDL    ${DIR_MDL}/*.c)
+    file(GLOB_RECURSE SRC_MDL    ${DIR_MDL}/cli/cli.c)
     file(GLOB_RECURSE SRC_MISC   ${DIR_MISC}/*.c)
     file(GLOB_RECURSE SRC_FS     ${DIR_FS}/*.c)
-    file(GLOB_RECURSE SRC_OS     ${DIR_OS}/core/*.c ${DIR_OS}/port/${MCU}/*.c ${DIR_OS}/MemMang/heap_1.c)
+    file(GLOB_RECURSE SRC_OS     ${DIR_OS}/core/*.c ${DIR_OS}/port/${MCU}/*.c ${DIR_OS}/MemMang/heap_4.c)
     file(GLOB_RECURSE SRC_OSA    ${DIR_OSA}/*.c)
 
     set(SOURCES
@@ -203,7 +203,7 @@ elseif (TYPE STREQUAL "Posix")
     )
 
     set(SRC_MAIN ${DIR_POSIX}/main.c)
-    file(GLOB_RECURSE SRC_OS ${DIR_OS}/core/*.c ${DIR_OS}/port/posix/*.c ${DIR_OS}/MemMang/heap_1.c)
+    file(GLOB_RECURSE SRC_OS ${DIR_OS}/core/*.c ${DIR_OS}/port/posix/*.c ${DIR_OS}/MemMang/heap_4.c)
 
     set(SOURCES
         ${SRC_MAIN}

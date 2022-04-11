@@ -63,9 +63,8 @@ void CLI_Task() {
         // Delete task
     }
 
-    USART_Receive(&cli_cfg, &data, 1);
-
     while(1) {
+        vTaskDelay(1000);
         // Nothing to do
     }
 }
@@ -77,6 +76,19 @@ void CLI_Start() {
 void retarget_put_char(uint8_t c) {
     USART_Transmit(&cli_cfg, &c, 1);
 }
+
+int cli_put(char c, struct __file * file) {
+    (void)file;
+    USART_Transmit(&cli_cfg, (uint8_t *)&c, 1);
+    file->len--;
+    if(c == '\n') USART_Transmit(&cli_cfg, (uint8_t *)"\r", 1);
+    return 0;
+}
+
+// int cli_get(char c, struct __file * file) {
+//     (void)file;
+//     USART_Receive(&cli_cfg, &c, 1);
+// }
 
 void UART7_IRQHandler(void) {
     USART_Handler(&cli_cfg);
