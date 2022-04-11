@@ -37,6 +37,8 @@
 extern "C" {
 #endif
 
+#if (FREERTOS_POSIX_USE_FCNTL == 1)
+
 /**
  * @name File creation flags for use in the oflag value to open() and openat().
  */
@@ -79,6 +81,8 @@ extern "C" {
 #define O_SEARCH    0x4000  /**< Open directory for search only. */
 #define O_WRONLY    0x8000  /**< Open for writing only. */
 /**@} */
+
+#endif
 
 #ifdef __cplusplus
 }

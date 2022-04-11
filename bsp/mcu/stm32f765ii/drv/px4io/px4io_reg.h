@@ -184,7 +184,7 @@ uint16_t get_pkt_code(px4io_packet_t *pkt) {
     return (pkt->count_code & PKT_CODE_MASK);
 }
 
-uint16_t get_pkt_size(px4io_packet_t *pkt) {
+uint32_t get_pkt_size(px4io_packet_t *pkt) {
     return ((size_t)((uint8_t *)(pkt->regs[get_pkt_count(pkt)]) - ((uint8_t *)(pkt))));
 }
 

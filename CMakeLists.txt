@@ -110,7 +110,7 @@ if (TYPE STREQUAL "PX4")
     file(GLOB_RECURSE SRC_MDL    ${DIR_MDL}/cli/cli.c)
     file(GLOB_RECURSE SRC_MISC   ${DIR_MISC}/*.c)
     file(GLOB_RECURSE SRC_FS     ${DIR_FS}/*.c)
-    file(GLOB_RECURSE SRC_OS     ${DIR_OS}/core/*.c ${DIR_OS}/port/${MCU}/*.c ${DIR_OS}/MemMang/heap_4.c)
+    file(GLOB_RECURSE SRC_OS     ${DIR_OS}/core/*.c ${DIR_OS}/port/${MCU}/*.c ${DIR_OS}/MemMang/heap_4.c ${DIR_OS}/MemMang/heap.c)
     file(GLOB_RECURSE SRC_OSA    ${DIR_OSA}/*.c)
 
     set(SOURCES

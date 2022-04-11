@@ -127,7 +127,7 @@ void PX4IO_Run() {
         for(int i = 0; i < PX4IO_MAX_ACTUATORS; i++) {
             px4io_reg.outputs[i] = px4io_reg.rc[i];
         }
-        PX4IO_SetPWM(&px4io_reg.outputs, PX4IO_MAX_ACTUATORS);
+        PX4IO_SetPWM((uint32_t *)&px4io_reg.outputs, PX4IO_MAX_ACTUATORS);
         PX4IO_ReadRegs(PX4IO_PAGE_DIRECT_PWM, 0, PX4IO_MAX_ACTUATORS);
         PX4IO_GetIOStatus();
         break;
@@ -187,9 +187,9 @@ int PX4IO_GetRC(uint16_t *data) {
     return rv;
 }
 
-int PX4IO_SetPWM(uint16_t *outputs, uint16_t num) {
+int PX4IO_SetPWM(uint32_t *outputs, uint32_t num) {
     int rv = 0;
-    rv = PX4IO_WriteRegs(PX4IO_PAGE_DIRECT_PWM, 0, outputs, num);
+    rv = PX4IO_WriteRegs(PX4IO_PAGE_DIRECT_PWM, 0, (uint16_t *)outputs, num);
     return rv;
 }
 

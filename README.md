@@ -21,8 +21,9 @@
 - [x] Start c-atom on fmuv5
     - [x] With empty function
     - [x] Add IMU in spec update function
-- [ ] Add stdout, stdin, stderr streams in cli
+- [x] Add stdout, stdin, stderr streams in cli
     - [x] Add stdout stub for printf use
     - [ ] Problems with vasprintf (memory? stack overflow?)
+        - [x] Add wrap for malloc, calloc, free (from heap_3)
 - [ ] Add CMakeLists in board directories
 - [ ] Add modules as f_specs functions

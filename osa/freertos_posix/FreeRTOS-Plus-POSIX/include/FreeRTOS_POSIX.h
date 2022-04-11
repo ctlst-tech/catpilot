@@ -46,4 +46,7 @@
 #include "FreeRTOS_POSIX/sys/types.h"
 #include "FreeRTOS_POSIX_internal.h"
 
+// For flags
+#include <stdio.h>
+
 #endif /* _FREERTOS_POSIX_H_ */

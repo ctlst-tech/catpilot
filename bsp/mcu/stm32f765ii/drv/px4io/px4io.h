@@ -38,5 +38,5 @@ int PX4IO_SetClearReg(uint8_t page, uint8_t offset, uint16_t setbits, uint16_t c
 int PX4IO_SetArmingState();
 int PX4IO_GetIOStatus();
 int PX4IO_GetRC();
-int PX4IO_SetPWM(uint16_t *outputs, uint16_t num);
+int PX4IO_SetPWM(uint32_t *outputs, uint32_t num);
 
