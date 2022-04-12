@@ -1832,6 +1832,8 @@
      }
      va_end(va);
 
+     free(buf);
+
      return len;
  }
 

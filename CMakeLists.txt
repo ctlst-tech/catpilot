@@ -43,12 +43,9 @@ if (TYPE STREQUAL "PX4")
     set(DIR_MDL modules)
     set(DIR_MISC misc)
 
-    set(HEAP_SIZE 0x400)
-
     add_definitions(
         -DSTM32
         -DSTM32F7
-        -DHEAP_SIZE=${HEAP_SIZE}
     )
 
     include_directories(
@@ -110,7 +107,7 @@ if (TYPE STREQUAL "PX4")
     file(GLOB_RECURSE SRC_MDL    ${DIR_MDL}/cli/cli.c)
     file(GLOB_RECURSE SRC_MISC   ${DIR_MISC}/*.c)
     file(GLOB_RECURSE SRC_FS     ${DIR_FS}/*.c)
-    file(GLOB_RECURSE SRC_OS     ${DIR_OS}/core/*.c ${DIR_OS}/port/${MCU}/*.c ${DIR_OS}/MemMang/heap_4.c ${DIR_OS}/MemMang/heap.c)
+    file(GLOB_RECURSE SRC_OS     ${DIR_OS}/core/*.c ${DIR_OS}/port/${MCU}/*.c ${DIR_OS}/MemMang/heap_3.c ${DIR_OS}/MemMang/heap.c)
     file(GLOB_RECURSE SRC_OSA    ${DIR_OSA}/*.c)
 
     set(SOURCES

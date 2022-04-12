@@ -21,7 +21,7 @@ int main(void) {
     HAL_Init();
     RCC_Init();
 
-    xTaskCreate(main_thread, "main_thread", 16000, NULL, 1, NULL );
+    xTaskCreate(main_thread, "main_thread", 32000, NULL, 1, NULL );
 
     vTaskStartScheduler();
 
@@ -29,13 +29,18 @@ int main(void) {
     }
 }
 
+static FATFS fs;
+
 void main_thread(void *param) {
+    static FRESULT res;
     swsys_t sys;
 
     CLI_Init();
     ICM20602_Init();
     IST8310_Init();
     usleep(1000);
+
+    res = f_mount(&fs, "0:", 1);
 
     printf("Catalyst demo project\n");
 

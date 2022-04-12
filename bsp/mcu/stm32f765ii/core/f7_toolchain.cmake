@@ -35,7 +35,7 @@ elseif (${OS} STREQUAL "Windows")
     file(GLOB LINKER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/bsp/mcu/stm32f765ii/core/*.ld)
 endif ()
 
-set(LD_WRAP "-Wl,--wrap,fprintf -Wl,--wrap,fclose -Wl,--wrap,fread -Wl,--wrap,malloc -Wl,--wrap,calloc -Wl,--wrap,free")
+set(LD_WRAP "-Wl,--wrap,fprintf -Wl,--wrap,fclose -Wl,--wrap,fread")
 
 set(MCU_FLAGS "-mcpu=cortex-m7 -mlittle-endian -mfloat-abi=hard -mthumb -mno-unaligned-access")
 
