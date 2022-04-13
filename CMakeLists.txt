@@ -36,8 +36,8 @@ if (TYPE STREQUAL "PX4")
     set(DIR_CONF ${DIR_MCU}/conf)
     set(DIR_DRV ${DIR_MCU}/drv)
 
-    set(DIR_C_ATOM c-atom-lib)
-    set(DIR_ESWB c-atom-lib/eswb)
+    set(DIR_C_ATOM c-atom)
+    set(DIR_ESWB c-atom/eswb)
 
     # Temporarily
     set(DIR_MDL modules)
@@ -97,7 +97,7 @@ if (TYPE STREQUAL "PX4")
         ${CMAKE_CURRENT_BINARY_DIR}
     )
 
-    add_subdirectory(c-atom-lib)
+    add_subdirectory(c-atom)
 
     set(SRC_MAIN main.c)
     file(GLOB STARTUP            ${DIR_MCU}/core/*.s)
