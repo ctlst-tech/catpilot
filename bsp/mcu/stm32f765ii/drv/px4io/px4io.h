@@ -1,6 +1,7 @@
 #include "stm32_base.h"
 #include "stm32_periph.h"
 #include "gpio_cfg.h"
+#include <stdbool.h>
 
 #define PX4IO_RC_CHANNELS 16
 #define PX4IO_MAX_OUTPUT  8
@@ -23,20 +24,19 @@ typedef struct {
     uint32_t max_controls;
     uint32_t max_transfer;
     uint32_t max_rc_input;
+
+    uint32_t arm;
+    uint32_t max_pwm;
+    uint32_t min_pwm;
 } px4io_reg_t;
 
 int PX4IO_Init();
 void PX4IO_Run();
-int PX4IO_Read(uint16_t address, uint16_t length);
-int PX4IO_Write(uint16_t address, uint16_t *data, uint16_t length);
-int PX4IO_ReadRegs(uint8_t page, uint8_t offset, uint8_t num);
-int PX4IO_WriteRegs(uint8_t page, uint8_t offset, uint16_t *data, uint8_t num);
-uint32_t PX4IO_ReadReg(uint8_t page, uint8_t offset);
-int PX4IO_WriteReg(uint8_t page, uint8_t offset, uint16_t data);
-int PX4IO_SetClearReg(uint8_t page, uint8_t offset, uint16_t setbits, uint16_t clearbits);
 
-int PX4IO_SetArmingState();
-int PX4IO_GetIOStatus();
-int PX4IO_GetRC();
-int PX4IO_SetPWM(uint32_t *outputs, uint32_t num);
+void PX4IO_SetArm(bool arm);
+void PX4IO_SetMaxPWM(int pwm);
+void PX4IO_SetMinPWM(int pwm);
+void PX4IO_SetOutput(int channel, int out);
 
+uint16_t PX4IO_GetRC(int channel);
+uint32_t PX4IO_GetState();

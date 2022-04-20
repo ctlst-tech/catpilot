@@ -6,6 +6,10 @@
 
 static const uint32_t PX4IO_READREG_ERROR  = 0x80000000;
 
+/* for simple arming control */
+#define PX4IO_DISARM                      0
+#define PX4IO_ARM                         1
+
 /* maximum allowable sizes on this protocol version */
 #define PX4IO_PROTOCOL_MAX_CONTROL_COUNT  8    /**< The protocol does not support more than set here, individual units might support less - see PX4IO_P_CONFIG_CONTROL_COUNT */
 #define PX4IO_MAX_ACTUATORS               8

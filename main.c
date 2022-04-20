@@ -5,6 +5,7 @@
 #include "cli.h"
 #include "icm20602.h"
 #include "ist8310.h"
+#include "px4io.h"
 
 #include <pthread.h>
 #include <stdio.h>
@@ -38,6 +39,7 @@ void main_thread(void *param) {
     CLI_Init();
     ICM20602_Init();
     IST8310_Init();
+    PX4IO_Init();
     usleep(1000);
 
     res = f_mount(&fs, "0:", 1);

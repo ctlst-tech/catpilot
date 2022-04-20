@@ -27,6 +27,18 @@ enum px4io_state_t {
 
 enum px4io_state_t px4io_state;
 
+int PX4IO_Read(uint16_t address, uint16_t length);
+int PX4IO_Write(uint16_t address, uint16_t *data, uint16_t length);
+int PX4IO_ReadRegs(uint8_t page, uint8_t offset, uint8_t num);
+int PX4IO_WriteRegs(uint8_t page, uint8_t offset, uint16_t *data, uint8_t num);
+uint32_t PX4IO_ReadReg(uint8_t page, uint8_t offset);
+int PX4IO_WriteReg(uint8_t page, uint8_t offset, uint16_t data);
+int PX4IO_SetClearReg(uint8_t page, uint8_t offset, uint16_t setbits, uint16_t clearbits);
+int PX4IO_SetArmingState();
+int PX4IO_GetIOStatus();
+int PX4IO_GetRCPacket(uint16_t *data);
+int PX4IO_SetPWM(uint32_t *outputs, uint32_t num);
+
 int PX4IO_Init() {
     int rv = 0;
 
@@ -118,17 +130,21 @@ void PX4IO_Run() {
 
     case PX4IO_CONF:
         // Here we set number of rc channels, actuators, max/min rate, max/min pwm
-        PX4IO_SetArmingState();
+        rv = PX4IO_SetClearReg(PX4IO_PAGE_DISARMED_PWM, 0, 90, PX4IO_MAX_ACTUATORS);
+
+        rv = PX4IO_SetClearReg(PX4IO_PAGE_STATUS, PX4IO_P_STATUS_FLAGS,
+                PX4IO_P_STATUS_FLAGS_SAFETY_OFF | PX4IO_P_STATUS_FLAGS_ARM_SYNC | PX4IO_P_STATUS_FLAGS_INIT_OK, 0);
+
+        px4io_reg.arm = PX4IO_DISARM;
+        if(rv) px4io_state = PX4IO_ERROR;
+
         px4io_state = PX4IO_OPERATION;
         break;
 
     case PX4IO_OPERATION:
-        PX4IO_GetRC(&px4io_reg.rc);
-        for(int i = 0; i < PX4IO_MAX_ACTUATORS; i++) {
-            px4io_reg.outputs[i] = px4io_reg.rc[i];
-        }
+        PX4IO_SetArmingState(&px4io_reg.arm);
+        PX4IO_GetRCPacket(&px4io_reg.rc);
         PX4IO_SetPWM((uint32_t *)&px4io_reg.outputs, PX4IO_MAX_ACTUATORS);
-        PX4IO_ReadRegs(PX4IO_PAGE_DIRECT_PWM, 0, PX4IO_MAX_ACTUATORS);
         PX4IO_GetIOStatus();
         break;
 
@@ -138,23 +154,65 @@ void PX4IO_Run() {
     }
 }
 
+void PX4IO_SetArm(bool arm) {
+    if(arm) {
+        px4io_reg.arm = PX4IO_ARM;
+    } else {
+        px4io_reg.arm = PX4IO_DISARM;
+    }
+}
+
+void PX4IO_SetMaxPWM(int pwm) {
+    px4io_reg.max_pwm = pwm;
+}
+
+void PX4IO_SetMinPWM(int pwm) {
+    px4io_reg.min_pwm = pwm;
+}
+
+void PX4IO_SetOutput(int channel, int out) {
+    int out_sat;
+    out_sat = (out > 1 ? 1 : out);
+    out_sat = (out_sat < 0 ? 0 : out_sat);
+    if(channel > PX4IO_MAX_ACTUATORS || channel < 0) {
+        printf("%s: wrong output channel number\n", device);
+    } else {
+        px4io_reg.outputs[channel] =
+            out_sat * (px4io_reg.max_pwm - px4io_reg.max_pwm) + px4io_reg.min_pwm;
+    }
+}
+
+uint16_t PX4IO_GetRC(int channel) {
+    if(channel > PX4IO_RC_CHANNELS || channel < 0) {
+        printf("%s: wrong RC channel number\n", device);
+        return 0;
+    } else {
+        return px4io_reg.rc[channel];
+    }
+}
+
+uint32_t PX4IO_GetState() {
+    return px4io_reg.status;
+}
+
 int PX4IO_SetArmingState() {
     int rv = 0;
     uint16_t set = 0;
     uint16_t clear = 0;
 
-    rv = PX4IO_SetClearReg(PX4IO_PAGE_DISARMED_PWM, 0, 90, PX4IO_MAX_ACTUATORS);
-
-    rv = PX4IO_SetClearReg(PX4IO_PAGE_STATUS, PX4IO_P_STATUS_FLAGS,
-                PX4IO_P_STATUS_FLAGS_SAFETY_OFF | PX4IO_P_STATUS_FLAGS_ARM_SYNC | PX4IO_P_STATUS_FLAGS_INIT_OK, 0);
-
-    // Only for testing, when we don't have a broker
-    set |= PX4IO_P_SETUP_ARMING_FMU_ARMED;
-    set |= PX4IO_P_SETUP_ARMING_FMU_PREARMED;
-    set |= PX4IO_P_SETUP_ARMING_IO_ARM_OK;
-
-    clear |= PX4IO_P_SETUP_ARMING_LOCKDOWN;
-    clear |= PX4IO_P_SETUP_ARMING_FORCE_FAILSAFE;
+    if(px4io_reg.arm == PX4IO_ARM) {
+        set |= PX4IO_P_SETUP_ARMING_FMU_ARMED;
+        set |= PX4IO_P_SETUP_ARMING_FMU_PREARMED;
+        set |= PX4IO_P_SETUP_ARMING_IO_ARM_OK;
+        clear |= PX4IO_P_SETUP_ARMING_LOCKDOWN;
+        clear |= PX4IO_P_SETUP_ARMING_FORCE_FAILSAFE;
+    } else {
+        set |= PX4IO_P_SETUP_ARMING_IO_ARM_OK;
+        set |= PX4IO_P_SETUP_ARMING_FMU_ARMED;
+        set |= PX4IO_P_SETUP_ARMING_FMU_PREARMED;
+        set |= PX4IO_P_SETUP_ARMING_LOCKDOWN;
+        clear |= PX4IO_P_SETUP_ARMING_FORCE_FAILSAFE;
+    }
 
     rv = PX4IO_SetClearReg(PX4IO_PAGE_SETUP, PX4IO_P_SETUP_ARMING, set, clear);
 
@@ -177,7 +235,7 @@ int PX4IO_GetIOStatus() {
     return rv;
 }
 
-int PX4IO_GetRC(uint16_t *data) {
+int PX4IO_GetRCPacket(uint16_t *data) {
     int rv = 0;
     const uint32_t prolog = (PX4IO_P_RAW_RC_BASE - PX4IO_P_RAW_RC_COUNT);
     rv = PX4IO_ReadRegs(PX4IO_PAGE_RAW_RC_INPUT, PX4IO_P_RAW_RC_COUNT, prolog + PX4IO_RC_CHANNELS);
