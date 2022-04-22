@@ -1,6 +1,6 @@
 #include "stm32_base.h"
 #include "stm32_periph.h"
-#include "gpio_cfg.h"
+
 #include <stdbool.h>
 
 #define PX4IO_RC_CHANNELS 16

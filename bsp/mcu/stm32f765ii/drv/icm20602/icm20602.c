@@ -391,18 +391,6 @@ void ICM20602_DataReadyHandler() {
     }
 }
 
-void SPI1_IRQHandler(void) {
-    SPI_IT_Handler(&icm20602_cfg.spi);
-}
-
-void DMA2_Stream3_IRQHandler(void) {
-    SPI_DMA_MOSI_Handler(&icm20602_cfg.spi);
-}
-
-void DMA2_Stream0_IRQHandler(void) {
-    SPI_DMA_MISO_Handler(&icm20602_cfg.spi);
-}
-
 void EXTI9_5_IRQHandler(void) {
     uint32_t line;
 

@@ -363,15 +363,3 @@ int PX4IO_SetClearReg(uint8_t page, uint8_t offset, uint16_t setbits, uint16_t c
 
     return PX4IO_WriteReg(page, offset, value);
 }
-
-void UART8_IRQHandler(void) {
-    USART_Handler(&px4io_cfg.usart);
-}
-
-void DMA1_Stream0_IRQHandler(void) {
-    DMA_IRQHandler(&dma_px4io_tx);
-}
-
-void DMA1_Stream6_IRQHandler(void) {
-    DMA_IRQHandler(&dma_px4io_rx);
-}

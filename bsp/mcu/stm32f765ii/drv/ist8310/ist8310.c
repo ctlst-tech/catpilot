@@ -229,19 +229,3 @@ int IST8310_Probe() {
     }
     return 0;
 }
-
-void I2C3_EV_IRQHandler(void) {
-    I2C_EV_Handler(&ist8310_cfg.i2c);
-}
-
-void I2C3_ER_IRQHandler(void) {
-    I2C_ER_Handler(&ist8310_cfg.i2c);
-}
-
-void DMA1_Stream4_IRQHandler(void) {
-    I2C_DMA_TX_Handler(&ist8310_cfg.i2c);
-}
-
-void DMA1_Stream2_IRQHandler(void) {
-    I2C_DMA_RX_Handler(&ist8310_cfg.i2c);
-}

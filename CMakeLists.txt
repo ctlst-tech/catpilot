@@ -33,7 +33,6 @@ if (TYPE STREQUAL "PX4")
     set(DIR_FS os/fatfs)
 
     set(DIR_PERIPH ${DIR_MCU}/periph)
-    set(DIR_CONF ${DIR_MCU}/conf)
     set(DIR_DRV ${DIR_MCU}/drv)
 
     set(DIR_C_ATOM c-atom)
@@ -81,6 +80,7 @@ if (TYPE STREQUAL "PX4")
         ${DIR_PERIPH}/sdio
 
         ${DIR_DRV}
+        ${DIR_DRV}/board
         ${DIR_DRV}/icm20602
         ${DIR_DRV}/ist8310
         ${DIR_DRV}/sdcard
@@ -93,7 +93,6 @@ if (TYPE STREQUAL "PX4")
 
         ${DIR_MISC}/
 
-        ${DIR_CONF}
         ${CMAKE_CURRENT_BINARY_DIR}
     )
 

@@ -85,23 +85,3 @@ int SDCARD_GetStatus() {
     rv = SDIO_GetStatus(&sdcard_cfg.sdio);
     return rv;
 }
-
-void HAL_SD_RxCpltCallback(SD_HandleTypeDef *hsd) {
-    SDIO_RX_Complete(&sdcard_cfg.sdio);
-}
-
-void HAL_SD_TxCpltCallback(SD_HandleTypeDef *hsd) {
-    SDIO_TX_Complete(&sdcard_cfg.sdio);
-}
-
-void HAL_SD_ErrorCallback(SD_HandleTypeDef *hsd) {
-    while(1);
-}
-
-void SDMMC1_IRQHandler(void) {
-    SDIO_IT_Handler(&sdcard_cfg.sdio);
-}
-
-void DMA2_Stream6_IRQHandler(void) {
-    SDIO_DMA_Handler(&sdcard_cfg.sdio);
-}

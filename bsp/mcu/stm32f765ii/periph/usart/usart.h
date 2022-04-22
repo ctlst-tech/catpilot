@@ -44,3 +44,5 @@ int USART_TransmitReceive(usart_cfg_t *cfg, uint8_t *tx_pdata, uint8_t *rx_pdata
 int USART_EnableIRQ(usart_cfg_t *cfg);
 int USART_DisableIRQ(usart_cfg_t *cfg);
 int USART_Handler(usart_cfg_t *cfg);
+int USART_DMA_TX_Handler(usart_cfg_t *cfg);
+int USART_DMA_RX_Handler(usart_cfg_t *cfg);

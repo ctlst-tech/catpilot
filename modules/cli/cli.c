@@ -42,45 +42,6 @@ void stream_init(){
 
 int CLI_Init() {
     stream_init();
-
-    int rv = 0;
-
-    cli_cfg.USART = UART7;
-    cli_cfg.gpio_tx_cfg = &gpio_cli_tx;
-    cli_cfg.gpio_rx_cfg = &gpio_cli_rx;
-    cli_cfg.dma_tx_cfg = &dma_cli_tx;
-    cli_cfg.dma_rx_cfg = &dma_cli_rx;
-    cli_cfg.speed = CLI_BITRATE;
-    cli_cfg.timeout = CLI_TIMEOUT;
-    cli_cfg.priority = CLI_IRQ_PRIORITY;;
-    cli_cfg.mode = USART_TIMEOUT;
-
-    dma_cli_tx.DMA_InitStruct.Instance = DMA1_Stream1;
-    dma_cli_tx.DMA_InitStruct.Init.Channel = DMA_CHANNEL_5;
-    dma_cli_tx.DMA_InitStruct.Init.Direction = DMA_MEMORY_TO_PERIPH;
-    dma_cli_tx.DMA_InitStruct.Init.PeriphInc = DMA_PINC_DISABLE;
-    dma_cli_tx.DMA_InitStruct.Init.MemInc = DMA_MINC_ENABLE;
-    dma_cli_tx.DMA_InitStruct.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-    dma_cli_tx.DMA_InitStruct.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-    dma_cli_tx.DMA_InitStruct.Init.Mode = DMA_NORMAL;
-    dma_cli_tx.DMA_InitStruct.Init.Priority = DMA_PRIORITY_LOW;
-    dma_cli_tx.DMA_InitStruct.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-    dma_cli_tx.priority = CLI_IRQ_PRIORITY;
-
-    dma_cli_rx.DMA_InitStruct.Instance = DMA1_Stream3;
-    dma_cli_rx.DMA_InitStruct.Init.Channel = DMA_CHANNEL_5;
-    dma_cli_rx.DMA_InitStruct.Init.Direction = DMA_PERIPH_TO_MEMORY;
-    dma_cli_rx.DMA_InitStruct.Init.PeriphInc = DMA_PINC_DISABLE;
-    dma_cli_rx.DMA_InitStruct.Init.MemInc = DMA_MINC_ENABLE;
-    dma_cli_rx.DMA_InitStruct.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-    dma_cli_rx.DMA_InitStruct.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-    dma_cli_rx.DMA_InitStruct.Init.Mode = DMA_NORMAL;
-    dma_cli_rx.DMA_InitStruct.Init.Priority = DMA_PRIORITY_LOW;
-    dma_cli_rx.DMA_InitStruct.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-    dma_cli_rx.priority = CLI_IRQ_PRIORITY;
-
-    rv = USART_Init(&cli_cfg);
-
     return rv;
 }
 
@@ -115,16 +76,4 @@ int _write(int fd, char* ptr, int len)
         i++;
     }
     return len;
-}
-
-void UART7_IRQHandler(void) {
-    USART_Handler(&cli_cfg);
-}
-
-void DMA1_Stream1_IRQHandler(void) {
-    DMA_IRQHandler(&dma_cli_tx);
-}
-
-void DMA1_Stream3_IRQHandler(void) {
-    DMA_IRQHandler(&dma_cli_rx);
 }

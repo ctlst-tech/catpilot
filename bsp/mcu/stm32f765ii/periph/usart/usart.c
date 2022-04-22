@@ -174,6 +174,14 @@ int USART_Handler(usart_cfg_t *cfg) {
     return 0;
 }
 
+int USART_DMA_TX_Handler(usart_cfg_t *cfg) {
+    DMA_IRQHandler(&cfg->dma_tx_cfg);
+}
+
+int USART_DMA_RX_Handler(usart_cfg_t *cfg) {
+    DMA_IRQHandler(&cfg->dma_rx_cfg);
+}
+
 int USART_EnableIRQ(usart_cfg_t *cfg) {
     HAL_NVIC_SetPriority(cfg->inst.IRQ, cfg->priority, 0);
     HAL_NVIC_EnableIRQ(cfg->inst.IRQ);

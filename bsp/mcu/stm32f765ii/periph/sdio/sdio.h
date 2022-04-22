@@ -1,7 +1,7 @@
 #pragma once
 #include "stm32_base.h"
 #include "dma.h"
-#include "gpio_cfg.h"
+
 
 enum sdio_ex_state_t {
     SDIO_FREE,
