@@ -4,6 +4,19 @@
 
 static char *device = "IST8310";
 
+typedef struct {
+    i2c_cfg_t i2c;
+    ist8310_param_t param;
+} ist8310_cfg_t;
+
+uint8_t IST8310_ReadReg(uint8_t reg);
+void IST8310_WriteReg(uint8_t reg, uint8_t value);
+void IST8310_SetClearReg(uint8_t reg, uint8_t setbits, uint8_t clearbits);
+int IST8310_Configure();
+void IST8310_Meas();
+int IST8310_Process();
+int IST8310_Probe();
+
 static gpio_cfg_t ist8310_sda = GPIO_I2C3_SDA;
 static gpio_cfg_t ist8310_scl = GPIO_I2C3_SCL;
 
@@ -159,9 +172,9 @@ void IST8310_Meas() {
 
 int IST8310_Process() {
     if(buffer.STAT1 & DRDY) {
-        ist8310_data.mag_x = msblsb16(buffer.DATAXH, buffer.DATAXL) * ist8310_cfg.dim.mag_scale;
-        ist8310_data.mag_y = msblsb16(buffer.DATAYH, buffer.DATAYL) * ist8310_cfg.dim.mag_scale;
-        ist8310_data.mag_z = msblsb16(buffer.DATAZH, buffer.DATAZL) * ist8310_cfg.dim.mag_scale;
+        ist8310_data.mag_x = msblsb16(buffer.DATAXH, buffer.DATAXL) * ist8310_cfg.param.mag_scale;
+        ist8310_data.mag_y = msblsb16(buffer.DATAYH, buffer.DATAYL) * ist8310_cfg.param.mag_scale;
+        ist8310_data.mag_z = msblsb16(buffer.DATAZH, buffer.DATAZL) * ist8310_cfg.param.mag_scale;
         return 0;
     } else {
         return EPROTO;
@@ -202,7 +215,7 @@ int IST8310_Configure() {
         }
     }
 
-    ist8310_cfg.dim.mag_scale = (1.f / 1320.f); // 1320 LSB/Gauss
+    ist8310_cfg.param.mag_scale = (1.f / 1320.f); // 1320 LSB/Gauss
 
     return rv;
 }

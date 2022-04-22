@@ -7,10 +7,6 @@
 #define PX4IO_MAX_OUTPUT  8
 
 typedef struct {
-    usart_cfg_t usart;
-} px4io_cfg_t;
-
-typedef struct {
     uint32_t status;
     uint32_t arming;
     uint32_t vservo;

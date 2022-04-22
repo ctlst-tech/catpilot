@@ -3,6 +3,10 @@
 
 static char *device = "SDMMC1";
 
+typedef struct {
+    sdio_cfg_t sdio;
+} sdcard_cfg_t;
+
 static gpio_cfg_t sdcard_ck  = GPIO_SDMMC1_CK;
 static gpio_cfg_t sdcard_cmd = GPIO_SDMMC1_CMD;
 static gpio_cfg_t sdcard_d0  = GPIO_SDMMC1_D0;
