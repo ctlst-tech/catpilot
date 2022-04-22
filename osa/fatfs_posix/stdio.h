@@ -221,6 +221,7 @@
  int snprintf(char *str, size_t size, const char *fmt, ...);
  int sprintf(char *str, const char *fmt, ...);
  int vasprintf(char **strp, const char *fmt, va_list ap);
+ int vfprintf ( FILE * stream, const char * format, va_list arg );
  int asprintf(char **strp, const char *fmt, ...);
  int vprintf(const char *fmt, va_list arg);
  int printf(const char *fmt, ...);

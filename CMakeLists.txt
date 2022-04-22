@@ -87,9 +87,9 @@ if (TYPE STREQUAL "PX4")
         ${DIR_DRV}/px4io
 
         ${DIR_MDL}/cli
-        # ${DIR_MDL}/sensors
-        # ${DIR_MDL}/logger
-        # ${DIR_MDL}/io
+        ${DIR_MDL}/sensors
+        ${DIR_MDL}/logger
+        ${DIR_MDL}/io
 
         ${DIR_MISC}/
 
@@ -107,7 +107,10 @@ if (TYPE STREQUAL "PX4")
     file(GLOB_RECURSE SRC_MDL    ${DIR_MDL}/cli/cli.c)
     file(GLOB_RECURSE SRC_MISC   ${DIR_MISC}/*.c)
     file(GLOB_RECURSE SRC_FS     ${DIR_FS}/*.c)
-    file(GLOB_RECURSE SRC_OS     ${DIR_OS}/core/*.c ${DIR_OS}/port/${MCU}/*.c ${DIR_OS}/MemMang/heap_3.c ${DIR_OS}/MemMang/heap.c)
+    file(GLOB_RECURSE SRC_OS     ${DIR_OS}/core/*.c
+                                 ${DIR_OS}/port/${MCU}/*.c
+                                 ${DIR_OS}/MemMang/heap_3.c
+                                 ${DIR_OS}/MemMang/heap.c)
     file(GLOB_RECURSE SRC_OSA    ${DIR_OSA}/*.c)
 
     set(SOURCES
@@ -123,46 +126,14 @@ if (TYPE STREQUAL "PX4")
         ${SRC_OSA}
     )
 
-    # add_executable(${PROJECT_NAME}.elf ${SOURCES})
     add_executable(${PROJECT_NAME}.elf
         ${SOURCES}
-        ${DIR_C_ATOM}/flow/flow.c
-        ${DIR_C_ATOM}/f_specs/function.c
-        ${DIR_C_ATOM}/f_specs/error.c
-        ${DIR_C_ATOM}/swsys/swsys.c
-        ${DIR_C_ATOM}/swsys/swsys.h
-        ${DIR_C_ATOM}/swsys/swsys_parser_xml.c
-        ${DIR_C_ATOM}/xml/xml.c
-        ${DIR_C_ATOM}/xml/xml.h
-        ${DIR_C_ATOM}/f_specs/common_parser_xml.c
-        ${DIR_C_ATOM}/flow/flow_parser_xml.c
-        ${DIR_C_ATOM}/flow/flow.h
-        ${DIR_OSA}/fatfs_posix/posix.c
-    )
-
-    target_include_directories(${PROJECT_NAME}.elf PUBLIC
-        ${DIR_C_ATOM}/f_specs
-        ${DIR_C_ATOM}/f_specs/include
-        ${DIR_C_ATOM}/fsm
-        ${DIR_C_ATOM}/fsm/clk
-    )
-
-    target_include_directories(${PROJECT_NAME}.elf PUBLIC
-        ${DIR_C_ATOM}/eswb/src/lib/include/public
-        ${DIR_C_ATOM}/xml
-        ${DIR_C_ATOM}/flow
-        ${DIR_C_ATOM}/fsminst
-        ${DIR_C_ATOM}/fsm
+        ${DIR_C_ATOM}/f_specs/error.c # FIXME
     )
 
     target_link_libraries(${PROJECT_NAME}.elf PRIVATE
+        c-atom-static
         -lc -lm -lnosys
-        fspec-registry
-        eswb-static
-        fsminst-static
-        fsm-static
-        xml-static
-        swsys-static
     )
 
     set(ELF_FILE ${EXECUTABLE_OUTPUT_PATH}/${PROJECT_NAME}.elf)
@@ -200,7 +171,7 @@ elseif (TYPE STREQUAL "Posix")
     )
 
     set(SRC_MAIN ${DIR_POSIX}/main.c)
-    file(GLOB_RECURSE SRC_OS ${DIR_OS}/core/*.c ${DIR_OS}/port/posix/*.c ${DIR_OS}/MemMang/heap_4.c)
+    file(GLOB_RECURSE SRC_OS ${DIR_OS}/core/*.c ${DIR_OS}/port/posix/*.c ${DIR_OS}/MemMang/heap_3.c)
 
     set(SOURCES
         ${SRC_MAIN}
