@@ -34,6 +34,7 @@ if (TYPE STREQUAL "PX4")
 
     set(DIR_PERIPH ${DIR_MCU}/periph)
     set(DIR_DRV ${DIR_MCU}/drv)
+    set(DIR_BOARD ${DIR_MCU}/board)
 
     set(DIR_C_ATOM c-atom)
     set(DIR_ESWB c-atom/eswb)
@@ -86,6 +87,8 @@ if (TYPE STREQUAL "PX4")
         ${DIR_DRV}/sdcard
         ${DIR_DRV}/px4io
 
+        ${DIR_BOARD}
+
         ${DIR_MDL}/cli
         ${DIR_MDL}/sensors
         ${DIR_MDL}/logger
@@ -103,7 +106,8 @@ if (TYPE STREQUAL "PX4")
     file(GLOB_RECURSE SRC_MCU    ${DIR_MCU}/*.c)
     file(GLOB_RECURSE SRC_PERIPH ${DIR_PERIPH}/*.c)
     file(GLOB_RECURSE SRC_DRV    ${DIR_DRV}/*.c)
-    file(GLOB_RECURSE SRC_MDL    ${DIR_MDL}/cli/cli.c)
+    file(GLOB_RECURSE SRC_MDL    ${DIR_MDL}/*.c)
+    file(GLOB_RECURSE SRC_BOARD  ${DIR_BOARD}/*.c)
     file(GLOB_RECURSE SRC_MISC   ${DIR_MISC}/*.c)
     file(GLOB_RECURSE SRC_FS     ${DIR_FS}/*.c)
     file(GLOB_RECURSE SRC_OS     ${DIR_OS}/core/*.c
@@ -119,6 +123,7 @@ if (TYPE STREQUAL "PX4")
         ${SRC_PERIPH}
         ${SRC_DRV}
         ${SRC_MDL}
+        ${SRC_BOARD}
         ${SRC_MISC}
         ${SRC_FS}
         ${SRC_OS}

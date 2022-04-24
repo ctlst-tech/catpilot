@@ -3,13 +3,7 @@
 
 static char *device = "CLI";
 
-gpio_cfg_t gpio_cli_tx = GPIO_USART7_TX;
-gpio_cfg_t gpio_cli_rx = GPIO_USART7_RX;
-
-dma_cfg_t dma_cli_tx;
-dma_cfg_t dma_cli_rx;
-
-usart_cfg_t cli_cfg;
+extern usart_cfg_t usart7;
 
 FILE stdin_stream;
 char stdin_buf[256];
@@ -41,27 +35,28 @@ void stream_init(){
 }
 
 int CLI_Init() {
+    int rv = 0;
     stream_init();
     return rv;
 }
 
 // TODO add check transmit/receive status
 int cli_put(char c, struct __file * file) {
-    USART_Transmit(&cli_cfg, (uint8_t *)&c, 1);
+    USART_Transmit(&usart7, (uint8_t *)&c, 1);
     file->len--;
-    if(c == '\n') USART_Transmit(&cli_cfg, (uint8_t *)"\r", 1);
+    if(c == '\n') USART_Transmit(&usart7, (uint8_t *)"\r", 1);
     return 0;
 }
 
 int cli_get(struct __file * file) {
     uint8_t *ptr = (uint8_t *)&file->buf;
-    USART_Receive(&cli_cfg, ptr, 1);
+    USART_Receive(&usart7, ptr, 1);
     file->len++;
     return file->buf[0];
 }
 
 void cli_put_char(uint8_t c) {
-    USART_Transmit(&cli_cfg, &c, 1);
+    USART_Transmit(&usart7, &c, 1);
 }
 
 int _write(int fd, char* ptr, int len)

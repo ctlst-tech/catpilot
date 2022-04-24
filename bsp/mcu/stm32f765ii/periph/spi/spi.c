@@ -10,7 +10,6 @@ int SPI_Init(spi_cfg_t *cfg) {
     if((rv = GPIO_Init(cfg->mosi_cfg)) != 0) return rv;
     if((rv = GPIO_Init(cfg->miso_cfg)) != 0) return rv;
     if((rv = GPIO_Init(cfg->sck_cfg)) != 0) return rv;
-    if((rv = GPIO_Init(cfg->cs_cfg)) != 0) return rv;
 
     if(cfg->dma_mosi_cfg != NULL) {
         cfg->dma_mosi_cfg->DMA_InitStruct.Parent = &cfg->inst.SPI_InitStruct;

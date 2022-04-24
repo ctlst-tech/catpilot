@@ -1,2 +1,0 @@
-#define SDCARD_TIMEOUT      1000
-#define SDCARD_IRQ_PRIORITY 7

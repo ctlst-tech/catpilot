@@ -4,3 +4,4 @@
 #include "ist8310.h"
 #include "sdcard.h"
 #include "px4io.h"
+#include "board.h"

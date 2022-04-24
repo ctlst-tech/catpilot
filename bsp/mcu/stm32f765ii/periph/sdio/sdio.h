@@ -2,7 +2,6 @@
 #include "stm32_base.h"
 #include "dma.h"
 
-
 enum sdio_ex_state_t {
     SDIO_FREE,
     SDIO_WRITE,

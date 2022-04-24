@@ -175,11 +175,15 @@ int USART_Handler(usart_cfg_t *cfg) {
 }
 
 int USART_DMA_TX_Handler(usart_cfg_t *cfg) {
-    DMA_IRQHandler(&cfg->dma_tx_cfg);
+    int rv = 0;
+    rv = DMA_IRQHandler(cfg->dma_tx_cfg);
+    return rv;
 }
 
 int USART_DMA_RX_Handler(usart_cfg_t *cfg) {
-    DMA_IRQHandler(&cfg->dma_rx_cfg);
+    int rv = 0;
+    rv = DMA_IRQHandler(cfg->dma_rx_cfg);
+    return rv;
 }
 
 int USART_EnableIRQ(usart_cfg_t *cfg) {

@@ -1,2 +1,0 @@
-#define IST8310_TIMEOUT      20
-#define IST8310_IRQ_PRIORITY 6

@@ -1,12 +1,13 @@
 #include "px4io.h"
-#include "px4io_conf.h"
 #include "px4io_reg.h"
+#include "board.h"
+#include "board_cfg.h"
 #include <string.h>
 
 static char *device = "PX4IO";
 
 typedef struct {
-    usart_cfg_t usart;
+    usart_cfg_t *usart;
 } px4io_cfg_t;
 
 int PX4IO_Read(uint16_t address, uint16_t length);
@@ -20,12 +21,6 @@ int PX4IO_SetArmingState();
 int PX4IO_GetIOStatus();
 int PX4IO_GetRCPacket(uint16_t *data);
 int PX4IO_SetPWM(uint32_t *outputs, uint32_t num);
-
-static gpio_cfg_t px4io_tx = GPIO_USART8_TX;
-static gpio_cfg_t px4io_rx = GPIO_USART8_RX;
-
-static dma_cfg_t dma_px4io_tx;
-static dma_cfg_t dma_px4io_rx;
 
 static px4io_cfg_t px4io_cfg;
 
@@ -45,50 +40,8 @@ enum px4io_state_t px4io_state;
 
 int PX4IO_Init() {
     int rv = 0;
-
-    GPIO_Init(&px4io_tx);
-    GPIO_Init(&px4io_rx);
-
-    px4io_cfg.usart.USART = UART8;
-    px4io_cfg.usart.gpio_tx_cfg = &px4io_tx;
-    px4io_cfg.usart.gpio_rx_cfg = &px4io_rx;
-    px4io_cfg.usart.dma_tx_cfg = &dma_px4io_tx;
-    px4io_cfg.usart.dma_rx_cfg = &dma_px4io_rx;
-    px4io_cfg.usart.speed = PX4IO_SERIAL_BITRATE;
-    px4io_cfg.usart.timeout = PX4IO_SERIAL_TIMEOUT;
-    px4io_cfg.usart.priority = PX4IO_SERIAL_PRIORITY;
-    px4io_cfg.usart.mode = USART_IDLE;
-
-    dma_px4io_tx.DMA_InitStruct.Instance = DMA1_Stream0;
-    dma_px4io_tx.DMA_InitStruct.Init.Channel = DMA_CHANNEL_5;
-    dma_px4io_tx.DMA_InitStruct.Init.Direction = DMA_MEMORY_TO_PERIPH;
-    dma_px4io_tx.DMA_InitStruct.Init.PeriphInc = DMA_PINC_DISABLE;
-    dma_px4io_tx.DMA_InitStruct.Init.MemInc = DMA_MINC_ENABLE;
-    dma_px4io_tx.DMA_InitStruct.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-    dma_px4io_tx.DMA_InitStruct.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-    dma_px4io_tx.DMA_InitStruct.Init.Mode = DMA_NORMAL;
-    dma_px4io_tx.DMA_InitStruct.Init.Priority = DMA_PRIORITY_LOW;
-    dma_px4io_tx.DMA_InitStruct.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-    dma_px4io_tx.priority = PX4IO_SERIAL_PRIORITY;
-
-    dma_px4io_rx.DMA_InitStruct.Instance = DMA1_Stream6;
-    dma_px4io_rx.DMA_InitStruct.Init.Channel = DMA_CHANNEL_5;
-    dma_px4io_rx.DMA_InitStruct.Init.Direction = DMA_PERIPH_TO_MEMORY;
-    dma_px4io_rx.DMA_InitStruct.Init.PeriphInc = DMA_PINC_DISABLE;
-    dma_px4io_rx.DMA_InitStruct.Init.MemInc = DMA_MINC_ENABLE;
-    dma_px4io_rx.DMA_InitStruct.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-    dma_px4io_rx.DMA_InitStruct.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-    dma_px4io_rx.DMA_InitStruct.Init.Mode = DMA_NORMAL;
-    dma_px4io_rx.DMA_InitStruct.Init.Priority = DMA_PRIORITY_LOW;
-    dma_px4io_rx.DMA_InitStruct.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-    dma_px4io_rx.priority = PX4IO_SERIAL_PRIORITY;
-
-    rv = USART_Init(&px4io_cfg.usart);
-
-    vTaskDelay(1000);
-
+    px4io_cfg.usart = &usart8;
     px4io_state = PX4IO_RESET;
-
     return rv;
 }
 
@@ -274,7 +227,7 @@ int PX4IO_Write(uint16_t address, uint16_t *data, uint16_t length) {
     px4io_tx_packet.crc = crc_packet(&px4io_tx_packet);
 
     for (uint8_t att = 0; att < 3; att++) {
-        rv = USART_TransmitReceive(&px4io_cfg.usart,
+        rv = USART_TransmitReceive(px4io_cfg.usart,
                                     (uint8_t *)&px4io_tx_packet, (uint8_t *)&px4io_rx_packet,
                                     sizeof(px4io_tx_packet), sizeof(px4io_rx_packet));
 
@@ -305,7 +258,7 @@ int PX4IO_Read(uint16_t address, uint16_t length) {
     px4io_tx_packet.crc = crc_packet(&px4io_tx_packet);
 
     for (uint8_t att = 0; att < 3; att++) {
-        rv = USART_TransmitReceive(&px4io_cfg.usart,
+        rv = USART_TransmitReceive(px4io_cfg.usart,
                                     (uint8_t *)&px4io_tx_packet,(uint8_t *)&px4io_rx_packet,
                                     sizeof(px4io_tx_packet), sizeof(px4io_rx_packet));
 

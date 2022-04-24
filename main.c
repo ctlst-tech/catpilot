@@ -36,6 +36,8 @@ void main_thread(void *param) {
     static FRESULT res;
     swsys_t sys;
 
+    Board_Init();
+
     CLI_Init();
     ICM20602_Init();
     IST8310_Init();

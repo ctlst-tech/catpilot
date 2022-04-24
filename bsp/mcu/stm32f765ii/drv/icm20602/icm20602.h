@@ -1,6 +1,6 @@
+#pragma once
 #include "stm32_base.h"
 #include "stm32_periph.h"
-
 #include "const.h"
 
 #define ICM20602_DEBUG
