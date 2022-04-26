@@ -1429,6 +1429,26 @@ static void prvAddNewTaskToReadyList( TCB_t * pxNewTCB )
 #endif /* INCLUDE_vTaskDelay */
 /*-----------------------------------------------------------*/
 
+#if ( INCLUDE_vTaskSetName == 1 )
+
+    void vTaskSetName( TaskHandle_t task, char *name )
+    {
+        strcpy(task->pcTaskName, name);
+    }
+
+#endif /* INCLUDE_vTaskSetName */
+/*-----------------------------------------------------------*/
+
+#if ( INCLUDE_vTaskGetName == 1 )
+
+    void vTaskGetName( TaskHandle_t task, char *name )
+    {
+        strcpy(name, task->pcTaskName);
+    }
+
+#endif /* INCLUDE_vTaskGetName */
+/*-----------------------------------------------------------*/
+
 #if ( ( INCLUDE_eTaskGetState == 1 ) || ( configUSE_TRACE_FACILITY == 1 ) || ( INCLUDE_xTaskAbortDelay == 1 ) )
 
     eTaskState eTaskGetState( TaskHandle_t xTask )

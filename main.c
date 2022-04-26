@@ -17,6 +17,7 @@
 #include "fsminst.h"
 
 void main_thread(void *param);
+void ctlst(void *param);
 
 int main(void) {
     HAL_Init();
@@ -33,6 +34,17 @@ int main(void) {
 static FATFS fs;
 
 void main_thread(void *param) {
+    pthread_t tid;
+    pthread_attr_t attr;
+    int arg = 0;
+
+    pthread_attr_init(&attr);
+    pthread_create(&tid, &attr, ctlst, &arg);
+    pthread_join(tid, NULL);
+    pthread_exit(NULL);
+}
+
+void ctlst(void *param) {
     static FRESULT res;
     swsys_t sys;
 
@@ -48,7 +60,7 @@ void main_thread(void *param) {
 
     printf("Catalyst demo project\n");
 
-    swsys_load("mvp_swsys.xml", &sys);
+    swsys_load("mvp_swsys.xml", "/", &sys);
     swsys_top_module_start(&sys);
 
     while(1);

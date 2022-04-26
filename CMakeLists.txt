@@ -132,7 +132,7 @@ if (TYPE STREQUAL "PX4")
 
     add_executable(${PROJECT_NAME}.elf
         ${SOURCES}
-        ${DIR_C_ATOM}/f_specs/error.c # FIXME
+        ${DIR_C_ATOM}/function/error.c # FIXME
     )
 
     target_link_libraries(${PROJECT_NAME}.elf PRIVATE

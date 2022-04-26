@@ -567,3 +567,38 @@ int pthread_setschedparam( pthread_t thread,
 }
 
 /*-----------------------------------------------------------*/
+
+int pthread_getname_np( pthread_t thread,
+                        char *name,
+                        size_t length )
+{
+    int rv = 0;
+    pthread_internal_t * pxThread = ( pthread_internal_t * ) thread;
+    TaskHandle_t task = pxThread->xTaskHandle;
+    vTaskGetName(task, name);
+    return rv;
+}
+
+/*-----------------------------------------------------------*/
+
+int pthread_setname_np( char *name )
+{
+    int rv = 0;
+    pthread_t thread = pthread_self();
+    pthread_internal_t * pxThread = ( pthread_internal_t * ) thread;
+    TaskHandle_t task = pxThread->xTaskHandle;
+    vTaskSetName(task, name);
+    return rv;
+}
+
+/*-----------------------------------------------------------*/
+
+int pthread_cancel( pthread_t thread )
+{
+    (void)thread;
+    int rv = 0;
+    return rv;
+}
+
+/*-----------------------------------------------------------*/
+

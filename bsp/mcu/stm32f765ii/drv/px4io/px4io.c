@@ -99,8 +99,8 @@ void PX4IO_Run() {
         break;
 
     case PX4IO_OPERATION:
-        PX4IO_SetArmingState(&px4io_reg.arm);
-        PX4IO_GetRCPacket(&px4io_reg.rc);
+        PX4IO_SetArmingState();
+        PX4IO_GetRCPacket((uint16_t *)&px4io_reg.rc);
         PX4IO_SetPWM((uint32_t *)&px4io_reg.outputs, PX4IO_MAX_ACTUATORS);
         PX4IO_GetIOStatus();
         break;

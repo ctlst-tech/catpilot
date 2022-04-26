@@ -513,6 +513,29 @@ int pthread_setschedparam( pthread_t thread,
                            int policy,
                            const struct sched_param * param );
 
+/**
+ * @brief Get name of thread
+ *
+ * @retval 0 - Upon successful completion.
+ */
+int pthread_getname_np( pthread_t thread,
+                        char *name,
+                        size_t length );
+
+/**
+ * @brief Set name of thread
+ *
+ * @retval 0 - Upon successful completion.
+ */
+int pthread_setname_np( char *name );
+
+/**
+ * @brief Stub for canceling thread
+ *
+ * @retval 0 - Upon successful completion.
+ */
+int pthread_cancel( pthread_t thread );
+
 #ifdef __cplusplus
 }
 #endif

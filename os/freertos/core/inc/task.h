@@ -778,6 +778,10 @@ void vTaskDelete( TaskHandle_t xTaskToDelete ) PRIVILEGED_FUNCTION;
  */
 void vTaskDelay( const TickType_t xTicksToDelay ) PRIVILEGED_FUNCTION;
 
+
+void vTaskSetName( TaskHandle_t task, char *name );
+void vTaskGetName( TaskHandle_t task, char *name );
+
 /**
  * task. h
  * <pre>
