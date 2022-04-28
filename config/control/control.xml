@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<flow>
+
+    <spec name="nav">
+        <annotation>
+        </annotation>
+
+        <inputs>
+            <i alias="nav" annotation="Navigation vector"/>
+            <i alias="ref" annotation="Reference signals"/>
+            <i alias="mode" annotation="Operation mode"/>
+        </inputs>
+
+        <outputs>
+            <o alias="rotor_front_left" annotation="Output control signal"/>
+            <o alias="rotor_front_rigth" annotation="Output control signal"/>
+            <o alias="rotor_rear_left" annotation="Output control signal"/>
+            <o alias="rotor_rear_right" annotation="Output control signal"/>
+        </outputs>
+
+        <params>
+        </params>
+    </spec>
+
+
+    <link_outputs>
+        <link alias="rotor_front_left">zero</link>
+        <link alias="rotor_front_rigth">zero</link>
+        <link alias="rotor_rear_left">zero</link>
+        <link alias="rotor_rear_right">zero</link>
+    </link_outputs>
+
+</flow>
