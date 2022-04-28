@@ -5,10 +5,15 @@
 
 static char *device = "ICM20602";
 
-typedef struct {
-    spi_cfg_t *spi;
-    icm20602_param_t param;
-} icm20602_cfg_t;
+icm20602_fifo_t icm20602_fifo;
+
+enum icm20602_state_t {
+    ICM20602_RESET,
+    ICM20602_RESET_WAIT,
+    ICM20602_CONF,
+    ICM20602_FIFO_READ
+};
+enum icm20602_state_t icm20602_state;
 
 uint8_t ICM20602_ReadReg(uint8_t reg);
 void ICM20602_WriteReg(uint8_t reg, uint8_t value);
@@ -26,27 +31,19 @@ void ICM20602_GyroProcess();
 void ICM20602_TempProcess();
 
 static gpio_cfg_t icm20602_cs = GPIO_SPI1_CS2;
-
 static exti_cfg_t icm20602_drdy = EXTI_SPI1_DRDY2;
 static SemaphoreHandle_t drdy_semaphore;
 
+typedef struct {
+    spi_cfg_t *spi;
+    icm20602_param_t param;
+} icm20602_cfg_t;
 static icm20602_cfg_t icm20602_cfg;
 
 static FIFOBuffer_t icm20602_FIFOBuffer;
 static FIFOParam_t icm20602_FIFOParam;
 
 static TickType_t icm20602_last_sample = 0;
-
-icm20602_fifo_t icm20602_fifo;
-
-enum icm20602_state_t {
-    ICM20602_RESET,
-    ICM20602_RESET_WAIT,
-    ICM20602_CONF,
-    ICM20602_FIFO_READ
-};
-
-enum icm20602_state_t icm20602_state;
 
 int ICM20602_Init() {
     int rv = 0;

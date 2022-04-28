@@ -7,7 +7,6 @@ static char *device = "SDMMC1";
 typedef struct {
     sdio_cfg_t *sdio;
 } sdcard_cfg_t;
-
 static sdcard_cfg_t sdcard_cfg;
 
 int SDCARD_Init() {

@@ -5,26 +5,6 @@
 
 static char *device = "IST8310";
 
-typedef struct {
-    i2c_cfg_t *i2c;
-    ist8310_param_t param;
-} ist8310_cfg_t;
-
-uint8_t IST8310_ReadReg(uint8_t reg);
-void IST8310_WriteReg(uint8_t reg, uint8_t value);
-void IST8310_SetClearReg(uint8_t reg, uint8_t setbits, uint8_t clearbits);
-int IST8310_Configure();
-void IST8310_Meas();
-int IST8310_Process();
-int IST8310_Probe();
-
-static ist8310_cfg_t ist8310_cfg;
-
-static buffer_t buffer;
-
-static TickType_t t_now  = 0;
-static TickType_t t_last = 0;
-
 ist8310_data_t ist8310_data;
 
 enum ist8310_state_t {
@@ -34,8 +14,26 @@ enum ist8310_state_t {
     IST8310_MEAS,
     IST8310_READ
 };
-
 enum ist8310_state_t ist8310_state;
+
+uint8_t IST8310_ReadReg(uint8_t reg);
+void IST8310_WriteReg(uint8_t reg, uint8_t value);
+void IST8310_SetClearReg(uint8_t reg, uint8_t setbits, uint8_t clearbits);
+int IST8310_Configure();
+void IST8310_Meas();
+int IST8310_Process();
+int IST8310_Probe();
+
+typedef struct {
+    i2c_cfg_t *i2c;
+    ist8310_param_t param;
+} ist8310_cfg_t;
+static ist8310_cfg_t ist8310_cfg;
+
+static buffer_t buffer;
+
+static TickType_t t_now  = 0;
+static TickType_t t_last = 0;
 
 int IST8310_Init() {
     int rv = 0;

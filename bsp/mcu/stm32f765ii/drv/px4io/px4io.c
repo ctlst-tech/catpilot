@@ -6,9 +6,15 @@
 
 static char *device = "PX4IO";
 
-typedef struct {
-    usart_cfg_t *usart;
-} px4io_cfg_t;
+px4io_reg_t px4io_reg;
+
+enum px4io_state_t {
+    PX4IO_RESET,
+    PX4IO_CONF,
+    PX4IO_OPERATION,
+    PX4IO_ERROR,
+};
+enum px4io_state_t px4io_state;
 
 int PX4IO_Read(uint16_t address, uint16_t length);
 int PX4IO_Write(uint16_t address, uint16_t *data, uint16_t length);
@@ -22,21 +28,13 @@ int PX4IO_GetIOStatus();
 int PX4IO_GetRCPacket(uint16_t *data);
 int PX4IO_SetPWM(uint32_t *outputs, uint32_t num);
 
+typedef struct {
+    usart_cfg_t *usart;
+} px4io_cfg_t;
 static px4io_cfg_t px4io_cfg;
 
 static px4io_packet_t px4io_tx_packet;
 static px4io_packet_t px4io_rx_packet;
-
-px4io_reg_t px4io_reg;
-
-enum px4io_state_t {
-    PX4IO_RESET,
-    PX4IO_CONF,
-    PX4IO_OPERATION,
-    PX4IO_ERROR,
-};
-
-enum px4io_state_t px4io_state;
 
 int PX4IO_Init() {
     int rv = 0;
