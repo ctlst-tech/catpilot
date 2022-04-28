@@ -4,7 +4,7 @@
         {
             "label": "Flash",
             "type": "shell",
-            "command": "st-flash write ${workspaceRoot}/build/px4/ctlst-fmuv5.bin 0x08000000",
+            "command": "openocd -f interface/stlink-v2.cfg -f target/stm32f7x.cfg -c \"program ./build/px4/ctlst-fmuv5.elf verify reset exit\"",
             "problemMatcher": [],
             "group": {
                 "kind": "build",

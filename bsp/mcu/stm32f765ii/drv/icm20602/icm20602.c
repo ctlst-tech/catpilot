@@ -351,7 +351,7 @@ void ICM20602_DataReadyHandler() {
 void EXTI9_5_IRQHandler(void) {
     uint32_t line;
 
-    line = EXTI->PR;
+    line = (EXTI->PR) & GPIO_PIN_5;
 
     switch(line) {
         case GPIO_PIN_5:

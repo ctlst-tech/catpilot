@@ -8,30 +8,30 @@ static char *device = "ICM20689";
 icm20689_fifo_t icm20689_fifo;
 
 enum icm20689_state_t {
-    icm20689_RESET,
-    icm20689_RESET_WAIT,
-    icm20689_CONF,
-    icm20689_FIFO_READ
+    ICM20689_RESET,
+    ICM20689_RESET_WAIT,
+    ICM20689_CONF,
+    ICM20689_FIFO_READ
 };
 enum icm20689_state_t icm20689_state;
 
-uint8_t icm20689_ReadReg(uint8_t reg);
-void icm20689_WriteReg(uint8_t reg, uint8_t value);
-void icm20689_SetClearReg(uint8_t reg, uint8_t setbits, uint8_t clearbits);
-int icm20689_Configure();
-void icm20689_AccelConfigure();
-void icm20689_GyroConfigure();
-int icm20689_Probe();
-void icm20689_Statistics();
-void icm20689_FIFOCount();
-int icm20689_FIFORead();
-void icm20689_FIFOReset();
-void icm20689_AccelProcess();
-void icm20689_GyroProcess();
-void icm20689_TempProcess();
+uint8_t ICM20689_ReadReg(uint8_t reg);
+void ICM20689_WriteReg(uint8_t reg, uint8_t value);
+void ICM20689_SetClearReg(uint8_t reg, uint8_t setbits, uint8_t clearbits);
+int ICM20689_Configure();
+void ICM20689_AccelConfigure();
+void ICM20689_GyroConfigure();
+int ICM20689_Probe();
+void ICM20689_Statistics();
+void ICM20689_FIFOCount();
+int ICM20689_FIFORead();
+void ICM20689_FIFOReset();
+void ICM20689_AccelProcess();
+void ICM20689_GyroProcess();
+void ICM20689_TempProcess();
 
-static gpio_cfg_t icm20689_cs = GPIO_SPI1_CS2;
-static exti_cfg_t icm20689_drdy = EXTI_SPI1_DRDY2;
+static gpio_cfg_t icm20689_cs = GPIO_SPI1_CS1;
+static exti_cfg_t icm20689_drdy = EXTI_SPI1_DRDY1;
 static SemaphoreHandle_t drdy_semaphore;
 
 typedef struct {
@@ -45,7 +45,7 @@ static FIFOParam_t icm20689_FIFOParam;
 
 static TickType_t icm20689_last_sample = 0;
 
-int icm20689_Init() {
+int ICM20689_Init() {
     int rv = 0;
 
     icm20689_cfg.spi = &spi1;
@@ -55,35 +55,35 @@ int icm20689_Init() {
     rv |= EXTI_Init(&icm20689_drdy);
     rv |= GPIO_Init(&icm20689_cs);
 
-    icm20689_state = icm20689_RESET;
+    icm20689_state = ICM20689_RESET;
 
     return rv;
 }
 
-void icm20689_ChipSelection() {
+void ICM20689_ChipSelection() {
     GPIO_Reset(&icm20689_cs);
 }
 
-void icm20689_ChipDeselection() {
+void ICM20689_ChipDeselection() {
     GPIO_Set(&icm20689_cs);
 }
 
-void icm20689_Run() {
+void ICM20689_Run() {
     switch(icm20689_state) {
 
-    case icm20689_RESET:
-        icm20689_WriteReg(PWR_MGMT_1, DEVICE_RESET);
-        icm20689_state = icm20689_RESET_WAIT;
+    case ICM20689_RESET:
+        ICM20689_WriteReg(PWR_MGMT_1, DEVICE_RESET);
+        icm20689_state = ICM20689_RESET_WAIT;
         vTaskDelay(2);
         break;
 
-    case icm20689_RESET_WAIT:
-        if ((icm20689_ReadReg(WHO_AM_I) == WHOAMI)
-            && (icm20689_ReadReg(PWR_MGMT_1) == 0x40)) {
-                icm20689_WriteReg(PWR_MGMT_1, CLKSEL_0);
-                icm20689_WriteReg(SIGNAL_PATH_RESET, ACCEL_RST | TEMP_RST);
-                icm20689_SetClearReg(USER_CTRL, SIG_COND_RST | I2C_IF_DIS, 0);
-                icm20689_state = icm20689_CONF;
+    case ICM20689_RESET_WAIT:
+        if ((ICM20689_ReadReg(WHO_AM_I) == WHOAMI)
+            && (ICM20689_ReadReg(PWR_MGMT_1) == 0x40)) {
+                ICM20689_WriteReg(PWR_MGMT_1, CLKSEL_0);
+                ICM20689_WriteReg(SIGNAL_PATH_RESET, ACCEL_RST | TEMP_RST);
+                ICM20689_SetClearReg(USER_CTRL, SIG_COND_RST | I2C_IF_DIS, 0);
+                icm20689_state = ICM20689_CONF;
                 vTaskDelay(1000);
             } else {
                 printf("%s: Wrong default registers values after reset\n", device);
@@ -91,22 +91,22 @@ void icm20689_Run() {
             }
         break;
 
-    case icm20689_CONF:
-        if(icm20689_Configure()) {
-            icm20689_state = icm20689_FIFO_READ;
-            icm20689_FIFOReset();
+    case ICM20689_CONF:
+        if(ICM20689_Configure()) {
+            icm20689_state = ICM20689_FIFO_READ;
+            ICM20689_FIFOReset();
             icm20689_last_sample = xTaskGetTickCount();
         } else {
             printf("%s: Wrong configuration, reset\n", device);
-            icm20689_state = icm20689_RESET;
+            icm20689_state = ICM20689_RESET;
             vTaskDelay(1000);
         }
         break;
 
-    case icm20689_FIFO_READ:
+    case ICM20689_FIFO_READ:
         if(xSemaphoreTake(drdy_semaphore, portMAX_DELAY)) {
-            icm20689_FIFOCount();
-            icm20689_FIFORead();
+            ICM20689_FIFOCount();
+            ICM20689_FIFORead();
             icm20689_fifo.dt = xTaskGetTickCount() - icm20689_last_sample;
             icm20689_fifo.samples = icm20689_FIFOParam.samples;
             icm20689_last_sample = xTaskGetTickCount();
@@ -115,48 +115,48 @@ void icm20689_Run() {
     }
 }
 
-uint8_t icm20689_ReadReg(uint8_t reg) {
+uint8_t ICM20689_ReadReg(uint8_t reg) {
     uint8_t cmd = reg | READ;
     uint8_t data;
 
-    icm20689_ChipSelection();
+    ICM20689_ChipSelection();
     SPI_Transmit(icm20689_cfg.spi, &cmd, 1);
     SPI_Receive(icm20689_cfg.spi, &data, 1);
-    icm20689_ChipDeselection();
+    ICM20689_ChipDeselection();
 
     return data;
 }
 
-void icm20689_WriteReg(uint8_t reg, uint8_t value) {
+void ICM20689_WriteReg(uint8_t reg, uint8_t value) {
     uint8_t data[2];
     data[0] = reg;
     data[1] = value;
 
-    icm20689_ChipSelection();
+    ICM20689_ChipSelection();
     SPI_Transmit(icm20689_cfg.spi, data, 2);
-    icm20689_ChipDeselection();
+    ICM20689_ChipDeselection();
 }
 
-void icm20689_SetClearReg(uint8_t reg, uint8_t setbits, uint8_t clearbits) {
-    uint8_t orig_val = icm20689_ReadReg(reg);
+void ICM20689_SetClearReg(uint8_t reg, uint8_t setbits, uint8_t clearbits) {
+    uint8_t orig_val = ICM20689_ReadReg(reg);
     uint8_t val = (orig_val & ~clearbits) | setbits;
     if (orig_val != val) {
-        icm20689_WriteReg(reg, val);
+        ICM20689_WriteReg(reg, val);
     }
 }
 
-int icm20689_Configure() {
+int ICM20689_Configure() {
     uint8_t orig_val;
     int rv = 1;
 
     // Set configure
     for(int i = 0; i < SIZE_REG_CFG; i++) {
-        icm20689_SetClearReg(reg_cfg[i].reg, reg_cfg[i].setbits, reg_cfg[i].clearbits);
+        ICM20689_SetClearReg(reg_cfg[i].reg, reg_cfg[i].setbits, reg_cfg[i].clearbits);
     }
 
     // Check
     for(int i = 0; i < SIZE_REG_CFG; i++) {
-        orig_val = icm20689_ReadReg(reg_cfg[i].reg);
+        orig_val = ICM20689_ReadReg(reg_cfg[i].reg);
 
         if((orig_val & reg_cfg[i].setbits) != reg_cfg[i].setbits) {
             printf("%s: 0x%02x: 0x%02x (0x%02x not set)\n", device,
@@ -172,8 +172,8 @@ int icm20689_Configure() {
     }
 
     // Set scale and range for processing
-    icm20689_AccelConfigure();
-    icm20689_GyroConfigure();
+    ICM20689_AccelConfigure();
+    ICM20689_GyroConfigure();
 
     // Enable EXTI IRQ for DataReady pin
     EXTI_EnableIRQ(&icm20689_drdy);
@@ -181,9 +181,9 @@ int icm20689_Configure() {
     return rv;
 }
 
-void icm20689_AccelConfigure() {
+void ICM20689_AccelConfigure() {
 
-    const uint8_t ACCEL_FS_SEL = icm20689_ReadReg(ACCEL_CONFIG) & (BIT4 | BIT3);
+    const uint8_t ACCEL_FS_SEL = ICM20689_ReadReg(ACCEL_CONFIG) & (BIT4 | BIT3);
 
     if(ACCEL_FS_SEL == ACCEL_FS_SEL_2G) {
         icm20689_cfg.param.accel_scale = (CONST_G / 16384.f);
@@ -200,9 +200,9 @@ void icm20689_AccelConfigure() {
     }
 }
 
-void icm20689_GyroConfigure() {
+void ICM20689_GyroConfigure() {
 
-    const uint8_t FS_SEL = icm20689_ReadReg(GYRO_CONFIG) & (BIT4 | BIT3);
+    const uint8_t FS_SEL = ICM20689_ReadReg(GYRO_CONFIG) & (BIT4 | BIT3);
 
     if(FS_SEL == FS_SEL_250_DPS) {
         icm20689_cfg.param.gyro_range = 250.f;
@@ -217,49 +217,49 @@ void icm20689_GyroConfigure() {
     icm20689_cfg.param.gyro_scale = (icm20689_cfg.param.gyro_range / 32768.f);
 }
 
-void icm20689_FIFOCount() {
+void ICM20689_FIFOCount() {
     uint8_t cmd = FIFO_COUNTH | READ;
     uint8_t data[2];
 
-    icm20689_ChipSelection();
+    ICM20689_ChipSelection();
     SPI_Transmit(icm20689_cfg.spi, &cmd, 1);
     SPI_Receive(icm20689_cfg.spi, data, 2);
-    icm20689_ChipDeselection();
+    ICM20689_ChipDeselection();
 
-    icm20689_FIFOParam.samples = msblsb16(data[0], data[1]);
-    icm20689_FIFOParam.bytes = icm20689_FIFOParam.samples * sizeof(FIFO_t);
+    icm20689_FIFOParam.bytes = msblsb16(data[0], data[1]);
+    icm20689_FIFOParam.samples = icm20689_FIFOParam.bytes / sizeof(FIFO_t);
 }
 
-int icm20689_FIFORead() {
+int ICM20689_FIFORead() {
     uint8_t cmd = FIFO_COUNTH | READ;
 
-    icm20689_ChipSelection();
+    ICM20689_ChipSelection();
     SPI_Transmit(icm20689_cfg.spi, &cmd, 1);
     SPI_Receive(icm20689_cfg.spi, (uint8_t *)&icm20689_FIFOBuffer,
                 icm20689_FIFOParam.bytes);
-    icm20689_ChipDeselection();
+    ICM20689_ChipDeselection();
 
-    icm20689_TempProcess();
-    icm20689_AccelProcess();
-    icm20689_GyroProcess();
+    ICM20689_TempProcess();
+    ICM20689_AccelProcess();
+    ICM20689_GyroProcess();
 
     EXTI_EnableIRQ(&icm20689_drdy);
 
     return 0;
 }
 
-void icm20689_FIFOReset() {
-    icm20689_WriteReg(FIFO_EN, 0);
-    icm20689_SetClearReg(USER_CTRL, USR_CTRL_FIFO_RST, USR_CTRL_FIFO_EN);
+void ICM20689_FIFOReset() {
+    ICM20689_WriteReg(FIFO_EN, 0);
+    ICM20689_SetClearReg(USER_CTRL, USR_CTRL_FIFO_RST, USR_CTRL_FIFO_EN);
 
     for(int i = 0; i < SIZE_REG_CFG; i++) {
         if(reg_cfg[i].reg == FIFO_EN || reg_cfg[i].reg == USER_CTRL) {
-            icm20689_SetClearReg(reg_cfg[i].reg, reg_cfg[i].setbits, reg_cfg[i].clearbits);
+            ICM20689_SetClearReg(reg_cfg[i].reg, reg_cfg[i].setbits, reg_cfg[i].clearbits);
         }
     }
 }
 
-void icm20689_AccelProcess() {
+void ICM20689_AccelProcess() {
 	for (int i = 0; i < icm20689_FIFOParam.samples; i++) {
 		int16_t accel_x = msblsb16(icm20689_FIFOBuffer.buf[i].ACCEL_XOUT_H,
                                     icm20689_FIFOBuffer.buf[i].ACCEL_XOUT_L);
@@ -276,7 +276,7 @@ void icm20689_AccelProcess() {
 	}
 }
 
-void icm20689_GyroProcess() {
+void ICM20689_GyroProcess() {
 	for (int i = 0; i < icm20689_FIFOParam.samples; i++) {
 		int16_t gyro_x = msblsb16(icm20689_FIFOBuffer.buf[i].GYRO_XOUT_H,
                                     icm20689_FIFOBuffer.buf[i].GYRO_XOUT_L);
@@ -293,7 +293,7 @@ void icm20689_GyroProcess() {
 	}
 }
 
-void icm20689_TempProcess() {
+void ICM20689_TempProcess() {
 	float temperature_sum = 0;
 
 	for (int i = 0; i < icm20689_FIFOParam.samples; i++) {
@@ -308,9 +308,9 @@ void icm20689_TempProcess() {
     icm20689_fifo.temp = temperature_C;
 }
 
-int icm20689_Probe() {
+int ICM20689_Probe() {
     uint8_t whoami;
-    whoami = icm20689_ReadReg(WHO_AM_I);
+    whoami = ICM20689_ReadReg(WHO_AM_I);
     if(whoami != WHOAMI) {
         printf("%s: unexpected WHO_AM_I reg 0x%02x\n", device, whoami);
         return ENODEV;
@@ -318,7 +318,7 @@ int icm20689_Probe() {
     return 0;
 }
 
-void icm20689_Statistics() {
+void ICM20689_Statistics() {
     // TODO add time between FIFO reading
     printf("%s: Statistics:\n", device);
     printf("accel_x = %.3f [m/s2]\n", icm20689_fifo.accel_x[0]);
@@ -332,7 +332,7 @@ void icm20689_Statistics() {
     printf("dt      = %lu [ms]\n", icm20689_fifo.dt);
 }
 
-void icm20689_DataReadyHandler() {
+void ICM20689_DataReadyHandler() {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
     xSemaphoreGiveFromISR(drdy_semaphore, &xHigherPriorityTaskWoken);
@@ -343,5 +343,19 @@ void icm20689_DataReadyHandler() {
 
     if(xHigherPriorityTaskWoken == pdTRUE) {
         portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+    }
+}
+
+void EXTI4_IRQHandler(void) {
+    uint32_t line;
+
+    line = (EXTI->PR) & GPIO_PIN_4;
+
+    switch(line) {
+        case GPIO_PIN_4:
+            ICM20689_DataReadyHandler();
+            break;
+        default:
+            break;
     }
 }

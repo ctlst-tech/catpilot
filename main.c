@@ -4,6 +4,7 @@
 
 #include "cli.h"
 #include "icm20602.h"
+#include "icm20689.h"
 #include "ist8310.h"
 #include "px4io.h"
 
@@ -52,6 +53,7 @@ void ctlst(void *param) {
 
     CLI_Init();
     ICM20602_Init();
+    ICM20689_Init();
     IST8310_Init();
     PX4IO_Init();
     usleep(1000);

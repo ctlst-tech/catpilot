@@ -83,6 +83,7 @@ if (TYPE STREQUAL "PX4")
         ${DIR_DRV}
         ${DIR_DRV}/board
         ${DIR_DRV}/icm20602
+        ${DIR_DRV}/icm20689
         ${DIR_DRV}/ist8310
         ${DIR_DRV}/sdcard
         ${DIR_DRV}/px4io

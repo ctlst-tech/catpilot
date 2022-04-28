@@ -28,5 +28,5 @@ typedef struct {
 
 extern icm20689_fifo_t icm20689_fifo;
 
-int icm20689_Init();
-void icm20689_Run();
+int ICM20689_Init();
+void ICM20689_Run();
