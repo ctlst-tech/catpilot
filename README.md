@@ -1,32 +1,71 @@
-# CTLST FMUV5 TODO
-## POSIX impl with c-atom
-- [x] Add errno codes. Take them from standard gnu errno.h
-- [x] How to integrate osa to c-atom-lib and eswb?
-- [x] PTHREAD_MUTEX_INITIALIZER for mutex?
-- [x] Replace system includes with local
-- [x] Comment eswb tests
-- [x] Move c-atom example from mock to main, fix dependencies
-- [x] Stubs for getpid and gettimeofday
-- [x] Rename board -> bsp, lib -> misc
-- [x] Add posix impl as sys lib
-- [x] Add FS wrappers in OSA
-  - [x] Add stdio without open, close...
-  - [x] Bind freertos posix impl and fatfs wrappers
-      - [x] types.h
-      - [x] comment missing implementations of std functions
-      - [x] realize std functions
-- [x] Start c-atom on fmuv5
-  - [x] With empty function
-  - [x] Add IMU in spec update function
-- [x] Add stdout, stdin, stderr streams in cli
-  - [x] Add stdout stub for printf use
-  - [x] Problems with vasprintf (memory? stack overflow?)
-      - [x] Add wrap for malloc, calloc, free (from heap_3)
-- [x] pthread_setname_np/pthread_getname_np implementation
-- [ ] pthread_cancel wrapper
-  - This function doesn't work in existing implementations
-- [ ] stubs for tcp stack
-- [ ] <termios.h> wrappers
-- [ ] socket.h
-- [ ] Add CMakeLists in board directories
-- [ ] Add modules as f_specs functions
+# ctlst-fmuv5
+## Description
+
+ctslt-fmuv5 is open sourcing project with c-atom library hardware integration
+
+#### Software requirement
+1. cmake > 3.15
+2. openocd
+3. stlink
+4. catch2
+5. bison
+6. flex
+
+#### Hardware requirement
+1. Linux (Ubuntu, Arch) / MacOS
+2. px4 fmuv5
+3. ST-LINK V2
+
+## Getting started
+
+---
+
+### 1. Clone repository
+
+```bash
+git clone ssh://git@git.jetbrains.space/ctlst/flight-embed-open-sourcing/ctlst-fmuv5.git
+cd ctlst-fmuv5
+git submodule update --init --recursive
+```
+
+---
+
+### 2. Build
+
+To build a project, you must specify cmake build target (Release-target/Debug-target) and platform type (PX4/Linux).
+
+You can use following build methods:
+
+**Shell**
+  ```bash
+  mkdir build && cd build && cmake .. -DTYPE=PX4 -DCMAKE_BUILD_TYPE=Debug-target
+  make all
+  ```
+**Script**
+  ```bash
+  ./build.sh
+  ```
+
+**IDE**
+
+You need to specify the build target, platform type, path to the compiler and other parameters that are required for your IDE.
+
+**vscode**
+
+To build in vscode you need *.json configuration files. All required files are located in the .vscode project directory.
+
+*Note: You may need to change the paths to bin*
+
+**clion**
+
+In the settings, you need to specify the build target, platform type, and also select the toolchain.
+
+---
+
+### 3. Debug
+
+**vscode**
+
+To build in vscode you need the **Cortex-Debug** extension and configured **settings.json** and **launch.json**.
+
+**clion**
