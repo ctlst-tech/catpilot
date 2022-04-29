@@ -9,9 +9,9 @@ if (TYPE STREQUAL "PX4")
     set(DIR_MCU bsp/mcu/${MCU})
     set(ASM_FILE ${PROJECT_BINARY_DIR}/${PROJ_NAME}.asm)
     set(CMAKE_TOOLCHAIN_FILE ${DIR_MCU}/core/f7_toolchain.cmake)
-elseif (TYPE STREQUAL "Posix")
-    set(DIR_POSIX board/posix)
-    set(CMAKE_TOOLCHAIN_FILE ${DIR_POSIX}/posix_toolchain.cmake)
+elseif (TYPE STREQUAL "Linux")
+    set(DIR_LINUX bsp/linux)
+    set(CMAKE_TOOLCHAIN_FILE ${DIR_LINUX}/linux_toolchain.cmake)
 else ()
     message(FATAL_ERROR "TYPE is not set!")
 endif ()
@@ -156,27 +156,27 @@ if (TYPE STREQUAL "PX4")
         COMMAND ${CMAKE_SIZE} --format=berkeley ${EXECUTABLE_OUTPUT_PATH}/${PROJECT_NAME}.hex
     )
 
-elseif (TYPE STREQUAL "Posix")
+elseif (TYPE STREQUAL "Linux")
 
     find_package(Threads)
 
-    set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/build/posix)
-    set(CMAKE_BINARY_DIR build/posix)
+    set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/build/linux)
+    set(CMAKE_BINARY_DIR build/linux)
 
-    set(DIR_POSIX board/posix)
+    set(DIR_LINUX bsp/linux)
     set(DIR_OS os/freertos)
-    set(DIR_CONF ${DIR_POSIX}/conf)
+    set(DIR_CONF ${DIR_LINUX}/conf)
 
     include_directories(
         ${DIR_OS}/core/inc
-        ${DIR_OS}/port/posix
-        ${DIR_OS}/port/posix/utils
+        ${DIR_OS}/port/linux
+        ${DIR_OS}/port/linux/utils
         ${DIR_CONF}
         ${CMAKE_CURRENT_BINARY_DIR}
     )
 
-    set(SRC_MAIN ${DIR_POSIX}/main.c)
-    file(GLOB_RECURSE SRC_OS ${DIR_OS}/core/*.c ${DIR_OS}/port/posix/*.c ${DIR_OS}/MemMang/heap_3.c)
+    set(SRC_MAIN ${DIR_LINUX}/main.c)
+    file(GLOB_RECURSE SRC_OS ${DIR_OS}/core/*.c ${DIR_OS}/port/linux/*.c ${DIR_OS}/MemMang/heap_3.c)
 
     set(SOURCES
         ${SRC_MAIN}
