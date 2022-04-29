@@ -1,5 +1,5 @@
-#include "board.h"
-#include "board_cfg.h"
+#include "init.h"
+#include "cfg.h"
 
 usart_cfg_t usart7;
 dma_cfg_t usart7_dma_tx;

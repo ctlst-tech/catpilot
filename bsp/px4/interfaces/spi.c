@@ -1,5 +1,5 @@
-#include "board.h"
-#include "board_cfg.h"
+#include "init.h"
+#include "cfg.h"
 
 spi_cfg_t spi1;
 dma_cfg_t spi1_dma_rx;

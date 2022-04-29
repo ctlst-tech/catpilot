@@ -30,3 +30,7 @@
 - [ ] socket.h
 - [ ] Add CMakeLists in board directories
 - [ ] Add modules as f_specs functions
+
+## Hardware
+- [x] Add ICM20689 driver
+- [x] Add ICM20689 driver

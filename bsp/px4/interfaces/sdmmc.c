@@ -1,5 +1,5 @@
-#include "board.h"
-#include "board_cfg.h"
+#include "init.h"
+#include "cfg.h"
 
 sdio_cfg_t sdmmc1;
 dma_cfg_t sdmmc1_dma_txrx;

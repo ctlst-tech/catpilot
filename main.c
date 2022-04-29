@@ -1,5 +1,5 @@
 #include "stm32_base.h"
-#include "stm32_drv.h"
+#include "drv.h"
 #include "stm32_periph.h"
 
 #include "cli.h"

@@ -1,7 +1,7 @@
 #include "ist8310.h"
 #include "ist8310_reg.h"
-#include "board.h"
-#include "board_cfg.h"
+#include "init.h"
+#include "cfg.h"
 
 static char *device = "IST8310";
 

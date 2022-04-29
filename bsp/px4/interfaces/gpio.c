@@ -1,5 +1,5 @@
-#include "board.h"
-#include "board_cfg.h"
+#include "init.h"
+#include "cfg.h"
 
 gpio_cfg_t gpio_sdcard_pwr = GPIO_SDCARD_PWR;
 

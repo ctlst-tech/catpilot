@@ -1,7 +1,7 @@
 #include "px4io.h"
 #include "px4io_reg.h"
-#include "board.h"
-#include "board_cfg.h"
+#include "init.h"
+#include "cfg.h"
 #include <string.h>
 
 static char *device = "PX4IO";

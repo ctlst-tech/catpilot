@@ -1,5 +1,5 @@
-#include "board.h"
-#include "board_cfg.h"
+#include "init.h"
+#include "cfg.h"
 
 void Board_Fail() {
     while(1);

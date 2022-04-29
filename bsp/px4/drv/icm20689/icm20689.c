@@ -1,7 +1,7 @@
 #include "icm20689.h"
 #include "icm20689_reg.h"
-#include "board.h"
-#include "board_cfg.h"
+#include "init.h"
+#include "cfg.h"
 
 static char *device = "ICM20689";
 

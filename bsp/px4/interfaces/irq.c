@@ -1,4 +1,4 @@
-#include "board.h"
+#include "init.h"
 
 /* SPI1 Handlers */
 void SPI1_IRQHandler(void) {

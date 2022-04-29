@@ -1,5 +1,5 @@
-#include "board.h"
-#include "board_cfg.h"
+#include "init.h"
+#include "cfg.h"
 
 i2c_cfg_t i2c3;
 dma_cfg_t i2c3_dma_rx;

@@ -1,6 +1,6 @@
 #include "sdcard.h"
-#include "board.h"
-#include "board_cfg.h"
+#include "init.h"
+#include "cfg.h"
 
 static char *device = "SDMMC1";
 
