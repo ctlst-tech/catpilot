@@ -38,7 +38,8 @@ You can use following build methods:
 
 **Shell**
   ```bash
-  mkdir build && cd build && cmake .. -DTYPE=PX4 -DCMAKE_BUILD_TYPE=Debug-target make all
+  mkdir build && cd build && cmake .. -DTYPE=PX4 -DCMAKE_BUILD_TYPE=Debug-target
+  make all
   ```
 **Script**
   ```bash
