@@ -1,7 +1,7 @@
 {
     "configurations": [
         {
-            "name": "Posix",
+            "name": "Linux",
             "compilerPath": "/usr/bin/gcc",
             "includePath": [
                 "${workspaceRoot}/**"
