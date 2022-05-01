@@ -1,9 +1,8 @@
-#pragma once
 #include "stm32_base.h"
 #include "stm32_periph.h"
 #include "const.h"
 
-#define ICM20689_DEBUG
+#define BMI055_DEBUG
 #define FIFO_SIZE 1008
 #define FIFO_SAMPLES 72
 
@@ -12,7 +11,7 @@ typedef struct {
     float gyro_range;
     float accel_scale;
     float accel_range;
-} icm20689_param_t;
+} bmi055_param_t;
 
 typedef struct {
     float accel_x[FIFO_SAMPLES];
@@ -24,9 +23,9 @@ typedef struct {
     float temp;
     uint32_t samples;
     uint32_t dt;
-} icm20689_fifo_t;
+} bmi055_fifo_t;
 
-extern icm20689_fifo_t icm20689_fifo;
+extern bmi055_fifo_t bmi055_fifo;
 
-int ICM20689_Init();
-void ICM20689_Run();
+int BMI055_Init();
+void BMI055_Run();

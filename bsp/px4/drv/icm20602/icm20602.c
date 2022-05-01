@@ -52,9 +52,6 @@ int ICM20602_Init() {
 
     if(drdy_semaphore == NULL) drdy_semaphore = xSemaphoreCreateBinary();
 
-    rv |= EXTI_Init(&icm20602_drdy);
-    rv |= GPIO_Init(&icm20602_cs);
-
     icm20602_state = ICM20602_RESET;
 
     return rv;
