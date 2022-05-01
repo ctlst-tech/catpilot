@@ -33,4 +33,9 @@
 
 ## Hardware
 - [x] Add ICM20689 driver
-- [x] Add ICM20689 driver
+- [ ] Add BMI055 driver
+- [ ] Add MS5611 driver
+- [ ] Tests with statistics
+  - [ ] Max freq
+  - [ ] Collizions on the SPI1 bus
+  - [ ] MCU load
