@@ -257,49 +257,49 @@ void ICM20689_FIFOReset() {
 }
 
 void ICM20689_AccelProcess() {
-	for (int i = 0; i < icm20689_FIFOParam.samples; i++) {
-		int16_t accel_x = msblsb16(icm20689_FIFOBuffer.buf[i].ACCEL_XOUT_H,
+    for (int i = 0; i < icm20689_FIFOParam.samples; i++) {
+        int16_t accel_x = msblsb16(icm20689_FIFOBuffer.buf[i].ACCEL_XOUT_H,
                                     icm20689_FIFOBuffer.buf[i].ACCEL_XOUT_L);
-		int16_t accel_y = msblsb16(icm20689_FIFOBuffer.buf[i].ACCEL_YOUT_H,
+        int16_t accel_y = msblsb16(icm20689_FIFOBuffer.buf[i].ACCEL_YOUT_H,
                                     icm20689_FIFOBuffer.buf[i].ACCEL_YOUT_L);
-		int16_t accel_z = msblsb16(icm20689_FIFOBuffer.buf[i].ACCEL_ZOUT_H,
+        int16_t accel_z = msblsb16(icm20689_FIFOBuffer.buf[i].ACCEL_ZOUT_H,
                                     icm20689_FIFOBuffer.buf[i].ACCEL_ZOUT_L);
 
-		icm20689_fifo.accel_x[i] = accel_x * icm20689_cfg.param.accel_scale;
-		icm20689_fifo.accel_y[i] = ((accel_y == INT16_MIN) ? INT16_MAX : -accel_y) *
+        icm20689_fifo.accel_x[i] = accel_x * icm20689_cfg.param.accel_scale;
+        icm20689_fifo.accel_y[i] = ((accel_y == INT16_MIN) ? INT16_MAX : -accel_y) *
                                         icm20689_cfg.param.accel_scale;
-		icm20689_fifo.accel_z[i] = ((accel_z == INT16_MIN) ? INT16_MAX : -accel_z) *
+        icm20689_fifo.accel_z[i] = ((accel_z == INT16_MIN) ? INT16_MAX : -accel_z) *
                                         icm20689_cfg.param.accel_scale;
-	}
+    }
 }
 
 void ICM20689_GyroProcess() {
-	for (int i = 0; i < icm20689_FIFOParam.samples; i++) {
-		int16_t gyro_x = msblsb16(icm20689_FIFOBuffer.buf[i].GYRO_XOUT_H,
+    for (int i = 0; i < icm20689_FIFOParam.samples; i++) {
+        int16_t gyro_x = msblsb16(icm20689_FIFOBuffer.buf[i].GYRO_XOUT_H,
                                     icm20689_FIFOBuffer.buf[i].GYRO_XOUT_L);
-		int16_t gyro_y = msblsb16(icm20689_FIFOBuffer.buf[i].GYRO_YOUT_H,
+        int16_t gyro_y = msblsb16(icm20689_FIFOBuffer.buf[i].GYRO_YOUT_H,
                                     icm20689_FIFOBuffer.buf[i].GYRO_YOUT_L);
-		int16_t gyro_z = msblsb16(icm20689_FIFOBuffer.buf[i].GYRO_ZOUT_H,
+        int16_t gyro_z = msblsb16(icm20689_FIFOBuffer.buf[i].GYRO_ZOUT_H,
                                     icm20689_FIFOBuffer.buf[i].GYRO_ZOUT_L);
 
-		icm20689_fifo.gyro_x[i] = gyro_x * icm20689_cfg.param.gyro_scale;
-		icm20689_fifo.gyro_y[i] = ((gyro_y == INT16_MIN) ? INT16_MAX : -gyro_y) *
+        icm20689_fifo.gyro_x[i] = gyro_x * icm20689_cfg.param.gyro_scale;
+        icm20689_fifo.gyro_y[i] = ((gyro_y == INT16_MIN) ? INT16_MAX : -gyro_y) *
                                     icm20689_cfg.param.gyro_scale;
-		icm20689_fifo.gyro_z[i] = ((gyro_z == INT16_MIN) ? INT16_MAX : -gyro_z) *
+        icm20689_fifo.gyro_z[i] = ((gyro_z == INT16_MIN) ? INT16_MAX : -gyro_z) *
                                     icm20689_cfg.param.gyro_scale;
-	}
+    }
 }
 
 void ICM20689_TempProcess() {
-	float temperature_sum = 0;
+    float temperature_sum = 0;
 
-	for (int i = 0; i < icm20689_FIFOParam.samples; i++) {
-		const int16_t t = msblsb16(icm20689_FIFOBuffer.buf[i].TEMP_H,
+    for (int i = 0; i < icm20689_FIFOParam.samples; i++) {
+        const int16_t t = msblsb16(icm20689_FIFOBuffer.buf[i].TEMP_H,
                                     icm20689_FIFOBuffer.buf[i].TEMP_L);
-		temperature_sum += t;
-	}
+        temperature_sum += t;
+    }
 
-	const float temperature_avg = temperature_sum / icm20689_FIFOParam.samples;
+    const float temperature_avg = temperature_sum / icm20689_FIFOParam.samples;
     const float temperature_C = (temperature_avg / TEMP_SENS) + TEMP_OFFSET;
 
     icm20689_fifo.temp = temperature_C;
@@ -344,15 +344,8 @@ void ICM20689_DataReadyHandler() {
 }
 
 void EXTI4_IRQHandler(void) {
-    uint32_t line;
-
-    line = (EXTI->PR) & GPIO_PIN_4;
-
-    switch(line) {
-        case GPIO_PIN_4:
-            ICM20689_DataReadyHandler();
-            break;
-        default:
-            break;
+    uint32_t line = (EXTI->PR) & GPIO_PIN_4;
+    if(line) {
+        ICM20689_DataReadyHandler();
     }
 }
