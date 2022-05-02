@@ -39,3 +39,6 @@
   - [ ] Max freq
   - [ ] Collizions on the SPI1 bus
   - [ ] MCU load
+
+## Utils
+- [ ] Add log func with types of msg and module

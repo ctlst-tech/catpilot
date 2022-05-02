@@ -17,7 +17,8 @@ enum bmi055_state_t bmi055_state;
 
 uint8_t BMI055_ReadReg(uint8_t reg, uint8_t mode);
 void BMI055_WriteReg(uint8_t reg, uint8_t value, uint8_t mode);
-void BMI055_SetClearReg(uint8_t reg, uint8_t setbits, uint8_t clearbits, uint8_t mode);
+void BMI055_SetClearReg(uint8_t reg, uint8_t setbits, uint8_t clearbits,
+                                                            uint8_t mode);
 int BMI055_Configure();
 void BMI055_AccelConfigure();
 void BMI055_GyroConfigure();
@@ -51,8 +52,12 @@ int BMI055_Init() {
 
     bmi055_cfg.spi = &spi1;
 
-    if(gyro_drdy_semaphore == NULL) gyro_drdy_semaphore = xSemaphoreCreateBinary();
-    if(accel_drdy_semaphore == NULL) accel_drdy_semaphore = xSemaphoreCreateBinary();
+    if(gyro_drdy_semaphore == NULL) {
+        gyro_drdy_semaphore = xSemaphoreCreateBinary();
+    }
+    if(accel_drdy_semaphore == NULL) {
+        accel_drdy_semaphore = xSemaphoreCreateBinary();
+    }
 
     bmi055_state = BMI055_RESET;
 
@@ -60,26 +65,45 @@ int BMI055_Init() {
 }
 
 void BMI055_ChipSelection(uint8_t mode) {
-    if(mode == BMI055_ACCEL_MODE) {
+    if(mode == ACCEL_MODE) {
         GPIO_Reset(&bmi055_accel_cs);
-    } else if (mode == BMI055_GYRO_MODE) {
+    } else if (mode == GYRO_MODE) {
         GPIO_Reset(&bmi055_gyro_cs);
     }
 }
 
 void BMI055_ChipDeselection(uint8_t mode) {
-    if(mode == BMI055_ACCEL_MODE) {
+    if(mode == ACCEL_MODE) {
         GPIO_Set(&bmi055_accel_cs);
-    } else if (mode == BMI055_GYRO_MODE) {
+    } else if (mode == GYRO_MODE) {
         GPIO_Set(&bmi055_gyro_cs);
     }
 }
 
 void BMI055_Run() {
+    static uint32_t t0;
+    static uint32_t t1;
     switch(bmi055_state) {
 
     case BMI055_RESET:
+        t0 = xTaskGetTickCount();
+        BMI055_WriteReg(ACCEL_BGW_SOFTRESET, BGW_RESET_VALUE, ACCEL_MODE);
+        BMI055_WriteReg(GYRO_BGW_SOFTRESET, BGW_RESET_VALUE, GYRO_MODE);
+        bmi055_state = BMI055_RESET_WAIT;
+        vTaskDelay(25);
+        break;
     case BMI055_RESET_WAIT:
+        t1 = xTaskGetTickCount();
+        uint8_t accel_id = BMI055_ReadReg(ACCEL_BGW_CHIP_ID, ACCEL_MODE);
+        uint8_t gyro_id = BMI055_ReadReg(GYRO_CHIP_ID, GYRO_MODE);
+        if(accel_id == ACCEL_CHIP_ID_VALUE && gyro_id == GYRO_CHIP_ID_VALUE) {
+            bmi055_state = BMI055_CONF;
+            vTaskDelay(2);
+        } else if (t1 - t0 > 1000) {
+            printf("%s\n", device);
+        } else {
+
+        }
     case BMI055_CONF:
     case BMI055_FIFO_READ:
         break;
@@ -109,7 +133,8 @@ void BMI055_WriteReg(uint8_t reg, uint8_t value, uint8_t mode) {
     BMI055_ChipDeselection(mode);
 }
 
-void BMI055_SetClearReg(uint8_t reg, uint8_t setbits, uint8_t clearbits, uint8_t mode) {
+void BMI055_SetClearReg(uint8_t reg, uint8_t setbits, uint8_t clearbits,
+                                                            uint8_t mode) {
     uint8_t orig_val = BMI055_ReadReg(reg, mode);
     uint8_t val = (orig_val & ~clearbits) | setbits;
     if (orig_val != val) {
@@ -117,9 +142,15 @@ void BMI055_SetClearReg(uint8_t reg, uint8_t setbits, uint8_t clearbits, uint8_t
     }
 }
 
+void BMI055_UpdateTemperature() {
+    float temp = (int8_t) BMI055_ReadReg(ACCEL_ACCD_TEMP, ACCEL_MODE)
+                                                                * 0.5f + 23.f;
+    bmi055_fifo.temp = temp;
+}
+
 int BMI055_Probe() {
     uint8_t bgwchipid;
-    bgwchipid = BMI055_ReadReg(ACCEL_BGW_CHIP_ID, BMI055_ACCEL_MODE);
+    bgwchipid = BMI055_ReadReg(ACCEL_BGW_CHIP_ID, ACCEL_MODE);
     if(bgwchipid != ACCEL_CHIP_ID_VALUE) {
         printf("%s: unexpected BGW_CHIP_ID reg 0x%02x\n", device, bgwchipid);
         return ENODEV;

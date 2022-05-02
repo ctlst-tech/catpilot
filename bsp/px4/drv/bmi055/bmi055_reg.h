@@ -4,8 +4,9 @@
 
 #define type_t static const uint8_t
 
-type_t BMI055_ACCEL_MODE = 0;
-type_t BMI055_GYRO_MODE = 1;
+type_t ACCEL_MODE = 0;
+type_t GYRO_MODE = 1;
+type_t BGW_RESET_VALUE = 0xB6;
 
 type_t READ = 0x80;
 
@@ -17,9 +18,9 @@ typedef struct {
 
 // BMI055 Accelerometer
 
-type_t ACCEL_CHIP_ID_VALUE = 0xFA;
+type_t ACCEL_CHIP_ID_VALUE   = 0xFA;
 
-type_t ACCEL_BGW_CHIP_ID    = 0x00;
+type_t ACCEL_BGW_CHIP_ID   = 0x00;
 type_t ACCEL_ACCD_TEMP     = 0x08;
 type_t ACCEL_INT_STATUS_1  = 0x0A;
 type_t ACCEL_FIFO_STATUS   = 0x0E;
