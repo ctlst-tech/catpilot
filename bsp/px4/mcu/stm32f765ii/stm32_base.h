@@ -17,6 +17,9 @@
 /** FreeRTOS POSIX implementation */
 #include "FreeRTOS_POSIX.h"
 
+/** Log msg **/
+#include "log.h"
+
 /** ERRNO */
 #include <errno.h>
 

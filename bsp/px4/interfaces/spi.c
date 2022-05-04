@@ -17,15 +17,6 @@ const int spi1_priority = 6;
 int SPI1_Init() {
     int rv = 0;
 
-    GPIO_Init(&spi1_cs1);
-    GPIO_Init(&spi1_cs2);
-    GPIO_Init(&spi1_cs3);
-    GPIO_Init(&spi1_cs4);
-    GPIO_Set(&spi1_cs1);
-    GPIO_Set(&spi1_cs2);
-    GPIO_Set(&spi1_cs3);
-    GPIO_Set(&spi1_cs4);
-
     spi1.SPI = SPI1;
     spi1.mosi_cfg = &spi1_mosi;
     spi1.miso_cfg = &spi1_miso;

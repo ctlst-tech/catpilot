@@ -82,8 +82,9 @@ void ICM20689_Run() {
                 ICM20689_SetClearReg(USER_CTRL, SIG_COND_RST | I2C_IF_DIS, 0);
                 icm20689_state = ICM20689_CONF;
                 vTaskDelay(1000);
+                LOG_DEBUG(device, "Device available");
             } else {
-                printf("%s: Wrong default registers values after reset\n", device);
+                LOG_ERROR(device, "Wrong default registers values after reset");
                 vTaskDelay(1000);
             }
         break;
@@ -93,15 +94,18 @@ void ICM20689_Run() {
             icm20689_state = ICM20689_FIFO_READ;
             ICM20689_FIFOReset();
             icm20689_last_sample = xTaskGetTickCount();
+            LOG_DEBUG(device, "Device configured");
+            ICM20689_FIFOCount();
+            ICM20689_FIFORead();
         } else {
-            printf("%s: Wrong configuration, reset\n", device);
+            LOG_ERROR(device, "Wrong configuration, reset");
             icm20689_state = ICM20689_RESET;
             vTaskDelay(1000);
         }
         break;
 
     case ICM20689_FIFO_READ:
-        if(xSemaphoreTake(drdy_semaphore, portMAX_DELAY)) {
+        if(xSemaphoreTake(drdy_semaphore, 0) == pdTRUE) {
             ICM20689_FIFOCount();
             ICM20689_FIFORead();
             icm20689_fifo.dt = xTaskGetTickCount() - icm20689_last_sample;
@@ -146,6 +150,9 @@ int ICM20689_Configure() {
     uint8_t orig_val;
     int rv = 1;
 
+    // Enable EXTI IRQ for DataReady pin
+    EXTI_EnableIRQ(&icm20689_drdy);
+
     // Set configure
     for(int i = 0; i < SIZE_REG_CFG; i++) {
         ICM20689_SetClearReg(reg_cfg[i].reg, reg_cfg[i].setbits, reg_cfg[i].clearbits);
@@ -156,13 +163,13 @@ int ICM20689_Configure() {
         orig_val = ICM20689_ReadReg(reg_cfg[i].reg);
 
         if((orig_val & reg_cfg[i].setbits) != reg_cfg[i].setbits) {
-            printf("%s: 0x%02x: 0x%02x (0x%02x not set)\n", device,
+            LOG_ERROR(device, "0x%02x: 0x%02x (0x%02x not set)",
             (uint8_t)reg_cfg[i].reg, orig_val, reg_cfg[i].setbits);
             rv = 0;
         }
 
         if((orig_val & reg_cfg[i].clearbits) != 0) {
-            printf("%s: 0x%02x: 0x%02x (0x%02x not cleared)\n", device,
+            LOG_ERROR(device, "0x%02x: 0x%02x (0x%02x not cleared)",
             (uint8_t)reg_cfg[i].reg, orig_val, reg_cfg[i].clearbits);
             rv = 0;
         }
@@ -171,9 +178,6 @@ int ICM20689_Configure() {
     // Set scale and range for processing
     ICM20689_AccelConfigure();
     ICM20689_GyroConfigure();
-
-    // Enable EXTI IRQ for DataReady pin
-    EXTI_EnableIRQ(&icm20689_drdy);
 
     return rv;
 }
@@ -309,7 +313,7 @@ int ICM20689_Probe() {
     uint8_t whoami;
     whoami = ICM20689_ReadReg(WHO_AM_I);
     if(whoami != WHOAMI) {
-        printf("%s: unexpected WHO_AM_I reg 0x%02x\n", device, whoami);
+        LOG_ERROR(device, "unexpected WHO_AM_I reg 0x%02x\n", whoami);
         return ENODEV;
     }
     return 0;
@@ -317,16 +321,16 @@ int ICM20689_Probe() {
 
 void ICM20689_Statistics() {
     // TODO add time between FIFO reading
-    printf("%s: Statistics:\n", device);
-    printf("accel_x = %.3f [m/s2]\n", icm20689_fifo.accel_x[0]);
-    printf("accel_y = %.3f [m/s2]\n", icm20689_fifo.accel_y[0]);
-    printf("accel_z = %.3f [m/s2]\n", icm20689_fifo.accel_z[0]);
-    printf("gyro_x  = %.3f [deg/s]\n", icm20689_fifo.gyro_x[0]);
-    printf("gyro_y  = %.3f [deg/s]\n", icm20689_fifo.gyro_y[0]);
-    printf("gyro_z  = %.3f [deg/s]\n", icm20689_fifo.gyro_z[0]);
-    printf("temp    = %.3f [C]\n", icm20689_fifo.temp);
-    printf("N       = %lu [samples]\n", icm20689_fifo.samples);
-    printf("dt      = %lu [ms]\n", icm20689_fifo.dt);
+    LOG_DEBUG(device, "Statistics:");
+    LOG_DEBUG(device, "accel_x = %.3f [m/s2]\n", icm20689_fifo.accel_x[0]);
+    LOG_DEBUG(device, "accel_y = %.3f [m/s2]\n", icm20689_fifo.accel_y[0]);
+    LOG_DEBUG(device, "accel_z = %.3f [m/s2]\n", icm20689_fifo.accel_z[0]);
+    LOG_DEBUG(device, "gyro_x  = %.3f [deg/s]\n", icm20689_fifo.gyro_x[0]);
+    LOG_DEBUG(device, "gyro_y  = %.3f [deg/s]\n", icm20689_fifo.gyro_y[0]);
+    LOG_DEBUG(device, "gyro_z  = %.3f [deg/s]\n", icm20689_fifo.gyro_z[0]);
+    LOG_DEBUG(device, "temp    = %.3f [C]\n", icm20689_fifo.temp);
+    LOG_DEBUG(device, "N       = %lu [samples]\n", icm20689_fifo.samples);
+    LOG_DEBUG(device, "dt      = %lu [ms]\n", icm20689_fifo.dt);
 }
 
 void ICM20689_DataReadyHandler() {

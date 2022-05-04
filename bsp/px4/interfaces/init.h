@@ -8,7 +8,7 @@ extern usart_cfg_t usart7;
 extern usart_cfg_t usart8;
 extern sdio_cfg_t sdmmc1;
 
-void Board_Init();
+int Board_Init();
 int GPIOBoard_Init();
 int USART7_Init();
 int USART8_Init();

@@ -28,11 +28,11 @@
             "cwd": "${workspaceRoot}",
             "servertype": "openocd",
             "executable": "build/px4/ctlst-fmuv5.elf",
-            "svdFile": "bsp/mcu/stm32f765ii/core/STM32F765.svd",
+            "svdFile": "bsp/px4/mcu/stm32f765ii/core/STM32F765.svd",
             "searchDir": [
                 "/usr/local/share/openocd/scripts",],
             "configFiles": [
-                "bsp/mcu/stm32f765ii/core/stm32f7.cfg"
+                "bsp/px4/mcu/stm32f765ii/core/stm32f7.cfg"
             ],
         },
     ]

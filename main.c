@@ -13,6 +13,8 @@
 #include <unistd.h>
 #include "ff.h"
 
+#include "log.h"
+
 #include "swsys.h"
 #include "function.h"
 #include "fsminst.h"
@@ -48,10 +50,20 @@ void main_thread(void *param) {
 void ctlst(void *param) {
     static FRESULT res;
     swsys_t sys;
+    int rv = 0;
 
-    Board_Init();
 
     CLI_Init();
+    rv = Board_Init();
+
+    printf("\n\n\n \t\tCATALYST AUTOPILOT DEMO PROJECT\n");
+
+    if(rv) {
+        LOG_ERROR("BOARD", "Initialization failed");
+    } else {
+        LOG_INFO("BOARD", "Initialization successful")
+    }
+
     ICM20602_Init();
     ICM20689_Init();
     IST8310_Init();
@@ -60,7 +72,6 @@ void ctlst(void *param) {
 
     res = f_mount(&fs, "0:", 1);
 
-    printf("Catalyst demo project\n");
 
     swsys_load("mvp_swsys.xml", "/", &sys);
     swsys_top_module_start(&sys);
