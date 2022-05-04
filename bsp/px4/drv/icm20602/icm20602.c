@@ -30,8 +30,8 @@ void ICM20602_AccelProcess();
 void ICM20602_GyroProcess();
 void ICM20602_TempProcess();
 
-static gpio_cfg_t icm20602_cs = GPIO_SPI1_CS2;
-static exti_cfg_t icm20602_drdy = EXTI_SPI1_DRDY2;
+static gpio_cfg_t *icm20602_cs = &gpio_spi1_cs2;
+static exti_cfg_t *icm20602_drdy = &exti_spi1_drdy2;
 static SemaphoreHandle_t drdy_semaphore;
 
 typedef struct {
@@ -58,11 +58,11 @@ int ICM20602_Init() {
 }
 
 void ICM20602_ChipSelection() {
-    GPIO_Reset(&icm20602_cs);
+    GPIO_Reset(icm20602_cs);
 }
 
 void ICM20602_ChipDeselection() {
-    GPIO_Set(&icm20602_cs);
+    GPIO_Set(icm20602_cs);
 }
 
 void ICM20602_Run() {
@@ -113,6 +113,7 @@ void ICM20602_Run() {
             icm20602_fifo.dt = xTaskGetTickCount() - icm20602_last_sample;
             icm20602_fifo.samples = icm20602_FIFOParam.samples;
             icm20602_last_sample = xTaskGetTickCount();
+            ICM20602_Statistics();
         }
         break;
     }
@@ -153,7 +154,7 @@ int ICM20602_Configure() {
     int rv = 1;
 
     // Enable EXTI IRQ for DataReady pin
-    EXTI_EnableIRQ(&icm20602_drdy);
+    EXTI_EnableIRQ(icm20602_drdy);
 
     // Set configure
     for(int i = 0; i < SIZE_REG_CFG; i++) {
@@ -246,7 +247,7 @@ int ICM20602_FIFORead() {
     ICM20602_AccelProcess();
     ICM20602_GyroProcess();
 
-    EXTI_EnableIRQ(&icm20602_drdy);
+    EXTI_EnableIRQ(icm20602_drdy);
 
     return 0;
 }
@@ -324,15 +325,15 @@ int ICM20602_Probe() {
 void ICM20602_Statistics() {
     // TODO add time between FIFO reading
     LOG_DEBUG(device, "Statistics:");
-    LOG_DEBUG(device, "accel_x = %.3f [m/s2]\n", icm20602_fifo.accel_x[0]);
-    LOG_DEBUG(device, "accel_y = %.3f [m/s2]\n", icm20602_fifo.accel_y[0]);
-    LOG_DEBUG(device, "accel_z = %.3f [m/s2]\n", icm20602_fifo.accel_z[0]);
-    LOG_DEBUG(device, "gyro_x  = %.3f [deg/s]\n", icm20602_fifo.gyro_x[0]);
-    LOG_DEBUG(device, "gyro_y  = %.3f [deg/s]\n", icm20602_fifo.gyro_y[0]);
-    LOG_DEBUG(device, "gyro_z  = %.3f [deg/s]\n", icm20602_fifo.gyro_z[0]);
-    LOG_DEBUG(device, "temp    = %.3f [C]\n", icm20602_fifo.temp);
-    LOG_DEBUG(device, "N       = %lu [samples]\n", icm20602_fifo.samples);
-    LOG_DEBUG(device, "dt      = %lu [ms]\n", icm20602_fifo.dt);
+    LOG_DEBUG(device, "accel_x = %.3f [m/s2]", icm20602_fifo.accel_x[0]);
+    LOG_DEBUG(device, "accel_y = %.3f [m/s2]", icm20602_fifo.accel_y[0]);
+    LOG_DEBUG(device, "accel_z = %.3f [m/s2]", icm20602_fifo.accel_z[0]);
+    LOG_DEBUG(device, "gyro_x  = %.3f [deg/s]", icm20602_fifo.gyro_x[0]);
+    LOG_DEBUG(device, "gyro_y  = %.3f [deg/s]", icm20602_fifo.gyro_y[0]);
+    LOG_DEBUG(device, "gyro_z  = %.3f [deg/s]", icm20602_fifo.gyro_z[0]);
+    LOG_DEBUG(device, "temp    = %.3f [C]", icm20602_fifo.temp);
+    LOG_DEBUG(device, "N       = %lu [samples]", icm20602_fifo.samples);
+    LOG_DEBUG(device, "dt      = %lu [ms]", icm20602_fifo.dt);
 }
 
 void ICM20602_DataReadyHandler() {
@@ -340,9 +341,9 @@ void ICM20602_DataReadyHandler() {
 
     xSemaphoreGiveFromISR(drdy_semaphore, &xHigherPriorityTaskWoken);
 
-    HAL_EXTI_ClearPending((EXTI_HandleTypeDef *)&icm20602_drdy.EXTI_Handle,
+    HAL_EXTI_ClearPending((EXTI_HandleTypeDef *)&icm20602_drdy->EXTI_Handle,
                             EXTI_TRIGGER_RISING);
-    EXTI_DisableIRQ(&icm20602_drdy);
+    EXTI_DisableIRQ(icm20602_drdy);
 
     if(xHigherPriorityTaskWoken == pdTRUE) {
         portYIELD_FROM_ISR(xHigherPriorityTaskWoken);

@@ -19,21 +19,21 @@ int GPIOBoard_Init() {
 
     rv |= GPIO_Init(&gpio_spi1_cs1);
     rv |= GPIO_Init(&gpio_spi1_cs2);
-    // rv |= GPIO_Init(&gpio_spi1_cs3);
-    // rv |= GPIO_Init(&gpio_spi1_cs4);
+    rv |= GPIO_Init(&gpio_spi1_cs3);
+    rv |= GPIO_Init(&gpio_spi1_cs4);
     GPIO_Set(&gpio_spi1_cs1);
     GPIO_Set(&gpio_spi1_cs2);
-    // GPIO_Set(&gpio_spi1_cs3);
-    // GPIO_Set(&gpio_spi1_cs4);
+    GPIO_Set(&gpio_spi1_cs3);
+    GPIO_Set(&gpio_spi1_cs4);
 
     rv |= EXTI_Init(&exti_spi1_drdy1);
     rv |= EXTI_Init(&exti_spi1_drdy2);
-    // rv |= EXTI_Init(&exti_spi1_drdy3);
-    // rv |= EXTI_Init(&exti_spi1_drdy4);
+    rv |= EXTI_Init(&exti_spi1_drdy3);
+    rv |= EXTI_Init(&exti_spi1_drdy4);
     EXTI_DisableIRQ(&exti_spi1_drdy1);
     EXTI_DisableIRQ(&exti_spi1_drdy2);
-    // EXTI_DisableIRQ(&exti_spi1_drdy3);
-    // EXTI_DisableIRQ(&exti_spi1_drdy4);
+    EXTI_DisableIRQ(&exti_spi1_drdy3);
+    EXTI_DisableIRQ(&exti_spi1_drdy4);
 
     return rv;
 }

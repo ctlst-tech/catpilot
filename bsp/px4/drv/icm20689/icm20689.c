@@ -30,8 +30,8 @@ void ICM20689_AccelProcess();
 void ICM20689_GyroProcess();
 void ICM20689_TempProcess();
 
-static gpio_cfg_t icm20689_cs = GPIO_SPI1_CS1;
-static exti_cfg_t icm20689_drdy = EXTI_SPI1_DRDY1;
+static gpio_cfg_t *icm20689_cs = &gpio_spi1_cs1;
+static exti_cfg_t *icm20689_drdy = &exti_spi1_drdy1;
 static SemaphoreHandle_t drdy_semaphore;
 
 typedef struct {
@@ -58,11 +58,11 @@ int ICM20689_Init() {
 }
 
 void ICM20689_ChipSelection() {
-    GPIO_Reset(&icm20689_cs);
+    GPIO_Reset(icm20689_cs);
 }
 
 void ICM20689_ChipDeselection() {
-    GPIO_Set(&icm20689_cs);
+    GPIO_Set(icm20689_cs);
 }
 
 void ICM20689_Run() {
@@ -111,6 +111,7 @@ void ICM20689_Run() {
             icm20689_fifo.dt = xTaskGetTickCount() - icm20689_last_sample;
             icm20689_fifo.samples = icm20689_FIFOParam.samples;
             icm20689_last_sample = xTaskGetTickCount();
+            ICM20689_Statistics();
         }
         break;
     }
@@ -151,7 +152,7 @@ int ICM20689_Configure() {
     int rv = 1;
 
     // Enable EXTI IRQ for DataReady pin
-    EXTI_EnableIRQ(&icm20689_drdy);
+    EXTI_EnableIRQ(icm20689_drdy);
 
     // Set configure
     for(int i = 0; i < SIZE_REG_CFG; i++) {
@@ -244,7 +245,7 @@ int ICM20689_FIFORead() {
     ICM20689_AccelProcess();
     ICM20689_GyroProcess();
 
-    EXTI_EnableIRQ(&icm20689_drdy);
+    EXTI_EnableIRQ(icm20689_drdy);
 
     return 0;
 }
@@ -313,7 +314,7 @@ int ICM20689_Probe() {
     uint8_t whoami;
     whoami = ICM20689_ReadReg(WHO_AM_I);
     if(whoami != WHOAMI) {
-        LOG_ERROR(device, "unexpected WHO_AM_I reg 0x%02x\n", whoami);
+        LOG_ERROR(device, "unexpected WHO_AM_I reg 0x%02x", whoami);
         return ENODEV;
     }
     return 0;
@@ -322,15 +323,15 @@ int ICM20689_Probe() {
 void ICM20689_Statistics() {
     // TODO add time between FIFO reading
     LOG_DEBUG(device, "Statistics:");
-    LOG_DEBUG(device, "accel_x = %.3f [m/s2]\n", icm20689_fifo.accel_x[0]);
-    LOG_DEBUG(device, "accel_y = %.3f [m/s2]\n", icm20689_fifo.accel_y[0]);
-    LOG_DEBUG(device, "accel_z = %.3f [m/s2]\n", icm20689_fifo.accel_z[0]);
-    LOG_DEBUG(device, "gyro_x  = %.3f [deg/s]\n", icm20689_fifo.gyro_x[0]);
-    LOG_DEBUG(device, "gyro_y  = %.3f [deg/s]\n", icm20689_fifo.gyro_y[0]);
-    LOG_DEBUG(device, "gyro_z  = %.3f [deg/s]\n", icm20689_fifo.gyro_z[0]);
-    LOG_DEBUG(device, "temp    = %.3f [C]\n", icm20689_fifo.temp);
-    LOG_DEBUG(device, "N       = %lu [samples]\n", icm20689_fifo.samples);
-    LOG_DEBUG(device, "dt      = %lu [ms]\n", icm20689_fifo.dt);
+    LOG_DEBUG(device, "accel_x = %.3f [m/s2]", icm20689_fifo.accel_x[0]);
+    LOG_DEBUG(device, "accel_y = %.3f [m/s2]", icm20689_fifo.accel_y[0]);
+    LOG_DEBUG(device, "accel_z = %.3f [m/s2]", icm20689_fifo.accel_z[0]);
+    LOG_DEBUG(device, "gyro_x  = %.3f [deg/s]", icm20689_fifo.gyro_x[0]);
+    LOG_DEBUG(device, "gyro_y  = %.3f [deg/s]", icm20689_fifo.gyro_y[0]);
+    LOG_DEBUG(device, "gyro_z  = %.3f [deg/s]", icm20689_fifo.gyro_z[0]);
+    LOG_DEBUG(device, "temp    = %.3f [C]", icm20689_fifo.temp);
+    LOG_DEBUG(device, "N       = %lu [samples]", icm20689_fifo.samples);
+    LOG_DEBUG(device, "dt      = %lu [ms]", icm20689_fifo.dt);
 }
 
 void ICM20689_DataReadyHandler() {
@@ -338,9 +339,9 @@ void ICM20689_DataReadyHandler() {
 
     xSemaphoreGiveFromISR(drdy_semaphore, &xHigherPriorityTaskWoken);
 
-    HAL_EXTI_ClearPending((EXTI_HandleTypeDef *)&icm20689_drdy.EXTI_Handle,
+    HAL_EXTI_ClearPending((EXTI_HandleTypeDef *)&icm20689_drdy->EXTI_Handle,
                             EXTI_TRIGGER_RISING);
-    EXTI_DisableIRQ(&icm20689_drdy);
+    EXTI_DisableIRQ(icm20689_drdy);
 
     if(xHigherPriorityTaskWoken == pdTRUE) {
         portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
