@@ -23,7 +23,5 @@ int GPIOBoard_Init();
 int USART7_Init();
 int USART8_Init();
 int SPI1_Init();
-void SPI1_ChipSelect(int num);
-void SPI1_ChipDeselect();
 int I2C3_Init();
 int SDMMC1_Init();

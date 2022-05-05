@@ -72,7 +72,6 @@ void ctlst(void *param) {
 
     res = f_mount(&fs, "0:", 1);
 
-
     swsys_load("mvp_swsys.xml", "/", &sys);
     swsys_top_module_start(&sys);
 

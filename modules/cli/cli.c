@@ -19,18 +19,21 @@ void stream_init(){
     stdin->get = cli_get;
     stdin->buf = stdin_buf;
     stdin->size = 256;
+    stdin->len = 0;
     stdin->flags = __SWR;
 
     stdout = &stdout_stream;
     stdout->put = cli_put;
     stdout->buf = stdout_buf;
     stdout->size = 256;
+    stdout->len = 0;
     stdout->flags = __SWR;
 
     stderr = &stderr_stream;
     stderr->put = cli_put;
     stderr->buf = stderr_buf;
     stderr->size = 256;
+    stderr->len = 0;
     stderr->flags = __SWR;
 }
 
@@ -42,9 +45,14 @@ int CLI_Init() {
 
 // TODO add check transmit/receive status
 int cli_put(char c, struct __file * file) {
-    USART_Transmit(&usart7, (uint8_t *)&c, 1);
-    file->len--;
-    if(c == '\n') USART_Transmit(&usart7, (uint8_t *)"\r", 1);
+    file->buf[file->len] = c;
+    if(c == '\n' || (file->len + 2) >= file->size) {
+        file->len++;
+        file->buf[file->len] = '\r';
+        USART_Transmit(&usart7, (uint8_t *)file->buf, (uint16_t)(file->len + 1));
+        file->len = 0;
+        return EOF;
+    }
     return 0;
 }
 

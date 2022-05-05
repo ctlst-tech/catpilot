@@ -324,16 +324,17 @@ int ICM20602_Probe() {
 
 void ICM20602_Statistics() {
     // TODO add time between FIFO reading
-    LOG_DEBUG(device, "Statistics:");
-    LOG_DEBUG(device, "accel_x = %.3f [m/s2]", icm20602_fifo.accel_x[0]);
-    LOG_DEBUG(device, "accel_y = %.3f [m/s2]", icm20602_fifo.accel_y[0]);
-    LOG_DEBUG(device, "accel_z = %.3f [m/s2]", icm20602_fifo.accel_z[0]);
-    LOG_DEBUG(device, "gyro_x  = %.3f [deg/s]", icm20602_fifo.gyro_x[0]);
-    LOG_DEBUG(device, "gyro_y  = %.3f [deg/s]", icm20602_fifo.gyro_y[0]);
-    LOG_DEBUG(device, "gyro_z  = %.3f [deg/s]", icm20602_fifo.gyro_z[0]);
-    LOG_DEBUG(device, "temp    = %.3f [C]", icm20602_fifo.temp);
-    LOG_DEBUG(device, "N       = %lu [samples]", icm20602_fifo.samples);
-    LOG_DEBUG(device, "dt      = %lu [ms]", icm20602_fifo.dt);
+    // LOG_DEBUG(device, "Statistics:");
+    // LOG_DEBUG(device, "accel_x = %.3f [m/s2]", icm20602_fifo.accel_x[0]);
+    // LOG_DEBUG(device, "accel_y = %.3f [m/s2]", icm20602_fifo.accel_y[0]);
+    // LOG_DEBUG(device, "accel_z = %.3f [m/s2]", icm20602_fifo.accel_z[0]);
+    // LOG_DEBUG(device, "gyro_x  = %.3f [deg/s]", icm20602_fifo.gyro_x[0]);
+    // LOG_DEBUG(device, "gyro_y  = %.3f [deg/s]", icm20602_fifo.gyro_y[0]);
+    // LOG_DEBUG(device, "gyro_z  = %.3f [deg/s]", icm20602_fifo.gyro_z[0]);
+    // LOG_DEBUG(device, "temp    = %.3f [C]", icm20602_fifo.temp);
+    // LOG_DEBUG(device, "N       = %lu [samples]", icm20602_fifo.samples);
+    // LOG_DEBUG(device, "dt      = %lu [ms]", icm20602_fifo.dt);
+    LOG_DEBUG(device, "N = %lu", icm20602_fifo.samples);
 }
 
 void ICM20602_DataReadyHandler() {
