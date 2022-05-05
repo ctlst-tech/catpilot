@@ -34,6 +34,9 @@ static gpio_cfg_t *icm20689_cs = &gpio_spi1_cs1;
 static exti_cfg_t *icm20689_drdy = &exti_spi1_drdy1;
 static SemaphoreHandle_t drdy_semaphore;
 
+static SemaphoreHandle_t timer_semaphore;
+static uint32_t t0;
+
 typedef struct {
     spi_cfg_t *spi;
     icm20689_param_t param;
@@ -52,6 +55,10 @@ int ICM20689_Init() {
 
     if(drdy_semaphore == NULL) drdy_semaphore = xSemaphoreCreateBinary();
 
+    if(timer_semaphore == NULL) timer_semaphore = xSemaphoreCreateBinary();
+    xSemaphoreGive(timer_semaphore);
+
+
     icm20689_state = ICM20689_RESET;
 
     return rv;
@@ -69,24 +76,37 @@ void ICM20689_Run() {
     switch(icm20689_state) {
 
     case ICM20689_RESET:
-        ICM20689_WriteReg(PWR_MGMT_1, DEVICE_RESET);
-        icm20689_state = ICM20689_RESET_WAIT;
-        vTaskDelay(2);
+        if(xSemaphoreTake(timer_semaphore, 0)) {
+            ICM20689_WriteReg(PWR_MGMT_1, DEVICE_RESET);
+            t0 = xTaskGetTickCount();
+        }
+        if(xTaskGetTickCount() - t0 > 2.0) {
+            icm20689_state = ICM20689_RESET_WAIT;
+            xSemaphoreGive(timer_semaphore);
+        }
         break;
 
     case ICM20689_RESET_WAIT:
-        if ((ICM20689_ReadReg(WHO_AM_I) == WHOAMI)
-            && (ICM20689_ReadReg(PWR_MGMT_1) == 0x40)) {
-                ICM20689_WriteReg(PWR_MGMT_1, CLKSEL_0);
-                ICM20689_WriteReg(SIGNAL_PATH_RESET, ACCEL_RST | TEMP_RST);
-                ICM20689_SetClearReg(USER_CTRL, SIG_COND_RST | I2C_IF_DIS, 0);
-                icm20689_state = ICM20689_CONF;
-                vTaskDelay(1000);
-                LOG_DEBUG(device, "Device available");
-            } else {
-                LOG_ERROR(device, "Wrong default registers values after reset");
-                vTaskDelay(1000);
-            }
+        if(xSemaphoreTake(timer_semaphore, 0)) {
+            if((ICM20689_ReadReg(WHO_AM_I) == WHOAMI)
+                && (ICM20689_ReadReg(PWR_MGMT_1) == 0x40)) {
+
+                    ICM20689_WriteReg(PWR_MGMT_1, CLKSEL_0);
+                    ICM20689_WriteReg(SIGNAL_PATH_RESET, ACCEL_RST | TEMP_RST);
+                    ICM20689_SetClearReg(USER_CTRL, SIG_COND_RST | I2C_IF_DIS, 0);
+
+                    t0 = xTaskGetTickCount();
+                } else {
+                    LOG_ERROR(device, "Wrong default registers values after reset");
+                    icm20689_state = ICM20689_RESET;
+                    xSemaphoreGive(timer_semaphore);
+                }
+        }
+        if(xTaskGetTickCount() - t0 > 100) {
+            icm20689_state = ICM20689_CONF;
+            LOG_DEBUG(device, "Device available");
+            xSemaphoreGive(timer_semaphore);
+        }
         break;
 
     case ICM20689_CONF:
@@ -100,7 +120,6 @@ void ICM20689_Run() {
         } else {
             LOG_ERROR(device, "Wrong configuration, reset");
             icm20689_state = ICM20689_RESET;
-            vTaskDelay(1000);
         }
         break;
 

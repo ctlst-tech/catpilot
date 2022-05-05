@@ -1,5 +1,5 @@
 #pragma once
-#include "stm32_base.h"
+#include <stdint.h>
 #include <stdarg.h>
 
 #define LOG_DEBUG_ENABLE

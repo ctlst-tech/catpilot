@@ -2,6 +2,7 @@
 #include "icm20602_reg.h"
 #include "init.h"
 #include "cfg.h"
+#include "timer.h"
 
 static char *device = "ICM20602";
 
@@ -34,6 +35,9 @@ static gpio_cfg_t *icm20602_cs = &gpio_spi1_cs2;
 static exti_cfg_t *icm20602_drdy = &exti_spi1_drdy2;
 static SemaphoreHandle_t drdy_semaphore;
 
+static SemaphoreHandle_t timer_semaphore;
+static uint32_t t0;
+
 typedef struct {
     spi_cfg_t *spi;
     icm20602_param_t param;
@@ -45,12 +49,17 @@ static FIFOParam_t icm20602_FIFOParam;
 
 static TickType_t icm20602_last_sample = 0;
 
+static task_timer_t timer;
+
 int ICM20602_Init() {
     int rv = 0;
 
     icm20602_cfg.spi = &spi1;
 
     if(drdy_semaphore == NULL) drdy_semaphore = xSemaphoreCreateBinary();
+
+    if(timer_semaphore == NULL) timer_semaphore = xSemaphoreCreateBinary();
+    xSemaphoreGive(timer_semaphore);
 
     icm20602_state = ICM20602_RESET;
 
@@ -69,26 +78,41 @@ void ICM20602_Run() {
     switch(icm20602_state) {
 
     case ICM20602_RESET:
-        ICM20602_WriteReg(PWR_MGMT_1, DEVICE_RESET);
-        icm20602_state = ICM20602_RESET_WAIT;
-        vTaskDelay(2);
+        if(xSemaphoreTake(timer_semaphore, 0)) {
+            ICM20602_WriteReg(PWR_MGMT_1, DEVICE_RESET);
+            t0 = xTaskGetTickCount();
+        }
+        if(xTaskGetTickCount() - t0 > 2.0) {
+            icm20602_state = ICM20602_RESET_WAIT;
+            xSemaphoreGive(timer_semaphore);
+        }
+
         break;
 
     case ICM20602_RESET_WAIT:
-        if ((ICM20602_ReadReg(WHO_AM_I) == WHOAMI)
-            && (ICM20602_ReadReg(PWR_MGMT_1) == 0x41)
-            && (ICM20602_ReadReg(CONFIG) == 0x80)) {
-                ICM20602_WriteReg(I2C_IF, I2C_IF_DIS);
-                ICM20602_WriteReg(PWR_MGMT_1, CLKSEL_0);
-                ICM20602_WriteReg(SIGNAL_PATH_RESET, ACCEL_RST | TEMP_RST);
-                ICM20602_SetClearReg(USER_CTRL, SIG_COND_RST, 0);
-                icm20602_state = ICM20602_CONF;
-                vTaskDelay(1000);
-                LOG_DEBUG(device, "Device available");
-            } else {
-                LOG_ERROR(device, "Wrong default registers values after reset");
-                vTaskDelay(1000);
-            }
+        if(xSemaphoreTake(timer_semaphore, 0)) {
+            if((ICM20602_ReadReg(WHO_AM_I) == WHOAMI)
+                && (ICM20602_ReadReg(PWR_MGMT_1) == 0x41)
+                && (ICM20602_ReadReg(CONFIG) == 0x80)) {
+
+                    ICM20602_WriteReg(I2C_IF, I2C_IF_DIS);
+                    ICM20602_WriteReg(PWR_MGMT_1, CLKSEL_0);
+                    ICM20602_WriteReg(SIGNAL_PATH_RESET, ACCEL_RST | TEMP_RST);
+                    ICM20602_SetClearReg(USER_CTRL, SIG_COND_RST, 0);
+
+                    t0 = xTaskGetTickCount();
+                } else {
+                    LOG_ERROR(device, "Wrong default registers values after reset");
+                    icm20602_state = ICM20602_RESET;
+                    xSemaphoreGive(timer_semaphore);
+                }
+        }
+        if(xTaskGetTickCount() - t0 > 100) {
+            icm20602_state = ICM20602_CONF;
+            LOG_DEBUG(device, "Device available");
+            xSemaphoreGive(timer_semaphore);
+        }
+
         break;
 
     case ICM20602_CONF:
@@ -102,7 +126,6 @@ void ICM20602_Run() {
         } else {
             LOG_ERROR(device, "Wrong configuration, reset");
             icm20602_state = ICM20602_RESET;
-            vTaskDelay(1000);
         }
         break;
 

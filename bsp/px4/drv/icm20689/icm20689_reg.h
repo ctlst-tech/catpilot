@@ -1,5 +1,5 @@
 #include "stm32_base.h"
-#include "stm32_lib.h"
+#include "bit.h"
 #pragma once
 
 #define type_t static const uint8_t

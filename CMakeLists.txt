@@ -95,7 +95,7 @@ if (TYPE STREQUAL "PX4")
         ${DIR_MDL}/logger
         ${DIR_MDL}/io
 
-        ${DIR_MISC}
+        ${DIR_MISC}/common
 
         ${CMAKE_CURRENT_BINARY_DIR}
     )

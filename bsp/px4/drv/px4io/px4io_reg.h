@@ -1,6 +1,6 @@
 #pragma once
 #include "stm32_base.h"
-#include "stm32_lib.h"
+#include "bit.h"
 
 #define PX4IO_PROTOCOL_VERSION             5
 

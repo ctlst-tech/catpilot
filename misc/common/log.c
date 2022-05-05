@@ -3,6 +3,7 @@
 #include <string.h>
 #include <time.h>
 #include <stdarg.h>
+#include <stdio.h>
 
 static char *msg_types[4] = {
     "INFO",

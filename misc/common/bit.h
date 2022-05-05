@@ -1,5 +1,5 @@
 #pragma once
-#include "stm32_base.h"
+#include <stdint.h>
 
 #define BIT0 (1 << 0)
 #define BIT1 (1 << 1)
