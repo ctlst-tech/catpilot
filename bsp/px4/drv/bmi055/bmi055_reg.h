@@ -18,7 +18,7 @@ typedef struct {
 
 // BMI055 Accelerometer
 
-type_t ACCEL_CHIP_ID_VALUE   = 0xFA;
+type_t ACCEL_CHIP_ID_VALUE = 0xFA;
 
 type_t ACCEL_BGW_CHIP_ID   = 0x00;
 type_t ACCEL_ACCD_TEMP     = 0x08;

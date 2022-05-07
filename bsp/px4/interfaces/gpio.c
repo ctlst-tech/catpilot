@@ -2,6 +2,9 @@
 #include "cfg.h"
 
 gpio_cfg_t gpio_sdcard_pwr = GPIO_SDCARD_PWR;
+gpio_cfg_t gpio_periph_pwr = GPIO_PERIPH_PWR;
+gpio_cfg_t gpio_hi_pwr     = GPIO_HI_PWR;
+
 gpio_cfg_t gpio_spi1_cs1 = GPIO_SPI1_CS1;
 gpio_cfg_t gpio_spi1_cs2 = GPIO_SPI1_CS2;
 gpio_cfg_t gpio_spi1_cs3 = GPIO_SPI1_CS3;
@@ -16,6 +19,10 @@ int GPIOBoard_Init() {
 
     rv |= GPIO_Init(&gpio_sdcard_pwr);
     GPIO_Set(&gpio_sdcard_pwr);
+    rv |= GPIO_Init(&gpio_periph_pwr);
+    GPIO_Set(&gpio_periph_pwr);
+    rv |= GPIO_Init(&gpio_hi_pwr);
+    GPIO_Set(&gpio_hi_pwr);
 
     rv |= GPIO_Init(&gpio_spi1_cs1);
     rv |= GPIO_Init(&gpio_spi1_cs2);

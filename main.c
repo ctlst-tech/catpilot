@@ -5,6 +5,7 @@
 #include "cli.h"
 #include "icm20602.h"
 #include "icm20689.h"
+#include "bmi055.h"
 #include "ist8310.h"
 #include "px4io.h"
 
@@ -52,7 +53,6 @@ void ctlst(void *param) {
     swsys_t sys;
     int rv = 0;
 
-
     CLI_Init();
     rv = Board_Init();
 
@@ -66,6 +66,7 @@ void ctlst(void *param) {
 
     ICM20602_Init();
     ICM20689_Init();
+    BMI055_Init();
     IST8310_Init();
     PX4IO_Init();
     usleep(1000);

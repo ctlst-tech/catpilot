@@ -2,7 +2,6 @@
 #include "icm20602_reg.h"
 #include "init.h"
 #include "cfg.h"
-#include "timer.h"
 
 static char *device = "ICM20602";
 
@@ -38,6 +37,8 @@ static SemaphoreHandle_t drdy_semaphore;
 static SemaphoreHandle_t timer_semaphore;
 static uint32_t t0;
 
+static uint32_t attempt = 0;
+
 typedef struct {
     spi_cfg_t *spi;
     icm20602_param_t param;
@@ -48,8 +49,6 @@ static FIFOBuffer_t icm20602_FIFOBuffer;
 static FIFOParam_t icm20602_FIFOParam;
 
 static TickType_t icm20602_last_sample = 0;
-
-static task_timer_t timer;
 
 int ICM20602_Init() {
     int rv = 0;
@@ -112,20 +111,30 @@ void ICM20602_Run() {
             LOG_DEBUG(device, "Device available");
             xSemaphoreGive(timer_semaphore);
         }
-
         break;
 
     case ICM20602_CONF:
-        if(ICM20602_Configure()) {
-            icm20602_state = ICM20602_FIFO_READ;
-            ICM20602_FIFOReset();
-            icm20602_last_sample = xTaskGetTickCount();
-            LOG_DEBUG(device, "Device configured");
-            ICM20602_FIFOCount();
-            ICM20602_FIFORead();
-        } else {
-            LOG_ERROR(device, "Wrong configuration, reset");
-            icm20602_state = ICM20602_RESET;
+        if(xTaskGetTickCount() - t0 > 100) {
+            if(xSemaphoreTake(timer_semaphore, 0)) t0 = xTaskGetTickCount();
+            if(ICM20602_Configure()) {
+                icm20602_state = ICM20602_FIFO_READ;
+                ICM20602_FIFOReset();
+                icm20602_last_sample = xTaskGetTickCount();
+                LOG_DEBUG(device, "Device configured");
+                ICM20602_FIFOCount();
+                ICM20602_FIFORead();
+                xSemaphoreGive(timer_semaphore);
+            } else {
+                LOG_ERROR(device, "Failed configuration, retrying...");
+                t0 = xTaskGetTickCount();
+                attempt++;
+                if(attempt > 5) {
+                    icm20602_state = ICM20602_RESET;
+                    LOG_ERROR(device, "Failed configuration, reset...");
+                    attempt =  0;
+                    xSemaphoreGive(timer_semaphore);
+                }
+            }
         }
         break;
 
@@ -176,9 +185,6 @@ int ICM20602_Configure() {
     uint8_t orig_val;
     int rv = 1;
 
-    // Enable EXTI IRQ for DataReady pin
-    EXTI_EnableIRQ(icm20602_drdy);
-
     // Set configure
     for(int i = 0; i < SIZE_REG_CFG; i++) {
         ICM20602_SetClearReg(reg_cfg[i].reg, reg_cfg[i].setbits, reg_cfg[i].clearbits);
@@ -204,6 +210,9 @@ int ICM20602_Configure() {
     // Set scale and range for processing
     ICM20602_AccelConfigure();
     ICM20602_GyroConfigure();
+
+    // Enable EXTI IRQ for DataReady pin
+    EXTI_EnableIRQ(icm20602_drdy);
 
     return rv;
 }

@@ -37,6 +37,8 @@ static SemaphoreHandle_t drdy_semaphore;
 static SemaphoreHandle_t timer_semaphore;
 static uint32_t t0;
 
+static uint32_t attempt = 0;
+
 typedef struct {
     spi_cfg_t *spi;
     icm20689_param_t param;
@@ -57,7 +59,6 @@ int ICM20689_Init() {
 
     if(timer_semaphore == NULL) timer_semaphore = xSemaphoreCreateBinary();
     xSemaphoreGive(timer_semaphore);
-
 
     icm20689_state = ICM20689_RESET;
 
@@ -110,16 +111,27 @@ void ICM20689_Run() {
         break;
 
     case ICM20689_CONF:
-        if(ICM20689_Configure()) {
-            icm20689_state = ICM20689_FIFO_READ;
-            ICM20689_FIFOReset();
-            icm20689_last_sample = xTaskGetTickCount();
-            LOG_DEBUG(device, "Device configured");
-            ICM20689_FIFOCount();
-            ICM20689_FIFORead();
-        } else {
-            LOG_ERROR(device, "Wrong configuration, reset");
-            icm20689_state = ICM20689_RESET;
+        if(xTaskGetTickCount() - t0 > 100) {
+            if(xSemaphoreTake(timer_semaphore, 0)) t0 = xTaskGetTickCount();
+            if(ICM20689_Configure()) {
+                icm20689_state = ICM20689_FIFO_READ;
+                ICM20689_FIFOReset();
+                icm20689_last_sample = xTaskGetTickCount();
+                LOG_DEBUG(device, "Device configured");
+                ICM20689_FIFOCount();
+                ICM20689_FIFORead();
+                xSemaphoreGive(timer_semaphore);
+            } else {
+                LOG_ERROR(device, "Failed configuration, retrying...");
+                t0 = xTaskGetTickCount();
+                attempt++;
+                if(attempt > 5) {
+                    icm20689_state = ICM20689_RESET;
+                    LOG_ERROR(device, "Failed configuration, reset...");
+                    attempt = 0;
+                    xSemaphoreGive(timer_semaphore);
+                }
+            }
         }
         break;
 
