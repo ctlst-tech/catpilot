@@ -2,7 +2,9 @@
 #include "px4io_reg.h"
 #include "init.h"
 #include "cfg.h"
+#include "func.h"
 #include <string.h>
+#include <math.h>
 
 static char *device = "PX4IO";
 
@@ -26,7 +28,7 @@ int PX4IO_SetClearReg(uint8_t page, uint8_t offset, uint16_t setbits, uint16_t c
 int PX4IO_SetArmingState();
 int PX4IO_GetIOStatus();
 int PX4IO_GetRCPacket(uint16_t *data);
-int PX4IO_SetPWM(uint32_t *outputs, uint32_t num);
+int PX4IO_SetPWM(uint16_t *outputs, uint32_t num);
 
 typedef struct {
     usart_cfg_t *usart;
@@ -42,6 +44,36 @@ int PX4IO_Init() {
     px4io_state = PX4IO_RESET;
     return rv;
 }
+
+// Endless cycle for primary drivers testing
+static uint32_t t0;
+static uint32_t n;
+void PX4IO_PWMTest() {
+    t0 = xTaskGetTickCount();
+    n = 0;
+
+    PX4IO_SetArmingState();
+    for(int i = 0; i < PX4IO_MAX_ACTUATORS; i++) {
+        px4io_reg.outputs[i] = 1000;
+    }
+
+    PX4IO_SetPWM((uint16_t *)&px4io_reg.outputs, PX4IO_MAX_ACTUATORS);
+    while(1) {
+        if((xTaskGetTickCount() - t0 > 3000)) {
+            for(int i = 0; i < PX4IO_MAX_ACTUATORS; i++) {
+                px4io_reg.outputs[i] = 1000;
+            }
+            px4io_reg.outputs[n] = 1200;
+            n++;
+            if(n >= PX4IO_MAX_ACTUATORS) {
+                n = 0;
+            }
+            t0 = xTaskGetTickCount();
+        }
+        PX4IO_SetPWM((uint16_t *)&px4io_reg.outputs, PX4IO_MAX_ACTUATORS);
+    }
+}
+// Only for primary testing
 
 void PX4IO_Run() {
     int rv;
@@ -65,42 +97,58 @@ void PX4IO_Run() {
             if ((px4io_reg.max_actuators < 1) || (px4io_reg.max_actuators > PX4IO_MAX_ACTUATORS) ||
                 (px4io_reg.max_transfer < 16) || (px4io_reg.max_transfer > 255)  ||
                 (px4io_reg.max_rc_input < 1)  || (px4io_reg.max_rc_input > 255)) {
-                    // TODO Add error processing
+                    LOG_ERROR(device, "Wrong configuration");
                     px4io_state = PX4IO_ERROR;
             } else {
+                LOG_DEBUG(device, "Initialization successful");
                 px4io_state = PX4IO_CONF;
             }
 
             // Get last IO state
-            px4io_reg.arming = PX4IO_ReadRegs(PX4IO_PAGE_SETUP, PX4IO_P_SETUP_ARMING, 1);
-            if(px4io_reg.arming == PX4IO_READREG_ERROR) px4io_state = PX4IO_ERROR;
+            PX4IO_GetIOStatus();
+            if(px4io_reg.arm_status == PX4IO_READREG_ERROR) px4io_state = PX4IO_ERROR;
 
             // Disarm IO
-            rv = PX4IO_SetClearReg(PX4IO_PAGE_SETUP, PX4IO_P_SETUP_ARMING, 0, PX4IO_P_SETUP_ARMING_FMU_ARMED | PX4IO_P_SETUP_ARMING_LOCKDOWN);
-            if(rv) px4io_state = PX4IO_ERROR;
+            rv = PX4IO_SetClearReg(PX4IO_PAGE_SETUP, PX4IO_P_SETUP_ARMING, 0,
+                PX4IO_P_SETUP_ARMING_FMU_ARMED | PX4IO_P_SETUP_ARMING_LOCKDOWN);
+            LOG_INFO(device, "Disarming");
+
+            if(rv) {
+                LOG_ERROR(device, "Failed disarming proccess");
+                px4io_state = PX4IO_ERROR;
+            }
         } else {
-            printf("%s: Wrong protocol version: %lu\n", device, px4io_reg.protocol_version);
+            LOG_ERROR(device, "Wrong protocol version: %lu\n", px4io_reg.protocol_version);
         }
         break;
 
     case PX4IO_CONF:
         // Here we set number of rc channels, actuators, max/min rate, max/min pwm
-        rv = PX4IO_SetClearReg(PX4IO_PAGE_DISARMED_PWM, 0, 90, PX4IO_MAX_ACTUATORS);
+        rv = PX4IO_SetClearReg(PX4IO_PAGE_DISARMED_PWM, 0, 1000, PX4IO_MAX_ACTUATORS);
+        rv = PX4IO_SetClearReg(PX4IO_PAGE_FAILSAFE_PWM, 0, 0, PX4IO_MAX_ACTUATORS);
+        // rv = PX4IO_SetClearReg(PX4IO_PAGE_SETUP, PX4IO_P_SETUP_PWM_RATE_GROUP0, 0, PX4IO_MAX_ACTUATORS);
 
         rv = PX4IO_SetClearReg(PX4IO_PAGE_STATUS, PX4IO_P_STATUS_FLAGS,
-                PX4IO_P_STATUS_FLAGS_SAFETY_OFF | PX4IO_P_STATUS_FLAGS_ARM_SYNC | PX4IO_P_STATUS_FLAGS_INIT_OK, 0);
+                PX4IO_P_STATUS_FLAGS_SAFETY_OFF | PX4IO_P_STATUS_FLAGS_ARM_SYNC |
+                PX4IO_P_STATUS_FLAGS_INIT_OK, 0);
 
         px4io_reg.arm = PX4IO_DISARM;
-        if(rv) px4io_state = PX4IO_ERROR;
-
         px4io_state = PX4IO_OPERATION;
+
+        if(rv) {
+            LOG_ERROR(device, "Configuration proccess failed");
+            px4io_state = PX4IO_ERROR;
+        }
         break;
 
     case PX4IO_OPERATION:
-        PX4IO_SetArmingState();
+        //
+        PX4IO_PWMTest();
+        //
         PX4IO_GetRCPacket((uint16_t *)&px4io_reg.rc);
-        PX4IO_SetPWM((uint32_t *)&px4io_reg.outputs, PX4IO_MAX_ACTUATORS);
         PX4IO_GetIOStatus();
+        PX4IO_SetArmingState();
+        PX4IO_SetPWM(px4io_reg.outputs, PX4IO_MAX_ACTUATORS);
         break;
 
     case PX4IO_ERROR:
@@ -125,29 +173,24 @@ void PX4IO_SetMinPWM(int pwm) {
     px4io_reg.min_pwm = pwm;
 }
 
-void PX4IO_SetOutput(int channel, int out) {
-    int out_sat;
-    out_sat = (out > 1 ? 1 : out);
-    out_sat = (out_sat < 0 ? 0 : out_sat);
+void PX4IO_SetOutput(int channel, float out) {
+    uint16_t out_sat;
+    out = SAT(out, 1, 0);
+    out_sat = (uint16_t)roundl(out * (px4io_reg.max_pwm - px4io_reg.min_pwm) + px4io_reg.min_pwm);
     if(channel > PX4IO_MAX_ACTUATORS || channel < 0) {
-        printf("%s: wrong output channel number\n", device);
+        LOG_ERROR(device, "Wrong output channel number");
     } else {
-        px4io_reg.outputs[channel] =
-            out_sat * (px4io_reg.max_pwm - px4io_reg.max_pwm) + px4io_reg.min_pwm;
+        px4io_reg.outputs[channel] = out_sat;
     }
 }
 
 uint16_t PX4IO_GetRC(int channel) {
-    if(channel > PX4IO_RC_CHANNELS || channel < 0) {
-        printf("%s: wrong RC channel number\n", device);
+    if(channel > PX4IO_RC_CHANNELS || channel < 1) {
+        LOG_ERROR(device, "Wrong RC channel number");
         return 0;
     } else {
-        return px4io_reg.rc[channel];
+        return px4io_reg.rc[channel - 1];
     }
-}
-
-uint32_t PX4IO_GetState() {
-    return px4io_reg.status;
 }
 
 int PX4IO_SetArmingState() {
@@ -180,12 +223,12 @@ int PX4IO_GetIOStatus() {
     rv = PX4IO_ReadRegs(PX4IO_PAGE_STATUS, PX4IO_P_STATUS_FLAGS, 6);
     if(rv) return rv;
 
-    px4io_reg.status = px4io_rx_packet.regs[0];
-    px4io_reg.alarms = px4io_rx_packet.regs[1];
-    px4io_reg.vservo = px4io_rx_packet.regs[4];
-    px4io_reg.vrssi  = px4io_rx_packet.regs[5];
+    px4io_reg.general_status = px4io_rx_packet.regs[0];
+    px4io_reg.alarms_status = px4io_rx_packet.regs[1];
+    px4io_reg.vservo_status = px4io_rx_packet.regs[4];
+    px4io_reg.vrssi_status  = px4io_rx_packet.regs[5];
 
-    px4io_reg.arming = PX4IO_ReadReg(PX4IO_PAGE_SETUP, PX4IO_P_SETUP_ARMING);
+    px4io_reg.arm_status = PX4IO_ReadReg(PX4IO_PAGE_SETUP, PX4IO_P_SETUP_ARMING);
 
     return rv;
 }
@@ -200,7 +243,7 @@ int PX4IO_GetRCPacket(uint16_t *data) {
     return rv;
 }
 
-int PX4IO_SetPWM(uint32_t *outputs, uint32_t num) {
+int PX4IO_SetPWM(uint16_t *outputs, uint32_t num) {
     int rv = 0;
     rv = PX4IO_WriteRegs(PX4IO_PAGE_DIRECT_PWM, 0, (uint16_t *)outputs, num);
     return rv;
