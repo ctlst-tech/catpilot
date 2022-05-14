@@ -30,7 +30,8 @@ type_t ZA_OFFSET_L          = 0x7E;
 
 // CONFIG
 type_t FIFO_MODE            = BIT6;
-type_t DLPF_CFG_8kHz        = 7;
+type_t DLPF_CFG_8KHZ        = 7;
+type_t DLPF_CFG_1KHZ        = 1;
 
 // GYRO_CONFIG
 type_t FS_SEL_250_DPS       = 0x00;
@@ -48,6 +49,7 @@ type_t ACCEL_FS_SEL_16G     = BIT4 | BIT3;
 // ACCEL_CONFIG2
 type_t FIFO_SIZE_REG        = BIT7 | BIT6;
 type_t ACCEL_FCHOICE_B      = BIT3;
+type_t A_DLPF_CFG_1KHZ      = 7;
 
 // FIFO_EN
 type_t TEMP_FIFO_EN         = BIT7;
@@ -117,10 +119,10 @@ typedef struct {
 } reg_cfg_t;
 
 static const reg_cfg_t reg_cfg[SIZE_REG_CFG] = {
-    {CONFIG,        FIFO_MODE | DLPF_CFG_8kHz, 0},
+    {CONFIG,        FIFO_MODE | DLPF_CFG_1KHZ, 0},
     {GYRO_CONFIG,   FS_SEL_2000_DPS, FCHOICE_B_8KHZ},
     {ACCEL_CONFIG,  ACCEL_FS_SEL_16G, 0},
-    {ACCEL_CONFIG2, ACCEL_FCHOICE_B, FIFO_SIZE_REG},
+    {ACCEL_CONFIG2, A_DLPF_CFG_1KHZ, ACCEL_FCHOICE_B | FIFO_SIZE_REG},
     {FIFO_EN,       TEMP_FIFO_EN | XG_FIFO_EN | YG_FIFO_EN | ZG_FIFO_EN | ACCEL_FIFO_EN, 0},
     {INT_PIN_CFG,   INT_LEVEL, 0},
     {INT_ENABLE,    DATA_RDY_INT_EN, 0},
