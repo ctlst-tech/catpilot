@@ -79,6 +79,7 @@ if (TYPE STREQUAL "PX4")
         ${DIR_PERIPH}/dma
         ${DIR_PERIPH}/hal
         ${DIR_PERIPH}/sdio
+        ${DIR_PERIPH}/tim
 
         ${DIR_DRV}
         ${DIR_DRV}/icm20602

@@ -50,10 +50,28 @@ static FIFOParam_t icm20689_FIFOParam;
 
 static TickType_t icm20689_last_sample = 0;
 
+static tim_cfg_t tim_cfg;
+
 int ICM20689_Init() {
     int rv = 0;
 
     icm20689_cfg.spi = &spi1;
+
+    tim_cfg.TIM = TIM2;
+    tim_cfg.priority = 5;
+    tim_cfg.inst.TIM_InitStruct.Channel =
+                                    HAL_TIM_ACTIVE_CHANNEL_1;
+    tim_cfg.inst.TIM_InitStruct.Init.AutoReloadPreload =
+                                    TIM_AUTORELOAD_PRELOAD_DISABLE;
+    tim_cfg.inst.TIM_InitStruct.Init.ClockDivision =
+                                    TIM_CLOCKDIVISION_DIV1;
+    tim_cfg.inst.TIM_InitStruct.Init.CounterMode =
+                                    TIM_COUNTERMODE_UP;
+    tim_cfg.inst.TIM_InitStruct.Init.Period = 100000;
+    tim_cfg.inst.TIM_InitStruct.Init.Prescaler = 216;
+    tim_cfg.inst.TIM_InitStruct.Init.RepetitionCounter = 0;
+
+    TIM_Init(&tim_cfg);
 
     if(drdy_semaphore == NULL) drdy_semaphore = xSemaphoreCreateBinary();
 

@@ -45,36 +45,6 @@ int PX4IO_Init() {
     return rv;
 }
 
-// Endless cycle for primary drivers testing
-static uint32_t t0;
-static uint32_t n;
-void PX4IO_PWMTest() {
-    t0 = xTaskGetTickCount();
-    n = 0;
-
-    PX4IO_SetArmingState();
-    for(int i = 0; i < PX4IO_MAX_ACTUATORS; i++) {
-        px4io_reg.outputs[i] = 1000;
-    }
-
-    PX4IO_SetPWM((uint16_t *)&px4io_reg.outputs, PX4IO_MAX_ACTUATORS);
-    while(1) {
-        if((xTaskGetTickCount() - t0 > 3000)) {
-            for(int i = 0; i < PX4IO_MAX_ACTUATORS; i++) {
-                px4io_reg.outputs[i] = 1000;
-            }
-            px4io_reg.outputs[n] = 1200;
-            n++;
-            if(n >= PX4IO_MAX_ACTUATORS) {
-                n = 0;
-            }
-            t0 = xTaskGetTickCount();
-        }
-        PX4IO_SetPWM((uint16_t *)&px4io_reg.outputs, PX4IO_MAX_ACTUATORS);
-    }
-}
-// Only for primary testing
-
 void PX4IO_Run() {
     int rv;
     uint16_t outputs[PX4IO_MAX_ACTUATORS];
@@ -142,9 +112,6 @@ void PX4IO_Run() {
         break;
 
     case PX4IO_OPERATION:
-        //
-        PX4IO_PWMTest();
-        //
         PX4IO_GetRCPacket((uint16_t *)&px4io_reg.rc);
         PX4IO_GetIOStatus();
         PX4IO_SetArmingState();
