@@ -10,12 +10,6 @@ static char *device = "PX4IO";
 
 px4io_reg_t px4io_reg;
 
-enum px4io_state_t {
-    PX4IO_RESET,
-    PX4IO_CONF,
-    PX4IO_OPERATION,
-    PX4IO_ERROR,
-};
 enum px4io_state_t px4io_state;
 
 int PX4IO_Read(uint16_t address, uint16_t length);
@@ -35,6 +29,9 @@ typedef struct {
 } px4io_cfg_t;
 static px4io_cfg_t px4io_cfg;
 
+static SemaphoreHandle_t timer_semaphore;
+static uint32_t t0;
+
 static px4io_packet_t px4io_tx_packet;
 static px4io_packet_t px4io_rx_packet;
 
@@ -42,6 +39,8 @@ int PX4IO_Init() {
     int rv = 0;
     px4io_cfg.usart = &usart8;
     px4io_state = PX4IO_RESET;
+    if(timer_semaphore == NULL) timer_semaphore = xSemaphoreCreateBinary();
+    xSemaphoreGive(timer_semaphore);
     return rv;
 }
 
@@ -51,7 +50,14 @@ void PX4IO_Run() {
     switch(px4io_state) {
 
     case PX4IO_RESET:
-        vTaskDelay(2000);
+        if(xSemaphoreTake(timer_semaphore, 0)) {
+            t0 = xTaskGetTickCount();
+        }
+        if(xTaskGetTickCount() - t0 < 2000.0) {
+            return;
+        } else {
+            xSemaphoreGive(timer_semaphore);
+        }
 
         px4io_reg.protocol_version = PX4IO_ReadReg(PX4IO_PAGE_CONFIG, PX4IO_P_CONFIG_PROTOCOL_VERSION);
 
@@ -114,8 +120,6 @@ void PX4IO_Run() {
     case PX4IO_OPERATION:
         PX4IO_GetRCPacket((uint16_t *)&px4io_reg.rc);
         PX4IO_GetIOStatus();
-        PX4IO_SetArmingState();
-        PX4IO_SetPWM(px4io_reg.outputs, PX4IO_MAX_ACTUATORS);
         break;
 
     case PX4IO_ERROR:
@@ -140,23 +144,30 @@ void PX4IO_SetMinPWM(int pwm) {
     px4io_reg.min_pwm = pwm;
 }
 
+void PX4IO_UpdateOutput() {
+    PX4IO_SetArmingState();
+    PX4IO_SetPWM(px4io_reg.outputs, PX4IO_MAX_ACTUATORS);
+}
+
 void PX4IO_SetOutput(int channel, float out) {
+    px4io_reg.min_pwm = 1000;
+    px4io_reg.max_pwm = 2000;
     uint16_t out_sat;
     out = SAT(out, 1, 0);
     out_sat = (uint16_t)roundl(out * (px4io_reg.max_pwm - px4io_reg.min_pwm) + px4io_reg.min_pwm);
-    if(channel > PX4IO_MAX_ACTUATORS || channel < 0) {
+    if(channel > PX4IO_MAX_ACTUATORS || channel < 1) {
         LOG_ERROR(device, "Wrong output channel number");
     } else {
-        px4io_reg.outputs[channel] = out_sat;
+        px4io_reg.outputs[channel - 1] = out_sat;
     }
 }
 
-uint16_t PX4IO_GetRC(int channel) {
+float PX4IO_GetRC(int channel) {
     if(channel > PX4IO_RC_CHANNELS || channel < 1) {
         LOG_ERROR(device, "Wrong RC channel number");
         return 0;
     } else {
-        return px4io_reg.rc[channel - 1];
+        return (px4io_reg.rc[channel - 1] / 1000.f - 1.0f);
     }
 }
 

@@ -145,7 +145,7 @@ void ICM20602_Run() {
             icm20602_fifo.dt = xTaskGetTickCount() - icm20602_last_sample;
             icm20602_fifo.samples = icm20602_FIFOParam.samples;
             icm20602_last_sample = xTaskGetTickCount();
-            ICM20602_Statistics();
+            // ICM20602_Statistics();
         }
         break;
     }

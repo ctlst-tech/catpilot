@@ -28,6 +28,13 @@ typedef struct {
 } px4io_reg_t;
 #pragma pack(pop)
 
+enum px4io_state_t {
+    PX4IO_RESET,
+    PX4IO_CONF,
+    PX4IO_OPERATION,
+    PX4IO_ERROR,
+};
+
 int PX4IO_Init();
 void PX4IO_Run();
 
@@ -35,6 +42,6 @@ void PX4IO_SetArm(bool arm);
 void PX4IO_SetMaxPWM(int pwm);
 void PX4IO_SetMinPWM(int pwm);
 void PX4IO_SetOutput(int channel, float out);
+void PX4IO_UpdateOutput();
 
-uint16_t PX4IO_GetRC(int channel);
-uint16_t PX4IO_GetState();
+float PX4IO_GetRC(int channel);

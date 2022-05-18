@@ -160,7 +160,7 @@ void ICM20689_Run() {
             icm20689_fifo.dt = xTaskGetTickCount() - icm20689_last_sample;
             icm20689_fifo.samples = icm20689_FIFOParam.samples;
             icm20689_last_sample = xTaskGetTickCount();
-            ICM20689_Statistics();
+            // ICM20689_Statistics();
         }
         break;
     }

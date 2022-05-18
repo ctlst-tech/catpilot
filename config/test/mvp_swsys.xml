@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<swsys>
+
+    <bus name="sens_bus" max_topics="256" eq_channel="1">
+        <event_queue size="20" buffer_size="2000"/>
+    </bus>
+
+    <!-- <task type="flow" name="sens" config="mvp_flow_sens.xml" priority="5" clk_method="timer" clk_period="1">
+        <connect>
+            <out alias="ax">itb:/sens_bus/ax</out>
+            <out alias="ay">itb:/sens_bus/ay</out>
+            <out alias="az">itb:/sens_bus/az</out>
+            <out alias="wx">itb:/sens_bus/wx</out>
+            <out alias="wy">itb:/sens_bus/wy</out>
+            <out alias="wz">itb:/sens_bus/wz</out>
+        </connect>
+    </task> -->
+
+    <task type="flow" name="control" config="mvp_flow_control.xml" priority="6" clk_method="timer" clk_period="5">
+        <connect>
+            <out alias="stub">itb:/sens_bus/ax</out>
+        </connect>
+    </task>
+
+</swsys>

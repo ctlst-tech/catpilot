@@ -27,7 +27,7 @@ int main(void) {
     HAL_Init();
     RCC_Init();
 
-    xTaskCreate(main_thread, "main_thread", 32000, NULL, 1, NULL );
+    xTaskCreate(main_thread, "main_thread", 42000, NULL, 1, NULL );
 
     vTaskStartScheduler();
 
