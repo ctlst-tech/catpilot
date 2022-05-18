@@ -51,7 +51,6 @@ int cli_put(char c, struct __file * file) {
         file->buf[file->len] = '\r';
         USART_Transmit(&usart7, (uint8_t *)file->buf, (uint16_t)(file->len + 1));
         file->len = 0;
-        return EOF;
     }
     return 0;
 }
