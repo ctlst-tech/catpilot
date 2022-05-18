@@ -1,11 +1,17 @@
 #include "rcc.h"
 
 void RCC_Init() {
-    RCC_OscInitTypeDef RCC_OscInitStruct;
-    RCC_ClkInitTypeDef RCC_ClkInitStruct;
-    RCC_PLLSAIInitTypeDef RCC_PLLSAIInitStruct;
-    RCC_PLLI2SInitTypeDef RCC_PLLI2SInitStruct;
+    RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+    RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+    RCC_PLLSAIInitTypeDef RCC_PLLSAIInitStruct = {0};
+    RCC_PLLI2SInitTypeDef RCC_PLLI2SInitStruct = {0};
     RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
+
+    // Reset
+    RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+    RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+    RCC_OscInitStruct.PLL.PLLState = RCC_PLL_OFF;
+    while(HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK);
 
     // XTAL = 16 MHz, SYSCLK = 216 MHz
     RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
