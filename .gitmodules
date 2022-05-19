@@ -1,3 +1,0 @@
-[submodule "c-atom-lib"]
-	path = c-atom
-	url = ssh://git@git.jetbrains.space/ctlst/c-atom/c-atom-lib.git
