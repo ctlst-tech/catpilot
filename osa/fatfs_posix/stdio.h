@@ -296,7 +296,7 @@
  char *baseext ( char *str );
  int chdir ( const char *pathname );
  int chmod ( const char *pathname , mode_t mode );
- int dirname ( char *str );
+ char *dirname ( char *str );
  //int utime(const char *filename, const struct utimbuf *times);
 
  #if 0

@@ -1,0 +1,3 @@
+[submodule "c-atom"]
+	path = c-atom
+	url = ssh://git@git.jetbrains.space/ctlst/c-atom/c-atom.git

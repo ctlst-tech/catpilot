@@ -1,10 +1,29 @@
 cmake_minimum_required(VERSION 3.15)
 
+#-DCMAKE_VERBOSE_MAKEFILE:BOOL=ON
+
 set(PROJ_NAME "ctlst-fmuv5")
 
 set(CMAKE_VERBOSE_MAKEFILE OFF)
+
 if (TYPE STREQUAL "PX4")
+    include_directories(BEFORE
+            osa/freertos_posix/include/FreeRTOS_POSIX
+            osa/freertos_posix/include
+            osa/freertos_posix/include
+            osa/freertos_posix/FreeRTOS-Plus-POSIX/include
+            osa/freertos_posix/FreeRTOS-Plus-POSIX/include/portable/
+            osa/freertos_posix/include/private
+            os/freertos/core/inc
+            os/freertos/
+            os/freertos/port/stm32f765ii/
+            )
     set(MAP_CREATION "ON")
+    set(ESWB_EQRB_NO_SOCKET "1")
+    set(ESWB_EQRB_NO_SERIAL "1")
+    set(CATOM_NO_SOCKET "1")
+    set(FAKE_PTHREAD "1")
+
     set(MCU stm32f765ii)
     set(DIR_MCU bsp/px4/mcu/${MCU})
     set(ASM_FILE ${PROJECT_BINARY_DIR}/${PROJ_NAME}.asm)
@@ -18,10 +37,14 @@ endif ()
 
 project(${PROJ_NAME} C ASM)
 
+include_directories(./c-atom/function)
+
+include(fspecs.cmake)
+
+
 if (TYPE STREQUAL "PX4")
 
-    set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/build/px4)
-    set(CMAKE_BINARY_DIR ./build/px4)
+    set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/firmware)
 
     set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "" )
     set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "" )
@@ -57,12 +80,7 @@ if (TYPE STREQUAL "PX4")
         ${DIR_OS}/core/inc
         ${DIR_OS}/port/${MCU}
 
-        ${DIR_OSA}/freertos_posix/FreeRTOS-Plus-POSIX/include/portable
-        ${DIR_OSA}/freertos_posix/FreeRTOS-Plus-POSIX/include
-        ${DIR_OSA}/freertos_posix/include/private
-        ${DIR_OSA}/freertos_posix/include
-        ${DIR_OSA}/freertos_posix/include/FreeRTOS_POSIX
-        ${DIR_OSA}/freertos_posix/include/FreeRTOS_POSIX/sys
+        ${DIR_C_ATOM}/swsys
 
         ${DIR_FS}
 
@@ -98,7 +116,6 @@ if (TYPE STREQUAL "PX4")
 
         ${DIR_MISC}/common
 
-        ${CMAKE_CURRENT_BINARY_DIR}
     )
 
     add_subdirectory(c-atom)
@@ -130,6 +147,7 @@ if (TYPE STREQUAL "PX4")
         ${SRC_FS}
         ${SRC_OS}
         ${SRC_OSA}
+        ${FSPECS_REG}
     )
 
     add_executable(${PROJECT_NAME}.elf
@@ -139,6 +157,7 @@ if (TYPE STREQUAL "PX4")
 
     target_link_libraries(${PROJECT_NAME}.elf PRIVATE
         c-atom-static
+        ${FSPECS_LIBS}
         -lc -lm -lnosys
     )
 

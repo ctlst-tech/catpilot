@@ -6,7 +6,7 @@ dma_cfg_t usart7_dma_tx;
 dma_cfg_t usart7_dma_rx;
 gpio_cfg_t usart7_tx = GPIO_USART7_TX;
 gpio_cfg_t usart7_rx = GPIO_USART7_RX;
-const int usart7_bitrate = 2000000;
+const int usart7_bitrate = 115200;
 const int usart7_timeout = 20;
 const int usart7_priority = 15;
 
