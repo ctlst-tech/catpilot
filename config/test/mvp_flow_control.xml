@@ -18,6 +18,8 @@
     </spec>
 
     <functions>
+        <f name="imu" by_spec="core.periph.imu"/>
+
         <f name="zero" by_spec="core.source.constant">
             <param alias="value">0.0</param>
         </f>

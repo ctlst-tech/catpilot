@@ -32,13 +32,17 @@ static ist8310_cfg_t ist8310_cfg;
 
 static buffer_t buffer;
 
-static TickType_t t_now  = 0;
-static TickType_t t_last = 0;
+static SemaphoreHandle_t timer_semaphore;
+static uint32_t t0;
 
 int IST8310_Init() {
     int rv = 0;
 
     ist8310_cfg.i2c = &i2c3;
+
+    if(timer_semaphore == NULL) timer_semaphore = xSemaphoreCreateBinary();
+    xSemaphoreGive(timer_semaphore);
+
     ist8310_state = IST8310_RESET;
 
     return rv;
@@ -48,50 +52,57 @@ void IST8310_Run() {
     switch(ist8310_state) {
 
     case IST8310_RESET:
-        IST8310_WriteReg(CNTL2, SRST);
-        ist8310_state = IST8310_RESET_WAIT;
-        vTaskDelay(50);
+        if(xSemaphoreTake(timer_semaphore, 0)) {
+            IST8310_WriteReg(CNTL2, SRST);
+            t0 = xTaskGetTickCount();
+        }
+        if(xTaskGetTickCount() - t0 > 20.0) {
+            ist8310_state = IST8310_RESET_WAIT;
+            xSemaphoreGive(timer_semaphore);
+        }
         break;
 
     case IST8310_RESET_WAIT:
-        IST8310_ReadReg(CNTL2);
-        if ((IST8310_ReadReg(WHO_AM_I) == DEVICE_ID)
-            && ((IST8310_ReadReg(CNTL2) & SRST) == 0)) {
-                ist8310_state = IST8310_CONF;
-                vTaskDelay(10);
-            } else {
-                printf("%s: Wrong default registers values after reset\n", device);
-                vTaskDelay(1000);
-                ist8310_state = IST8310_RESET;
-            }
+        if(xSemaphoreTake(timer_semaphore, 0)) {
+            IST8310_ReadReg(CNTL2);
+            if ((IST8310_ReadReg(WHO_AM_I) == DEVICE_ID)
+                && ((IST8310_ReadReg(CNTL2) & SRST) == 0)) {
+                    t0 = xTaskGetTickCount();
+                } else {
+                    LOG_ERROR(device, "Wrong default registers values after reset");
+                    ist8310_state = IST8310_RESET;
+                    xSemaphoreGive(timer_semaphore);
+                }
+        }
+        if(xTaskGetTickCount() - t0 > 10.0) {
+            ist8310_state = IST8310_CONF;
+            LOG_DEBUG(device, "Device available");
+            xSemaphoreGive(timer_semaphore);
+        }
         break;
 
     case IST8310_CONF:
         if(IST8310_Configure()) {
             ist8310_state = IST8310_MEAS;
         } else {
-            printf("%s: Wrong configuration, reset\n", device);
+            LOG_ERROR(device, "Wrong configuration, reset");
             ist8310_state = IST8310_RESET;
-            vTaskDelay(1000);
         }
         break;
 
     case IST8310_MEAS:
         IST8310_WriteReg(CNTL1, SINGLE_MEAS);
-        t_last = xTaskGetTickCount();
+        t0 = xTaskGetTickCount();
         ist8310_state = IST8310_READ;
         break;
 
     case IST8310_READ:
-        t_now = xTaskGetTickCount();
-        if((t_now - t_last) >= 20) {
+        if((xTaskGetTickCount() - t0) >= 20.0) {
             IST8310_Meas();
             IST8310_Process();
             IST8310_WriteReg(CNTL1, SINGLE_MEAS);
-            t_last = t_now;
-            ist8310_data.dt = t_now - t_last;
-        } else if(t_last > t_now) {
-            t_last = t_now;
+            t0 = xTaskGetTickCount();
+            ist8310_data.dt = xTaskGetTickCount() - t0;
         }
         break;
     }
