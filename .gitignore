@@ -6,3 +6,7 @@ build/
 docs/
 TODO
 .idea
+cmake-build-debug
+f_specs_reg.c
+fspecs.cmake
+.DS_Store
