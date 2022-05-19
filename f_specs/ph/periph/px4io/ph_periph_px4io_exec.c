@@ -1,4 +1,4 @@
-#include "core_periph_px4io.h"
+#include "ph_periph_px4io.h"
 
 extern void PX4IO_Run();
 extern void PX4IO_SetOutput();
@@ -6,11 +6,11 @@ extern void PX4IO_SetArm();
 extern uint16_t PX4IO_GetRC();
 
 void ph_periph_px4io_exec(
-    const core_periph_px4io_inputs_t *i,
-    core_periph_px4io_outputs_t *o,
-    const core_periph_px4io_params_t *p,
-    core_periph_px4io_state_t *state,
-    const core_periph_px4io_injection_t *injection
+    const ph_periph_px4io_inputs_t *i,
+    ph_periph_px4io_outputs_t *o,
+    const ph_periph_px4io_params_t *p,
+    ph_periph_px4io_state_t *state,
+    const ph_periph_px4io_injection_t *injection
 )
 {
     PX4IO_SetOutput(1, i->pwm_channel1);
