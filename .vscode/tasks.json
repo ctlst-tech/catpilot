@@ -4,7 +4,7 @@
         {
             "label": "Flash",
             "type": "shell",
-            "command": "openocd -f interface/stlink-v2.cfg -f target/stm32f7x.cfg -c \"program ./build/px4/ctlst-fmuv5.elf verify reset exit\"",
+            "command": "openocd -f interface/stlink-v2.cfg -f target/stm32f7x.cfg -c \"program ./build/firmware/ctlst-fmuv5.elf verify reset exit\"",
             "problemMatcher": [],
             "group": {
                 "kind": "build",

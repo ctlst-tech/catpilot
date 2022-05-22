@@ -91,6 +91,7 @@
 #define posixconfigENABLE_PTHREAD_COND_T 1
 #define posixconfigENABLE_PTHREAD_MUTEX_T 1
 #define posixconfigENABLE_PTHREAD_MUTEXATTR_T 1
+#define configUSE_POSIX_ERRNO 1
 
 /**
  * @brief Struct embedded in any struct to make it a doubly linked

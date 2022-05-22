@@ -37,6 +37,7 @@ enum px4io_state_t {
 
 int PX4IO_Init();
 void PX4IO_Run();
+int PX4IO_Ready();
 
 void PX4IO_SetArm(bool arm);
 void PX4IO_SetMaxPWM(int pwm);

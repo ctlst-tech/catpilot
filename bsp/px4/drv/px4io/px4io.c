@@ -128,6 +128,14 @@ void PX4IO_Run() {
     }
 }
 
+int PX4IO_Ready() {
+    if(px4io_state == PX4IO_OPERATION) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
 void PX4IO_SetArm(bool arm) {
     if(arm) {
         px4io_reg.arm = PX4IO_ARM;

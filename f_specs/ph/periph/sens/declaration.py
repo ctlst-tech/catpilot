@@ -1,51 +1,44 @@
 from ctlst import *
 
 Function(
-    name='ph.periph.imu',
+    name='ph.periph.sens',
     title=LocalizedString(
-        en='IMU'
+        en='SENS'
     ),
-    parameters=[
-    ],
-    inputs=[
-    ],
+    parameters=[],
+    inputs=[],
     outputs=[
         Output(
             name='ax',
             title='X-axis acceleration',
-            value_type='core.type.f64'
+            value_type='core.type.f32'
         ),
         Output(
             name='ay',
             title='Y-axis acceleration',
-            value_type='core.type.f64'
+            value_type='core.type.f32'
         ),
         Output(
             name='az',
             title='Z-axis acceleration',
-            value_type='core.type.f64'
+            value_type='core.type.f32'
         ),
         Output(
             name='wx',
             title='X-axis angular rate',
-            value_type='core.type.f64'
+            value_type='core.type.f32'
         ),
         Output(
             name='wy',
             title='Y-axis angular rate',
-            value_type='core.type.f64'
+            value_type='core.type.f32'
         ),
         Output(
             name='wz',
             title='Z-axis angular rate',
-            value_type='core.type.f64'
+            value_type='core.type.f32'
         ),
     ],
-    state=[
-    ],
-    parameter_constraints=[
-    ],
-    injection=Injection(
-        timedelta=True
-    )
+    state=[],
+    parameter_constraints=[]
 )

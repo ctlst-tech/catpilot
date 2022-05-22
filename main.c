@@ -35,8 +35,6 @@ int main(void) {
     }
 }
 
-static FATFS fs;
-
 void main_thread(void *param) {
     pthread_t tid;
     pthread_attr_t attr;
@@ -53,8 +51,8 @@ void ctlst(void *param) {
     swsys_t sys;
     int rv = 0;
 
-    CLI_Init();
     rv = Board_Init();
+    CLI_Init();
 
     printf("\n\n\n \t\tCATALYST AUTOPILOT DEMO PROJECT\n");
 
@@ -70,8 +68,6 @@ void ctlst(void *param) {
     IST8310_Init();
     PX4IO_Init();
     usleep(1000);
-
-    res = f_mount(&fs, "0:", 1);
 
     swsys_load("mvp_swsys.xml", "/", &sys);
     swsys_top_module_start(&sys);

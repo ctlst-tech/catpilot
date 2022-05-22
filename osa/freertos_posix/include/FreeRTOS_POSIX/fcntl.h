@@ -81,7 +81,8 @@ extern "C" {
 #define O_SEARCH    0x4000  /**< Open directory for search only. */
 #define O_WRONLY    0x8000  /**< Open for writing only. */
 /**@} */
-
+#else
+    #include <stdio.h>
 #endif
 
 #ifdef __cplusplus

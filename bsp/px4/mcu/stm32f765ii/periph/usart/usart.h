@@ -46,3 +46,18 @@ int USART_DisableIRQ(usart_cfg_t *cfg);
 int USART_Handler(usart_cfg_t *cfg);
 int USART_DMA_TX_Handler(usart_cfg_t *cfg);
 int USART_DMA_RX_Handler(usart_cfg_t *cfg);
+
+#define USE_TERMIOS
+
+#ifdef USE_TERMIOS
+    #include <termios.h>
+    extern speed_t cfgetospeed(const struct termios *__termios_p);
+    extern speed_t cfgetispeed(const struct termios *__termios_p);
+    extern int cfsetospeed(struct termios *__termios_p, speed_t __speed);
+    extern int cfsetispeed(struct termios *__termios_p, speed_t __speed);
+    extern int tcgetattr(int __fd, struct termios *__termios_p);
+    extern int tcsetattr(int __fd, int __optional_actions,
+                    const struct termios *__termios_p);
+    extern int tcflush(int __fd, int __queue_selector);
+#endif
+

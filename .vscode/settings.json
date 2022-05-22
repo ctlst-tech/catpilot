@@ -7,19 +7,11 @@
     "cortex-debug.openocdPath": "/usr/local/bin/openocd",
     "cortex-debug.gdbPath": "/usr/bin/gdb-multiarch",
     "files.associations": {
-        "array": "c",
-        "chrono": "c",
-        "compare": "c",
-        "functional": "c",
-        "istream": "c",
-        "ostream": "c",
-        "ranges": "c",
-        "ratio": "c",
-        "tuple": "c",
-        "type_traits": "c",
-        "utility": "c",
-        "init.h": "c",
-        "cfg.h": "c",
-        "stm32_base.h": "c"
-    },
+        "*.tcc": "c",
+        "strings.h": "c",
+        "_ansi.h": "c",
+        "reent.h": "c",
+        "_locale.h": "c",
+        "stddef.h": "c"
+    }
 }

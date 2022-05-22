@@ -6,35 +6,49 @@ static char *device = "CLI";
 extern usart_cfg_t usart7;
 
 FILE stdin_stream;
-char stdin_buf[256];
-
 FILE stdout_stream;
-char stdout_buf[256];
-
 FILE stderr_stream;
+char stdin_buf[256];
+char stdout_buf[256];
 char stderr_buf[256];
+char ttyS0_buf[256];
+
+static FATFS fs;
 
 void stream_init(){
+    int rv;
+    int fd;
+
+    // rv = f_mount(&fs, "0:", 1);
+    // rv = mkdir("dev", S_IRWXU);
+
     stdin = &stdin_stream;
     stdin->get = cli_get;
     stdin->buf = stdin_buf;
-    stdin->size = 256;
+    stdin->size = sizeof(stdin_buf);
     stdin->len = 0;
-    stdin->flags = __SWR;
+    stdin->flags = __SRD;
 
     stdout = &stdout_stream;
     stdout->put = cli_put;
     stdout->buf = stdout_buf;
-    stdout->size = 256;
+    stdout->size = sizeof(stdout_buf);
     stdout->len = 0;
-    stdout->flags = __SWR;
+    stdout->flags = __SWR | __SRD;
 
     stderr = &stderr_stream;
     stderr->put = cli_put;
     stderr->buf = stderr_buf;
-    stderr->size = 256;
+    stderr->size = sizeof(stderr_buf);
     stderr->len = 0;
-    stderr->flags = __SWR;
+    stderr->flags = __SWR | __SRD;
+
+    // FILE *ttyS0;
+    // ttyS0 = fopen("/dev/ttyS0", "w+");
+
+    // char *blah = "test\n";
+
+    // fwrite(blah, 5, 1, ttyS0);
 }
 
 int CLI_Init() {

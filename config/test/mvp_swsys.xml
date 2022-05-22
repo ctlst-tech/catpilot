@@ -6,7 +6,7 @@
         <event_queue size="20" buffer_size="2000"/>
     </bus>
 
-    <!-- <task type="flow" name="sens" config="mvp_flow_sens.xml" priority="5" clk_method="timer" clk_period="1">
+    <task type="flow" name="sens_flow" config="mvp_flow_sens.xml" priority="5" clk_method="timer" clk_period="1">
         <connect>
             <out alias="ax">itb:/sens_bus/ax</out>
             <out alias="ay">itb:/sens_bus/ay</out>
@@ -15,7 +15,7 @@
             <out alias="wy">itb:/sens_bus/wy</out>
             <out alias="wz">itb:/sens_bus/wz</out>
         </connect>
-    </task> -->
+    </task>
 
     <task type="flow" name="control" config="mvp_flow_control.xml" priority="6" clk_method="timer" clk_period="5">
         <connect>

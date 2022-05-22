@@ -23,7 +23,7 @@
     </spec>
 
     <functions>
-        <f name="imu" by_spec="core.periph.imu">
+        <f name="imu" by_spec="ph.periph.sens">
         </f>
     </functions>
 

@@ -262,3 +262,29 @@ int USART_ClockEnable(usart_cfg_t *cfg) {
 
     return 0;
 }
+
+#ifdef USE_TERMIOS
+
+    speed_t cfgetospeed(const struct termios *__termios_p) {
+        return __termios_p->c_ospeed;
+    }
+
+    speed_t cfgetispeed(const struct termios *__termios_p) {
+        return __termios_p->c_ispeed;
+    }
+
+    int cfsetospeed(struct termios *__termios_p, speed_t __speed) {
+        __termios_p->c_ospeed = __speed;
+        return 0;
+    }
+
+    int cfsetispeed(struct termios *__termios_p, speed_t __speed) {
+        __termios_p->c_ispeed = __speed;
+        return 0;
+    }
+
+    int tcflush(int __fd, int __queue_selector) {
+        return 0;
+    }
+
+#endif
