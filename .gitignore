@@ -6,3 +6,9 @@ build/
 docs/
 TODO
 .idea
+cmake-build-debug
+cmake-build-release
+f_specs_reg.c
+fspecs.cmake
+__pycache__
+.DS_Store

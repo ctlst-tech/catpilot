@@ -10,6 +10,7 @@ ctslt-fmuv5 is open sourcing project with c-atom library hardware integration
 4. catch2
 5. bison
 6. flex
+7. [arm-none-eabi](https://developer.arm.com/downloads/-/gnu-rm)
 
 #### Hardware requirement
 1. Linux (Ubuntu, Arch) / MacOS

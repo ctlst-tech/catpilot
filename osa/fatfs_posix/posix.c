@@ -1065,7 +1065,7 @@
  }
 
 
- int dirname(char *str)
+ char *dirname(char *str)
  {
      int end = 0;
      int ind = 0;
@@ -1080,7 +1080,7 @@
          ++str;
          ++ind;
      }
-     return(end);
+     return &str[end];
  }
 
  #if 0
