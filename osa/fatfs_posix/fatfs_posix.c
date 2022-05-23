@@ -1,7 +1,7 @@
 
  #include <string.h>
  #include <stdio.h>
- #include "posix.h"
+ #include "fatfs_posix.h"
  #undef strerror_r
 
  FILE *__iob[MAX_FILES];
