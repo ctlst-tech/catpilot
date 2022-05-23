@@ -1,6 +1,7 @@
 
  #include <string.h>
  #include <stdio.h>
+ #include "posix.h"
  #undef strerror_r
 
  FILE *__iob[MAX_FILES];
@@ -384,7 +385,7 @@
  // =============================================
  // =============================================
 
- int close(int fileno)
+ int fatfs_close(int fileno)
  {
      FILE *stream;
      FIL *fh;
@@ -457,7 +458,7 @@
  FILE *fopen(const char *path, const char *mode)
  {
      int flags = posix_fopen_modes_to_open(mode);
-     int fileno = open(path, flags);
+     int fileno = fatfs_open(path, flags);
 
      // checks if fileno out of bounds
      return( fileno_to_stream(fileno) );
@@ -471,7 +472,7 @@
      ssize_t ret;
 
      // read() checks for fn out of bounds
-     ret = read(fn, ptr, count);
+     ret = fatfs_read(fn, ptr, count);
      if(ret < 0)
          return(0);
 
@@ -516,7 +517,7 @@
      ssize_t ret;
 
      // write () checks for fn out of bounds
-     ret =  write(fn, ptr, count);
+     ret =  fatfs_write(fn, ptr, count);
 
      if(ret < 0)
          return(0);
@@ -527,7 +528,7 @@
 
 
 
- int open(const char *pathname, int flags)
+ int fatfs_open(const char *pathname, int flags)
  {
      int fileno;
      int fatfs_modes;
@@ -626,7 +627,7 @@
  }
 
 
- ssize_t read(int fd, void *buf, size_t count)
+ ssize_t fatfs_read(int fd, void *buf, size_t count)
  {
      UINT size;
      UINT bytes = count;
@@ -770,7 +771,7 @@
 
 
 
- ssize_t write(int fd, const void *buf, size_t count)
+ ssize_t fatfs_write(int fd, const void *buf, size_t count)
  {
      UINT size;
      UINT bytes = count;
@@ -822,7 +823,7 @@
  FILE * __wrap_freopen ( const char * filename, const char * mode, FILE * stream )
  {
      int fn = fileno(stream);
-     int ret = close(fn);
+     int ret = fatfs_close(fn);
      if (ret < 0) {
          return NULL;
      }
@@ -836,7 +837,7 @@
      if(fn < 0)
          return(EOF);
 
-     return( close(fn) );
+     return( fatfs_close(fn) );
  }
  // =============================================
  // =============================================

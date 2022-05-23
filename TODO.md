@@ -27,13 +27,14 @@
   - This function doesn't work in existing implementations
 - [ ] stubs for tcp stack
 - [ ] <termios.h> wrappers
+- [ ] Add high wrapper layer for open/write/read/close
 - [ ] socket.h
 - [ ] Add CMakeLists in board directories
 - [ ] Add modules as f_specs functions
 
 ## Hardware
 - [x] Add ICM20689 driver
-- [ ] Add BMI055 driver
+- [x] Add BMI055 driver
 - [ ] Add MS5611 driver
 - [ ] Tests with statistics
   - [ ] Max freq
