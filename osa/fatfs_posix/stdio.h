@@ -238,7 +238,13 @@
 
  extern int (*vprintf_console_hook)(const char *fmt, va_list arg);
 
-  /* posix.c */
+ /* posix.c */
+ int open(const char *pathname, int flags);
+ ssize_t write(int fd, const void *buf, size_t count);
+ ssize_t read(int fd, void *buf, size_t count);
+ int close(int fd);
+
+  /* fatfs_posix.c */
  int isatty ( int fileno );
  int fgetc ( FILE *stream );
  int fputc ( int c , FILE *stream );
@@ -263,20 +269,16 @@
  long ftell ( FILE *stream );
  off_t lseek ( int fileno , off_t position , int whence );
  void rewind ( FILE *stream );
- int close ( int fileno );
  int fileno ( FILE *stream );
  FILE *fileno_to_stream ( int fileno );
  FILE *fopen ( const char *path , const char *mode );
  size_t __wrap_fread ( void *ptr , size_t size , size_t nmemb , FILE *stream );
  int ftruncate ( int fd , off_t length );
  size_t fwrite ( const void *ptr , size_t size , size_t nmemb , FILE *stream );
- int open (const char *pathname, int flags);
- ssize_t read ( int fd , void *buf , size_t count );
  void sync ( void );
  int syncfs(int fd);
  int fsync ( int fd );
  int truncate ( const char *path , off_t length );
- ssize_t write ( int fd , const void *buf , size_t count );
  int __wrap_fclose ( FILE *stream );
  FILE * __wrap_freopen ( const char * filename, const char * mode, FILE * stream );
  int getc(FILE *fp);

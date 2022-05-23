@@ -3,6 +3,9 @@
 #include "gpio.h"
 #include "dma.h"
 
+#define USART_TERMIOS
+#define USART_POSIX_OSA
+
 enum usart_state_t {
     USART_FREE,
     USART_TRANSMIT,
@@ -47,17 +50,22 @@ int USART_Handler(usart_cfg_t *cfg);
 int USART_DMA_TX_Handler(usart_cfg_t *cfg);
 int USART_DMA_RX_Handler(usart_cfg_t *cfg);
 
-#define USE_TERMIOS
-
-#ifdef USE_TERMIOS
+#ifdef USART_TERMIOS
     #include <termios.h>
-    extern speed_t cfgetospeed(const struct termios *__termios_p);
-    extern speed_t cfgetispeed(const struct termios *__termios_p);
-    extern int cfsetospeed(struct termios *__termios_p, speed_t __speed);
-    extern int cfsetispeed(struct termios *__termios_p, speed_t __speed);
-    extern int tcgetattr(int __fd, struct termios *__termios_p);
-    extern int tcsetattr(int __fd, int __optional_actions,
-                    const struct termios *__termios_p);
-    extern int tcflush(int __fd, int __queue_selector);
+    speed_t cfgetospeed(const struct termios *__termios_p);
+    speed_t cfgetispeed(const struct termios *__termios_p);
+    int cfsetospeed(struct termios *__termios_p, speed_t __speed);
+    int cfsetispeed(struct termios *__termios_p, speed_t __speed);
+    int tcgetattr(int __fd, struct termios *__termios_p);
+    int tcsetattr(int __fd, int __optional_actions,
+             const struct termios *__termios_p);
+    int tcflush(int __fd, int __queue_selector);
 #endif
 
+#ifdef USART_POSIX_OSA
+    #include "dev_posix.h"
+    int usart_posix_open(const char *pathname, int flags);
+    ssize_t usart_posix_write(int fd, const void *buf, size_t count);
+    ssize_t usart_posix_read(int fd, const void *buf, size_t count);
+    int usart_posix_close(int fd);
+#endif

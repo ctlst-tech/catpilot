@@ -1,5 +1,8 @@
 #include "usart.h"
 
+static int usart_num = 0;
+static usart_cfg_t *usart_fd[8];
+
 int USART_Init(usart_cfg_t *cfg) {
 
     portENTER_CRITICAL();
@@ -39,6 +42,16 @@ int USART_Init(usart_cfg_t *cfg) {
     USART_EnableIRQ(cfg);
 
     portEXIT_CRITICAL();
+
+    #ifdef USART_POSIX_OSA
+        usart_fd[usart_num] = cfg;
+        sprintf(__dev[usart_num].path, "/dev/ttyS%d", usart_num);
+        __dev[usart_num].open = usart_posix_open;
+        __dev[usart_num].write = usart_posix_write;
+        __dev[usart_num].read = usart_posix_read;
+        __dev[usart_num].close = usart_posix_close;
+        usart_num++;
+    #endif
 
     return rv;
 }
@@ -263,7 +276,7 @@ int USART_ClockEnable(usart_cfg_t *cfg) {
     return 0;
 }
 
-#ifdef USE_TERMIOS
+#ifdef USART_TERMIOS
 
     speed_t cfgetospeed(const struct termios *__termios_p) {
         return __termios_p->c_ospeed;
@@ -287,4 +300,31 @@ int USART_ClockEnable(usart_cfg_t *cfg) {
         return 0;
     }
 
+#endif
+
+#ifdef USART_POSIX_OSA
+    int usart_posix_open(const char *pathname, int flags) {
+        (void)pathname;
+        (void)flags;
+        return 0;
+    }
+
+    ssize_t usart_posix_write(int fd, const void *buf, size_t count) {
+        int rv;
+        rv = USART_Transmit(usart_fd[fd], (uint8_t *)buf, (uint16_t)count);
+        if(rv) return -1;
+        return 0;
+    }
+
+    ssize_t usart_posix_read(int fd, const void *buf, size_t count) {
+        int rv;
+        rv = USART_Receive(usart_fd[fd], (uint8_t *)buf, (uint16_t)count);
+        if(rv) return -1;
+        return 0;
+    }
+
+    int usart_posix_close(int fd) {
+        (void)fd;
+        return 0;
+    }
 #endif
