@@ -46,6 +46,8 @@ void main_thread(void *param) {
     pthread_exit(NULL);
 }
 
+static FATFS fs;
+
 void ctlst(void *param) {
     static FRESULT res;
     swsys_t sys;
@@ -68,6 +70,8 @@ void ctlst(void *param) {
     IST8310_Init();
     PX4IO_Init();
     usleep(1000);
+
+    res = f_mount(&fs, "0:", 1);
 
     swsys_load("mvp_swsys.xml", "/", &sys);
     swsys_top_module_start(&sys);
