@@ -21,7 +21,7 @@
 #include "fsminst.h"
 
 void main_thread(void *param);
-void ctlst(void *param);
+void * ctlst(void *param);
 
 int main(void) {
     HAL_Init();
@@ -46,7 +46,9 @@ void main_thread(void *param) {
     pthread_exit(NULL);
 }
 
-void ctlst(void *param) {
+static FATFS fs;
+
+void * ctlst(void *param) {
     static FRESULT res;
     swsys_t sys;
     int rv = 0;
@@ -69,8 +71,19 @@ void ctlst(void *param) {
     PX4IO_Init();
     usleep(1000);
 
-    swsys_load("mvp_swsys.xml", "/", &sys);
-    swsys_top_module_start(&sys);
+    res = f_mount(&fs, "0:", 1);
+    if (res == FR_OK) {
+        swsys_rv_t swsys_rv = swsys_load("mvp_swsys.xml", "/", &sys);
+        if (swsys_rv == swsys_e_ok) {
+            LOG_INFO("SYSTEM", "System starts")
+            swsys_top_module_start(&sys);
+        } else {
+            LOG_INFO("SYSTEM", "SWSYS config load error")
+        }
+    } else {
+        LOG_INFO("BOARD", "f_mount error")
+    }
+
 
     while(1);
 }
