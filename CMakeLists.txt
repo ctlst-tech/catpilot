@@ -37,11 +37,6 @@ endif ()
 
 project(${PROJ_NAME} C ASM)
 
-include_directories(./c-atom/function)
-
-include(fspecs.cmake)
-
-
 if (TYPE STREQUAL "PX4")
 
     set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/firmware)
@@ -120,6 +115,8 @@ if (TYPE STREQUAL "PX4")
 
     add_subdirectory(c-atom)
 
+    include(fspecs.cmake)
+
     set(SRC_MAIN main.c)
     file(GLOB STARTUP            ${DIR_MCU}/core/*.s)
     file(GLOB_RECURSE SRC_MCU    ${DIR_MCU}/*.c)
@@ -153,6 +150,7 @@ if (TYPE STREQUAL "PX4")
     add_executable(${PROJECT_NAME}.elf
         ${SOURCES}
         ${DIR_C_ATOM}/function/error.c # FIXME
+        ${DIR_C_ATOM}/function/conv.c # FIXME
     )
 
     target_link_libraries(${PROJECT_NAME}.elf PRIVATE
