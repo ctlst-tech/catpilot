@@ -6,6 +6,14 @@
 #define USART_TERMIOS
 #define USART_POSIX_OSA
 
+#ifdef USART_TERMIOS
+#include <termios.h>
+#endif
+
+#ifdef USART_POSIX_OSA
+#include "dev_posix.h"
+#endif
+
 enum usart_state_t {
     USART_FREE,
     USART_TRANSMIT,
@@ -36,6 +44,7 @@ typedef struct {
     int priority;
     enum usart_receive_mode_t mode;
     struct usart_inst_t inst;
+    int init;
 } usart_cfg_t;
 
 
@@ -51,19 +60,17 @@ int USART_DMA_TX_Handler(usart_cfg_t *cfg);
 int USART_DMA_RX_Handler(usart_cfg_t *cfg);
 
 #ifdef USART_TERMIOS
-    #include <termios.h>
+    int tcgetattr(int __fd, struct termios *__termios_p);
+    int tcsetattr(int __fd, int __optional_actions,
+             const struct termios *__termios_p);
     speed_t cfgetospeed(const struct termios *__termios_p);
     speed_t cfgetispeed(const struct termios *__termios_p);
     int cfsetospeed(struct termios *__termios_p, speed_t __speed);
     int cfsetispeed(struct termios *__termios_p, speed_t __speed);
-    int tcgetattr(int __fd, struct termios *__termios_p);
-    int tcsetattr(int __fd, int __optional_actions,
-             const struct termios *__termios_p);
     int tcflush(int __fd, int __queue_selector);
 #endif
 
 #ifdef USART_POSIX_OSA
-    #include "dev_posix.h"
     int usart_posix_open(const char *pathname, int flags);
     ssize_t usart_posix_write(int fd, const void *buf, size_t count);
     ssize_t usart_posix_read(int fd, const void *buf, size_t count);

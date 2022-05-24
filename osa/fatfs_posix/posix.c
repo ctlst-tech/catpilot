@@ -4,6 +4,7 @@
 #include "dev_posix.h"
 
 struct dev __dev[MAX_DEVICES];
+char *__dev_table[MAX_DEVICES];
 
 int open(const char *pathname, int flags) {
     int rv;
@@ -11,6 +12,10 @@ int open(const char *pathname, int flags) {
         if(strcmp(pathname, __dev[i].path)) {
             continue;
         }
+        if(!strcmp(__dev_table[i], __dev[i].path)) {
+            return (i + 3);
+        }
+        __dev_table[i] = __dev[i].path;
         if(__dev[i].open == NULL) {
             errno = EBADF;
             return -1;
@@ -20,8 +25,9 @@ int open(const char *pathname, int flags) {
             errno = EPROTO;
             return -1;
         }
-        rv = fatfs_open(pathname, flags);
-        return rv;
+        rv = fatfs_open(pathname, O_RDWR);
+        if(rv < 0) return -1;
+        return (i + 3);
     }
     rv = fatfs_open(pathname, flags);
     return rv;
@@ -30,7 +36,7 @@ int open(const char *pathname, int flags) {
 ssize_t write(int fd, const void *buf, size_t count) {
     int rv;
     int dev_fd = fd - 3;
-    if((dev_fd < MAX_DEVICES) && (dev_fd >= 0)) {
+    if(!strcmp(__dev_table[dev_fd], __dev[dev_fd].path)) {
         if(__dev[dev_fd].write == NULL) {
             errno = EBADF;
             return -1;
@@ -49,7 +55,7 @@ ssize_t write(int fd, const void *buf, size_t count) {
 ssize_t read(int fd, void *buf, size_t count) {
     int rv;
     int dev_fd = fd - 3;
-    if((dev_fd < MAX_DEVICES) && (dev_fd >= 0)) {
+    if(!strcmp(__dev_table[dev_fd], __dev[dev_fd].path)) {
         if(__dev[dev_fd].read == NULL) {
             errno = EBADF;
             return -1;
@@ -68,7 +74,7 @@ ssize_t read(int fd, void *buf, size_t count) {
 int close(int fd) {
     int rv;
     int dev_fd = fd - 3;
-    if((dev_fd < MAX_DEVICES) && (dev_fd >= 0)) {
+    if(!strcmp(__dev_table[dev_fd], __dev[dev_fd].path)) {
         if(__dev[dev_fd].close == NULL) {
             errno = EBADF;
             return -1;
@@ -78,6 +84,7 @@ int close(int fd) {
             errno = EPROTO;
             return -1;
         }
+        // rv = fatfs_close(fd); don't delete dev files
         return 0;
     }
     rv = fatfs_close(fd);

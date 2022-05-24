@@ -5,6 +5,8 @@ static usart_cfg_t *usart_fd[8];
 
 int USART_Init(usart_cfg_t *cfg) {
 
+    if(cfg->init == 1) return 0;
+
     portENTER_CRITICAL();
 
     int rv = 0;
@@ -40,6 +42,8 @@ int USART_Init(usart_cfg_t *cfg) {
     if(cfg->inst.semaphore == NULL) cfg->inst.semaphore = xSemaphoreCreateBinary();
 
     USART_EnableIRQ(cfg);
+
+    cfg->init = 1;
 
     portEXIT_CRITICAL();
 
@@ -278,6 +282,39 @@ int USART_ClockEnable(usart_cfg_t *cfg) {
 
 #ifdef USART_TERMIOS
 
+    int tcgetattr(int __fd, struct termios *__termios_p) {
+        int dev_fd = __fd - 3;
+        if(usart_fd[dev_fd] == NULL) {
+            errno = EBADF;
+            return -1;
+        }
+        __termios_p->c_ispeed = usart_fd[dev_fd]->speed;
+        __termios_p->c_ospeed = usart_fd[dev_fd]->speed;
+        return __fd;
+    }
+
+    int tcsetattr(int __fd, int __optional_actions,
+                 const struct termios *__termios_p) {
+        int rv;
+        (void)__optional_actions;
+        int dev_fd = __fd - 3;
+        if(usart_fd[dev_fd] == NULL) {
+            errno = EBADF;
+            return -1;
+        }
+         // FIXME
+        usart_fd[dev_fd]->speed = __termios_p->c_ispeed;
+        usart_fd[dev_fd]->speed = __termios_p->c_ospeed;
+        usart_fd[dev_fd]->inst.USART_InitStruct.Init.BaudRate = usart_fd[dev_fd]->speed;
+        rv = USART_ReInit(usart_fd[dev_fd]);
+
+        if(rv) {
+            errno = EPROTO;
+            return -1;
+        }
+        return 0;
+    }
+
     speed_t cfgetospeed(const struct termios *__termios_p) {
         return __termios_p->c_ospeed;
     }
@@ -303,6 +340,7 @@ int USART_ClockEnable(usart_cfg_t *cfg) {
 #endif
 
 #ifdef USART_POSIX_OSA
+
     int usart_posix_open(const char *pathname, int flags) {
         (void)pathname;
         (void)flags;
@@ -327,4 +365,5 @@ int USART_ClockEnable(usart_cfg_t *cfg) {
         (void)fd;
         return 0;
     }
+
 #endif

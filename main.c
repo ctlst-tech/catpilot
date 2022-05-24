@@ -73,22 +73,23 @@ void ctlst(void *param) {
 
     res = f_mount(&fs, "0:", 1);
 
-    int fd_dev;
-    int fd;
-    fd_dev = open("/dev/ttyS0", O_RDWR);
-    char *blah = "ping\n";
-    write(fd_dev, blah, sizeof(blah));
+    struct termios 	termios_p;
 
-    fd = open("file.txt", O_RDWR | O_CREAT | O_TRUNC);
-    write(fd, "\ntext\ntext\n", 12);
-    close(fd);
+    int fd = open("/dev/ttyS0", O_RDWR);
+    if (fd == -1) {
+        LOG_ERROR("EQRB", "ttyS0 open failed");
+    }
 
-    fd = open("file.txt", O_RDONLY);
-    char buf[25];
-    read(fd, buf, sizeof(buf));
-    close(fd);
+    tcgetattr(fd, &termios_p);
+    cfsetispeed(&termios_p, 1000000U);
+    cfsetospeed(&termios_p, 1000000U);
+    tcsetattr(fd, TCSANOW, &termios_p);
+    tcflush(fd, TCIOFLUSH);
 
-    write(fd_dev, buf, sizeof(buf));
+    while(1){
+        write(fd, "test\n", 6);
+        usleep(1000);
+    }
 
     swsys_load("mvp_swsys.xml", "/", &sys);
     swsys_top_module_start(&sys);
