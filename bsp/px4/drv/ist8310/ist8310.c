@@ -84,6 +84,7 @@ void IST8310_Run() {
     case IST8310_CONF:
         if(IST8310_Configure()) {
             ist8310_state = IST8310_MEAS;
+            LOG_INFO(device, "Device configured");
         } else {
             LOG_ERROR(device, "Wrong configuration, reset");
             ist8310_state = IST8310_RESET;

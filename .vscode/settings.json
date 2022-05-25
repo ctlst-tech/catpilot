@@ -12,6 +12,18 @@
         "_ansi.h": "c",
         "reent.h": "c",
         "_locale.h": "c",
-        "stddef.h": "c"
+        "stddef.h": "c",
+        "drv.h": "c",
+        "icm20602.h": "c",
+        "cli.h": "c",
+        "ist8310.h": "c",
+        "sdcard.h": "c",
+        "px4io.h": "c",
+        "init.h": "c",
+        "stm32_periph.h": "c",
+        "stm32_base.h": "c",
+        "stm32f765xx.h": "c",
+        "log.h": "c",
+        "swsys.h": "c"
     }
 }

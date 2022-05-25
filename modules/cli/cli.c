@@ -2,7 +2,6 @@
 #include "cli_conf.h"
 
 static char *device = "CLI";
-
 extern usart_cfg_t usart7;
 
 FILE stdin_stream;
@@ -11,17 +10,9 @@ FILE stderr_stream;
 char stdin_buf[256];
 char stdout_buf[256];
 char stderr_buf[256];
-char ttyS0_buf[256];
-
-static FATFS fs;
 
 void stream_init(){
     int rv;
-    int fd;
-
-    // rv = f_mount(&fs, "0:", 1);
-    // rv = mkdir("dev", S_IRWXU);
-
     stdin = &stdin_stream;
     stdin->get = cli_get;
     stdin->buf = stdin_buf;
@@ -42,13 +33,6 @@ void stream_init(){
     stderr->size = sizeof(stderr_buf);
     stderr->len = 0;
     stderr->flags = __SWR | __SRD;
-
-    // FILE *ttyS0;
-    // ttyS0 = fopen("/dev/ttyS0", "w+");
-
-    // char *blah = "test\n";
-
-    // fwrite(blah, 5, 1, ttyS0);
 }
 
 static SemaphoreHandle_t cli_put_mutex;
@@ -60,7 +44,6 @@ int CLI_Init() {
     xSemaphoreGive(cli_put_mutex);
     return rv;
 }
-
 
 // TODO add check transmit/receive status
 int cli_put(char c, struct __file * file) {
