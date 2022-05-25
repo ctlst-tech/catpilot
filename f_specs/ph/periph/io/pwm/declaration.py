@@ -1,9 +1,9 @@
 from ctlst import *
 
 Function(
-    name='ph.periph.px4io.pwm',
+    name='ph.periph.io.pwm',
     title=LocalizedString(
-        en='PX4IO.pwm'
+        en='IO.pwm'
     ),
     parameters=[
         # Parameter(
@@ -30,55 +30,55 @@ Function(
     inputs=[
         Input(
             name='arm',
-            title='Arm/Disarm PX4IO',
+            title='Arm/Disarm IO',
             value_type='core.type.bool'
         ),
         Input(
             name='pwm_channel1',
             title='pwm channel1',
-            value_type='core.type.f32'
+            value_type='core.type.f64'
         ),
         Input(
             name='pwm_channel2',
             title='pwm channel2',
-            value_type='core.type.f32'
+            value_type='core.type.f64'
         ),
         Input(
             name='pwm_channel3',
             title='pwm channel3',
-            value_type='core.type.f32'
+            value_type='core.type.f64'
         ),
         Input(
             name='pwm_channel4',
             title='pwm channel4',
-            value_type='core.type.f32'
+            value_type='core.type.f64'
         ),
         Input(
             name='pwm_channel5',
             title='pwm channel5',
-            value_type='core.type.f32'
+            value_type='core.type.f64'
         ),
         Input(
             name='pwm_channel6',
             title='pwm channel6',
-            value_type='core.type.f32'
+            value_type='core.type.f64'
         ),
         Input(
             name='pwm_channel7',
             title='pwm channel7',
-            value_type='core.type.f32'
+            value_type='core.type.f64'
         ),
         Input(
             name='pwm_channel8',
             title='pwm channel8',
-            value_type='core.type.f32'
+            value_type='core.type.f64'
         ),
     ],
     outputs=[
         Output(
             name='stub',
             title='stub',
-            value_type='core.type.f32'
+            value_type='core.type.f64'
         ),
     ],
     state=[],

@@ -1,1 +1,0 @@
-#define SENSORS_TASK_PRIORITY 4

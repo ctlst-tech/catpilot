@@ -7,12 +7,6 @@ static char *device = "ICM20689";
 
 icm20689_fifo_t icm20689_fifo;
 
-enum icm20689_state_t {
-    ICM20689_RESET,
-    ICM20689_RESET_WAIT,
-    ICM20689_CONF,
-    ICM20689_FIFO_READ
-};
 enum icm20689_state_t icm20689_state;
 
 uint8_t ICM20689_ReadReg(uint8_t reg);
@@ -154,13 +148,12 @@ void ICM20689_Run() {
         break;
 
     case ICM20689_FIFO_READ:
-        if(xSemaphoreTake(drdy_semaphore, 0) == pdTRUE) {
+        if(xSemaphoreTake(drdy_semaphore, portMAX_DELAY)) {
             ICM20689_FIFOCount();
             ICM20689_FIFORead();
             icm20689_fifo.dt = xTaskGetTickCount() - icm20689_last_sample;
             icm20689_fifo.samples = icm20689_FIFOParam.samples;
             icm20689_last_sample = xTaskGetTickCount();
-            // ICM20689_Statistics();
         }
         break;
     }
@@ -370,18 +363,17 @@ int ICM20689_Probe() {
 }
 
 void ICM20689_Statistics() {
-    // TODO add time between FIFO reading
-    // LOG_DEBUG(device, "Statistics:");
-    // LOG_DEBUG(device, "accel_x = %.3f [m/s2]", icm20689_fifo.accel_x[0]);
-    // LOG_DEBUG(device, "accel_y = %.3f [m/s2]", icm20689_fifo.accel_y[0]);
-    // LOG_DEBUG(device, "accel_z = %.3f [m/s2]", icm20689_fifo.accel_z[0]);
-    // LOG_DEBUG(device, "gyro_x  = %.3f [deg/s]", icm20689_fifo.gyro_x[0]);
-    // LOG_DEBUG(device, "gyro_y  = %.3f [deg/s]", icm20689_fifo.gyro_y[0]);
-    // LOG_DEBUG(device, "gyro_z  = %.3f [deg/s]", icm20689_fifo.gyro_z[0]);
-    // LOG_DEBUG(device, "temp    = %.3f [C]", icm20689_fifo.temp);
-    // LOG_DEBUG(device, "N       = %lu [samples]", icm20689_fifo.samples);
+    LOG_DEBUG(device, "Statistics:");
+    LOG_DEBUG(device, "accel_x = %.3f [m/s2]", icm20689_fifo.accel_x[0]);
+    LOG_DEBUG(device, "accel_y = %.3f [m/s2]", icm20689_fifo.accel_y[0]);
+    LOG_DEBUG(device, "accel_z = %.3f [m/s2]", icm20689_fifo.accel_z[0]);
+    LOG_DEBUG(device, "gyro_x  = %.3f [deg/s]", icm20689_fifo.gyro_x[0]);
+    LOG_DEBUG(device, "gyro_y  = %.3f [deg/s]", icm20689_fifo.gyro_y[0]);
+    LOG_DEBUG(device, "gyro_z  = %.3f [deg/s]", icm20689_fifo.gyro_z[0]);
+    LOG_DEBUG(device, "temp    = %.3f [C]", icm20689_fifo.temp);
+    LOG_DEBUG(device, "N       = %lu [samples]", icm20689_fifo.samples);
     LOG_DEBUG(device, "N = %lu", icm20689_fifo.samples);
-    // LOG_DEBUG(device, "dt      = %lu [ms]", icm20689_fifo.dt);
+    LOG_DEBUG(device, "dt      = %lu [ms]", icm20689_fifo.dt);
 }
 
 void ICM20689_DataReadyHandler() {

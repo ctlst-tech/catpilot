@@ -16,6 +16,9 @@
             <o alias="wx" annotation="wx"/>
             <o alias="wy" annotation="wy"/>
             <o alias="wz" annotation="wz"/>
+            <o alias="magx" annotation="magx"/>
+            <o alias="magy" annotation="magy"/>
+            <o alias="magz" annotation="magz"/>
         </outputs>
 
         <params>
@@ -23,8 +26,8 @@
     </spec>
 
     <functions>
-        <f name="imu" by_spec="ph.periph.sens">
-        </f>
+        <f name="imu" by_spec="ph.periph.imu"/>
+        <f name="mag" by_spec="ph.periph.mag"/>
     </functions>
 
     <link_outputs>
@@ -34,6 +37,9 @@
         <link alias="wx">imu/wx</link>
         <link alias="wy">imu/wy</link>
         <link alias="wz">imu/wz</link>
+        <link alias="magx">mag/magx</link>
+        <link alias="magy">mag/magy</link>
+        <link alias="magz">mag/magz</link>
     </link_outputs>
 
 </flow>

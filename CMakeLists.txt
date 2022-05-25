@@ -105,9 +105,10 @@ if (TYPE STREQUAL "PX4")
         ${DIR_IF}
 
         ${DIR_MDL}/cli
-        ${DIR_MDL}/sensors
-        ${DIR_MDL}/logger
+        ${DIR_MDL}/imu
+        ${DIR_MDL}/mag
         ${DIR_MDL}/io
+        ${DIR_MDL}/logger
 
         ${DIR_MISC}/common
 

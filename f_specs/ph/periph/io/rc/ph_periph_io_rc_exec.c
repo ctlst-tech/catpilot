@@ -1,12 +1,10 @@
-#include "ph_periph_px4io_rc.h"
+#include "ph_periph_io_rc.h"
 
-extern void PX4IO_Run();
 extern int PX4IO_Ready();
 extern float PX4IO_GetRC(int channel);
 
-void ph_periph_px4io_rc_exec(ph_periph_px4io_rc_outputs_t *o)
+void ph_periph_io_rc_exec(ph_periph_io_rc_outputs_t *o)
 {
-    PX4IO_Run();
     if(PX4IO_Ready()) {
         o->rc_channel1 = PX4IO_GetRC(1);
         o->rc_channel2 = PX4IO_GetRC(2);
@@ -24,22 +22,6 @@ void ph_periph_px4io_rc_exec(ph_periph_px4io_rc_outputs_t *o)
         o->rc_channel14 = PX4IO_GetRC(14);
         o->rc_channel15 = PX4IO_GetRC(15);
         o->rc_channel16 = PX4IO_GetRC(16);
-    } else {
-        o->rc_channel1 = 0;
-        o->rc_channel2 = 0;
-        o->rc_channel3 = 0;
-        o->rc_channel4 = 0;
-        o->rc_channel5 = 0;
-        o->rc_channel6 = 0;
-        o->rc_channel7 = 0;
-        o->rc_channel8 = 0;
-        o->rc_channel9 = 0;
-        o->rc_channel10 = 0;
-        o->rc_channel11 = 0;
-        o->rc_channel12 = 0;
-        o->rc_channel13 = 0;
-        o->rc_channel14 = 0;
-        o->rc_channel15 = 0;
-        o->rc_channel16 = 0;
     }
 }
+

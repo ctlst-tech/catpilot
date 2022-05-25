@@ -41,7 +41,6 @@ int CLI_Init() {
     int rv = 0;
     stream_init();
     if(cli_put_mutex == NULL) cli_put_mutex = xSemaphoreCreateMutex();
-    xSemaphoreGive(cli_put_mutex);
     return rv;
 }
 

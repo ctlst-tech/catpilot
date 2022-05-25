@@ -2,8 +2,6 @@
 #include "stm32_base.h"
 #include "stm32_periph.h"
 
-#include <stdbool.h>
-
 #define PX4IO_RC_CHANNELS 16
 #define PX4IO_MAX_OUTPUT  8
 
@@ -35,6 +33,8 @@ enum px4io_state_t {
     PX4IO_ERROR,
 };
 
+extern enum px4io_state_t px4io_state;
+
 int PX4IO_Init();
 void PX4IO_Run();
 int PX4IO_Ready();
@@ -42,7 +42,7 @@ int PX4IO_Ready();
 void PX4IO_SetArm(bool arm);
 void PX4IO_SetMaxPWM(int pwm);
 void PX4IO_SetMinPWM(int pwm);
-void PX4IO_SetOutput(int channel, float out);
+void PX4IO_SetOutput(int channel, double out);
 void PX4IO_UpdateOutput();
 
-float PX4IO_GetRC(int channel);
+double PX4IO_GetRC(int channel);

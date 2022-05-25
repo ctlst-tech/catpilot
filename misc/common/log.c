@@ -19,8 +19,11 @@ static char *msg_color[5] = {
     "\x1B[37m",
     "\x1b[0m",
 };
+static SemaphoreHandle_t log_mutex;
 
 void log_module(uint8_t msg_type, char *module, char *s, ...) {
+    if(log_mutex == NULL) log_mutex = xSemaphoreCreateMutex();
+    xSemaphoreTake(log_mutex, portMAX_DELAY);
     ssize_t length = 0;
     char string[LOG_MAX_LENGTH] = {};
     char module_alig[20] = {};
@@ -44,4 +47,5 @@ void log_module(uint8_t msg_type, char *module, char *s, ...) {
     va_end(arg);
 
     printf("%s\n", string);
+    xSemaphoreGive(log_mutex);
 }

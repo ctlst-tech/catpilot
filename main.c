@@ -1,6 +1,7 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <unistd.h>
+
 #include "stm32_base.h"
 #include "stm32_periph.h"
 #include "drv.h"
@@ -11,6 +12,10 @@
 #include "swsys.h"
 #include "function.h"
 #include "fsminst.h"
+
+#include "imu.h"
+#include "io.h"
+#include "mag.h"
 
 void main_thread(void *param);
 void *ctlst(void *param);
@@ -52,15 +57,18 @@ void *ctlst(void *param) {
         LOG_INFO("BOARD", "Initialization successful")
     }
 
-    ICM20602_Init();
-    ICM20689_Init();
-    BMI055_Init();
-    IST8310_Init();
-    PX4IO_Init();
-    usleep(1000);
+    IMU_Start();
+    MAG_Start();
+    IO_Start();
 
     res = f_mount(&fs, "0:", 1);
     fd = open("/dev/ttyS0", O_RDWR);
+
+    if(fd < 0) {
+        LOG_ERROR("ttyS0", "Failed to open");
+    } else {
+        LOG_DEBUG("ttyS0", "Opened successfully");
+    }
 
     if (res == FR_OK) {
         swsys_rv_t swsys_rv = swsys_load("mvp_swsys.xml", "/", &sys);
@@ -68,10 +76,10 @@ void *ctlst(void *param) {
             LOG_INFO("SYSTEM", "System starts")
             swsys_top_module_start(&sys);
         } else {
-            LOG_INFO("SYSTEM", "SWSYS config load error")
+            LOG_ERROR("SYSTEM", "SWSYS config load error")
         }
     } else {
-        LOG_INFO("BOARD", "f_mount error")
+        LOG_ERROR("BOARD", "f_mount error")
     }
 
     while(1);

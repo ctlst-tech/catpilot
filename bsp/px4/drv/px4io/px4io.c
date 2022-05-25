@@ -29,6 +29,8 @@ typedef struct {
 } px4io_cfg_t;
 static px4io_cfg_t px4io_cfg;
 
+static SemaphoreHandle_t iordy_semaphore;
+
 static SemaphoreHandle_t timer_semaphore;
 static uint32_t t0;
 
@@ -40,7 +42,9 @@ int PX4IO_Init() {
     px4io_cfg.usart = &usart8;
     px4io_state = PX4IO_RESET;
     if(timer_semaphore == NULL) timer_semaphore = xSemaphoreCreateBinary();
+    if(iordy_semaphore == NULL) iordy_semaphore = xSemaphoreCreateBinary();
     xSemaphoreGive(timer_semaphore);
+    xSemaphoreGive(iordy_semaphore);
     return rv;
 }
 
@@ -118,22 +122,21 @@ void PX4IO_Run() {
         break;
 
     case PX4IO_OPERATION:
+        xSemaphoreGive(iordy_semaphore);
         PX4IO_GetRCPacket((uint16_t *)&px4io_reg.rc);
         PX4IO_GetIOStatus();
+        PX4IO_UpdateOutput();
         break;
 
     case PX4IO_ERROR:
-        // Nothing to do
+        LOG_ERROR(device, "Fatal error");
         break;
     }
 }
 
 int PX4IO_Ready() {
-    if(px4io_state == PX4IO_OPERATION) {
-        return 1;
-    } else {
-        return 0;
-    }
+    xSemaphoreTake(iordy_semaphore, portMAX_DELAY);
+    return 1;
 }
 
 void PX4IO_SetArm(bool arm) {
@@ -157,7 +160,7 @@ void PX4IO_UpdateOutput() {
     PX4IO_SetPWM(px4io_reg.outputs, PX4IO_MAX_ACTUATORS);
 }
 
-void PX4IO_SetOutput(int channel, float out) {
+void PX4IO_SetOutput(int channel, double out) {
     px4io_reg.min_pwm = 1000;
     px4io_reg.max_pwm = 2000;
     uint16_t out_sat;
@@ -170,7 +173,7 @@ void PX4IO_SetOutput(int channel, float out) {
     }
 }
 
-float PX4IO_GetRC(int channel) {
+double PX4IO_GetRC(int channel) {
     if(channel > PX4IO_RC_CHANNELS || channel < 1) {
         LOG_ERROR(device, "Wrong RC channel number");
         return 0;

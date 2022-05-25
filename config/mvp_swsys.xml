@@ -14,10 +14,13 @@
             <out alias="wx">itb:/sens_bus/wx</out>
             <out alias="wy">itb:/sens_bus/wy</out>
             <out alias="wz">itb:/sens_bus/wz</out>
+            <out alias="magx">itb:/sens_bus/magx</out>
+            <out alias="magy">itb:/sens_bus/magy</out>
+            <out alias="magz">itb:/sens_bus/magz</out>
         </connect>
     </task>
 
-    <task type="flow" name="control" config="mvp_flow_control.xml" priority="6" clk_method="timer" clk_period="5">
+    <task type="flow" name="control" config="mvp_flow_control.xml" priority="6" clk_method="timer" clk_period="1">
         <connect>
             <out alias="stub">itb:/sens_bus/ax</out>
         </connect>

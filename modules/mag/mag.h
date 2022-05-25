@@ -3,5 +3,4 @@
 #include "stm32_periph.h"
 #include "drv.h"
 
-
-void Sensors_Start();
+void MAG_Start();

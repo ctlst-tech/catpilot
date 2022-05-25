@@ -7,13 +7,6 @@ static char *device = "IST8310";
 
 ist8310_data_t ist8310_data;
 
-enum ist8310_state_t {
-    IST8310_RESET,
-    IST8310_RESET_WAIT,
-    IST8310_CONF,
-    IST8310_MEAS,
-    IST8310_READ
-};
 enum ist8310_state_t ist8310_state;
 
 uint8_t IST8310_ReadReg(uint8_t reg);
@@ -32,6 +25,8 @@ static ist8310_cfg_t ist8310_cfg;
 
 static buffer_t buffer;
 
+static SemaphoreHandle_t measrdy_semaphore;
+
 static SemaphoreHandle_t timer_semaphore;
 static uint32_t t0;
 
@@ -42,6 +37,9 @@ int IST8310_Init() {
 
     if(timer_semaphore == NULL) timer_semaphore = xSemaphoreCreateBinary();
     xSemaphoreGive(timer_semaphore);
+
+    if(measrdy_semaphore == NULL) measrdy_semaphore = xSemaphoreCreateBinary();
+    xSemaphoreTake(measrdy_semaphore, 0);
 
     ist8310_state = IST8310_RESET;
 
@@ -99,6 +97,7 @@ void IST8310_Run() {
 
     case IST8310_READ:
         if((xTaskGetTickCount() - t0) >= 20.0) {
+            xSemaphoreGive(measrdy_semaphore);
             IST8310_Meas();
             IST8310_Process();
             IST8310_WriteReg(CNTL1, SINGLE_MEAS);
@@ -107,6 +106,25 @@ void IST8310_Run() {
         }
         break;
     }
+}
+
+// TODO replace to another src
+// TODO add processing
+double IST8310_Get_magx() {
+    return (ist8310_data.mag_x);
+}
+
+double IST8310_Get_magy() {
+    return (ist8310_data.mag_y);
+}
+
+double IST8310_Get_magz() {
+    return (ist8310_data.mag_z);
+}
+
+int IST8310_MeasReady() {
+    xSemaphoreTake(measrdy_semaphore, portMAX_DELAY);
+    return 1;
 }
 
 uint8_t IST8310_ReadReg(uint8_t reg) {

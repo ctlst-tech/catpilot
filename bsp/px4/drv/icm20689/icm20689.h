@@ -26,7 +26,15 @@ typedef struct {
     uint32_t dt;
 } icm20689_fifo_t;
 
+enum icm20689_state_t {
+    ICM20689_RESET,
+    ICM20689_RESET_WAIT,
+    ICM20689_CONF,
+    ICM20689_FIFO_READ
+};
+
 extern icm20689_fifo_t icm20689_fifo;
+extern enum icm20689_state_t icm20689_state;
 
 int ICM20689_Init();
 void ICM20689_Run();

@@ -59,6 +59,10 @@ void Logger_Write_Task() {
     uint32_t ptr;
 
     uint32_t t0, t1, t2, t3;
+    (void)t0;
+    (void)t1;
+    (void)t2;
+    (void)t3;
 
     while(f_mount(&fs, "0:", 1)) {
         vTaskDelay(10);

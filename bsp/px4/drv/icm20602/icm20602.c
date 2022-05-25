@@ -7,12 +7,6 @@ static char *device = "ICM20602";
 
 icm20602_fifo_t icm20602_fifo;
 
-enum icm20602_state_t {
-    ICM20602_RESET,
-    ICM20602_RESET_WAIT,
-    ICM20602_CONF,
-    ICM20602_FIFO_READ
-};
 enum icm20602_state_t icm20602_state;
 
 uint8_t ICM20602_ReadReg(uint8_t reg);
@@ -33,6 +27,8 @@ void ICM20602_TempProcess();
 static gpio_cfg_t *icm20602_cs = &gpio_spi1_cs2;
 static exti_cfg_t *icm20602_drdy = &exti_spi1_drdy2;
 static SemaphoreHandle_t drdy_semaphore;
+
+static SemaphoreHandle_t measrdy_semaphore;
 
 static SemaphoreHandle_t timer_semaphore;
 static uint32_t t0;
@@ -56,6 +52,9 @@ int ICM20602_Init() {
     icm20602_cfg.spi = &spi1;
 
     if(drdy_semaphore == NULL) drdy_semaphore = xSemaphoreCreateBinary();
+
+    if(measrdy_semaphore == NULL) measrdy_semaphore = xSemaphoreCreateBinary();
+    xSemaphoreTake(measrdy_semaphore, 0);
 
     if(timer_semaphore == NULL) timer_semaphore = xSemaphoreCreateBinary();
     xSemaphoreGive(timer_semaphore);
@@ -139,16 +138,47 @@ void ICM20602_Run() {
         break;
 
     case ICM20602_FIFO_READ:
-        if(xSemaphoreTake(drdy_semaphore, 0) == pdTRUE) {
+        if(xSemaphoreTake(drdy_semaphore, portMAX_DELAY)) {
+            xSemaphoreGive(measrdy_semaphore);
             ICM20602_FIFOCount();
             ICM20602_FIFORead();
             icm20602_fifo.dt = xTaskGetTickCount() - icm20602_last_sample;
             icm20602_fifo.samples = icm20602_FIFOParam.samples;
             icm20602_last_sample = xTaskGetTickCount();
-            // ICM20602_Statistics();
         }
         break;
     }
+}
+
+// TODO replace to another src
+// TODO add processing
+double ICM20602_Get_ax() {
+    return (icm20602_fifo.accel_x[0]);
+}
+
+double ICM20602_Get_ay() {
+    return (icm20602_fifo.accel_y[0]);
+}
+
+double ICM20602_Get_az() {
+    return (icm20602_fifo.accel_z[0]);
+}
+
+double ICM20602_Get_wx() {
+    return (icm20602_fifo.gyro_x[0]);
+}
+
+double ICM20602_Get_wy() {
+    return (icm20602_fifo.gyro_y[0]);
+}
+
+double ICM20602_Get_wz() {
+    return (icm20602_fifo.gyro_z[0]);
+}
+
+int ICM20602_MeasReady() {
+    xSemaphoreTake(measrdy_semaphore, portMAX_DELAY);
+    return 1;
 }
 
 uint8_t ICM20602_ReadReg(uint8_t reg) {
@@ -355,17 +385,16 @@ int ICM20602_Probe() {
 }
 
 void ICM20602_Statistics() {
-    // TODO add time between FIFO reading
-    // LOG_DEBUG(device, "Statistics:");
-    // LOG_DEBUG(device, "accel_x = %.3f [m/s2]", icm20602_fifo.accel_x[0]);
-    // LOG_DEBUG(device, "accel_y = %.3f [m/s2]", icm20602_fifo.accel_y[0]);
-    // LOG_DEBUG(device, "accel_z = %.3f [m/s2]", icm20602_fifo.accel_z[0]);
-    // LOG_DEBUG(device, "gyro_x  = %.3f [deg/s]", icm20602_fifo.gyro_x[0]);
-    // LOG_DEBUG(device, "gyro_y  = %.3f [deg/s]", icm20602_fifo.gyro_y[0]);
-    // LOG_DEBUG(device, "gyro_z  = %.3f [deg/s]", icm20602_fifo.gyro_z[0]);
-    // LOG_DEBUG(device, "temp    = %.3f [C]", icm20602_fifo.temp);
-    // LOG_DEBUG(device, "N       = %lu [samples]", icm20602_fifo.samples);
-    // LOG_DEBUG(device, "dt      = %lu [ms]", icm20602_fifo.dt);
+    LOG_DEBUG(device, "Statistics:");
+    LOG_DEBUG(device, "accel_x = %.3f [m/s2]", icm20602_fifo.accel_x[0]);
+    LOG_DEBUG(device, "accel_y = %.3f [m/s2]", icm20602_fifo.accel_y[0]);
+    LOG_DEBUG(device, "accel_z = %.3f [m/s2]", icm20602_fifo.accel_z[0]);
+    LOG_DEBUG(device, "gyro_x  = %.3f [deg/s]", icm20602_fifo.gyro_x[0]);
+    LOG_DEBUG(device, "gyro_y  = %.3f [deg/s]", icm20602_fifo.gyro_y[0]);
+    LOG_DEBUG(device, "gyro_z  = %.3f [deg/s]", icm20602_fifo.gyro_z[0]);
+    LOG_DEBUG(device, "temp    = %.3f [C]", icm20602_fifo.temp);
+    LOG_DEBUG(device, "N       = %lu [samples]", icm20602_fifo.samples);
+    LOG_DEBUG(device, "dt      = %lu [ms]", icm20602_fifo.dt);
     LOG_DEBUG(device, "N = %lu", icm20602_fifo.samples);
 }
 

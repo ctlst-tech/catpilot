@@ -26,14 +26,14 @@
             <param alias="value">0.5</param>
         </f>
 
-        <f name="rc" by_spec="ph.periph.px4io.rc"/>
+        <f name="rc" by_spec="ph.periph.io.rc"/>
 
         <f name="arm_comp" by_spec="core.math.lt">
             <in alias="input0">half/output</in>
             <in alias="input1">rc/rc_channel5</in>
         </f>
 
-        <f name="io" by_spec="ph.periph.px4io.pwm">
+        <f name="io" by_spec="ph.periph.io.pwm">
             <in alias="pwm_channel1">rc/rc_channel1</in>
             <in alias="pwm_channel2">rc/rc_channel1</in>
             <in alias="pwm_channel3">rc/rc_channel1</in>
