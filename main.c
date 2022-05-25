@@ -21,7 +21,7 @@
 #include "fsminst.h"
 
 void main_thread(void *param);
-void ctlst(void *param);
+void * ctlst(void *param);
 
 int main(void) {
     HAL_Init();
@@ -48,7 +48,7 @@ void main_thread(void *param) {
 
 static FATFS fs;
 
-void ctlst(void *param) {
+void * ctlst(void *param) {
     static FRESULT res;
     swsys_t sys;
     int rv = 0;
@@ -73,7 +73,7 @@ void ctlst(void *param) {
 
     res = f_mount(&fs, "0:", 1);
 
-    struct termios 	termios_p;
+    struct termios termios_p;
 
     int fd = open("/dev/ttyS0", O_RDWR);
     if (fd == -1) {
@@ -81,18 +81,22 @@ void ctlst(void *param) {
     }
 
     tcgetattr(fd, &termios_p);
-    cfsetispeed(&termios_p, 1000000U);
-    cfsetospeed(&termios_p, 1000000U);
+    cfsetispeed(&termios_p, 115200U);
+    cfsetospeed(&termios_p, 115200U);
     tcsetattr(fd, TCSANOW, &termios_p);
     tcflush(fd, TCIOFLUSH);
 
-    while(1){
-        write(fd, "test\n", 6);
-        usleep(1000);
+    if (res == FR_OK) {
+        swsys_rv_t swsys_rv = swsys_load("mvp_swsys.xml", "/", &sys);
+        if (swsys_rv == swsys_e_ok) {
+            LOG_INFO("SYSTEM", "System starts")
+            swsys_top_module_start(&sys);
+        } else {
+            LOG_INFO("SYSTEM", "SWSYS config load error")
+        }
+    } else {
+        LOG_INFO("BOARD", "f_mount error")
     }
-
-    swsys_load("mvp_swsys.xml", "/", &sys);
-    swsys_top_module_start(&sys);
 
     while(1);
 }

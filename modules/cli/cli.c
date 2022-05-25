@@ -51,21 +51,29 @@ void stream_init(){
     // fwrite(blah, 5, 1, ttyS0);
 }
 
+static SemaphoreHandle_t cli_put_mutex;
+
 int CLI_Init() {
     int rv = 0;
     stream_init();
+    if(cli_put_mutex == NULL) cli_put_mutex = xSemaphoreCreateMutex();
+    xSemaphoreGive(cli_put_mutex);
     return rv;
 }
 
+
 // TODO add check transmit/receive status
 int cli_put(char c, struct __file * file) {
-    file->buf[file->len] = c;
-    if(c == '\n' || (file->len + 2) >= file->size) {
-        file->len++;
-        file->buf[file->len] = '\r';
-        USART_Transmit(&usart7, (uint8_t *)file->buf, (uint16_t)(file->len + 1));
-        file->len = 0;
+    xSemaphoreTake(cli_put_mutex, portMAX_DELAY);
+    int len = 0;
+    file->buf[len] = c;
+    if((c == '\n')) {
+        len++;
+        file->buf[len] = '\r';
     }
+    USART_Transmit(&usart7, (uint8_t *)file->buf, (uint16_t)(len + 1));
+    file->len = 0;
+    xSemaphoreGive(cli_put_mutex);
     return 0;
 }
 
