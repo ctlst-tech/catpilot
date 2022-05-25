@@ -72,19 +72,19 @@ void * ctlst(void *param) {
     usleep(1000);
 
     res = f_mount(&fs, "0:", 1);
-
-    struct termios termios_p;
-
     int fd = open("/dev/ttyS0", O_RDWR);
-    if (fd == -1) {
-        LOG_ERROR("EQRB", "ttyS0 open failed");
-    }
 
-    tcgetattr(fd, &termios_p);
-    cfsetispeed(&termios_p, 115200U);
-    cfsetospeed(&termios_p, 115200U);
-    tcsetattr(fd, TCSANOW, &termios_p);
-    tcflush(fd, TCIOFLUSH);
+    // struct termios termios_p;
+
+    // if (fd == -1) {
+    //     LOG_ERROR("EQRB", "ttyS0 open failed");
+    // }
+
+    // tcgetattr(fd, &termios_p);
+    // cfsetispeed(&termios_p, 115200U);
+    // cfsetospeed(&termios_p, 115200U);
+    // tcsetattr(fd, TCSANOW, &termios_p);
+    // tcflush(fd, TCIOFLUSH);
 
     if (res == FR_OK) {
         swsys_rv_t swsys_rv = swsys_load("mvp_swsys.xml", "/", &sys);
