@@ -9,7 +9,80 @@ static QueueHandle_t LoggerQueue;
 static char str_buf[LOGGER_BUFFER_SIZE];
 static char wr_buf[LOGGER_WRITE_SIZE];
 
-void Logger_Buffer_Task() {
+static int frame_num;
+static logger_frame_t *frame[LOGGER_MAX_FRAMES];
+
+int Logger_AddFrame(char *name) {
+    if(name == NULL) return -1;
+    if(strlen(name) > LOGGER_FRAME_NAME_MAX_LENGTH) return -1;
+    for(int i = 0; i < frame_num; i++) {
+        if(!strcmp(name, frame[i]->name)) {
+            return frame[i]->frame_id;
+        }
+    }
+    int num = frame_num;
+    frame[frame_num] = calloc(1, sizeof(logger_frame_t));
+    strcpy(frame[frame_num]->name, name);
+    frame[frame_num]->frame_id = frame_num;
+    frame_num++;
+    return num;
+}
+
+int Logger_DeleteFrame(char *name) {
+    if(name == NULL) return -1;
+    if(strlen(name) > LOGGER_FRAME_NAME_MAX_LENGTH) return -1;
+    for(int i = 0; i < frame_num; i++) {
+        if(!strcmp(name, frame[i]->name)) {
+            int id = frame[i]->frame_id;
+            free(frame[i]);
+            frame_num--;
+            return id;
+        }
+    }
+}
+
+int Logger_AddSignal(char *frame_name, char *signal_name) {
+    if(frame_name == NULL) return -1;
+    if(signal_name == NULL) return -1;
+    if(strlen(signal_name) > LOGGER_SIGNAL_NAME_MAX_LENGTH) return -1;
+    if(strlen(frame_name) > LOGGER_FRAME_NAME_MAX_LENGTH) return -1;
+    for(int i = 0; i < frame_num; i++) {
+        if(!strcmp(frame_name, frame[i]->name)) {
+            for(int j = 0; j < frame[i]->signal_num; j++) {
+                if(!strcmp(signal_name, frame[i]->signal[j]->name)) {
+                    return (frame[i]->signal[j]->signal_id);
+                }
+            }
+            int num = frame[i]->signal_num;
+            frame[i]->signal[num] = calloc(1, sizeof(logger_signal_t));
+            strcpy(frame[i]->signal[num]->name, signal_name);
+            frame[i]->signal[num]->signal_id = num;
+            frame[i]->signal_num++;
+            return num;
+        }
+    }
+    return -1;
+}
+
+int Logger_UpdateSignal(char *frame_name, char *signal_name, double value) {
+    if(frame_name == NULL) return -1;
+    if(signal_name == NULL) return -1;
+    if(strlen(signal_name) > LOGGER_SIGNAL_NAME_MAX_LENGTH) return -1;
+    if(strlen(frame_name) > LOGGER_FRAME_NAME_MAX_LENGTH) return -1;
+    for(int i = 0; i < frame_num; i++) {
+        if(!strcmp(frame_name, frame[i]->name)) {
+            for(int j = 0; j < frame[i]->signal_num; j++) {
+                if(!strcmp(signal_name, frame[i]->signal[j]->name)) {
+                    frame[i]->signal[j]->value = value;
+                    return frame[i]->signal[j]->signal_id;
+                }
+            }
+        }
+    }
+    return -1;
+}
+
+void Logger_Buffer() {
     uint32_t length = 0;
     float time = 0;
 
@@ -54,7 +127,7 @@ void Logger_Buffer_Task() {
     }
 }
 
-void Logger_Write_Task() {
+void Logger_Write() {
     FRESULT res;
     uint32_t ptr;
 
@@ -64,9 +137,6 @@ void Logger_Write_Task() {
     (void)t2;
     (void)t3;
 
-    while(f_mount(&fs, "0:", 1)) {
-        vTaskDelay(10);
-    }
     res = f_open(&file, "log.txt", FA_CREATE_ALWAYS | FA_WRITE);
     res = f_close(&file);
 
@@ -107,6 +177,6 @@ void Logger_Write_Task() {
 }
 
 void Logger_Start() {
-    xTaskCreate(Logger_Write_Task, "Write to SD", 1024, NULL, LOGGER_WRITE_TASK_PRIORITY, NULL);
-    xTaskCreate(Logger_Buffer_Task, "Bufferization", 1024, NULL, LOGGER_BUFFER_TASK_PRIORITY, NULL);
+    xTaskCreate(Logger_Write, "Write to SD", 1024, NULL, LOGGER_WRITE_TASK_PRIORITY, NULL);
+    xTaskCreate(Logger_Buffer, "Bufferization", 1024, NULL, LOGGER_BUFFER_TASK_PRIORITY, NULL);
 }
