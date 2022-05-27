@@ -63,6 +63,7 @@ void *ctlst(void *param) {
 
     res = f_mount(&fs, "0:", 1);
     fd = open("/dev/ttyS0", O_RDWR);
+    fd = open("/dev/ttyS1", O_RDWR);
 
     if(fd < 0) {
         LOG_ERROR("ttyS0", "Failed to open");

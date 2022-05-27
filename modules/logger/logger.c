@@ -2,9 +2,6 @@
 #include "logger_conf.h"
 #include <string.h>
 
-static FATFS fs;
-static FIL file;
-
 static QueueHandle_t LoggerQueue;
 static char str_buf[LOGGER_BUFFER_SIZE];
 static char wr_buf[LOGGER_WRITE_SIZE];
@@ -28,155 +25,81 @@ int Logger_AddFrame(char *name) {
     return num;
 }
 
-int Logger_DeleteFrame(char *name) {
-    if(name == NULL) return -1;
-    if(strlen(name) > LOGGER_FRAME_NAME_MAX_LENGTH) return -1;
-    for(int i = 0; i < frame_num; i++) {
-        if(!strcmp(name, frame[i]->name)) {
-            int id = frame[i]->frame_id;
-            free(frame[i]);
-            frame_num--;
-            return id;
-        }
-    }
-}
-
-int Logger_AddSignal(char *frame_name, char *signal_name) {
-    if(frame_name == NULL) return -1;
+int Logger_AddSignal(int frame_id, char *signal_name) {
+    if(frame[frame_id] == NULL) return -1;
     if(signal_name == NULL) return -1;
     if(strlen(signal_name) > LOGGER_SIGNAL_NAME_MAX_LENGTH) return -1;
-    if(strlen(frame_name) > LOGGER_FRAME_NAME_MAX_LENGTH) return -1;
-    for(int i = 0; i < frame_num; i++) {
-        if(!strcmp(frame_name, frame[i]->name)) {
-            for(int j = 0; j < frame[i]->signal_num; j++) {
-                if(!strcmp(signal_name, frame[i]->signal[j]->name)) {
-                    return (frame[i]->signal[j]->signal_id);
-                }
-            }
-            int num = frame[i]->signal_num;
-            frame[i]->signal[num] = calloc(1, sizeof(logger_signal_t));
-            strcpy(frame[i]->signal[num]->name, signal_name);
-            frame[i]->signal[num]->signal_id = num;
-            frame[i]->signal_num++;
-            return num;
+    for(int j = 0; j < frame[frame_id]->signal_num; j++) {
+        if(!strcmp(signal_name, frame[frame_id]->signal[j]->name)) {
+            return (frame[frame_id]->signal[j]->signal_id);
         }
     }
-    return -1;
+    int num = frame[frame_id]->signal_num;
+    frame[frame_id]->signal[num] = calloc(1, sizeof(logger_signal_t));
+    strcpy(frame[frame_id]->signal[num]->name, signal_name);
+    frame[frame_id]->signal[num]->signal_id = num;
+    frame[frame_id]->signal_num++;
+    return num;
 }
 
-int Logger_UpdateSignal(char *frame_name, char *signal_name, double value) {
-    if(frame_name == NULL) return -1;
-    if(signal_name == NULL) return -1;
-    if(strlen(signal_name) > LOGGER_SIGNAL_NAME_MAX_LENGTH) return -1;
-    if(strlen(frame_name) > LOGGER_FRAME_NAME_MAX_LENGTH) return -1;
-    for(int i = 0; i < frame_num; i++) {
-        if(!strcmp(frame_name, frame[i]->name)) {
-            for(int j = 0; j < frame[i]->signal_num; j++) {
-                if(!strcmp(signal_name, frame[i]->signal[j]->name)) {
-                    frame[i]->signal[j]->value = value;
-                    return frame[i]->signal[j]->signal_id;
-                }
-            }
-        }
-    }
-    return -1;
+int Logger_UpdateSignal(int frame_id, int signal_id, double value) {
+    if(frame[frame_id] == NULL) return -1;
+    if(frame[frame_id]->signal[signal_id] == NULL) return -1;
+    frame[frame_id]->signal[signal_id]->value = value;
+    return signal_id;
 }
 
-void Logger_Buffer() {
-    uint32_t length = 0;
-    float time = 0;
-
-    LoggerQueue = xQueueCreate(3, LOGGER_WRITE_SIZE);
-
-    for(int i = 0; i < 20; i++) {
-        length += sprintf(str_buf + length, "time%d\t", i);
-        length += sprintf(str_buf + length, "ax%d\t", i);
-        length += sprintf(str_buf + length, "ay%d\t", i);
-        length += sprintf(str_buf + length, "az%d\t", i);
-        length += sprintf(str_buf + length, "wx%d\t", i);
-        length += sprintf(str_buf + length, "wy%d\t", i);
-        length += sprintf(str_buf + length, "wz%d\t", i);
-        length += sprintf(str_buf + length, "magx%d\t", i);
-        length += sprintf(str_buf + length, "magy%d\t", i);
-        length += sprintf(str_buf + length, "magz%d\t", i);
+int Logger_CreateFrameHeadString(int frame_id, char *head) {
+    if(frame[frame_id] == NULL) return -1;
+    int id = frame_id;
+    int len = 0;
+    for(int i = 0; i < frame[id]->signal_num; i++) {
+        strcpy(head + len, frame[id]->signal[i]->name);
+        len = strlen(head);
+        head[len] = '\t';
+        len++;
     }
-    length += sprintf(str_buf + length, "\n");
+    head[len] = '\n';
+    len++;
+    return len;
+}
 
+int Logger_CreateFrameValuesString(int frame_id, char *values) {
+    if(frame[frame_id] == NULL) return -1;
+    int id = frame_id;
+    int len = 0;
+    for(int i = 0; i < frame[id]->signal_num; i++) {
+        len += sprintf(values + len, "%.lf\t", frame[id]->signal[i]->value);
+    }
+    values[len] = '\n';
+    len++;
+    return len;
+}
+
+int Logger_UpdateFrame(int frame_id) {
+    int fd;
+    int len;
+    char head[LOGGER_MAX_FRAME_SIZE * LOGGER_SIGNAL_NAME_MAX_LENGTH] = {};
+    char values[LOGGER_MAX_FRAME_SIZE * 5];
+    char frame_path[LOGGER_FRAME_NAME_MAX_LENGTH * 2] = {};
+    int mode = S_IRUSR | S_IWUSR | S_IXUSR |
+               S_IRGRP | S_IWGRP | S_IXGRP |
+               S_IROTH | S_IXOTH;
+
+    len = Logger_CreateFrameHeadString(frame_id, head);
+    sprintf(frame_path, "logs/%s.txt", frame[frame_id]->name);
+    mkdir("logs", mode);
+    fd = open(frame_path, O_RDWR | O_CREAT | O_TRUNC);
+    write(fd, head, len);
     while(1) {
-        time = xTaskGetTickCount();
-        for(int i = 0; i < 20; i++) {
-            length += sprintf((str_buf + length), "%f\t", time);
-            length += sprintf((str_buf + length), "%f\t", icm20602_fifo.accel_x[0]);
-            length += sprintf((str_buf + length), "%f\t", icm20602_fifo.accel_y[0]);
-            length += sprintf((str_buf + length), "%f\t", icm20602_fifo.accel_z[0]);
-            length += sprintf((str_buf + length), "%f\t", icm20602_fifo.gyro_x[0]);
-            length += sprintf((str_buf + length), "%f\t", icm20602_fifo.gyro_y[0]);
-            length += sprintf((str_buf + length), "%f\t", icm20602_fifo.gyro_z[0]);
-            length += sprintf((str_buf + length), "%f\t", ist8310_data.mag_x);
-            length += sprintf((str_buf + length), "%f\t", ist8310_data.mag_y);
-            length += sprintf((str_buf + length), "%f\t", ist8310_data.mag_z);
-        }
-        length += sprintf((str_buf + length), "\n");
-        if(length > LOGGER_WRITE_SIZE) {
-            xQueueSend(LoggerQueue, str_buf, portMAX_DELAY);
-            length = length - LOGGER_WRITE_SIZE;
-            memcpy(str_buf, str_buf + LOGGER_WRITE_SIZE, length);
-        }
-        time = xTaskGetTickCount();
-        vTaskDelay(1);
+        fd = open(frame_path, O_RDWR | O_APPEND);
+        len = Logger_CreateFrameValuesString(frame_id, values);
+        write(fd, values, len);
+        close(fd);
+        usleep(1000000);
     }
-}
-
-void Logger_Write() {
-    FRESULT res;
-    uint32_t ptr;
-
-    uint32_t t0, t1, t2, t3;
-    (void)t0;
-    (void)t1;
-    (void)t2;
-    (void)t3;
-
-    res = f_open(&file, "log.txt", FA_CREATE_ALWAYS | FA_WRITE);
-    res = f_close(&file);
-
-    res = f_open(&file, "log.txt", FA_OPEN_EXISTING | FA_WRITE);
-    res = f_lseek(&file, f_size(&file));
-    while(1) {
-        if(xQueueReceive(LoggerQueue, wr_buf, portMAX_DELAY)) {
-            t0 = xTaskGetTickCount();
-
-            if(res) {
-                vTaskDelay(0);
-            }
-
-            t1 = xTaskGetTickCount();
-            res = f_write(&file, wr_buf, LOGGER_BLOCK_SIZE, &ptr);
-
-            if(res) {
-                vTaskDelay(0);
-            }
-
-            t2 = xTaskGetTickCount();
-
-            if(res) {
-                vTaskDelay(0);
-            }
-
-            t3 = xTaskGetTickCount();
-
-            if((t3 - t0) > 100U) {
-                vTaskDelay(0);
-            }
-            if(t0 > 120000) {
-                res = f_close(&file);
-                while(1);
-            }
-        }
-    }
+    return 0;
 }
 
 void Logger_Start() {
-    xTaskCreate(Logger_Write, "Write to SD", 1024, NULL, LOGGER_WRITE_TASK_PRIORITY, NULL);
-    xTaskCreate(Logger_Buffer, "Bufferization", 1024, NULL, LOGGER_BUFFER_TASK_PRIORITY, NULL);
 }
