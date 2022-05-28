@@ -1,9 +1,9 @@
 from ctlst import *
 
 Function(
-    name='ph.utils.logger',
+    name='ph.logger.update_signal',
     title=LocalizedString(
-        en='logger'
+        en='logger update signal'
     ),
     parameters=[],
     inputs=[
@@ -15,8 +15,8 @@ Function(
     ],
     outputs=[
         Output(
-            name='stub',
-            title='stub',
+            name='output',
+            title='output',
             value_type='core.type.f64'
         ),
     ],

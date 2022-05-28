@@ -28,6 +28,10 @@
     <functions>
         <f name="imu" by_spec="ph.periph.imu"/>
         <f name="mag" by_spec="ph.periph.mag"/>
+        <f name="update_signal" by_spec="ph.logger.update_signal">
+            <in alias="input">imu/wx</in>
+        </f>
+        <f name="update_frame" by_spec="ph.logger.update_frame"/>
     </functions>
 
     <link_outputs>

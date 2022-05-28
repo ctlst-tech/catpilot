@@ -16,6 +16,7 @@
 #include "imu.h"
 #include "io.h"
 #include "mag.h"
+#include "logger.h"
 
 void main_thread(void *param);
 void *ctlst(void *param);
@@ -60,15 +61,21 @@ void *ctlst(void *param) {
     IMU_Start();
     MAG_Start();
     IO_Start();
+    Logger_Init();
 
     res = f_mount(&fs, "0:", 1);
-    fd = open("/dev/ttyS0", O_RDWR);
-    fd = open("/dev/ttyS1", O_RDWR);
 
+    fd = open("/dev/ttyS0", O_RDWR | O_CREAT | O_TRUNC);
     if(fd < 0) {
         LOG_ERROR("ttyS0", "Failed to open");
     } else {
         LOG_DEBUG("ttyS0", "Opened successfully");
+    }
+    fd = open("/dev/ttyS1", O_RDWR | O_CREAT | O_TRUNC);
+    if(fd < 0) {
+        LOG_ERROR("ttyS1", "Failed to open");
+    } else {
+        LOG_DEBUG("ttyS1", "Opened successfully");
     }
 
     if (res == FR_OK) {

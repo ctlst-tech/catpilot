@@ -25,7 +25,7 @@ int open(const char *pathname, int flags) {
             errno = EPROTO;
             return -1;
         }
-        rv = fatfs_open(pathname, O_RDWR);
+        rv = fatfs_open(pathname, O_RDWR | O_CREAT | O_TRUNC);
         if(rv < 0) return -1;
         return (i + 3);
     }
