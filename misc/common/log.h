@@ -3,6 +3,7 @@
 #include <stdarg.h>
 
 #define LOG_DEBUG_ENABLE
+#define LOG_STDOUT_ENABLE 0
 
 #define LOG_MAX_LENGTH 255
 #define LOG_MAX_MODULE_NAME 10
@@ -12,6 +13,7 @@
 #define LOG_ERROR_TYPE 2
 #define LOG_DEBUG_TYPE 3
 #define LOG_EMPTY_TYPE 4
+
 
 void log_module(uint8_t msg_type, char *module, char *s, ...);
 
