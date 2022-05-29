@@ -7,7 +7,7 @@ dma_cfg_t usart7_dma_rx;
 gpio_cfg_t usart7_tx = GPIO_USART7_TX;
 gpio_cfg_t usart7_rx = GPIO_USART7_RX;
 const int usart7_bitrate = 115200;
-const int usart7_timeout = 20;
+const int usart7_timeout = portMAX_DELAY;
 const int usart7_priority = 15;
 
 usart_cfg_t usart8;
@@ -30,7 +30,7 @@ int USART7_Init() {
     usart7.speed = usart7_bitrate;
     usart7.timeout = usart7_timeout;
     usart7.priority = usart7_priority;
-    usart7.mode = USART_TIMEOUT;
+    usart7.mode = USART_IDLE;
 
     usart7_dma_tx.DMA_InitStruct.Instance = DMA1_Stream1;
     usart7_dma_tx.DMA_InitStruct.Init.Channel = DMA_CHANNEL_5;

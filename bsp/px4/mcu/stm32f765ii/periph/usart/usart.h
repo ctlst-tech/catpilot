@@ -27,10 +27,15 @@ enum usart_receive_mode_t {
 
 struct usart_inst_t {
     UART_HandleTypeDef USART_InitStruct;
-    SemaphoreHandle_t semaphore;
-    SemaphoreHandle_t mutex;
+    SemaphoreHandle_t tx_semaphore;
+    SemaphoreHandle_t rx_semaphore;
+    SemaphoreHandle_t tx_mutex;
+    SemaphoreHandle_t rx_mutex;
     IRQn_Type IRQ;
-    enum usart_state_t state;
+    enum usart_state_t tx_state;
+    enum usart_state_t rx_state;
+    int rx_count;
+    int tx_count;
 };
 
 typedef struct {

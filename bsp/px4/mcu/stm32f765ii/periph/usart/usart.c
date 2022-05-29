@@ -38,8 +38,10 @@ int USART_Init(usart_cfg_t *cfg) {
 
     if(HAL_UART_Init(&cfg->inst.USART_InitStruct) != HAL_OK) return EINVAL;
 
-    if(cfg->inst.mutex == NULL) cfg->inst.mutex = xSemaphoreCreateMutex();
-    if(cfg->inst.semaphore == NULL) cfg->inst.semaphore = xSemaphoreCreateBinary();
+    if(cfg->inst.tx_mutex == NULL) cfg->inst.tx_mutex = xSemaphoreCreateMutex();
+    if(cfg->inst.rx_mutex == NULL) cfg->inst.rx_mutex = xSemaphoreCreateMutex();
+    if(cfg->inst.tx_semaphore == NULL) cfg->inst.tx_semaphore = xSemaphoreCreateBinary();
+    if(cfg->inst.rx_semaphore == NULL) cfg->inst.rx_semaphore = xSemaphoreCreateBinary();
 
     USART_EnableIRQ(cfg);
 
@@ -72,24 +74,24 @@ int USART_Transmit(usart_cfg_t *cfg, uint8_t *pdata, uint16_t length) {
     if(length == 0) return EINVAL;
     if(pdata ==  NULL) return EINVAL;
 
-    if(xSemaphoreTake(cfg->inst.mutex, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
-        return ETIMEDOUT;
+    if(xSemaphoreTake(cfg->inst.tx_mutex, 0) == pdFALSE) {
+        return EBUSY;
     }
 
-    xSemaphoreTake(cfg->inst.semaphore, 0);
+    xSemaphoreTake(cfg->inst.tx_semaphore, 0);
 
-    cfg->inst.state = USART_TRANSMIT;
+    cfg->inst.tx_state = USART_TRANSMIT;
 
     HAL_UART_Transmit_DMA(&cfg->inst.USART_InitStruct, pdata, length);
 
-    if(xSemaphoreTake(cfg->inst.semaphore, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
+    if(xSemaphoreTake(cfg->inst.tx_semaphore, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
         rv = ETIMEDOUT;
     } else {
         rv = 0;
     }
 
-    cfg->inst.state = USART_FREE;
-    xSemaphoreGive(cfg->inst.mutex);
+    cfg->inst.tx_state = USART_FREE;
+    xSemaphoreGive(cfg->inst.tx_mutex);
 
     return rv;
 }
@@ -100,24 +102,28 @@ int USART_Receive(usart_cfg_t *cfg, uint8_t *pdata, uint16_t length) {
     if(length == 0) return EINVAL;
     if(pdata ==  NULL) return EINVAL;
 
-    if(xSemaphoreTake(cfg->inst.mutex, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
-        return ETIMEDOUT;
+    if(xSemaphoreTake(cfg->inst.rx_mutex, 0) == pdFALSE) {
+        return EBUSY;
     }
 
-    xSemaphoreTake(cfg->inst.semaphore, 0);
+    xSemaphoreTake(cfg->inst.rx_semaphore, 0);
 
-    cfg->inst.state = USART_RECEIVE;
+    cfg->inst.rx_state = USART_RECEIVE;
 
+    if(cfg->mode == USART_IDLE) {
+        SET_BIT(cfg->USART->ICR, USART_ICR_IDLECF);
+        SET_BIT(cfg->USART->CR1, USART_CR1_IDLEIE);
+    }
     HAL_UART_Receive_DMA(&cfg->inst.USART_InitStruct, pdata, length);
 
-    if(xSemaphoreTake(cfg->inst.semaphore, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
+    if(xSemaphoreTake(cfg->inst.rx_semaphore, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
         rv = ETIMEDOUT;
     } else {
         rv = 0;
     }
 
-    cfg->inst.state = USART_FREE;
-    xSemaphoreGive(cfg->inst.mutex);
+    cfg->inst.rx_state = USART_FREE;
+    xSemaphoreGive(cfg->inst.rx_mutex);
 
     return rv;
 }
@@ -130,27 +136,31 @@ int USART_TransmitReceive(usart_cfg_t *cfg, uint8_t *tx_pdata, uint8_t *rx_pdata
     if(tx_pdata ==  NULL) return EINVAL;
     if(rx_pdata ==  NULL) return EINVAL;
 
-    if(xSemaphoreTake(cfg->inst.mutex, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
-        return ETIMEDOUT;
+    if((xSemaphoreTake(cfg->inst.tx_mutex, 0) == pdFALSE) ||
+        (xSemaphoreTake(cfg->inst.rx_mutex, 0) == pdFALSE)) {
+            return EBUSY;
     }
 
-    xSemaphoreTake(cfg->inst.semaphore, 0);
+    xSemaphoreTake(cfg->inst.rx_semaphore, 0);
 
-    cfg->inst.state = USART_RECEIVE;
+    cfg->inst.tx_state = USART_TRANSMIT;
+    cfg->inst.rx_state = USART_RECEIVE;
 
     SET_BIT(cfg->USART->ICR, USART_ICR_IDLECF);
     SET_BIT(cfg->USART->CR1, USART_CR1_IDLEIE);
     HAL_UART_Receive_DMA(&cfg->inst.USART_InitStruct, rx_pdata, rx_length);
     HAL_UART_Transmit_DMA(&cfg->inst.USART_InitStruct, tx_pdata, tx_length);
 
-    if(xSemaphoreTake(cfg->inst.semaphore, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
+    if(xSemaphoreTake(cfg->inst.rx_semaphore, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
         rv = ETIMEDOUT;
     } else {
         rv = 0;
     }
 
-    cfg->inst.state = USART_FREE;
-    xSemaphoreGive(cfg->inst.mutex);
+    cfg->inst.tx_state = USART_FREE;
+    cfg->inst.rx_state = USART_FREE;
+    xSemaphoreGive(cfg->inst.tx_mutex);
+    xSemaphoreGive(cfg->inst.rx_mutex);
 
     return rv;
 }
@@ -161,28 +171,33 @@ int USART_Handler(usart_cfg_t *cfg) {
     HAL_UART_IRQHandler(&cfg->inst.USART_InitStruct);
 
     if(cfg->inst.USART_InitStruct.gState == HAL_UART_STATE_READY &&
-        cfg->inst.state == USART_TRANSMIT) {
-            xSemaphoreGiveFromISR(cfg->inst.semaphore, &xHigherPriorityTaskWoken);
+        cfg->inst.tx_state == USART_TRANSMIT) {
+            xSemaphoreGiveFromISR(cfg->inst.tx_semaphore, &xHigherPriorityTaskWoken);
+            cfg->inst.rx_count = cfg->dma_rx_cfg->DMA_InitStruct.Instance->NDTR;
             if(xHigherPriorityTaskWoken == pdTRUE) {
                 portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
             }
     }
 
     if(cfg->inst.USART_InitStruct.RxState == HAL_UART_STATE_READY &&
-        cfg->inst.state == USART_RECEIVE &&
+        cfg->inst.rx_state == USART_RECEIVE &&
         cfg->mode == USART_TIMEOUT) {
-            xSemaphoreGiveFromISR(cfg->inst.semaphore, &xHigherPriorityTaskWoken);
+            xSemaphoreGiveFromISR(cfg->inst.rx_semaphore, &xHigherPriorityTaskWoken);
             if(xHigherPriorityTaskWoken == pdTRUE) {
                 portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
             }
     }
 
     if(cfg->USART->ISR & USART_ISR_IDLE &&
-        cfg->inst.state == USART_RECEIVE &&
+        cfg->inst.rx_state == USART_RECEIVE &&
         cfg->mode == USART_IDLE) {
             SET_BIT(cfg->USART->ICR, USART_ICR_IDLECF);
+            cfg->inst.rx_count = cfg->inst.USART_InitStruct.RxXferSize -
+                                 cfg->dma_rx_cfg->DMA_InitStruct.Instance->NDTR;
             HAL_UART_AbortReceive(&cfg->inst.USART_InitStruct);
-            xSemaphoreGiveFromISR(cfg->inst.semaphore, &xHigherPriorityTaskWoken);
+            CLEAR_BIT(cfg->USART->ICR, USART_ICR_IDLECF);
+            CLEAR_BIT(cfg->USART->CR1, USART_CR1_IDLEIE);
+            xSemaphoreGiveFromISR(cfg->inst.rx_semaphore, &xHigherPriorityTaskWoken);
             if(xHigherPriorityTaskWoken == pdTRUE) {
                 portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
             }
@@ -198,8 +213,16 @@ int USART_DMA_TX_Handler(usart_cfg_t *cfg) {
 }
 
 int USART_DMA_RX_Handler(usart_cfg_t *cfg) {
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     int rv = 0;
     rv = DMA_IRQHandler(cfg->dma_rx_cfg);
+    if(cfg->dma_rx_cfg->DMA_InitStruct.State == HAL_DMA_STATE_READY &&
+       cfg->mode == USART_TIMEOUT) {
+            xSemaphoreGiveFromISR(cfg->inst.rx_semaphore, &xHigherPriorityTaskWoken);
+            if(xHigherPriorityTaskWoken == pdTRUE) {
+                portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+            }
+    }
     return rv;
 }
 
@@ -279,6 +302,7 @@ int USART_ClockEnable(usart_cfg_t *cfg) {
 
     return 0;
 }
+
 
 #ifdef USART_TERMIOS
 

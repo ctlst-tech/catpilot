@@ -58,10 +58,10 @@ void *ctlst(void *param) {
         LOG_INFO("BOARD", "Initialization successful")
     }
 
-    IMU_Start();
-    MAG_Start();
-    IO_Start();
-    Logger_Init();
+    // IMU_Start();
+    // MAG_Start();
+    // IO_Start();
+    // Logger_Init();
 
     res = f_mount(&fs, "0:", 1);
 
@@ -76,6 +76,13 @@ void *ctlst(void *param) {
         LOG_ERROR("ttyS1", "Failed to open");
     } else {
         LOG_DEBUG("ttyS1", "Opened successfully");
+    }
+
+    fd = open("/dev/ttyS0", O_RDWR | O_CREAT | O_TRUNC);
+    uint8_t buf[255] = {};
+
+    while(1) {
+        read(fd, buf, 10);
     }
 
     if (res == FR_OK) {

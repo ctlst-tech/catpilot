@@ -3,7 +3,7 @@
 #include <stdarg.h>
 
 #define LOG_DEBUG_ENABLE
-#define LOG_STDOUT_ENABLE 0
+#define LOG_STDOUT_ENABLE 1
 
 #define LOG_MAX_LENGTH 255
 #define LOG_MAX_MODULE_NAME 10

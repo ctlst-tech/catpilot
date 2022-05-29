@@ -65,21 +65,3 @@ int cli_get(struct __file * file) {
     file->len++;
     return file->buf[0];
 }
-
-void cli_put_char(uint8_t c) {
-    USART_Transmit(&usart7, &c, 1);
-}
-
-int _write(int fd, char* ptr, int len)
-{
-    (void)fd;
-    int i = 0;
-    while (ptr[i] && (i < len)) {
-        cli_put_char((int)ptr[i]);
-        if (ptr[i] == '\n') {
-            cli_put_char((int)'\r');
-        }
-        i++;
-    }
-    return len;
-}
