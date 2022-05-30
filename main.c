@@ -19,7 +19,7 @@
 #include "logger.h"
 
 #define LOG_STDOUT_ENABLE 1
-#define ECHO_ENABLE 0
+#define ECHO_ENABLE 1
 
 void main_thread(void *param);
 void *ctlst(void *param);
