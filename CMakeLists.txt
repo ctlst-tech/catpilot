@@ -20,7 +20,6 @@ if (TYPE STREQUAL "PX4")
             )
     set(MAP_CREATION "ON")
     set(ESWB_EQRB_NO_SOCKET "1")
-    set(ESWB_EQRB_NO_SERIAL "1")
     set(CATOM_NO_SOCKET "1")
     set(FAKE_PTHREAD "1")
 
