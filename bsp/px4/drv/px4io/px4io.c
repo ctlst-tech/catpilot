@@ -98,7 +98,7 @@ void PX4IO_Run() {
                 px4io_state = PX4IO_ERROR;
             }
         } else {
-            LOG_ERROR(device, "Wrong protocol version: %lu\n", px4io_reg.protocol_version);
+            LOG_ERROR(device, "Wrong protocol version: %lu", px4io_reg.protocol_version);
         }
         break;
 
