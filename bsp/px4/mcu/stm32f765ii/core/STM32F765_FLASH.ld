@@ -11,8 +11,7 @@ MEMORY
 ENTRY(Reset_Handler)
 
 _estack = ORIGIN(ITCM_RAM) + LENGTH(ITCM_RAM);
-_Min_Heap_Size = 0x200 ;
-_Min_Stack_Size = 0x400 ;
+_HeapLimit = ORIGIN(SRAM_1) + LENGTH(SRAM_1);
 
 SECTIONS
 {
@@ -21,7 +20,7 @@ SECTIONS
 		KEEP(*(.isr_vector))
 	} > FLASH_BANK_1
 
-	.text_1 : 
+	.text_1 :
 	{
 		*(.text*)
 		. = ALIGN(4);
@@ -31,28 +30,28 @@ SECTIONS
 		*(.rodata*)
   	} > FLASH_BANK_1
 
-  	.text_2 : 
+  	.text_2 :
 	{
 		*(.text*)
 		. = ALIGN(4);
 		*(.rodata*)
   	} > FLASH_BANK_2
 
-	.init_section : 
+	.init_section :
 	{
 	    . = ALIGN(4);
 		_sinit = .;
-		KEEP(*(.init_array*)) 
+		KEEP(*(.init_array*))
 		_einit = .;
 	} > FLASH_BANK_2
 
-	.ARM.extab : 
+	.ARM.extab :
 	{
 	    . = ALIGN(4);
 		*(.ARM.extab*)
 	} > FLASH_BANK_2
 
-	.ARM.exidx : 
+	.ARM.exidx :
 	{
 	    . = ALIGN(4);
 		__exidx_start = .;
@@ -62,7 +61,7 @@ SECTIONS
 
 	_sidata = LOADADDR(.data);
 
-	.data : 
+	.data :
 	{
 		. = ALIGN(4);
 		_sdata = .;
@@ -71,10 +70,10 @@ SECTIONS
 		_edata = .;
 	} > SRAM_1 AT > FLASH_BANK_2
 
-	.bss : 
+	.bss :
 	{
 		_sbss = .;
-		*(.bss*) 
+		*(.bss*)
 		*(COMMON)
 		. = ALIGN(4);
 		_ebss = .;
@@ -85,8 +84,6 @@ SECTIONS
 		. = ALIGN(8);
 		PROVIDE ( end = . );
 		PROVIDE ( _end = . );
-		. = . + _Min_Heap_Size;
-		. = . + _Min_Stack_Size;
 		. = ALIGN(8);
 	} > SRAM_1
 
@@ -97,8 +94,8 @@ SECTIONS
 		libgcc.a ( * )
 	}
 
-	.ARM.attributes 0 : 
+	.ARM.attributes 0 :
 	{
-		*(.ARM.attributes) 
+		*(.ARM.attributes)
 	}
 }

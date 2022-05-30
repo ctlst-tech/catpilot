@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#define MAX_DEVICES 2
+#define MAX_DEVICES 1
 #define MAX_DEVICE_PATH_LENGTH 32
 
 struct dev {
