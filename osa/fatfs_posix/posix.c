@@ -4,7 +4,7 @@
 #include "dev_posix.h"
 
 struct dev __dev[MAX_DEVICES];
-char *__dev_table[MAX_DEVICES];
+char __dev_table[MAX_DEVICES][MAX_DEVICE_PATH_LENGTH];
 
 int open(const char *pathname, int flags) {
     int rv;
@@ -15,13 +15,13 @@ int open(const char *pathname, int flags) {
         if(!strcmp(__dev_table[i], __dev[i].path)) {
             return (i + 3);
         }
-        __dev_table[i] = __dev[i].path;
+        strcpy(__dev_table[i], __dev[i].path);
         if(__dev[i].open == NULL) {
             errno = EBADF;
             return -1;
         }
         rv = __dev[i].open(pathname, flags);
-        if(rv) {
+        if(rv < 0) {
             errno = EPROTO;
             return -1;
         }
@@ -42,11 +42,11 @@ ssize_t write(int fd, const void *buf, size_t count) {
             return -1;
         }
         rv = __dev[dev_fd].write(dev_fd, buf, count);
-        if(rv) {
+        if(rv < 0) {
             errno = EPROTO;
             return -1;
         }
-        return count;
+        return rv;
     }
     rv = fatfs_write(fd, buf, count);
     return rv;
@@ -61,11 +61,11 @@ ssize_t read(int fd, void *buf, size_t count) {
             return -1;
         }
         rv = __dev[dev_fd].read(dev_fd, buf, count);
-        if(rv) {
+        if(rv < 0) {
             errno = EPROTO;
             return -1;
         }
-        return count;
+        return rv;
     }
     rv = fatfs_read(fd, buf, count);
     return rv;

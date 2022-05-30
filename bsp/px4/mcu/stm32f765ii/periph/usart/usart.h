@@ -2,6 +2,7 @@
 #include "stm32_base.h"
 #include "gpio.h"
 #include "dma.h"
+#include "ringbuf.h"
 
 #define USART_TERMIOS
 #define USART_POSIX_OSA
@@ -36,6 +37,13 @@ struct usart_inst_t {
     enum usart_state_t rx_state;
     int rx_count;
     int tx_count;
+    ringbuf_t *write_buf;
+    ringbuf_t *read_buf;
+    SemaphoreHandle_t read_semaphore;
+    SemaphoreHandle_t write_semaphore;
+    int error;
+    bool periph_init;
+    bool tasks_init;
 };
 
 typedef struct {
@@ -47,9 +55,10 @@ typedef struct {
     int speed;
     int timeout;
     int priority;
+    int buf_size;
     enum usart_receive_mode_t mode;
     struct usart_inst_t inst;
-    int init;
+    int task_priority;
 } usart_cfg_t;
 
 

@@ -1,12 +1,11 @@
 #pragma once
 #include <stdint.h>
 #include <stdarg.h>
-
-#define LOG_DEBUG_ENABLE
-#define LOG_STDOUT_ENABLE 1
+#include <stdbool.h>
 
 #define LOG_MAX_LENGTH 255
 #define LOG_MAX_MODULE_NAME 10
+#define LOG_DEBUG_ENABLE 1
 
 #define LOG_INFO_TYPE  0
 #define LOG_WARN_TYPE  1
@@ -14,8 +13,8 @@
 #define LOG_DEBUG_TYPE 3
 #define LOG_EMPTY_TYPE 4
 
-
 void log_module(uint8_t msg_type, char *module, char *s, ...);
+void log_enable(bool enable);
 
 #define _LOG(type, module, s, ...) {    \
     log_module(type, module, s, ##__VA_ARGS__);\

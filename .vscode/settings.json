@@ -24,6 +24,9 @@
         "stm32_base.h": "c",
         "stm32f765xx.h": "c",
         "log.h": "c",
-        "swsys.h": "c"
+        "swsys.h": "c",
+        "imu.h": "c",
+        "mag.h": "c",
+        "logger.h": "c"
     }
 }

@@ -1,3 +1,4 @@
+#include "stm32_base.h"
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -11,10 +12,11 @@ typedef struct {
    uint16_t size;
    uint16_t count;
    bool overrun_mode;
+   SemaphoreHandle_t mutex;
 } ringbuf_t;
 
-int RingBuf_Init(ringbuf_t *ringbuf, uint16_t size);
-int RingBuf_Delete(ringbuf_t *ringbuf);
+ringbuf_t *RingBuf_Init(uint16_t size);
+ringbuf_t *RingBuf_Delete(ringbuf_t *ringbuf);
 int RingBuf_SetOverrunMode(ringbuf_t *ringbuf, bool overrun_enable);
 int RingBuf_GetDataSize(ringbuf_t *ringbuf);
 int RingBuf_GetFreeSize(ringbuf_t *ringbuf);

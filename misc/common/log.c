@@ -5,10 +5,14 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-#if (!LOG_STDOUT_ENABLE)
-    static char stdout_string[8192];
-    static int stdout_len;
-#endif
+static bool enable_;
+
+static char stdout_string[8192];
+static int stdout_len;
+
+void log_enable(bool enable) {
+    enable_ = enable;
+}
 
 static char *msg_types[4] = {
     "INFO",
@@ -51,11 +55,11 @@ void log_module(uint8_t msg_type, char *module, char *s, ...) {
     length += vsnprintf(string + length, MAX(LOG_MAX_LENGTH - length, 0), s, arg);
     va_end(arg);
 
-    #if(LOG_STDOUT_ENABLE)
+    if(enable_) {
         printf("%s\n", string);
-    #else
+    } else {
         strcpy(stdout_string + stdout_len, string);
         stdout_len += strlen(string);
-    #endif
+    }
     xSemaphoreGive(log_mutex);
 }
