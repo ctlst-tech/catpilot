@@ -3,15 +3,17 @@ MEMORY
     FLASH_BANK_1 (rx) : ORIGIN = 0x08000000, LENGTH = 1024K
     FLASH_BANK_2 (rx) : ORIGIN = 0x08100000, LENGTH = 1024K
     ITCM_RAM (x)      : ORIGIN = 0x00000000, LENGTH = 16K
-    DTCM_RAM (rw)     : ORIGIN = 0x20000000, LENGTH = 128K
+	SRAM (rw)         : ORIGIN = 0x20000000, LENGTH = 496K
+	STACK (rw)        : ORIGIN = 0x2007c000, LENGTH = 16K
+    /* DTCM_RAM (rw)     : ORIGIN = 0x20000000, LENGTH = 128K
     SRAM_1 (rw)       : ORIGIN = 0x20020000, LENGTH = 368K
-    SRAM_2 (rw)       : ORIGIN = 0x2007c000, LENGTH = 16K
+    SRAM_2 (rw)       : ORIGIN = 0x2007c000, LENGTH = 16K */
 }
 
 ENTRY(Reset_Handler)
 
-_estack = ORIGIN(ITCM_RAM) + LENGTH(ITCM_RAM);
-_HeapLimit = ORIGIN(SRAM_1) + LENGTH(SRAM_1);
+_estack = ORIGIN(STACK) + LENGTH(STACK);
+_HeapLimit = ORIGIN(SRAM) + LENGTH(SRAM);
 
 SECTIONS
 {
@@ -68,7 +70,7 @@ SECTIONS
 		*(.data*)
 		. = ALIGN(4);
 		_edata = .;
-	} > SRAM_1 AT > FLASH_BANK_2
+	} > SRAM AT > FLASH_BANK_2
 
 	.bss :
 	{
@@ -77,7 +79,7 @@ SECTIONS
 		*(COMMON)
 		. = ALIGN(4);
 		_ebss = .;
-	} > SRAM_1
+	} > SRAM
 
 	._user_heap_stack :
 	{
@@ -85,7 +87,7 @@ SECTIONS
 		PROVIDE ( end = . );
 		PROVIDE ( _end = . );
 		. = ALIGN(8);
-	} > SRAM_1
+	} > SRAM
 
 	/DISCARD/ :
 	{
