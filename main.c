@@ -18,8 +18,8 @@
 #include "mag.h"
 #include "logger.h"
 
-#define LOG_STDOUT_ENABLE 1
-#define ECHO_ENABLE 1
+#define LOG_STDOUT_ENABLE 0
+#define ECHO_ENABLE 0
 
 void main_thread(void *param);
 void *ctlst(void *param);
@@ -28,7 +28,7 @@ static FATFS fs;
 int main(void) {
     HAL_Init();
     RCC_Init();
-    xTaskCreate(main_thread, "main_thread", 42000, NULL, 3, NULL );
+    xTaskCreate(main_thread, "main_thread", 100, NULL, 3, NULL );
     vTaskStartScheduler();
     while(1) {
     }
@@ -39,6 +39,7 @@ void main_thread(void *param) {
     pthread_attr_t attr;
     int arg = 0;
     pthread_attr_init(&attr);
+    pthread_attr_setstacksize(&attr, 65535);
     pthread_create(&tid, &attr, ctlst, &arg);
     pthread_join(tid, NULL);
     pthread_exit(NULL);

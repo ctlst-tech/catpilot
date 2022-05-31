@@ -7,6 +7,8 @@ extern char _end;         /**< Defined by the linker */
 extern char _HeapLimit;  /**< Defined by the linker */
 typedef	char *	caddr_t;
 
+static int total;
+
 caddr_t _sbrk(int incr)
 {
     static char *heap_end;
@@ -20,6 +22,7 @@ caddr_t _sbrk(int incr)
 
     char *heap_desir = heap_end + incr;
     char *heap_max = (char*)&_HeapLimit;
+    total += incr;
 
     if (heap_desir >  heap_max) {
         errno = ENOMEM;
