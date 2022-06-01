@@ -78,7 +78,7 @@ if (TYPE STREQUAL "PX4")
 
         ${DIR_FS}
 
-        ${DIR_OSA}/fatfs_posix
+        ${DIR_OSA}/fs_posix
 
         ${DIR_PERIPH}
         ${DIR_PERIPH}/rcc
