@@ -1036,6 +1036,7 @@ void vTaskGetInfo( TaskHandle_t xTask,
 #if ( configRECORD_STACK_HIGH_ADDRESS == 1 )
 
 BaseType_t vTaskGetStackMargin( TaskHandle_t xTask );
+BaseType_t vTaskGetCurrentStackMargin( );
 
 #endif
 

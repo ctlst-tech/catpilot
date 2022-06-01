@@ -3883,6 +3883,10 @@ static void prvCheckTasksWaitingTermination( void )
         return  xTask->pxEndOfStack - xTask->pxTopOfStack;
     }
 
+    BaseType_t vTaskGetCurrentStackMargin(  ) {
+        return vTaskGetStackMargin(pxCurrentTCB);
+    }
+
 #endif
 /*-----------------------------------------------------------*/
 
