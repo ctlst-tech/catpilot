@@ -1032,6 +1032,13 @@ void vTaskGetInfo( TaskHandle_t xTask,
                    BaseType_t xGetFreeStackSpace,
                    eTaskState eState ) PRIVILEGED_FUNCTION;
 
+
+#if ( configRECORD_STACK_HIGH_ADDRESS == 1 )
+
+BaseType_t vTaskGetStackMargin( TaskHandle_t xTask );
+
+#endif
+
 /**
  * task. h
  * <pre>

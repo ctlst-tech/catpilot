@@ -18,8 +18,8 @@
 #include "mag.h"
 #include "logger.h"
 
-#define LOG_STDOUT_ENABLE 1
-#define ECHO_ENABLE 1
+#define LOG_STDOUT_ENABLE 0
+#define ECHO_ENABLE 0
 
 void main_thread(void *param);
 void *ctlst(void *param);
@@ -95,6 +95,8 @@ void *ctlst(void *param) {
 
     rv = Board_Init();
 
+    pthread_setname_np(__func__);
+
     #if(LOG_STDOUT_ENABLE)
         log_enable(true);
     #else
@@ -142,4 +144,16 @@ void *ctlst(void *param) {
     }
 
     while(1);
+}
+
+
+#include "FreeRTOS.h"
+
+static volatile int stack_overflow_cnt = 0;
+static volatile int stack_overflow_margin = 0;
+
+void vApplicationStackOverflowHook( TaskHandle_t xTask,
+                                    char * pcTaskName) {
+    stack_overflow_margin = vTaskGetStackMargin(xTask);
+    stack_overflow_cnt++;
 }

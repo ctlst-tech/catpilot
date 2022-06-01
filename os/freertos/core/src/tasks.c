@@ -3875,6 +3875,15 @@ static void prvCheckTasksWaitingTermination( void )
     }
 
 #endif /* configUSE_TRACE_FACILITY */
+
+
+#if ( configRECORD_STACK_HIGH_ADDRESS == 1 )
+
+    BaseType_t vTaskGetStackMargin( TaskHandle_t xTask ) {
+        return  xTask->pxEndOfStack - xTask->pxTopOfStack;
+    }
+
+#endif
 /*-----------------------------------------------------------*/
 
 #if ( configUSE_TRACE_FACILITY == 1 )
