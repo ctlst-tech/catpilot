@@ -12,8 +12,11 @@ MEMORY
 
 ENTRY(Reset_Handler)
 
-_estack = ORIGIN(STACK) + LENGTH(STACK);
-_HeapLimit = ORIGIN(SRAM) + LENGTH(SRAM);
+_HeapSize = LENGTH(SRAM);
+_StackSize = LENGTH(STACK);
+
+_estack = ORIGIN(STACK) + _StackSize;
+_HeapLimit = ORIGIN(SRAM) + _HeapSize;
 
 SECTIONS
 {
@@ -81,13 +84,22 @@ SECTIONS
 		_ebss = .;
 	} > SRAM
 
-	._user_heap_stack :
+	._user_heap :
 	{
 		. = ALIGN(8);
 		PROVIDE ( end = . );
 		PROVIDE ( _end = . );
+		_start_heap = .;
+		. = _HeapSize - _ebss;
 		. = ALIGN(8);
 	} > SRAM
+
+	._user_stack :
+	{
+		. = ALIGN(8);
+		. = _StackSize;
+		. = ALIGN(8);
+	} > STACK
 
 	/DISCARD/ :
 	{

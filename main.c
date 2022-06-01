@@ -18,8 +18,8 @@
 #include "mag.h"
 #include "logger.h"
 
-#define LOG_STDOUT_ENABLE 0
-#define ECHO_ENABLE 0
+#define LOG_STDOUT_ENABLE 1
+#define ECHO_ENABLE 1
 
 void main_thread(void *param);
 void *ctlst(void *param);
@@ -61,32 +61,6 @@ void echo() {
         len = write(fd, buf_read, len);
     }
 }
-// void echo() {
-//     int fd;
-//     int len;
-//     fd = open("/dev/ttyS0", O_RDWR | O_CREAT | O_TRUNC);
-//     struct termios termios_p = {};
-//     tcgetattr(fd, &termios_p);
-//     cfsetispeed(&termios_p, 1000000U);
-//     cfsetospeed(&termios_p, 1000000U);
-//     tcsetattr(fd, TCSANOW, &termios_p);
-//     tcflush(fd, TCIOFLUSH);
-//     vTaskDelay(5000);
-//     while(1) {
-//         len = read(fd, buf_read, 1024);
-//         len = write(fd, buf_read, len);
-//         if(xTaskGetTickCount() > 100000) {
-//             cfsetispeed(&termios_p, 115200U);
-//             cfsetospeed(&termios_p, 115200U);
-//             tcsetattr(fd, TCSANOW, &termios_p);
-//             tcflush(fd, TCIOFLUSH);
-//             while(1) {
-//                 len = read(fd, buf_read, 1024);
-//                 len = write(fd, buf_read, len);
-//             }
-//         }
-//     }
-// }
 
 void *ctlst(void *param) {
     static FRESULT res;
@@ -106,7 +80,7 @@ void *ctlst(void *param) {
 
     CLI_Init();
 
-    printf("\n\n\n \t\tCATALYST AUTOPILOT DEMO PROJECT\n");
+    WELCOME();
 
     if(rv) {
         LOG_ERROR("BOARD", "Initialization failed");
@@ -146,7 +120,6 @@ void *ctlst(void *param) {
 
     while(1);
 }
-
 
 #include "FreeRTOS.h"
 
