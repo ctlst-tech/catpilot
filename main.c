@@ -93,7 +93,7 @@ void *ctlst(void *param) {
     IO_Start();
     Logger_Init();
 
-    res = f_mount(&fs, "0:", 1);
+    res = f_mount(&fs, "/", 1);
 
     fd = open("/dev/ttyS0", O_RDWR | O_CREAT | O_TRUNC);
     if(fd < 0) {
