@@ -1,10 +1,13 @@
 
  #include <string.h>
  #include <stdio.h>
+ #include <node.h>
+ #include <posix.h>
  #include "fatfs_posix.h"
  #undef strerror_r
 
  FILE *__iob[MAX_FILES];
+ extern file_t *file[MAX_FILES];
 
  const char *sys_errlist[] =
  {
@@ -622,7 +625,7 @@
          stream->get = NULL;
          stream->flags = _FDEV_SETUP_WRITE;
      }
-
+     
      return(fileno);
  }
 
@@ -1737,7 +1740,7 @@
      {
          if(isatty(i))
              continue;
-         if( __iob[i] == NULL)
+         if( __iob[i] == NULL && file[i] == NULL)
          {
              stream = (FILE *) calloc(sizeof(FILE),1);
              if(stream == NULL)

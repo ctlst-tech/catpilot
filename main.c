@@ -1,6 +1,8 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <node.h>
+#include <sys/termios.h>
 
 #include "stm32_base.h"
 #include "stm32_periph.h"
@@ -85,7 +87,7 @@ void *ctlst(void *param) {
     if(rv) {
         LOG_ERROR("BOARD", "Initialization failed");
     } else {
-        LOG_INFO("BOARD", "Initialization successful")
+        LOG_INFO("BOARD", "Initialization successful");
     }
 
     IMU_Start();
@@ -94,6 +96,14 @@ void *ctlst(void *param) {
     Logger_Init();
 
     res = f_mount(&fs, "/", 1);
+
+    if (res == FR_OK) {
+        LOG_INFO("BOARD", "SDMMC mounted successfully");
+    } else {
+        LOG_ERROR("BOARD", "SDMMC mount error");
+    }
+
+    res = mkdir("/fs/etfs/", S_IWUSR | S_IWGRP | S_IWOTH);
 
     fd = open("/dev/ttyS0", O_RDWR | O_CREAT | O_TRUNC);
     if(fd < 0) {
@@ -115,7 +125,6 @@ void *ctlst(void *param) {
             LOG_ERROR("SYSTEM", "SWSYS config load error")
         }
     } else {
-        LOG_ERROR("BOARD", "f_mount error")
     }
 
     while(1);

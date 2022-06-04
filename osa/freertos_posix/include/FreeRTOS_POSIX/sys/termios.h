@@ -80,11 +80,11 @@ struct termios
 #define _HAVE_STRUCT_TERMIOS_C_OSPEED 1
 };
 
-extern speed_t cfgetospeed(const struct termios *__termios_p);
-extern speed_t cfgetispeed(const struct termios *__termios_p);
-extern int cfsetospeed(struct termios *__termios_p, speed_t __speed);
-extern int cfsetispeed(struct termios *__termios_p, speed_t __speed);
-extern int tcgetattr(int __fd, struct termios *__termios_p);
-extern int tcsetattr(int __fd, int __optional_actions,
+speed_t cfgetospeed(const struct termios *__termios_p);
+speed_t cfgetispeed(const struct termios *__termios_p);
+int cfsetospeed(struct termios *__termios_p, speed_t __speed);
+int cfsetispeed(struct termios *__termios_p, speed_t __speed);
+int tcgetattr(int __fd, struct termios *__termios_p);
+int tcsetattr(int __fd, int __optional_actions,
                 const struct termios *__termios_p);
-extern int tcflush(int __fd, int __queue_selector);
+int tcflush(int __fd, int __queue_selector);
