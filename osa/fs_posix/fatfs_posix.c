@@ -388,38 +388,6 @@
  // =============================================
  // =============================================
 
- int fatfs_close(int fileno)
- {
-     FILE *stream;
-     FIL *fh;
-     int res;
-
-     errno = 0;
-
-     // checks if fileno out of bounds
-     stream = fileno_to_stream(fileno);
-     if(stream == NULL)
-     {
-         return(-1);
-     }
-
-     // fileno_to_fatfs checks for fileno out of bounds
-     fh = fileno_to_fatfs(fileno);
-     if(fh == NULL)
-     {
-         return(-1);
-     }
-     res = f_close(fh);
-     free_file_descriptor(fileno);
-     if (res != FR_OK)
-     {
-         errno = fatfs_to_errno(res);
-         return(-1);
-     }
-     return(0);
- }
-
-
  int fileno(FILE *stream)
  {
      int fileno;
@@ -461,7 +429,8 @@
  FILE *fopen(const char *path, const char *mode)
  {
      int flags = posix_fopen_modes_to_open(mode);
-     int fileno = fatfs_open(path, flags);
+     int fileno = 0;
+    //  int fileno = fatfs_open(path, flags);
 
      // checks if fileno out of bounds
      return( fileno_to_stream(fileno) );
@@ -472,10 +441,10 @@
  {
      size_t count = size * nmemb;
      int fn = fileno(stream);
-     ssize_t ret;
+     ssize_t ret = 0;
 
      // read() checks for fn out of bounds
-     ret = fatfs_read(fn, ptr, count);
+    //  ret = fatfs_read(fn, ptr, count);
      if(ret < 0)
          return(0);
 
@@ -517,174 +486,216 @@
  {
      size_t count = size * nmemb;
      int fn = fileno(stream);
-     ssize_t ret;
+     ssize_t ret = 0;
 
      // write () checks for fn out of bounds
-     ret =  fatfs_write(fn, ptr, count);
+    //  ret =  fatfs_write(fn, ptr, count);
 
-     if(ret < 0)
-         return(0);
+    //  if(ret < 0)
+    //      return(0);
 
      return((size_t) ret);
  }
 
 
+/* FATFS-posix implemetation for new file manager START */
 
+int newstream(FILE *stream) {
+    int i;
+    FIL *fh;
 
- int fatfs_open(const char *pathname, int flags)
- {
-     int fileno;
-     int fatfs_modes;
-     FILE *stream;
-     FIL *fh;
-     int res;
+    for(i = 0; i < MAX_FILES; i++) {
+        if(file[i] == NULL) {
+            stream = (FILE *)calloc(sizeof(FILE), 1);
+            
+            if(stream == NULL) {
+                errno = ENOMEM;
+                return -1;
+            }
 
-     errno = 0;
- // FIXME Assume here that the disk interface mmc_init was already called
- #if 0
- // Checks Disk status
-     res = mmc_init(0);
+            fh = (FIL *)calloc(sizeof(FIL), 1);
+            
+            if(fh == NULL) {
+                free(stream);
+                errno = ENOMEM;
+                return -1;
+            }
 
-     if(res != RES_OK)
-     {
-         errno = fatfs_to_errno(res);
-         return(-1);
-     }
- #endif
+            fdev_set_udata(stream, (void *)fh);
+            return i;
+        }
+    }
+    errno = ENFILE;
 
-     if((flags & O_ACCMODE) == O_RDWR)
-         fatfs_modes = FA_READ | FA_WRITE;
-     else if((flags & O_ACCMODE) == O_RDONLY)
-         fatfs_modes = FA_READ;
-     else
-         fatfs_modes = FA_WRITE;
+    return -1;
+}
 
-     if(flags & O_CREAT)
-     {
-         if(flags & O_TRUNC)
-             fatfs_modes |= FA_CREATE_ALWAYS;
-         else
-             fatfs_modes |= FA_OPEN_ALWAYS;
-     }
+FIL *stream_to_fatfs(FILE *stream) {
+    FIL *fh;
 
-     fileno = new_file_descriptor();
+    if(stream == NULL) return(NULL);
 
-     // checks if fileno out of bounds
-     stream = fileno_to_stream(fileno);
-     if(stream == NULL)
-     {
-         free_file_descriptor(fileno);
-         return(-1);
-     }
+    fh = fdev_get_udata(stream);
 
-     // fileno_to_fatfs checks for fileno out of bounds
-     fh = fileno_to_fatfs(fileno);
-     if(fh == NULL)
-     {
-         free_file_descriptor(fileno);
-         errno = EBADF;
-         return(-1);
-     }
-     res = f_open(fh, pathname, (BYTE) (fatfs_modes & 0xff));
-     if(res != FR_OK)
-     {
-         errno = fatfs_to_errno(res);
-         free_file_descriptor(fileno);
-         return(-1);
-     }
-     if(flags & O_APPEND)
-     {
-         res = f_lseek(fh, f_size(fh));
-         if (res != FR_OK)
-         {
-             errno = fatfs_to_errno(res);
-             f_close(fh);
-             free_file_descriptor(fileno);
-             return(-1);
-         }
-     }
+    if(fh == NULL) {
+        errno = EBADF;
+        return(NULL);
+    }
 
-     if((flags & O_ACCMODE) == O_RDWR)
-     {
-         // FIXME fdevopen should do this
-         stream->put = fatfs_putc;
-         stream->get = fatfs_getc;
-         stream->flags = _FDEV_SETUP_RW;
-     }
-     else if((flags & O_ACCMODE) == O_RDONLY)
-     {
-         // FIXME fdevopen should do this
-         stream->put = NULL;
-         stream->get = fatfs_getc;
-         stream->flags = _FDEV_SETUP_READ;
-     }
-     else
-     {
-         // FIXME fdevopen should do this
-         stream->put = fatfs_putc;
-         stream->get = NULL;
-         stream->flags = _FDEV_SETUP_WRITE;
-     }
-     
-     return(fileno);
- }
+    return(fh);
+}
 
+int fatfs_open(void *devcfg, void *filecfg, const char* pathname, int flags) {
+    int fatfs_modes;
+    FILE *stream;
+    FIL *fh;
+    int res;
+    int rv = 0;
 
- ssize_t fatfs_read(int fd, void *buf, size_t count)
- {
-     UINT size;
-     UINT bytes = count;
-     int res;
-     int ret;
-     FIL *fh;
-     FILE *stream;
+    stream = (FILE *)filecfg;
 
-     //FIXME
-     *(char *) buf = 0;
+    errno = 0;
 
-     errno = 0;
+    if((flags & O_ACCMODE) == O_RDWR)
+        fatfs_modes = FA_READ | FA_WRITE;
+    else if((flags & O_ACCMODE) == O_RDONLY)
+        fatfs_modes = FA_READ;
+    else
+        fatfs_modes = FA_WRITE;
 
-     // TTY read function
-     // FIXME should we really be blocking ???
-     stream = fileno_to_stream(fd);
-     if(stream == stdin)
-     {
-         char *ptr = (char *) buf;
-         // ungetc is undefined for read
-         stream->flags |= __SUNGET;
-         size = 0;
-         while(count--)
-         {
-             ret = fgetc(stream);
-             if(ret < 0)
-                 break;
+    if(flags & O_CREAT)
+    {
+        if(flags & O_TRUNC)
+            fatfs_modes |= FA_CREATE_ALWAYS;
+        else
+            fatfs_modes |= FA_OPEN_ALWAYS;
+    }
 
-             *ptr++ = ret;
-             ++size;
-         }
-         return(size);
-     }
-     if(stream == stdout || stream == stderr)
-     {
-         return(-1);
-     }
+    rv = newstream(stream);
+    if(rv < 0) {
+        errno = EBADF;
+        return -1;
+    }
 
-     // fileno_to_fatfs checks for fd out of bounds
-     fh = fileno_to_fatfs(fd);
-     if ( fh == NULL )
-     {
-         errno = EBADF;
-         return(-1);
-     }
+    fh = stream_to_fatfs(stream);
+    if(fh == NULL) {
+        errno = EBADF;
+        return -1;
+    }
 
-     res = f_read(fh, (void *) buf, bytes, &size);
-     if(res != FR_OK)
-     {
-         errno = fatfs_to_errno(res);
-         return(-1);
-     }
-     return ((ssize_t) size);
- }
+    res = f_open(fh, pathname, (BYTE) (fatfs_modes & 0xff));
+
+    if(res != FR_OK) {
+        errno = fatfs_to_errno(res);
+        return -1;
+    }
+
+    if(flags & O_APPEND) {
+        res = f_lseek(fh, f_size(fh));
+        if (res != FR_OK) {
+            errno = fatfs_to_errno(res);
+            f_close(fh);
+            return -1;
+        }
+    }
+    
+    return(rv);
+}
+
+ssize_t fatfs_write(void *devcfg, void *filecfg, const void *buf, size_t count) {
+    UINT size;
+    FRESULT res;
+    FIL *fh;
+    FILE *stream;
+    errno = 0;
+
+    stream = (FILE *)filecfg;
+
+    errno = 0;
+
+    if(stream == NULL) {
+        errno = EBADF;
+        return -1;
+    }
+
+    fh = stream_to_fatfs(stream);
+    if (fh == NULL) {
+        errno = EBADF;
+        return -1;
+    }
+
+    res = f_write(fh, buf, (UINT)count, &size);
+
+    if(res != FR_OK) {
+        errno = fatfs_to_errno(res);
+        return -1;
+    }
+
+    return ((ssize_t) size);
+}
+
+ssize_t fatfs_read(void *devcfg, void *filecfg, void *buf, size_t count) {
+    UINT size;
+    int res;
+    int ret;
+    FIL *fh;
+    FILE *stream;
+
+    stream = (FILE *)filecfg;
+
+    errno = 0;
+
+    if(stream == NULL) {
+        errno = EBADF;
+        return -1;
+    }
+
+    fh = stream_to_fatfs(stream);
+    if (fh == NULL) {
+        errno = EBADF;
+        return -1;
+    }
+
+    res = f_read(fh, buf, (UINT)count, &size);
+
+    if(res != FR_OK) {
+        errno = fatfs_to_errno(res);
+        return -1;
+    }
+
+    return ((ssize_t) size);
+}
+
+int fatfs_close(void *devcfg, void *filecfg) {
+    int res;
+    FIL *fh;
+    FILE *stream;
+
+    errno = 0;
+
+    stream = (FILE *)filecfg;
+
+    if(stream == NULL) {
+        errno = EBADF;
+        return -1;
+    }
+
+    fh = stream_to_fatfs(stream);
+    if (fh == NULL) {
+        errno = EBADF;
+        return -1;
+    }
+
+    res = f_close(fh);
+
+    if (res != FR_OK) {
+        errno = fatfs_to_errno(res);
+        return-1;
+    }
+
+    return 0;
+}
+/* FATFS-posix implemetation for new file manager END */
 
 
 
@@ -772,61 +783,11 @@
      return(0);
  }
 
-
-
- ssize_t fatfs_write(int fd, const void *buf, size_t count)
- {
-     UINT size;
-     UINT bytes = count;
-     FRESULT res;
-     FIL *fh;
-     FILE *stream;
-     errno = 0;
-
-     // TTY read function
-     stream = fileno_to_stream(fd);
-     if(stream == stdout || stream == stderr)
-     {
-         char *ptr = (char *) buf;
-         size = 0;
-         while(count--)
-         {
-             int c,ret;
-             c = *ptr++;
-             ret = fputc(c, stream);
-             if(c != ret)
-                 break;
-
-             ++size;
-         }
-         return(size);
-     }
-     if(stream == stdin)
-     {
-         return(-1);
-     }
-
-     // fileno_to_fatfs checks for fd out of bounds
-     fh = fileno_to_fatfs(fd);
-     if ( fh == NULL )
-     {
-         errno = EBADF;
-         return(-1);
-     }
-
-     res = f_write(fh, buf, bytes, &size);
-     if(res != FR_OK)
-     {
-         errno = fatfs_to_errno(res);
-         return(-1);
-     }
-     return ((ssize_t) size);
- }
-
  FILE * __wrap_freopen ( const char * filename, const char * mode, FILE * stream )
  {
      int fn = fileno(stream);
-     int ret = fatfs_close(fn);
+     int ret = 0;
+    //  int ret = fatfs_close(fn);
      if (ret < 0) {
          return NULL;
      }
@@ -840,7 +801,8 @@
      if(fn < 0)
          return(EOF);
 
-     return( fatfs_close(fn) );
+     return 0;
+    //  return( fatfs_close(fn) );
  }
  // =============================================
  // =============================================
@@ -1492,73 +1454,69 @@
  }
 
 
- int fatfs_to_errno( FRESULT Result )
- {
-     switch( Result )
-     {
-         case FR_OK:              /* FatFS (0) Succeeded */
-             return (0);          /* POSIX OK */
-         case FR_DISK_ERR:        /* FatFS (1) A hard error occurred in the low level disk I/O layer */
-             return (EIO);        /* POSIX Input/output error (POSIX.1) */
+int fatfs_to_errno(FRESULT result) {
+    switch(result) {
+        case FR_OK:              /* FatFS (0) Succeeded */
+            return (0);          /* POSIX OK */
+        case FR_DISK_ERR:        /* FatFS (1) A hard error occurred in the low level disk I/O layer */
+            return (EIO);        /* POSIX Input/output error (POSIX.1) */
 
-         case FR_INT_ERR:         /* FatFS (2) Assertion failed */
-             return (EPERM);      /* POSIX Operation not permitted (POSIX.1) */
+        case FR_INT_ERR:         /* FatFS (2) Assertion failed */
+            return (EPERM);      /* POSIX Operation not permitted (POSIX.1) */
 
-         case FR_NOT_READY:       /* FatFS (3) The physical drive cannot work */
-             return (EBUSY);      /* POSIX Device or resource busy (POSIX.1) */
+        case FR_NOT_READY:       /* FatFS (3) The physical drive cannot work */
+            return (EBUSY);      /* POSIX Device or resource busy (POSIX.1) */
 
-         case FR_NO_FILE:         /* FatFS (4) Could not find the file */
-             return (ENOENT);     /* POSIX No such file or directory (POSIX.1) */
+        case FR_NO_FILE:         /* FatFS (4) Could not find the file */
+            return (ENOENT);     /* POSIX No such file or directory (POSIX.1) */
 
-         case FR_NO_PATH:         /* FatFS (5) Could not find the path */
-             return (ENOENT);     /* POSIX No such file or directory (POSIX.1) */
+        case FR_NO_PATH:         /* FatFS (5) Could not find the path */
+            return (ENOENT);     /* POSIX No such file or directory (POSIX.1) */
 
-         case FR_INVALID_NAME:    /* FatFS (6) The path name format is invalid */
-             return (EINVAL);     /* POSIX Invalid argument (POSIX.1) */
+        case FR_INVALID_NAME:    /* FatFS (6) The path name format is invalid */
+            return (EINVAL);     /* POSIX Invalid argument (POSIX.1) */
 
-         case FR_DENIED:          /* FatFS (7) Access denied due to prohibited access or directory full */
-             return (EACCES);     /* POSIX Permission denied (POSIX.1) */
+        case FR_DENIED:          /* FatFS (7) Access denied due to prohibited access or directory full */
+            return (EACCES);     /* POSIX Permission denied (POSIX.1) */
 
-         case FR_EXIST:           /* file exists */
-             return (EEXIST);     /* file exists */
+        case FR_EXIST:           /* file exists */
+            return (EEXIST);     /* file exists */
 
-         case FR_INVALID_OBJECT:  /* FatFS (9) The file/directory object is invalid */
-             return (EINVAL);     /* POSIX Invalid argument (POSIX.1) */
+        case FR_INVALID_OBJECT:  /* FatFS (9) The file/directory object is invalid */
+            return (EINVAL);     /* POSIX Invalid argument (POSIX.1) */
 
-         case FR_WRITE_PROTECTED: /* FatFS (10) The physical drive is write protected */
-             return(EROFS);       /* POSIX Read-only filesystem (POSIX.1) */
+        case FR_WRITE_PROTECTED: /* FatFS (10) The physical drive is write protected */
+            return(EROFS);       /* POSIX Read-only filesystem (POSIX.1) */
 
-         case FR_INVALID_DRIVE:   /* FatFS (11) The logical drive number is invalid */
-             return(ENXIO);       /* POSIX No such device or address (POSIX.1) */
+        case FR_INVALID_DRIVE:   /* FatFS (11) The logical drive number is invalid */
+            return(ENXIO);       /* POSIX No such device or address (POSIX.1) */
 
-         case FR_NOT_ENABLED:     /* FatFS (12) The volume has no work area */
-             return (ENOSPC);     /* POSIX No space left on device (POSIX.1) */
+        case FR_NOT_ENABLED:     /* FatFS (12) The volume has no work area */
+            return (ENOSPC);     /* POSIX No space left on device (POSIX.1) */
 
-         case FR_NO_FILESYSTEM:   /* FatFS (13) There is no valid FAT volume */
-             return(ENXIO);       /* POSIX No such device or address (POSIX.1) */
+        case FR_NO_FILESYSTEM:   /* FatFS (13) There is no valid FAT volume */
+            return(ENXIO);       /* POSIX No such device or address (POSIX.1) */
 
-         case FR_MKFS_ABORTED:    /* FatFS (14) The f_mkfs() aborted due to any parameter error */
-             return (EINVAL);     /* POSIX Invalid argument (POSIX.1) */
+        case FR_MKFS_ABORTED:    /* FatFS (14) The f_mkfs() aborted due to any parameter error */
+            return (EINVAL);     /* POSIX Invalid argument (POSIX.1) */
 
-         case FR_TIMEOUT:         /* FatFS (15) Could not get a grant to access the volume within defined period */
-             return (EBUSY);      /* POSIX Device or resource busy (POSIX.1) */
+        case FR_TIMEOUT:         /* FatFS (15) Could not get a grant to access the volume within defined period */
+            return (EBUSY);      /* POSIX Device or resource busy (POSIX.1) */
 
-         case FR_LOCKED:          /* FatFS (16) The operation is rejected according to the file sharing policy */
-             return (EBUSY);      /* POSIX Device or resource busy (POSIX.1) */
+        case FR_LOCKED:          /* FatFS (16) The operation is rejected according to the file sharing policy */
+            return (EBUSY);      /* POSIX Device or resource busy (POSIX.1) */
 
+        case FR_NOT_ENOUGH_CORE: /* FatFS (17) LFN working buffer could not be allocated */
+            return (ENOMEM);     /* POSIX Not enough space (POSIX.1) */
 
-         case FR_NOT_ENOUGH_CORE: /* FatFS (17) LFN working buffer could not be allocated */
-             return (ENOMEM);     /* POSIX Not enough space (POSIX.1) */
+        case FR_TOO_MANY_OPEN_FILES:/* FatFS (18) Number of open files > _FS_SHARE */
+            return (EMFILE);     /* POSIX Too many open files (POSIX.1) */
 
-         case FR_TOO_MANY_OPEN_FILES:/* FatFS (18) Number of open files > _FS_SHARE */
-             return (EMFILE);     /* POSIX Too many open files (POSIX.1) */
-
-         case FR_INVALID_PARAMETER:/* FatFS (19) Given parameter is invalid */
-             return (EINVAL);     /* POSIX Invalid argument (POSIX.1) */
-
-     }
-     return (EBADMSG);            /* POSIX Bad message (POSIX.1) */
- }
+        case FR_INVALID_PARAMETER:/* FatFS (19) Given parameter is invalid */
+            return (EINVAL);     /* POSIX Invalid argument (POSIX.1) */
+    }
+    return (EBADMSG);            /* POSIX Bad message (POSIX.1) */
+}
 
 
 
