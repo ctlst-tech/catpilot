@@ -53,7 +53,7 @@ int nodefind(const char *nodepath) {
 
 int noderegopen(int nd, 
                 int (*open)
-                (void *devcfg, void *filecfg, const char* nodepath, int flags)) {
+                (void *devcfg, void *file, const char* nodepath, int flags)) {
     if(nd < 0) return -1;
     if(node[nd] == NULL) return -1;
     if(open == NULL) return -1;
@@ -65,7 +65,7 @@ int noderegopen(int nd,
 
 int noderegwrite(int nd, 
                 ssize_t (*write)
-                (void *devcfg, void *filecfg, const void *buf, size_t count)) {
+                (void *devcfg, void *file, const void *buf, size_t count)) {
     if(nd < 0) return -1;
     if(node[nd] == NULL) return -1;
     if(write == NULL) return -1;
@@ -77,7 +77,7 @@ int noderegwrite(int nd,
 
 int noderegread(int nd, 
                 ssize_t (*read)
-                (void *devcfg, void *filecfg, const void *buf, size_t count)) {
+                (void *devcfg, void *file, void *buf, size_t count)) {
     if(nd < 0) return -1;
     if(node[nd] == NULL) return -1;
     if(read == NULL) return -1;
@@ -89,7 +89,7 @@ int noderegread(int nd,
 
 int noderegclose(int nd, 
                 int (*close)
-                (void *devcfg, void *filecfg)) {
+                (void *devcfg, void *file)) {
     if(nd < 0) return -1;
     if(node[nd] == NULL) return -1;
     if(close == NULL) return -1;
@@ -121,46 +121,56 @@ int noderegdevcfg(int nd, void (*devcfg)) {
     return nd;
 }
 
-int nodeopen(int nd, void *filecfg, const char *pathname, int flags) {
+int noderegfilealloc(int nd,
+                    void *(*filealloc)(void)) {
+    if(nd < 0) return -1;
+    if(node[nd] == NULL) return -1;
+
+    node[nd]->dev.filealloc = filealloc;
+    
+    return nd;
+}
+
+int nodeopen(int nd, void *file, const char *pathname, int flags) {
     int rv;
     if(node[nd] == NULL) return -1;
     if(node[nd]->dev.open == NULL) return -1;
 
     node_dev_t *dev = &node[nd]->dev;
-    rv = node[nd]->dev.open(dev->devcfg, filecfg, pathname, flags);
+    rv = node[nd]->dev.open(dev->devcfg, file, pathname, flags);
 
     return rv;
 }
 
-ssize_t nodewrite(int nd, void *filecfg, const void *buf, size_t count) {
+ssize_t nodewrite(int nd, void *file, const void *buf, size_t count) {
     int rv;
     if(node[nd] == NULL) return -1;
     if(node[nd]->dev.write == NULL) return -1;
 
     node_dev_t *dev = &node[nd]->dev;
-    rv = node[nd]->dev.write(dev->devcfg, filecfg, buf, count);
+    rv = node[nd]->dev.write(dev->devcfg, file, buf, count);
 
     return rv;
 }
 
-ssize_t noderead(int nd, void *filecfg, const void *buf, size_t count) {
+ssize_t noderead(int nd, void *file, void *buf, size_t count) {
     int rv;
     if(node[nd] == NULL) return -1;
     if(node[nd]->dev.read == NULL) return -1;
 
     node_dev_t *dev = &node[nd]->dev;
-    rv = node[nd]->dev.read(dev->devcfg, filecfg, buf, count);
+    rv = node[nd]->dev.read(dev->devcfg, file, buf, count);
 
     return rv;
 }
 
-int nodeclose(int nd, void *filecfg) {
+int nodeclose(int nd, void *file) {
     int rv;
     if(node[nd] == NULL) return -1;
     if(node[nd]->dev.close == NULL) return -1;
 
     node_dev_t *dev = &node[nd]->dev;
-    rv = node[nd]->dev.close(dev->devcfg, filecfg);
+    rv = node[nd]->dev.close(dev->devcfg, file);
 
     return rv;
 }
@@ -174,6 +184,16 @@ int nodeioctl(int nd, int cmd) {
     rv = node[nd]->dev.ioctl(dev->devcfg, cmd);
 
     return rv;  
+}
+
+void *nodefilealloc(int nd) {
+    void *ptr;
+    if(node[nd] == NULL) return NULL;
+    if(node[nd]->dev.filealloc == NULL) return NULL;
+
+    ptr = node[nd]->dev.filealloc();
+
+    return ptr;  
 }
 
 void *nodegetdevcfg(int nd) {

@@ -500,34 +500,27 @@
 
 /* FATFS-posix implemetation for new file manager START */
 
-int newstream(FILE *stream) {
-    int i;
+FILE *newstream(void) {
     FIL *fh;
+    FILE *stream;
 
-    for(i = 0; i < MAX_FILES; i++) {
-        if(file[i] == NULL) {
-            stream = (FILE *)calloc(sizeof(FILE), 1);
-            
-            if(stream == NULL) {
-                errno = ENOMEM;
-                return -1;
-            }
-
-            fh = (FIL *)calloc(sizeof(FIL), 1);
-            
-            if(fh == NULL) {
-                free(stream);
-                errno = ENOMEM;
-                return -1;
-            }
-
-            fdev_set_udata(stream, (void *)fh);
-            return i;
-        }
+    stream = (FILE *)calloc(sizeof(FILE), 1);
+    
+    if(stream == NULL) {
+        errno = ENOMEM;
+        return NULL;
     }
-    errno = ENFILE;
 
-    return -1;
+    fh = (FIL *)calloc(sizeof(FIL), 1);
+    
+    if(fh == NULL) {
+        free(stream);
+        errno = ENOMEM;
+        return NULL;
+    }
+
+    fdev_set_udata(stream, (void *)fh);
+    return stream;
 }
 
 FIL *stream_to_fatfs(FILE *stream) {
@@ -545,14 +538,20 @@ FIL *stream_to_fatfs(FILE *stream) {
     return(fh);
 }
 
-int fatfs_open(void *devcfg, void *filecfg, const char* pathname, int flags) {
+void *fatfs_filealloc(void) {
+    void *stream;
+    stream = newstream();
+    return stream;
+}
+
+int fatfs_open(void *devcfg, void *file, const char* pathname, int flags) {
     int fatfs_modes;
     FILE *stream;
     FIL *fh;
     int res;
     int rv = 0;
 
-    stream = (FILE *)filecfg;
+    stream = (FILE *)file;
 
     errno = 0;
 
@@ -571,8 +570,7 @@ int fatfs_open(void *devcfg, void *filecfg, const char* pathname, int flags) {
             fatfs_modes |= FA_OPEN_ALWAYS;
     }
 
-    rv = newstream(stream);
-    if(rv < 0) {
+    if(stream == NULL) {
         errno = EBADF;
         return -1;
     }
@@ -602,14 +600,14 @@ int fatfs_open(void *devcfg, void *filecfg, const char* pathname, int flags) {
     return(rv);
 }
 
-ssize_t fatfs_write(void *devcfg, void *filecfg, const void *buf, size_t count) {
+ssize_t fatfs_write(void *devcfg, void *file, const void *buf, size_t count) {
     UINT size;
     FRESULT res;
     FIL *fh;
     FILE *stream;
     errno = 0;
 
-    stream = (FILE *)filecfg;
+    stream = (FILE *)file;
 
     errno = 0;
 
@@ -634,14 +632,14 @@ ssize_t fatfs_write(void *devcfg, void *filecfg, const void *buf, size_t count) 
     return ((ssize_t) size);
 }
 
-ssize_t fatfs_read(void *devcfg, void *filecfg, void *buf, size_t count) {
+ssize_t fatfs_read(void *devcfg, void *file, void *buf, size_t count) {
     UINT size;
     int res;
     int ret;
     FIL *fh;
     FILE *stream;
 
-    stream = (FILE *)filecfg;
+    stream = (FILE *)file;
 
     errno = 0;
 
@@ -666,14 +664,14 @@ ssize_t fatfs_read(void *devcfg, void *filecfg, void *buf, size_t count) {
     return ((ssize_t) size);
 }
 
-int fatfs_close(void *devcfg, void *filecfg) {
+int fatfs_close(void *devcfg, void *file) {
     int res;
     FIL *fh;
     FILE *stream;
 
     errno = 0;
 
-    stream = (FILE *)filecfg;
+    stream = (FILE *)file;
 
     if(stream == NULL) {
         errno = EBADF;

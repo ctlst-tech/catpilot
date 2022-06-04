@@ -20,6 +20,9 @@
 #include "mag.h"
 #include "logger.h"
 
+// For fileman test
+#include "fatfs_posix.h"
+
 #define LOG_STDOUT_ENABLE 1
 #define ECHO_ENABLE 1
 
@@ -71,6 +74,22 @@ void *ctlst(void *param) {
     int fd;
 
     rv = Board_Init();
+
+    // Fileman test
+    char buf0[25];
+    strcpy(buf0, "test");
+    res = f_mount(&fs, "/", 1);
+    int nd = nodereg("/");
+    noderegopen(nd, fatfs_open);
+    noderegwrite(nd, fatfs_write);
+    noderegread(nd, fatfs_read);
+    noderegclose(nd, fatfs_close);
+    noderegfilealloc(nd, fatfs_filealloc);
+    fd = open("/blah.txt", O_RDWR | O_CREAT | O_TRUNC);
+    rv = write(fd, buf0, strlen(buf0));
+    rv = close(fd);
+
+    while(1);
 
     pthread_setname_np(__func__);
 

@@ -4,5 +4,5 @@
 typedef struct {
     int nd;
     int mode;
-    void *(cfg);
+    void *(file);
 } file_t;

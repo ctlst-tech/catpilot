@@ -9,7 +9,7 @@ file_t *file[MAX_FILES];
 int newfd(void) {
     int rv = -1;
     for(int i = 0; i < MAX_FILES; i++) {
-        if(file == NULL) {
+        if(file[i] == NULL) {
             rv = i;
             break;
         }
@@ -26,11 +26,12 @@ int open(const char *pathname, int flags) {
     int rv = -1;
     int fd = newfd();
     int nd = nodefind(pathname);
-    if(nd > 0 && fd > 0) {
+    if(nd >= 0 && fd >= 0) {
         file[fd] = &__file[fd];
         file[fd]->nd = nd;
         file[fd]->mode = flags;
-        rv = nodeopen(file[fd]->nd, file[fd]->cfg, pathname, flags);
+        file[fd]->file = nodefilealloc(nd);
+        rv = nodeopen(file[fd]->nd, file[fd]->file, pathname, flags);
     }
     return rv;
 }
@@ -41,7 +42,7 @@ ssize_t write(int fd, const void *buf, size_t count) {
     if(file[fd] == NULL) return -1;
 
     if(file[fd]->mode && (O_WRONLY || O_RDWR)) {
-        rv = nodewrite(file[fd]->nd, file[fd]->cfg, buf, count);
+        rv = nodewrite(file[fd]->nd, file[fd]->file, buf, count);
     } else {
         rv = -1;
     }
@@ -55,7 +56,7 @@ ssize_t read(int fd, void *buf, size_t count) {
     if(file[fd] == NULL) return -1;
 
     if(file[fd]->mode && (O_RDONLY || O_RDWR)) {
-        rv = noderead(file[fd]->nd, file[fd]->cfg, buf, count);
+        rv = noderead(file[fd]->nd, file[fd]->file, buf, count);
     } else {
         rv = -1;
     }
@@ -68,7 +69,7 @@ int close(int fd) {
     if(fd < 0) return -1;
     if(file[fd] == NULL) return -1;
 
-    rv = nodeclose(file[fd]->nd, file[fd]->cfg);
+    rv = nodeclose(file[fd]->nd, file[fd]->file);
     
     if(rv > 0) rv = freefd(fd);
 
