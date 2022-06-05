@@ -339,8 +339,11 @@ int USART_ClockEnable(usart_cfg_t *cfg) {
         }
     }
 
-    int usart_posix_open(usart_cfg_t *cfg, int flags) {
+    int usart_posix_open(void *devcfg, void *file, const char* pathname, int flags) {
         (void)flags;
+        (void)file;
+        usart_cfg_t *cfg = (usart_cfg_t *)devcfg;
+
         errno = 0;
 
         if(cfg->inst.tasks_init) return 0;
@@ -349,14 +352,15 @@ int USART_ClockEnable(usart_cfg_t *cfg) {
             errno = ENXIO;
             return -1;
         }
+
+        cfg->inst.read_buf = RingBuf_Init(cfg->buf_size);
+        cfg->inst.write_buf = RingBuf_Init(cfg->buf_size);
+        
         if(cfg->inst.read_buf == NULL ||
             cfg->inst.write_buf == NULL) {
                 errno = ENXIO;
                 return -1;
         }
-
-        cfg->inst.read_buf = RingBuf_Init(cfg->buf_size);
-        cfg->inst.write_buf = RingBuf_Init(cfg->buf_size);
 
         cfg->inst.read_semaphore = xSemaphoreCreateBinary();
         cfg->inst.write_semaphore = xSemaphoreCreateBinary();
@@ -387,8 +391,11 @@ int USART_ClockEnable(usart_cfg_t *cfg) {
         return 0;
     }
 
-    ssize_t usart_posix_write(usart_cfg_t *cfg, const void *buf, size_t count) {
+    ssize_t usart_posix_write(void *devcfg, void *file, const void *buf, size_t count) {
         ssize_t rv;
+        (void)file;
+        usart_cfg_t *cfg = (usart_cfg_t *)devcfg;
+
         errno = 0;
         rv = RingBuf_Write(cfg->inst.write_buf,
                            (uint8_t *)buf,
@@ -401,9 +408,12 @@ int USART_ClockEnable(usart_cfg_t *cfg) {
         return rv;
     }
 
-    ssize_t usart_posix_read(usart_cfg_t *cfg, const void *buf, size_t count) {
+    ssize_t usart_posix_read(void *devcfg, void *file, void *buf, size_t count) {
         ssize_t rv;
         errno = 0;
+        (void)file;
+        usart_cfg_t *cfg = (usart_cfg_t *)devcfg;
+
         xSemaphoreTake(cfg->inst.read_semaphore, portMAX_DELAY);
         rv = RingBuf_Read(cfg->inst.read_buf,
                            (uint8_t *)buf,
@@ -415,8 +425,11 @@ int USART_ClockEnable(usart_cfg_t *cfg) {
         return rv;
     }
 
-    int usart_posix_close(usart_cfg_t *cfg) {
+    int usart_posix_close(void *devcfg, void *file) {
         errno = 0;
+        (void)file;
+        usart_cfg_t *cfg = (usart_cfg_t *)devcfg;
+        (void)cfg;
         return 0;
     }
 

@@ -693,6 +693,23 @@ int fatfs_close(void *devcfg, void *file) {
 
     return 0;
 }
+
+int mkdir(const char *pathname, mode_t mode) {
+    errno = 0;
+
+    int res = f_mkdir(pathname);
+    if(res != FR_OK)
+    {
+        errno = fatfs_to_errno(res);
+        return -1;
+    }
+
+    if (mode) {
+        chmod(pathname, mode);
+    }
+
+    return 0;
+}
 /* FATFS-posix implemetation for new file manager END */
 
 
@@ -1072,23 +1089,7 @@ int fatfs_close(void *devcfg, void *file) {
  }
 
 
- int mkdir(const char *pathname, mode_t mode)
- {
-     errno = 0;
 
-     int res = f_mkdir(pathname);
-     if(res != FR_OK)
-     {
-         errno = fatfs_to_errno(res);
-         return(-1);
-     }
-
-     if (mode) {
-         chmod(pathname, mode);
-     }
-
-     return(0);
- }
 
 
  int rename(const char *oldpath, const char *newpath)

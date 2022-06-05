@@ -32,8 +32,12 @@ int open(const char *pathname, int flags) {
         file[fd]->mode = flags;
         file[fd]->file = nodefilealloc(nd);
         rv = nodeopen(file[fd]->nd, file[fd]->file, pathname, flags);
+        if(rv < 0) {
+            freefd(fd);
+            fd = -1;
+        }
     }
-    return rv;
+    return fd;
 }
 
 ssize_t write(int fd, const void *buf, size_t count) {
@@ -55,7 +59,7 @@ ssize_t read(int fd, void *buf, size_t count) {
     if(fd < 0) return -1;
     if(file[fd] == NULL) return -1;
 
-    if(file[fd]->mode && (O_RDONLY || O_RDWR)) {
+    if((!file[fd]->mode) || (file[fd]->mode && O_RDWR)) {
         rv = noderead(file[fd]->nd, file[fd]->file, buf, count);
     } else {
         rv = -1;
@@ -71,7 +75,9 @@ int close(int fd) {
 
     rv = nodeclose(file[fd]->nd, file[fd]->file);
     
-    if(rv > 0) rv = freefd(fd);
+    if(rv < 0) return -1; 
+    
+    rv = freefd(fd);
 
     return rv;
 }

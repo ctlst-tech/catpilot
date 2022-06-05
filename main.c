@@ -23,8 +23,8 @@
 // For fileman test
 #include "fatfs_posix.h"
 
-#define LOG_STDOUT_ENABLE 1
-#define ECHO_ENABLE 1
+#define LOG_STDOUT_ENABLE 0
+#define ECHO_ENABLE 0
 
 void main_thread(void *param);
 void *ctlst(void *param);
@@ -74,22 +74,24 @@ void *ctlst(void *param) {
     int fd;
 
     rv = Board_Init();
-
-    // Fileman test
-    char buf0[25];
-    strcpy(buf0, "test");
     res = f_mount(&fs, "/", 1);
-    int nd = nodereg("/");
+    mkdir("/fs", S_IRWXU);
+    mkdir("/fs/config", S_IRWXU);
+    
+    int nd = nodereg("/fs");
     noderegopen(nd, fatfs_open);
     noderegwrite(nd, fatfs_write);
     noderegread(nd, fatfs_read);
     noderegclose(nd, fatfs_close);
     noderegfilealloc(nd, fatfs_filealloc);
-    fd = open("/blah.txt", O_RDWR | O_CREAT | O_TRUNC);
-    rv = write(fd, buf0, strlen(buf0));
-    rv = close(fd);
-
-    while(1);
+    
+    nd = nodereg("/dev/ttyS0");
+    noderegopen(nd, usart_posix_open);
+    noderegwrite(nd, usart_posix_write);
+    noderegread(nd, usart_posix_read);
+    noderegclose(nd, usart_posix_close);
+    noderegfilealloc(nd, NULL);
+    noderegdevcfg(nd, &usart7);
 
     pthread_setname_np(__func__);
 
@@ -114,15 +116,11 @@ void *ctlst(void *param) {
     IO_Start();
     Logger_Init();
 
-    res = f_mount(&fs, "/", 1);
-
     if (res == FR_OK) {
         LOG_INFO("BOARD", "SDMMC mounted successfully");
     } else {
         LOG_ERROR("BOARD", "SDMMC mount error");
     }
-
-    res = mkdir("/fs/etfs/", S_IWUSR | S_IWGRP | S_IWOTH);
 
     fd = open("/dev/ttyS0", O_RDWR | O_CREAT | O_TRUNC);
     if(fd < 0) {
@@ -136,7 +134,7 @@ void *ctlst(void *param) {
     #endif
 
     if (res == FR_OK) {
-        swsys_rv_t swsys_rv = swsys_load("mvp_swsys.xml", "/", &sys);
+        swsys_rv_t swsys_rv = swsys_load("/fs/config/mvp_swsys.xml", "/fs/config", &sys);
         if (swsys_rv == swsys_e_ok) {
             LOG_INFO("SYSTEM", "System starts")
             swsys_top_module_start(&sys);

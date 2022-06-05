@@ -39,7 +39,7 @@ int noderegclose(int nd,
 int noderegioctl(int nd, 
                 int (*ioctl)
                 (void *devcfg, int cmd));
-int noderegcfg(int nd, 
+int noderegdevcfg(int nd, 
                 void (*devcfg));
 int noderegfilealloc(int nd, 
                 void *(*filealloc)(void));
