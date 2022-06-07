@@ -279,7 +279,6 @@ size_t __wrap_fread ( void *ptr , size_t size , size_t nmemb , FILE *stream );
 int ftruncate ( int fd , off_t length );
 size_t fwrite ( const void *ptr , size_t size , size_t nmemb , FILE *stream );
 void sync ( void );
-int syncfs(int fd);
 int fsync ( int fd );
 int truncate ( const char *path , off_t length );
 int __wrap_fclose ( FILE *stream );

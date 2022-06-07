@@ -84,6 +84,7 @@ void *ctlst(void *param) {
     noderegread(nd, fatfs_read);
     noderegclose(nd, fatfs_close);
     noderegfilealloc(nd, fatfs_filealloc);
+    noderegdevcfg(nd, NULL);
     
     nd = nodereg("/dev/ttyS0");
     noderegopen(nd, usart_posix_open);

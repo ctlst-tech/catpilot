@@ -581,7 +581,7 @@ int fatfs_open(void *devcfg, void *file, const char* pathname, int flags) {
         return -1;
     }
 
-    res = f_open(fh, pathname, (BYTE) (fatfs_modes & 0xff));
+    res = f_open(fh, pathname, (BYTE)(fatfs_modes & 0xff));
 
     if(res != FR_OK) {
         errno = fatfs_to_errno(res);
@@ -710,66 +710,56 @@ int mkdir(const char *pathname, mode_t mode) {
 
     return 0;
 }
+
+void sync(void) {
+    FILE *stream;
+    FIL *fh;
+    int i;
+
+    for(i = 0; i < MAX_FILES; i++) {
+        if(file[i] == NULL) continue;
+        stream = (FILE *)file[i]->file;
+        if(stream == NULL || sizeof(*stream) != sizeof(FILE)) continue;
+        fh = stream_to_fatfs(stream);
+        if(sizeof(*fh) != sizeof(FIL)) continue;
+        if(fh == NULL) continue;
+        (void)fatfs_syncfs(NULL, file[i]->file);
+    }
+}
+
+int fatfs_syncfs(void *devcfg, void *file) {
+    FIL *fh;
+    FRESULT res;
+    FILE *stream;
+
+    errno = 0;
+
+    stream = (FILE *)file;
+
+    if(file == NULL) {
+        return -1;
+    }
+
+    stream->flags |= __SUNGET;
+
+    fh = stream_to_fatfs(stream);
+
+    if(fh == NULL) {
+        errno = EBADF;
+        return -1;
+    }
+
+    res = f_sync(fh);
+
+    if (res != FR_OK) {
+        errno = fatfs_to_errno(res);
+        return -1;
+    }
+
+    return 0;
+}
+
 /* FATFS-posix implemetation for new file manager END */
-
-
-
- void sync(void)
- {
-     FIL *fh;
-     int i;
-
-     for(i=0;i<MAX_FILES;++i)
-     {
-         if(isatty(i))
-             continue;
-
-         // fileno_to_fatfs checks for i out of bounds
-         fh = fileno_to_fatfs(i);
-         if(fh == NULL)
-             continue;
-
-         (void ) syncfs(i);
-     }
- }
-
-
- int syncfs(int fd)
- {
-     FIL *fh;
-     FRESULT res;
-     FILE *stream;
-
-     errno = 0;
-
-     if(isatty(fd))
-     {
-         errno = EBADF;
-         return(-1);
-     }
-     stream = fileno_to_stream(fd);
-     // reset unget on sync
-     stream->flags |= __SUNGET;
-
-     // fileno_to_fatfs checks for fd out of bounds
-     fh = fileno_to_fatfs(fd);
-     if(fh == NULL)
-     {
-         errno = EBADF;
-         return(-1);
-     }
-
-     res  = f_sync ( fh );
-     if (res != FR_OK)
-     {
-         errno = fatfs_to_errno(res);
-         return(-1);
-     }
-     return(0);
- }
-
-
-
 
  int truncate(const char *path, off_t length)
  {
