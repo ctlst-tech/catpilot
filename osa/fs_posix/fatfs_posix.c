@@ -719,9 +719,8 @@ void sync(void) {
     for(i = 0; i < MAX_FILES; i++) {
         if(file[i] == NULL) continue;
         stream = (FILE *)file[i]->file;
-        if(stream == NULL || sizeof(*stream) != sizeof(FILE)) continue;
+        if(stream == NULL) continue;
         fh = stream_to_fatfs(stream);
-        if(sizeof(*fh) != sizeof(FIL)) continue;
         if(fh == NULL) continue;
         (void)fatfs_syncfs(NULL, file[i]->file);
     }

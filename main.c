@@ -23,7 +23,7 @@
 // For fileman test
 #include "fatfs_posix.h"
 
-#define LOG_STDOUT_ENABLE 0
+#define LOG_STDOUT_ENABLE 1
 #define ECHO_ENABLE 0
 
 void main_thread(void *param);
@@ -51,9 +51,11 @@ void main_thread(void *param) {
 }
 
 uint8_t buf_read[1024];
+uint8_t buf_write[4096];
 void echo() {
     int fd;
-    int len;
+    int rd_len, wr_len;
+    char new_line[4] = "\r\n# ";
     fd = open("/dev/ttyS0", O_RDWR | O_CREAT | O_TRUNC);
     struct termios termios_p = {};
     tcgetattr(fd, &termios_p);
@@ -62,8 +64,19 @@ void echo() {
     tcsetattr(fd, TCSANOW, &termios_p);
     tcflush(fd, TCIOFLUSH);
     while(1) {
-        len = read(fd, buf_read, 1024);
-        len = write(fd, buf_read, len);
+        rd_len = 0;
+        wr_len = 0;
+        rd_len = read(fd, buf_read, 1024);
+        for(int i = 0; i < rd_len; i++) {
+            if(buf_read[i] == '\r') {
+                memcpy(buf_write + wr_len, new_line, sizeof(new_line));
+                wr_len += sizeof(new_line);
+            } else {
+                buf_write[wr_len] = buf_read[i];
+                wr_len++;
+            }
+        }
+        wr_len = write(fd, buf_write, wr_len);
     }
 }
 
