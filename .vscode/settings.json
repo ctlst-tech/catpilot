@@ -1,7 +1,7 @@
 {
     "cmake.setBuildTypeOnMultiConfig": true,
     "cmake.configureSettings": {
-        "TYPE": "PX4"
+        "TYPE": "Cube"
     },
     "cortex-debug.armToolchainPath": "usr/bin",
     "cortex-debug.openocdPath": "/usr/local/bin/openocd",
@@ -27,6 +27,8 @@
         "swsys.h": "c",
         "imu.h": "c",
         "mag.h": "c",
-        "logger.h": "c"
+        "logger.h": "c",
+        "rcc.h": "c",
+        "stm32h753xx.h": "c"
     }
 }
