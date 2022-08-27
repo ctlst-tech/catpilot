@@ -31,7 +31,7 @@ void RCC_Init(void) {
     RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
     RCC_ClkInitStruct.APB3CLKDivider = RCC_HCLK_DIV2;
     RCC_ClkInitStruct.APB4CLKDivider = RCC_HCLK_DIV2;
-    while (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_7) != HAL_OK);
+    while (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK);
 
     // PLL2
     PeriphClkInitStruct.PLL2.PLL2FRACN = 0;
@@ -49,6 +49,13 @@ void RCC_Init(void) {
     PeriphClkInitStruct.PLL3.PLL3Q = 6;
     PeriphClkInitStruct.PLL3.PLL3R = 9;
 
-    // Use defaut multiplexing for periph
+    // Use special multiplexing
+    PeriphClkInitStruct.I2c123ClockSelection = RCC_I2C123CLKSOURCE_HSI;
+    PeriphClkInitStruct.Spi123ClockSelection = RCC_SPI123CLKSOURCE_PLL2;
+    PeriphClkInitStruct.Spi45ClockSelection = RCC_SPI45CLKSOURCE_PLL2;
+    PeriphClkInitStruct.UsbClockSelection = RCC_USBCLKSOURCE_PLL3;
+    PeriphClkInitStruct.AdcClockSelection = RCC_ADCCLKSOURCE_PLL2;
+    PeriphClkInitStruct.SdmmcClockSelection = RCC_SDMMCCLKSOURCE_PLL;
+
     while (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct));
 }
