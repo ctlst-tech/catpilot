@@ -26,9 +26,8 @@
 - [ ] pthread_cancel wrapper
   - This function doesn't work in existing implementations
 - [ ] stubs for tcp stack
-- [ ] <termios.h> wrappers
-- [ ] Add high wrapper layer for open/write/read/close
-- [ ] socket.h
+- [x] <termios.h> wrappers
+- [x] Add high wrapper layer for open/write/read/close
 - [ ] Add CMakeLists in board directories
 - [ ] Add modules as f_specs functions
 
@@ -42,4 +41,14 @@
   - [ ] MCU load
 
 ## Utils
-- [ ] Add log func with types of msg and module
+- [x] Add log func with types of msg and module
+
+## Porting to Cube Orange
+- [x] Add core sources
+- [x] Rewrite RCC
+- [ ] Rewrite DMA
+- [ ] Rewrite EXTI
+- [ ] Add ICM20948 driver
+- [ ] Add ICM20649 driver
+- [ ] Update pinout
+
