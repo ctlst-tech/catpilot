@@ -50,5 +50,5 @@
 - [ ] Rewrite EXTI
 - [ ] Add ICM20948 driver
 - [ ] Add ICM20649 driver
-- [ ] Update pinout
+- [x] Update pinout
 
