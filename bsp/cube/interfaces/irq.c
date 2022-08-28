@@ -13,21 +13,12 @@ void DMA2_Stream0_IRQHandler(void) {
     SPI_DMA_MISO_Handler(&spi1);
 }
 
-/* I2C3 Handlers */
-void I2C3_EV_IRQHandler(void) {
-    I2C_EV_Handler(&i2c3);
-}
-
-void I2C3_ER_IRQHandler(void) {
-    I2C_ER_Handler(&i2c3);
-}
-
-void DMA1_Stream4_IRQHandler(void) {
-    I2C_DMA_TX_Handler(&i2c3);
-}
-
-void DMA1_Stream2_IRQHandler(void) {
-    I2C_DMA_RX_Handler(&i2c3);
+/* EXTI Handlers */
+void EXTI15_10_IRQHandler(void) {
+    uint32_t line = EXTI->PR1;
+    if(line & exti_spi1_drdy1.gpio.GPIO_InitStruct.Pin) {
+        ICM20602_DataReadyHandler();
+    }
 }
 
 /* UART7 Handlers */
@@ -71,8 +62,4 @@ void HAL_SD_ErrorCallback(SD_HandleTypeDef *hsd) {
 
 void SDMMC1_IRQHandler(void) {
     SDIO_IT_Handler(&sdmmc1);
-}
-
-void DMA2_Stream6_IRQHandler(void) {
-    SDIO_DMA_Handler(&sdmmc1);
 }

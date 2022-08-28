@@ -29,6 +29,9 @@
         "mag.h": "c",
         "logger.h": "c",
         "rcc.h": "c",
-        "stm32h753xx.h": "c"
+        "stm32h753xx.h": "c",
+        "spi.h": "c",
+        "ph_periph_mag.h": "c",
+        "types.h": "c"
     }
 }

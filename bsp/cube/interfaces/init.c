@@ -12,9 +12,10 @@ int Board_Init() {
     rv |= GPIOBoard_Init();
     vTaskDelay(2);
     rv |= USART7_Init();
-    rv |= USART8_Init();
+    rv |= USART6_Init();
     rv |= SPI1_Init();
-    rv |= I2C3_Init();
+    rv |= SPI2_Init();
+    rv |= SPI4_Init();
     rv |= SDMMC1_Init();
 
     return rv;

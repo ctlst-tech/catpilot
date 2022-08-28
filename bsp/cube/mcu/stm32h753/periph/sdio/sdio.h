@@ -32,7 +32,7 @@ typedef struct {
     gpio_cfg_t *d2_cfg;
     gpio_cfg_t *d3_cfg;
     gpio_cfg_t *cd_cfg;
-    dma_cfg_t *dma_cfg;
+    // dma_cfg_t *dma_cfg;
     int timeout;
     int priority;
     struct sdio_inst_t inst;
@@ -50,7 +50,7 @@ int SDIO_Detect(sdio_cfg_t *cfg);
 int SDIO_GetInfo(sdio_cfg_t *cfg, HAL_SD_CardInfoTypeDef *info);
 int SDIO_GetStatus(sdio_cfg_t *cfg);
 
-int SDIO_DMA_Handler(sdio_cfg_t *cfg);
+// int SDIO_DMA_Handler(sdio_cfg_t *cfg);
 int SDIO_IT_Handler(sdio_cfg_t *cfg);
 int SDIO_TX_Complete(sdio_cfg_t *cfg);
 int SDIO_RX_Complete(sdio_cfg_t *cfg);

@@ -27,23 +27,6 @@ int SDMMC1_Init() {
     sdmmc1.timeout  = sdmmc1_timeout;
     sdmmc1.priority = sdmmc1_priority;
 
-    sdmmc1.dma_cfg = &sdmmc1_dma_txrx;
-
-    sdmmc1_dma_txrx.DMA_InitStruct.Instance = DMA2_Stream6;
-    sdmmc1_dma_txrx.DMA_InitStruct.Init.Request = DMA_REQUEST_USART6_RX;
-    sdmmc1_dma_txrx.DMA_InitStruct.Init.Direction = DMA_PERIPH_TO_MEMORY;
-    sdmmc1_dma_txrx.DMA_InitStruct.Init.PeriphInc = DMA_PINC_DISABLE;
-    sdmmc1_dma_txrx.DMA_InitStruct.Init.MemInc = DMA_MINC_ENABLE;
-    sdmmc1_dma_txrx.DMA_InitStruct.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
-    sdmmc1_dma_txrx.DMA_InitStruct.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
-    sdmmc1_dma_txrx.DMA_InitStruct.Init.Mode = DMA_PFCTRL;
-    sdmmc1_dma_txrx.DMA_InitStruct.Init.Priority = DMA_PRIORITY_VERY_HIGH;
-    sdmmc1_dma_txrx.DMA_InitStruct.Init.FIFOMode = DMA_FIFOMODE_ENABLE;
-    sdmmc1_dma_txrx.DMA_InitStruct.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
-    sdmmc1_dma_txrx.DMA_InitStruct.Init.MemBurst = DMA_MBURST_INC4;
-    sdmmc1_dma_txrx.DMA_InitStruct.Init.PeriphBurst = DMA_PBURST_INC4;
-    sdmmc1_dma_txrx.priority = sdmmc1_priority;
-
     rv = SDIO_Init(&sdmmc1);
 
     return rv;

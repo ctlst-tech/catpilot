@@ -161,7 +161,8 @@ int USART_SetSpeed(usart_cfg_t *cfg, uint32_t speed) {
     cfg->speed = speed;
     cfg->inst.USART_InitStruct.Init.BaudRate = cfg->speed;
     cfg->USART->BRR = (uint16_t)(UART_DIV_SAMPLING16(HAL_RCC_GetPCLK1Freq(),
-                                cfg->inst.USART_InitStruct.Init.BaudRate));
+                                cfg->inst.USART_InitStruct.Init.BaudRate,
+                                cfg->inst.USART_InitStruct.Init.ClockPrescaler));
     return 0;
 }
 
@@ -172,12 +173,15 @@ uint32_t USART_GetSpeed(usart_cfg_t *cfg) {
 int USART_Handler(usart_cfg_t *cfg) {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
+    DMA_Stream_TypeDef *dma_inst = 
+        (DMA_Stream_TypeDef *)(&(cfg->dma_rx_cfg->DMA_InitStruct.Instance));
+
     HAL_UART_IRQHandler(&cfg->inst.USART_InitStruct);
 
     if(cfg->inst.USART_InitStruct.gState == HAL_UART_STATE_READY &&
         cfg->inst.tx_state == USART_TRANSMIT) {
             xSemaphoreGiveFromISR(cfg->inst.tx_semaphore, &xHigherPriorityTaskWoken);
-            cfg->inst.tx_count = cfg->dma_rx_cfg->DMA_InitStruct.Instance->NDTR;
+            cfg->inst.tx_count = dma_inst->NDTR;
             if(xHigherPriorityTaskWoken == pdTRUE) {
                 portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
             }
@@ -197,7 +201,7 @@ int USART_Handler(usart_cfg_t *cfg) {
         cfg->mode == USART_IDLE) {
             SET_BIT(cfg->USART->ICR, USART_ICR_IDLECF);
             cfg->inst.rx_count = cfg->inst.USART_InitStruct.RxXferSize -
-                                 cfg->dma_rx_cfg->DMA_InitStruct.Instance->NDTR;
+                                 dma_inst->NDTR;
             HAL_UART_AbortReceive(&cfg->inst.USART_InitStruct);
             CLEAR_BIT(cfg->USART->ICR, USART_ICR_IDLECF);
             CLEAR_BIT(cfg->USART->CR1, USART_CR1_IDLEIE);

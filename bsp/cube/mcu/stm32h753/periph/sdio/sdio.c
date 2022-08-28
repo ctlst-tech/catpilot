@@ -14,17 +14,21 @@ int SDIO_Init(sdio_cfg_t *cfg) {
     if((rv = GPIO_Init(cfg->d3_cfg)) != 0) return rv;
     if((rv = GPIO_Init(cfg->cd_cfg)) != 0) return rv;
 
-    if(cfg->dma_cfg != NULL) {
-        cfg->dma_cfg->DMA_InitStruct.Parent = &cfg->inst.SD_InitStruct;
-        if((rv = DMA_Init(cfg->dma_cfg)) != 0) return rv;
-    }
+    // if(cfg->dma_cfg != NULL) {
+    //     cfg->dma_cfg->DMA_InitStruct.Parent = &cfg->inst.SD_InitStruct;
+    //     if((rv = DMA_Init(cfg->dma_cfg)) != 0) return rv;
+    // }
 
     cfg->inst.SD_InitStruct.Instance = cfg->SDIO;
     cfg->inst.SD_InitStruct.Init.ClockEdge = SDMMC_CLOCK_EDGE_FALLING;
+    // cfg->inst.SD_InitStruct.Init.ClockBypass = SDMMC_CLOCK_BYPASS_DISABLE;
     cfg->inst.SD_InitStruct.Init.ClockPowerSave = SDMMC_CLOCK_POWER_SAVE_DISABLE;
     cfg->inst.SD_InitStruct.Init.BusWide = SDMMC_BUS_WIDE_1B;
     cfg->inst.SD_InitStruct.Init.HardwareFlowControl = SDMMC_HARDWARE_FLOW_CONTROL_DISABLE;
     cfg->inst.SD_InitStruct.Init.ClockDiv = 2;
+
+    // cfg->inst.SD_InitStruct.hdmatx = &cfg->dma_cfg->DMA_InitStruct;
+    // cfg->inst.SD_InitStruct.hdmarx = &cfg->dma_cfg->DMA_InitStruct;
 
     if(HAL_SD_Init(&cfg->inst.SD_InitStruct) != HAL_OK) return EINVAL;
 
@@ -156,10 +160,10 @@ int SDIO_IT_Handler(sdio_cfg_t *cfg) {
     return 0;
 }
 
-int SDIO_DMA_Handler(sdio_cfg_t *cfg) {
-    HAL_DMA_IRQHandler(&cfg->dma_cfg->DMA_InitStruct);
-    return 0;
-}
+// int SDIO_DMA_Handler(sdio_cfg_t *cfg) {
+//     HAL_DMA_IRQHandler(&cfg->dma_cfg->DMA_InitStruct);
+//     return 0;
+// }
 
 int SDIO_TX_Complete(sdio_cfg_t *cfg) {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;

@@ -411,10 +411,3 @@ void ICM20602_DataReadyHandler() {
         portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
     }
 }
-
-void EXTI9_5_IRQHandler(void) {
-    uint32_t line = (EXTI->PR) & GPIO_PIN_5;
-    if(line) {
-        ICM20602_DataReadyHandler();
-    }
-}

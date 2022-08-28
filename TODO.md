@@ -46,8 +46,9 @@
 ## Porting to Cube Orange
 - [x] Add core sources
 - [x] Rewrite RCC
-- [ ] Rewrite DMA
-- [ ] Rewrite EXTI
+- [x] Rewrite DMA
+- [x] Rewrite EXTI
+- [x] Delete DMA from SDIO driver
 - [ ] Add ICM20948 driver
 - [ ] Add ICM20649 driver
 - [x] Update pinout
