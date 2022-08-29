@@ -25,7 +25,6 @@ void ICM20602_GyroProcess();
 void ICM20602_TempProcess();
 
 static gpio_cfg_t *icm20602_cs = &gpio_spi4_cs2;
-static SemaphoreHandle_t drdy_semaphore;
 
 static SemaphoreHandle_t measrdy_semaphore;
 
@@ -48,9 +47,7 @@ static TickType_t icm20602_last_sample = 0;
 int ICM20602_Init() {
     int rv = 0;
 
-    icm20602_cfg.spi = &spi1;
-
-    if(drdy_semaphore == NULL) drdy_semaphore = xSemaphoreCreateBinary();
+    icm20602_cfg.spi = &spi4;
 
     if(measrdy_semaphore == NULL) measrdy_semaphore = xSemaphoreCreateBinary();
     xSemaphoreTake(measrdy_semaphore, 0);

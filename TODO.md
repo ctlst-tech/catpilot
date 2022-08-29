@@ -53,5 +53,6 @@
 - [x] Rewrite linker script
 - [ ] Actualize DMA channels for periph
 - [ ] Refactor timers and initialization for drivers
+- [ ] Merge drivers
 - [ ] Add ICM20948 driver
 - [ ] Add ICM20649 driver
