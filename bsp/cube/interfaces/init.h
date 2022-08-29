@@ -3,19 +3,20 @@
 #include "stm32_periph.h"
 
 extern spi_cfg_t spi1;
+extern spi_cfg_t spi2;
+extern spi_cfg_t spi4;
+extern usart_cfg_t usart6;
 extern usart_cfg_t usart7;
-extern usart_cfg_t usart8;
 extern sdio_cfg_t sdmmc1;
 
 extern gpio_cfg_t gpio_sdcard_pwr;
 extern gpio_cfg_t gpio_spi1_cs1;
 extern gpio_cfg_t gpio_spi1_cs2;
-extern gpio_cfg_t gpio_spi1_cs3;
-extern gpio_cfg_t gpio_spi1_cs4;
+extern gpio_cfg_t gpio_spi2_cs1;
+extern gpio_cfg_t gpio_spi4_cs1;
+extern gpio_cfg_t gpio_spi4_cs2;
+extern gpio_cfg_t gpio_spi4_cs3;
 extern exti_cfg_t exti_spi1_drdy1;
-extern exti_cfg_t exti_spi1_drdy2;
-extern exti_cfg_t exti_spi1_drdy3;
-extern exti_cfg_t exti_spi1_drdy4;
 
 int Board_Init();
 int GPIOBoard_Init();

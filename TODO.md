@@ -49,7 +49,9 @@
 - [x] Rewrite DMA
 - [x] Rewrite EXTI
 - [x] Delete DMA from SDIO driver
+- [x] Update pinout
+- [x] Rewrite linker script
+- [ ] Actualize DMA channels for periph
+- [ ] Refactor timers and initialization for drivers
 - [ ] Add ICM20948 driver
 - [ ] Add ICM20649 driver
-- [x] Update pinout
-

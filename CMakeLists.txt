@@ -58,6 +58,7 @@ endif ()
 project(${PROJ_NAME} C ASM)
 
 if (TYPE STREQUAL "PX4")
+    set(ARCH cortex_m7)
 
     set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/firmware)
 
@@ -93,7 +94,7 @@ if (TYPE STREQUAL "PX4")
 
         ${DIR_OS}
         ${DIR_OS}/core/inc
-        ${DIR_OS}/port/${MCU}
+        ${DIR_OS}/port/${ARCH}
 
         ${DIR_C_ATOM}/swsys
 
@@ -149,7 +150,7 @@ if (TYPE STREQUAL "PX4")
     file(GLOB_RECURSE SRC_MISC   ${DIR_MISC}/*.c)
     file(GLOB_RECURSE SRC_FS     ${DIR_FS}/*.c)
     file(GLOB_RECURSE SRC_OS     ${DIR_OS}/core/*.c
-                                 ${DIR_OS}/port/${MCU}/*.c
+                                 ${DIR_OS}/port/${ARCH}/*.c
                                  ${DIR_OS}/MemMang/heap_3.c
                                  ${DIR_OS}/MemMang/heap.c)
     file(GLOB_RECURSE SRC_OSA    ${DIR_OSA}/*.c)
@@ -198,6 +199,7 @@ if (TYPE STREQUAL "PX4")
 
 
 elseif (TYPE STREQUAL "Cube")
+    set(ARCH cortex_m7)
 
     set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/firmware)
 
@@ -233,7 +235,7 @@ elseif (TYPE STREQUAL "Cube")
 
         ${DIR_OS}
         ${DIR_OS}/core/inc
-        ${DIR_OS}/port/${MCU}
+        ${DIR_OS}/port/${ARCH}
 
         ${DIR_C_ATOM}/swsys
 
@@ -286,7 +288,7 @@ elseif (TYPE STREQUAL "Cube")
     file(GLOB_RECURSE SRC_MISC   ${DIR_MISC}/*.c)
     file(GLOB_RECURSE SRC_FS     ${DIR_FS}/*.c)
     file(GLOB_RECURSE SRC_OS     ${DIR_OS}/core/*.c
-                                 ${DIR_OS}/port/${MCU}/*.c
+                                 ${DIR_OS}/port/${ARCH}/*.c
                                  ${DIR_OS}/MemMang/heap_3.c
                                  ${DIR_OS}/MemMang/heap.c)
     file(GLOB_RECURSE SRC_OSA    ${DIR_OSA}/*.c)

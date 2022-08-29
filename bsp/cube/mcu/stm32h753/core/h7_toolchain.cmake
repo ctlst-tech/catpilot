@@ -36,7 +36,7 @@ elseif (WIN32)
     set(CMAKE_SIZE          ${TOOLCHAIN_BIN_PATH}-size.exe)
     set(CMAKE_OBJCOPY       ${TOOLCHAIN_BIN_PATH}-objcopy.exe)
     set(CMAKE_OBJDUMP       ${TOOLCHAIN_BIN_PATH}-objdump.exe)
-    file(GLOB LINKER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/bsp/px4/mcu/stm32h753/core/*.ld)
+    file(GLOB LINKER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/bsp/cube/mcu/stm32h753/core/*.ld)
 endif ()
 
 set(LD_WRAP "-Wl,--wrap,fprintf -Wl,--wrap,fclose -Wl,--wrap,fread")

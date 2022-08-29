@@ -15,8 +15,6 @@ exti_cfg_t exti_spi1_drdy1 = EXTI_SPI1_DRDY1;
 int GPIOBoard_Init() {
     int rv = 0;
 
-    rv |= GPIO_Init(&gpio_sdcard_pwr);
-    GPIO_Set(&gpio_sdcard_pwr);
     rv |= GPIO_Init(&gpio_periph_pwr);
     GPIO_Set(&gpio_periph_pwr);
     rv |= GPIO_Init(&gpio_sensors_pwr);

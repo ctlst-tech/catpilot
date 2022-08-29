@@ -15,10 +15,6 @@ void DMA2_Stream0_IRQHandler(void) {
 
 /* EXTI Handlers */
 void EXTI15_10_IRQHandler(void) {
-    uint32_t line = EXTI->PR1;
-    if(line & exti_spi1_drdy1.gpio.GPIO_InitStruct.Pin) {
-        ICM20602_DataReadyHandler();
-    }
 }
 
 /* UART7 Handlers */
@@ -34,17 +30,17 @@ void DMA1_Stream3_IRQHandler(void) {
     USART_DMA_RX_Handler(&usart7);
 }
 
-/* UART8 Handlers */
-void UART8_IRQHandler(void) {
-    USART_Handler(&usart8);
+/* UART6 Handlers */
+void UART6_IRQHandler(void) {
+    USART_Handler(&usart6);
 }
 
 void DMA1_Stream0_IRQHandler(void) {
-    USART_DMA_TX_Handler(&usart8);
+    USART_DMA_TX_Handler(&usart6);
 }
 
 void DMA1_Stream6_IRQHandler(void) {
-    USART_DMA_RX_Handler(&usart8);
+    USART_DMA_RX_Handler(&usart6);
 }
 
 /* SDIO Handlers */

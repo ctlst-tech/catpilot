@@ -39,7 +39,7 @@ static px4io_packet_t px4io_rx_packet;
 
 int PX4IO_Init() {
     int rv = 0;
-    px4io_cfg.usart = &usart8;
+    px4io_cfg.usart = &usart6;
     px4io_state = PX4IO_RESET;
     if(timer_semaphore == NULL) timer_semaphore = xSemaphoreCreateBinary();
     if(iordy_semaphore == NULL) iordy_semaphore = xSemaphoreCreateBinary();

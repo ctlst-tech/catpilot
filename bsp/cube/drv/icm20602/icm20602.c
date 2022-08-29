@@ -24,8 +24,7 @@ void ICM20602_AccelProcess();
 void ICM20602_GyroProcess();
 void ICM20602_TempProcess();
 
-static gpio_cfg_t *icm20602_cs = &gpio_spi1_cs2;
-static exti_cfg_t *icm20602_drdy = &exti_spi1_drdy2;
+static gpio_cfg_t *icm20602_cs = &gpio_spi4_cs2;
 static SemaphoreHandle_t drdy_semaphore;
 
 static SemaphoreHandle_t measrdy_semaphore;
@@ -138,14 +137,13 @@ void ICM20602_Run() {
         break;
 
     case ICM20602_FIFO_READ:
-        if(xSemaphoreTake(drdy_semaphore, portMAX_DELAY)) {
-            xSemaphoreGive(measrdy_semaphore);
-            ICM20602_FIFOCount();
-            ICM20602_FIFORead();
-            icm20602_fifo.dt = xTaskGetTickCount() - icm20602_last_sample;
-            icm20602_fifo.samples = icm20602_FIFOParam.samples;
-            icm20602_last_sample = xTaskGetTickCount();
-        }
+        xSemaphoreGive(measrdy_semaphore);
+        ICM20602_FIFOCount();
+        ICM20602_FIFORead();
+        icm20602_fifo.dt = xTaskGetTickCount() - icm20602_last_sample;
+        icm20602_fifo.samples = icm20602_FIFOParam.samples;
+        icm20602_last_sample = xTaskGetTickCount();
+        vTaskDelay(2);
         break;
     }
 }
@@ -241,9 +239,6 @@ int ICM20602_Configure() {
     ICM20602_AccelConfigure();
     ICM20602_GyroConfigure();
 
-    // Enable EXTI IRQ for DataReady pin
-    EXTI_EnableIRQ(icm20602_drdy);
-
     return rv;
 }
 
@@ -308,8 +303,6 @@ int ICM20602_FIFORead() {
     ICM20602_TempProcess();
     ICM20602_AccelProcess();
     ICM20602_GyroProcess();
-
-    EXTI_EnableIRQ(icm20602_drdy);
 
     return 0;
 }
@@ -396,18 +389,4 @@ void ICM20602_Statistics() {
     LOG_DEBUG(device, "N       = %lu [samples]", icm20602_fifo.samples);
     LOG_DEBUG(device, "dt      = %lu [ms]", icm20602_fifo.dt);
     LOG_DEBUG(device, "N = %lu", icm20602_fifo.samples);
-}
-
-void ICM20602_DataReadyHandler() {
-    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-
-    xSemaphoreGiveFromISR(drdy_semaphore, &xHigherPriorityTaskWoken);
-
-    HAL_EXTI_ClearPending((EXTI_HandleTypeDef *)&icm20602_drdy->EXTI_Handle,
-                            EXTI_TRIGGER_RISING);
-    EXTI_DisableIRQ(icm20602_drdy);
-
-    if(xHigherPriorityTaskWoken == pdTRUE) {
-        portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-    }
 }
