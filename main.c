@@ -6,7 +6,6 @@
 
 #include "stm32_base.h"
 #include "stm32_periph.h"
-#include "drv.h"
 
 #include "ff.h"
 #include "log.h"
@@ -35,8 +34,7 @@ int main(void) {
     RCC_Init();
     xTaskCreate(main_thread, "main_thread", 100, NULL, 3, NULL );
     vTaskStartScheduler();
-    while(1) {
-    }
+    while(1);
 }
 
 void main_thread(void *param) {
@@ -161,13 +159,3 @@ void *ctlst(void *param) {
     while(1);
 }
 
-#include "FreeRTOS.h"
-
-static volatile int stack_overflow_cnt = 0;
-static volatile int stack_overflow_margin = 0;
-
-void vApplicationStackOverflowHook( TaskHandle_t xTask,
-                                    char * pcTaskName) {
-    stack_overflow_margin = vTaskGetStackMargin(xTask);
-    stack_overflow_cnt++;
-}

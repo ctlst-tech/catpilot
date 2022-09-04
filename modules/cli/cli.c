@@ -11,6 +11,19 @@ char stdin_buf[256];
 char stdout_buf[256];
 char stderr_buf[256];
 
+int cli_put(char c, struct __file * file);
+int cli_get(struct __file * file);
+void stream_init(void);
+
+static SemaphoreHandle_t cli_put_mutex;
+
+int CLI_Init() {
+    int rv = 0;
+    stream_init();
+    if(cli_put_mutex == NULL) cli_put_mutex = xSemaphoreCreateMutex();
+    return rv;
+}
+
 void stream_init(){
     int rv;
     stdin = &stdin_stream;
@@ -33,15 +46,6 @@ void stream_init(){
     stderr->size = sizeof(stderr_buf);
     stderr->len = 0;
     stderr->flags = __SWR | __SRD;
-}
-
-static SemaphoreHandle_t cli_put_mutex;
-
-int CLI_Init() {
-    int rv = 0;
-    stream_init();
-    if(cli_put_mutex == NULL) cli_put_mutex = xSemaphoreCreateMutex();
-    return rv;
 }
 
 // TODO add check transmit/receive status

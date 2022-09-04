@@ -61,20 +61,17 @@ if (TYPE STREQUAL "PX4")
     set(ARCH cortex_m7)
 
     set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/firmware)
-
     set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "" )
     set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "" )
 
     ## Defines
     set(DIR_OS os/freertos)
-    set(DIR_OSA osa)
-
     set(DIR_FS os/fatfs)
-
+    set(DIR_OSA osa)
     set(DIR_PERIPH ${DIR_MCU}/periph)
     set(DIR_IF bsp/px4/interfaces)
+    set(DIR_DEV bsp/px4/devices)
     set(DIR_DRV drv)
-
     set(DIR_C_ATOM c-atom)
     set(DIR_ESWB c-atom/eswb)
 
@@ -125,7 +122,9 @@ if (TYPE STREQUAL "PX4")
         ${DIR_DRV}/px4io
 
         ${DIR_IF}
+        ${DIR_DEV}
 
+        ${DIR_MDL}
         ${DIR_MDL}/cli
         ${DIR_MDL}/imu
         ${DIR_MDL}/mag
@@ -133,7 +132,6 @@ if (TYPE STREQUAL "PX4")
         ${DIR_MDL}/logger
 
         ${DIR_MISC}/common
-
     )
 
     add_subdirectory(c-atom)
@@ -147,6 +145,7 @@ if (TYPE STREQUAL "PX4")
     file(GLOB_RECURSE SRC_DRV    ${DIR_DRV}/*.c)
     file(GLOB_RECURSE SRC_MDL    ${DIR_MDL}/*.c)
     file(GLOB_RECURSE SRC_IF     ${DIR_IF}/*.c)
+    file(GLOB_RECURSE SRC_DEV    ${DIR_DEV}/*.c)
     file(GLOB_RECURSE SRC_MISC   ${DIR_MISC}/*.c)
     file(GLOB_RECURSE SRC_FS     ${DIR_FS}/*.c)
     file(GLOB_RECURSE SRC_OS     ${DIR_OS}/core/*.c
@@ -163,6 +162,7 @@ if (TYPE STREQUAL "PX4")
         ${SRC_DRV}
         ${SRC_MDL}
         ${SRC_IF}
+        ${SRC_DEV}
         ${SRC_MISC}
         ${SRC_FS}
         ${SRC_OS}
@@ -202,20 +202,17 @@ elseif (TYPE STREQUAL "Cube")
     set(ARCH cortex_m7)
 
     set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/firmware)
-
     set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "" )
     set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "" )
 
     ## Defines
     set(DIR_OS os/freertos)
-    set(DIR_OSA osa)
-
     set(DIR_FS os/fatfs)
-
+    set(DIR_OSA osa)
     set(DIR_PERIPH ${DIR_MCU}/periph)
     set(DIR_DRV drv)
     set(DIR_IF bsp/cube/interfaces)
-
+    set(DIR_DEV bsp/cube/devices)
     set(DIR_C_ATOM c-atom)
     set(DIR_ESWB c-atom/eswb)
 
@@ -262,8 +259,10 @@ elseif (TYPE STREQUAL "Cube")
         ${DIR_DRV}/sdcard
         ${DIR_DRV}/px4io
 
+        ${DIR_DEV}
         ${DIR_IF}
 
+        ${DIR_MDL}
         ${DIR_MDL}/cli
         ${DIR_MDL}/imu
         ${DIR_MDL}/mag
@@ -271,7 +270,6 @@ elseif (TYPE STREQUAL "Cube")
         ${DIR_MDL}/logger
 
         ${DIR_MISC}/common
-
     )
 
     add_subdirectory(c-atom)
@@ -285,6 +283,7 @@ elseif (TYPE STREQUAL "Cube")
     file(GLOB_RECURSE SRC_DRV    ${DIR_DRV}/*.c)
     file(GLOB_RECURSE SRC_MDL    ${DIR_MDL}/*.c)
     file(GLOB_RECURSE SRC_IF     ${DIR_IF}/*.c)
+    file(GLOB_RECURSE SRC_DEV    ${DIR_DEV}/*.c)
     file(GLOB_RECURSE SRC_MISC   ${DIR_MISC}/*.c)
     file(GLOB_RECURSE SRC_FS     ${DIR_FS}/*.c)
     file(GLOB_RECURSE SRC_OS     ${DIR_OS}/core/*.c
@@ -301,6 +300,7 @@ elseif (TYPE STREQUAL "Cube")
         ${SRC_DRV}
         ${SRC_MDL}
         ${SRC_IF}
+        ${SRC_DEV}
         ${SRC_MISC}
         ${SRC_FS}
         ${SRC_OS}

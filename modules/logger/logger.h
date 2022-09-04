@@ -1,7 +1,6 @@
 #pragma once
 #include "stm32_base.h"
 #include "stm32_periph.h"
-#include "drv.h"
 #include "ff.h"
 
 #define LOGGER_SIGNAL_NAME_MAX_LENGTH 32
@@ -27,6 +26,6 @@ typedef struct {
     int signal_num;
 } logger_frame_t;
 
-int Logger_Init();
+int Logger_Init(void);
 int Logger_UpdateSignal(char *frame_name, char *signal_name, double value);
 int Logger_Start(char *frame_name, int priority, int period);
