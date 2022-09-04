@@ -35,7 +35,7 @@ int USART7_Init() {
     usart7.mode = USART_IDLE;
     usart7.task_priority = usart7_task_priority;
 
-    usart7_dma_tx.DMA_InitStruct.Instance = DMA1_Stream1;
+    usart7_dma_tx.DMA_InitStruct.Instance = DMA1_Stream0;
     usart7_dma_tx.DMA_InitStruct.Init.Request = DMA_REQUEST_UART7_TX;
     usart7_dma_tx.DMA_InitStruct.Init.Direction = DMA_MEMORY_TO_PERIPH;
     usart7_dma_tx.DMA_InitStruct.Init.PeriphInc = DMA_PINC_DISABLE;
@@ -47,7 +47,7 @@ int USART7_Init() {
     usart7_dma_tx.DMA_InitStruct.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
     usart7_dma_tx.priority = usart7_priority;
 
-    usart7_dma_rx.DMA_InitStruct.Instance = DMA1_Stream3;
+    usart7_dma_rx.DMA_InitStruct.Instance = DMA1_Stream1;
     usart7_dma_rx.DMA_InitStruct.Init.Request = DMA_REQUEST_UART7_RX;
     usart7_dma_rx.DMA_InitStruct.Init.Direction = DMA_PERIPH_TO_MEMORY;
     usart7_dma_rx.DMA_InitStruct.Init.PeriphInc = DMA_PINC_DISABLE;
@@ -77,7 +77,7 @@ int USART6_Init() {
     usart6.priority = usart6_priority;
     usart6.mode = USART_IDLE;
 
-    usart6_dma_tx.DMA_InitStruct.Instance = DMA1_Stream0;
+    usart6_dma_tx.DMA_InitStruct.Instance = DMA1_Stream2;
     usart6_dma_tx.DMA_InitStruct.Init.Request = DMA_REQUEST_USART6_TX;
     usart6_dma_tx.DMA_InitStruct.Init.Direction = DMA_MEMORY_TO_PERIPH;
     usart6_dma_tx.DMA_InitStruct.Init.PeriphInc = DMA_PINC_DISABLE;
@@ -89,7 +89,7 @@ int USART6_Init() {
     usart6_dma_tx.DMA_InitStruct.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
     usart6_dma_tx.priority = usart6_priority;
 
-    usart6_dma_rx.DMA_InitStruct.Instance = DMA1_Stream6;
+    usart6_dma_rx.DMA_InitStruct.Instance = DMA1_Stream3;
     usart6_dma_rx.DMA_InitStruct.Init.Request = DMA_REQUEST_USART6_RX;
     usart6_dma_rx.DMA_InitStruct.Init.Direction = DMA_PERIPH_TO_MEMORY;
     usart6_dma_rx.DMA_InitStruct.Init.PeriphInc = DMA_PINC_DISABLE;

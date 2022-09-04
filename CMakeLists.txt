@@ -72,8 +72,8 @@ if (TYPE STREQUAL "PX4")
     set(DIR_FS os/fatfs)
 
     set(DIR_PERIPH ${DIR_MCU}/periph)
-    set(DIR_DRV bsp/px4/drv)
     set(DIR_IF bsp/px4/interfaces)
+    set(DIR_DRV drv)
 
     set(DIR_C_ATOM c-atom)
     set(DIR_ESWB c-atom/eswb)
@@ -213,7 +213,7 @@ elseif (TYPE STREQUAL "Cube")
     set(DIR_FS os/fatfs)
 
     set(DIR_PERIPH ${DIR_MCU}/periph)
-    set(DIR_DRV bsp/cube/drv)
+    set(DIR_DRV drv)
     set(DIR_IF bsp/cube/interfaces)
 
     set(DIR_C_ATOM c-atom)

@@ -47,7 +47,7 @@ int SPI1_Init() {
     spi1.dma_mosi_cfg = &spi1_dma_tx;
     spi1.dma_miso_cfg = &spi1_dma_rx;
 
-    spi1_dma_tx.DMA_InitStruct.Instance = DMA2_Stream3;
+    spi1_dma_tx.DMA_InitStruct.Instance = DMA1_Stream4;
     spi1_dma_tx.DMA_InitStruct.Init.Request = DMA_REQUEST_SPI1_TX;
     spi1_dma_tx.DMA_InitStruct.Init.Direction = DMA_MEMORY_TO_PERIPH;
     spi1_dma_tx.DMA_InitStruct.Init.PeriphInc = DMA_PINC_DISABLE;
@@ -59,7 +59,7 @@ int SPI1_Init() {
     spi1_dma_tx.DMA_InitStruct.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
     spi1_dma_tx.priority = spi1_priority;
 
-    spi1_dma_rx.DMA_InitStruct.Instance = DMA2_Stream0;
+    spi1_dma_rx.DMA_InitStruct.Instance = DMA1_Stream5;
     spi1_dma_rx.DMA_InitStruct.Init.Request = DMA_REQUEST_SPI1_RX;
     spi1_dma_rx.DMA_InitStruct.Init.Direction = DMA_PERIPH_TO_MEMORY;
     spi1_dma_rx.DMA_InitStruct.Init.PeriphInc = DMA_PINC_DISABLE;
@@ -89,7 +89,7 @@ int SPI2_Init() {
     spi2.dma_mosi_cfg = &spi2_dma_tx;
     spi2.dma_miso_cfg = &spi2_dma_rx;
 
-    spi2_dma_tx.DMA_InitStruct.Instance = DMA2_Stream3;
+    spi2_dma_tx.DMA_InitStruct.Instance = DMA1_Stream6;
     spi2_dma_tx.DMA_InitStruct.Init.Request = DMA_REQUEST_SPI2_TX;
     spi2_dma_tx.DMA_InitStruct.Init.Direction = DMA_MEMORY_TO_PERIPH;
     spi2_dma_tx.DMA_InitStruct.Init.PeriphInc = DMA_PINC_DISABLE;
@@ -101,7 +101,7 @@ int SPI2_Init() {
     spi2_dma_tx.DMA_InitStruct.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
     spi2_dma_tx.priority = spi2_priority;
 
-    spi2_dma_rx.DMA_InitStruct.Instance = DMA2_Stream0;
+    spi2_dma_rx.DMA_InitStruct.Instance = DMA1_Stream7;
     spi2_dma_rx.DMA_InitStruct.Init.Request = DMA_REQUEST_SPI2_RX;
     spi2_dma_rx.DMA_InitStruct.Init.Direction = DMA_PERIPH_TO_MEMORY;
     spi2_dma_rx.DMA_InitStruct.Init.PeriphInc = DMA_PINC_DISABLE;
@@ -131,7 +131,7 @@ int SPI4_Init() {
     spi4.dma_mosi_cfg = &spi4_dma_tx;
     spi4.dma_miso_cfg = &spi4_dma_rx;
 
-    spi4_dma_tx.DMA_InitStruct.Instance = DMA2_Stream3;
+    spi4_dma_tx.DMA_InitStruct.Instance = DMA2_Stream0;
     spi4_dma_tx.DMA_InitStruct.Init.Request = DMA_REQUEST_SPI4_TX;
     spi4_dma_tx.DMA_InitStruct.Init.Direction = DMA_MEMORY_TO_PERIPH;
     spi4_dma_tx.DMA_InitStruct.Init.PeriphInc = DMA_PINC_DISABLE;
@@ -143,7 +143,7 @@ int SPI4_Init() {
     spi4_dma_tx.DMA_InitStruct.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
     spi4_dma_tx.priority = spi4_priority;
 
-    spi4_dma_rx.DMA_InitStruct.Instance = DMA2_Stream0;
+    spi4_dma_rx.DMA_InitStruct.Instance = DMA2_Stream1;
     spi4_dma_rx.DMA_InitStruct.Init.Request = DMA_REQUEST_SPI4_RX;
     spi4_dma_rx.DMA_InitStruct.Init.Direction = DMA_PERIPH_TO_MEMORY;
     spi4_dma_rx.DMA_InitStruct.Init.PeriphInc = DMA_PINC_DISABLE;

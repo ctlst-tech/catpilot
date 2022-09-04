@@ -51,8 +51,10 @@
 - [x] Delete DMA from SDIO driver
 - [x] Update pinout
 - [x] Rewrite linker script
-- [ ] Actualize DMA channels for periph
+- [x] Actualize DMA channels for periph
+- [ ] Restuct project
 - [ ] Refactor timers and initialization for drivers
-- [ ] Merge drivers
 - [ ] Add ICM20948 driver
 - [ ] Add ICM20649 driver
+- [ ] Add ADC driver
+- [ ] Add CAN driver

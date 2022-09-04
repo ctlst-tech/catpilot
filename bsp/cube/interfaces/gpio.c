@@ -18,9 +18,20 @@ int GPIOBoard_Init() {
     rv |= GPIO_Init(&gpio_periph_pwr);
     GPIO_Set(&gpio_periph_pwr);
     rv |= GPIO_Init(&gpio_sensors_pwr);
+    GPIO_Set(&gpio_sensors_pwr);
 
     rv |= GPIO_Init(&gpio_spi1_cs1);
     GPIO_Set(&gpio_spi1_cs1);
+    rv |= GPIO_Init(&gpio_spi1_cs2);
+    GPIO_Set(&gpio_spi1_cs2);
+    rv |= GPIO_Init(&gpio_spi2_cs1);
+    GPIO_Set(&gpio_spi2_cs1);
+    rv |= GPIO_Init(&gpio_spi4_cs1);
+    GPIO_Set(&gpio_spi4_cs1);
+    rv |= GPIO_Init(&gpio_spi4_cs2);
+    GPIO_Set(&gpio_spi4_cs2);
+    rv |= GPIO_Init(&gpio_spi4_cs3);
+    GPIO_Set(&gpio_spi4_cs3);
 
     rv |= EXTI_Init(&exti_spi1_drdy1);
     EXTI_DisableIRQ(&exti_spi1_drdy1);
