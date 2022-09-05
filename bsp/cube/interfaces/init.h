@@ -1,6 +1,10 @@
 #pragma once
 #include "stm32_base.h"
 #include "stm32_periph.h"
+#include "icm20602.h"
+#include "px4io.h"
+#include "sdcard.h"
+#include "cli.h"
 
 extern spi_cfg_t spi1;
 extern spi_cfg_t spi2;

@@ -52,7 +52,15 @@
 - [x] Update pinout
 - [x] Rewrite linker script
 - [x] Actualize DMA channels for periph
-- [ ] Restuct project
+- [x] Restuct project
+- [x] Replace drivers to shared dir
+- [ ] Start on STM32H743 evaluation board
+  - [ ] RCC
+  - [ ] GPIO
+  - [ ] USART
+  - [ ] EXTI
+  - [ ] SPI
+  - [ ] ADC
 - [ ] Refactor timers and initialization for drivers
 - [ ] Add ICM20948 driver
 - [ ] Add ICM20649 driver
