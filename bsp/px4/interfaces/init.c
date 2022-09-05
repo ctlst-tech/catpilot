@@ -3,12 +3,13 @@
 
 static char *device = "BOARD";
 
-void Board_Fail() {
+void Board_Fail(void) {
     while(1);
 }
 
-int Board_Init() {
+int Board_Init(void) {
     int rv = 0;
+
     rv |= GPIOBoard_Init();
     vTaskDelay(2);
     rv |= USART7_Init();

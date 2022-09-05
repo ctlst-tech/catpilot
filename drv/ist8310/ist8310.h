@@ -15,6 +15,11 @@ typedef struct {
     uint32_t dt;
 } ist8310_data_t;
 
+typedef struct {
+    i2c_cfg_t *i2c;
+    ist8310_param_t param;
+} ist8310_cfg_t;
+
 enum ist8310_state_t {
     IST8310_RESET,
     IST8310_RESET_WAIT,
@@ -23,14 +28,11 @@ enum ist8310_state_t {
     IST8310_READ
 };
 
-extern ist8310_data_t ist8310_data;
-extern enum ist8310_state_t ist8310_state;
+int IST8310_Init(i2c_cfg_t *i2c);
+int IST8310_Operation(void);
+void IST8310_Run(void);
 
-int IST8310_Init();
-void IST8310_Run();
-
-// TODO replace to another src
-double IST8310_Get_magx();
-double IST8310_Get_magy();
-double IST8310_Get_magz();
-int IST8310_MeasReady();
+double IST8310_Get_magx(void);
+double IST8310_Get_magy(void);
+double IST8310_Get_magz(void);
+int IST8310_MeasReady(void);

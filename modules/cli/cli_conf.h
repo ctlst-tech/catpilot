@@ -1,1 +1,0 @@
-#define CLI_TASK_PRIORITY 1

@@ -1,2 +1,0 @@
-#define IMU_TASK_PRIORITY 10
-#define IMU_TASK_PERIOD_MS 2

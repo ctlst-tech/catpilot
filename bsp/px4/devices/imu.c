@@ -1,17 +1,27 @@
 #include "devices.h"
-#include "icm20602.h"
-#include "icm20689.h"
+#include "init.h"
 
 int IMU_Init(void) {
-    if(ICM20602_Init()) return -1;
-    if(ICM20689_Init()) return -1;
+    int rv;
+
+    rv = ICM20689_Init(&spi1, 
+                       &gpio_spi1_cs1, 
+                       &exti_spi1_drdy1);
+    if(rv) return -1;
+
+    rv = ICM20602_Init(&spi1, 
+                       &gpio_spi1_cs2, 
+                       &exti_spi1_drdy2);
+    if(rv) return -1;
+
     vTaskDelay(1);
-    while(icm20602_state != ICM20602_FIFO_READ ||
-          icm20689_state != ICM20689_FIFO_READ) {
-            ICM20602_Run();
-            ICM20689_Run();
-            vTaskDelay(10);
+
+    while(ICM20602_Operation() || ICM20689_Operation()) {
+        ICM20602_Run();
+        ICM20689_Run();
+        vTaskDelay(2);
     }
+
     return 0;
 }
 

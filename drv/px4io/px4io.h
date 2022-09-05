@@ -26,6 +26,10 @@ typedef struct {
 } px4io_reg_t;
 #pragma pack(pop)
 
+typedef struct {
+    usart_cfg_t *usart;
+} px4io_cfg_t;
+
 enum px4io_state_t {
     PX4IO_RESET,
     PX4IO_CONF,
@@ -33,16 +37,14 @@ enum px4io_state_t {
     PX4IO_ERROR,
 };
 
-extern enum px4io_state_t px4io_state;
-
-int PX4IO_Init();
-void PX4IO_Run();
-int PX4IO_Ready();
+int PX4IO_Init(usart_cfg_t *usart);
+int PX4IO_Operation(void);
+void PX4IO_Run(void);
 
 void PX4IO_SetArm(bool arm);
 void PX4IO_SetMaxPWM(int pwm);
 void PX4IO_SetMinPWM(int pwm);
 void PX4IO_SetOutput(int channel, double out);
-void PX4IO_UpdateOutput();
-
+void PX4IO_UpdateOutput(void);
+int PX4IO_Ready(void);
 double PX4IO_GetRC(int channel);

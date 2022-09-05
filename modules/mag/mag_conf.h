@@ -1,2 +1,0 @@
-#define MAG_TASK_PRIORITY 10
-#define MAG_TASK_PERIOD_MS 20

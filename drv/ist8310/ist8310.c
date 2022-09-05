@@ -5,48 +5,43 @@
 
 static char *device = "IST8310";
 
-ist8310_data_t ist8310_data;
-
-enum ist8310_state_t ist8310_state;
-
-uint8_t IST8310_ReadReg(uint8_t reg);
-void IST8310_WriteReg(uint8_t reg, uint8_t value);
-void IST8310_SetClearReg(uint8_t reg, uint8_t setbits, uint8_t clearbits);
-int IST8310_Configure();
-void IST8310_Meas();
-int IST8310_Process();
-int IST8310_Probe();
-
-typedef struct {
-    i2c_cfg_t *i2c;
-    ist8310_param_t param;
-} ist8310_cfg_t;
+// Data structures
+static ist8310_data_t ist8310_data;
 static ist8310_cfg_t ist8310_cfg;
-
+static enum ist8310_state_t ist8310_state;
 static buffer_t buffer;
 
-static SemaphoreHandle_t measrdy_semaphore;
+// Private functions
+static uint8_t IST8310_ReadReg(uint8_t reg);
+static void IST8310_WriteReg(uint8_t reg, uint8_t value);
+static void IST8310_SetClearReg(uint8_t reg, uint8_t setbits, uint8_t clearbits);
+static int IST8310_Configure(void);
+static void IST8310_Meas(void);
+static int IST8310_Process(void);
+static int IST8310_Probe(void);
 
+static SemaphoreHandle_t measrdy_semaphore;
 static SemaphoreHandle_t timer_semaphore;
 static uint32_t t0;
 
-int IST8310_Init() {
-    int rv = 0;
+// Public functions
+int IST8310_Init(i2c_cfg_t *i2c) {
+    if(i2c == NULL) return -1;
 
-    ist8310_cfg.i2c = &i2c3;
+    ist8310_cfg.i2c = i2c;
 
     if(timer_semaphore == NULL) timer_semaphore = xSemaphoreCreateBinary();
-    xSemaphoreGive(timer_semaphore);
-
     if(measrdy_semaphore == NULL) measrdy_semaphore = xSemaphoreCreateBinary();
+
     xSemaphoreTake(measrdy_semaphore, 0);
+    xSemaphoreGive(timer_semaphore);
 
     ist8310_state = IST8310_RESET;
 
-    return rv;
+    return 0;
 }
 
-void IST8310_Run() {
+void IST8310_Run(void) {
     switch(ist8310_state) {
 
     case IST8310_RESET:
@@ -82,7 +77,7 @@ void IST8310_Run() {
     case IST8310_CONF:
         if(IST8310_Configure()) {
             ist8310_state = IST8310_MEAS;
-            LOG_INFO(device, "Device configured");
+            LOG_DEBUG(device, "Device configured");
         } else {
             LOG_ERROR(device, "Wrong configuration, reset");
             ist8310_state = IST8310_RESET;
@@ -97,37 +92,44 @@ void IST8310_Run() {
 
     case IST8310_READ:
         if((xTaskGetTickCount() - t0) >= 20.0) {
-            xSemaphoreGive(measrdy_semaphore);
             IST8310_Meas();
             IST8310_Process();
             IST8310_WriteReg(CNTL1, SINGLE_MEAS);
             t0 = xTaskGetTickCount();
             ist8310_data.dt = xTaskGetTickCount() - t0;
+            xSemaphoreGive(measrdy_semaphore);
         }
         break;
     }
 }
 
-// TODO replace to another src
-// TODO add processing
-double IST8310_Get_magx() {
+int IST8310_Operation(void) {
+    if(ist8310_state == IST8310_READ) {
+        return 0;
+    } else {
+        return -1;
+    } 
+}
+
+double IST8310_Get_magx(void) {
     return (ist8310_data.mag_x);
 }
 
-double IST8310_Get_magy() {
+double IST8310_Get_magy(void) {
     return (ist8310_data.mag_y);
 }
 
-double IST8310_Get_magz() {
+double IST8310_Get_magz(void) {
     return (ist8310_data.mag_z);
 }
 
-int IST8310_MeasReady() {
+int IST8310_MeasReady(void) {
     xSemaphoreTake(measrdy_semaphore, portMAX_DELAY);
     return 1;
 }
 
-uint8_t IST8310_ReadReg(uint8_t reg) {
+// Private functions
+static uint8_t IST8310_ReadReg(uint8_t reg) {
     uint8_t buf[2];
 
     buf[0] = (ADDRESS << 1) | READ;
@@ -139,7 +141,7 @@ uint8_t IST8310_ReadReg(uint8_t reg) {
     return buf[1];
 }
 
-void IST8310_WriteReg(uint8_t reg, uint8_t value) {
+static void IST8310_WriteReg(uint8_t reg, uint8_t value) {
     uint8_t buf[3];
 
     buf[0] = (ADDRESS << 1) | WRITE;
@@ -149,7 +151,7 @@ void IST8310_WriteReg(uint8_t reg, uint8_t value) {
     I2C_Transmit(ist8310_cfg.i2c, buf[0], &buf[1], 2);
 }
 
-void IST8310_Meas() {
+static void IST8310_Meas(void) {
     uint8_t buf[3];
 
     buf[0] = (ADDRESS << 1) | READ;
@@ -159,7 +161,7 @@ void IST8310_Meas() {
     I2C_Receive(ist8310_cfg.i2c, buf[0], (uint8_t *)&buffer, sizeof(buffer_t));
 }
 
-int IST8310_Process() {
+static int IST8310_Process(void) {
     if(buffer.STAT1 & DRDY) {
         ist8310_data.mag_x = msblsb16(buffer.DATAXH, buffer.DATAXL) *
                                         ist8310_cfg.param.mag_scale;
@@ -173,7 +175,7 @@ int IST8310_Process() {
     }
 }
 
-void IST8310_SetClearReg(uint8_t reg, uint8_t setbits, uint8_t clearbits) {
+static void IST8310_SetClearReg(uint8_t reg, uint8_t setbits, uint8_t clearbits) {
     uint8_t orig_val = IST8310_ReadReg(reg);
     uint8_t val = (orig_val & ~clearbits) | setbits;
     if (orig_val != val) {
@@ -181,7 +183,7 @@ void IST8310_SetClearReg(uint8_t reg, uint8_t setbits, uint8_t clearbits) {
     }
 }
 
-int IST8310_Configure() {
+static int IST8310_Configure(void) {
     uint8_t orig_val;
     int rv = 1;
 
@@ -212,7 +214,7 @@ int IST8310_Configure() {
     return rv;
 }
 
-int IST8310_Probe() {
+static int IST8310_Probe(void) {
     uint8_t whoami;
     whoami = IST8310_ReadReg(WHO_AM_I);
     if(whoami != DEVICE_ID) {

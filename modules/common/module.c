@@ -2,7 +2,7 @@
 #include "string.h"
 
 static module_t _module[MAX_MODULES];
-static uint32_t index;
+static uint32_t num;
 
 void Module_Task(void *param);
 
@@ -18,17 +18,17 @@ int Module_Start(char *name,
         return -1;
     }
 
-    strcpy(name, &_module[index].name);
-    _module[index].init = init;
-    _module[index].update = update;
-    _module[index].period = period;
-    _module[index].priority = priority;
+    strcpy(_module[num].name, name);
+    _module[num].init = init;
+    _module[num].update = update;
+    _module[num].period = period;
+    _module[num].priority = priority;
 
     rv = xTaskCreate(Module_Task, 
-                    _module[index].name, 
+                    _module[num].name, 
                     MAX_MODULE_STACK_SIZE, 
-                    &_module[index], 
-                    _module[index].priority, 
+                    &_module[num], 
+                    _module[num].priority, 
                     NULL);
 
     if(rv != pdTRUE) {
@@ -36,7 +36,7 @@ int Module_Start(char *name,
         return -1;
     }
 
-    index++;
+    num++;
 
     return rv;
 }
@@ -45,12 +45,10 @@ void Module_Task(void *param) {
     module_t *module = (module_t *)param;
     TickType_t xLastWakeTime;
 
-    LOG_DEBUG(module->name, "Start task");
-
     if(module->init()) {
-        LOG_DEBUG(module->name, "Init error");
+        LOG_ERROR(module->name, "Initialization error");
     } else {
-        LOG_DEBUG(module->name, "Init successful");
+        LOG_INFO(module->name, "Initialization successful");
     }
 
     xLastWakeTime = xTaskGetTickCount();

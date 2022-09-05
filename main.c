@@ -14,16 +14,14 @@
 #include "function.h"
 #include "fsminst.h"
 
-#include "imu.h"
-#include "io.h"
-#include "mag.h"
+#include "init.h"
+#include "devices.h"
 #include "logger.h"
 
-// For fileman test
 #include "fatfs_posix.h"
 
 #define LOG_STDOUT_ENABLE 1
-#define ECHO_ENABLE 0
+#define ECHO_ENABLE 1
 
 void main_thread(void *param);
 void *ctlst(void *param);
@@ -50,17 +48,11 @@ void main_thread(void *param) {
 
 uint8_t buf_read[1024];
 uint8_t buf_write[4096];
-void echo() {
+void echo(void) {
     int fd;
     int rd_len, wr_len;
     char new_line[4] = "\r\n# ";
     fd = open("/dev/ttyS0", O_RDWR | O_CREAT | O_TRUNC);
-    struct termios termios_p = {};
-    tcgetattr(fd, &termios_p);
-    cfsetispeed(&termios_p, 115200U);
-    cfsetospeed(&termios_p, 115200U);
-    tcsetattr(fd, TCSANOW, &termios_p);
-    tcflush(fd, TCIOFLUSH);
     while(1) {
         rd_len = 0;
         wr_len = 0;
@@ -84,27 +76,6 @@ void *ctlst(void *param) {
     int rv = 0;
     int fd;
 
-    rv = Board_Init();
-    res = f_mount(&fs, "/", 1);
-    mkdir("/fs", S_IRWXU);
-    mkdir("/fs/config", S_IRWXU);
-    
-    int nd = nodereg("/fs");
-    noderegopen(nd, fatfs_open);
-    noderegwrite(nd, fatfs_write);
-    noderegread(nd, fatfs_read);
-    noderegclose(nd, fatfs_close);
-    noderegfilealloc(nd, fatfs_filealloc);
-    noderegdevcfg(nd, NULL);
-    
-    nd = nodereg("/dev/ttyS0");
-    noderegopen(nd, usart_posix_open);
-    noderegwrite(nd, usart_posix_write);
-    noderegread(nd, usart_posix_read);
-    noderegclose(nd, usart_posix_close);
-    noderegfilealloc(nd, NULL);
-    noderegdevcfg(nd, &usart7);
-
     pthread_setname_np(__func__);
 
     #if(LOG_STDOUT_ENABLE)
@@ -113,32 +84,34 @@ void *ctlst(void *param) {
         log_enable(false);
     #endif
 
-    CLI_Init();
+    Devices_Init();
 
-    WELCOME();
+    res = f_mount(&fs, "/", 1);
+    mkdir("/fs", S_IRWXU);
+    mkdir("/fs/config", S_IRWXU);
 
-    if(rv) {
-        LOG_ERROR("BOARD", "Initialization failed");
-    } else {
-        LOG_INFO("BOARD", "Initialization successful");
-    }
+    int nd = nodereg("/fs");
+    noderegopen(nd, fatfs_open);
+    noderegwrite(nd, fatfs_write);
+    noderegread(nd, fatfs_read);
+    noderegclose(nd, fatfs_close);
+    noderegfilealloc(nd, fatfs_filealloc);
+    noderegdevcfg(nd, NULL);
 
-    IMU_Start();
-    MAG_Start();
-    IO_Start();
+    nd = nodereg("/dev/ttyS0");
+    noderegopen(nd, usart_posix_open);
+    noderegwrite(nd, usart_posix_write);
+    noderegread(nd, usart_posix_read);
+    noderegclose(nd, usart_posix_close);
+    noderegfilealloc(nd, NULL);
+    noderegdevcfg(nd, &usart7);
+
     Logger_Init();
 
     if (res == FR_OK) {
-        LOG_INFO("BOARD", "SDMMC mounted successfully");
+        LOG_INFO("SDMMC", "Mount successful");
     } else {
-        LOG_ERROR("BOARD", "SDMMC mount error");
-    }
-
-    fd = open("/dev/ttyS0", O_RDWR | O_CREAT | O_TRUNC);
-    if(fd < 0) {
-        LOG_ERROR("ttyS0", "Failed to open");
-    } else {
-        LOG_DEBUG("ttyS0", "Opened successfully");
+        LOG_ERROR("SDMMC", "Mount error");
     }
 
     #if(ECHO_ENABLE)

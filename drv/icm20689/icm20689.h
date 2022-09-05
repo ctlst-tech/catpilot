@@ -3,7 +3,6 @@
 #include "stm32_periph.h"
 #include "const.h"
 
-#define ICM20689_DEBUG
 #define FIFO_SIZE 1008
 #define FIFO_SAMPLES 72
 
@@ -26,6 +25,13 @@ typedef struct {
     uint32_t dt;
 } icm20689_fifo_t;
 
+typedef struct {
+    spi_cfg_t *spi;
+    gpio_cfg_t *cs;
+    exti_cfg_t *drdy;
+    icm20689_param_t param;
+} icm20689_cfg_t;
+
 enum icm20689_state_t {
     ICM20689_RESET,
     ICM20689_RESET_WAIT,
@@ -33,8 +39,15 @@ enum icm20689_state_t {
     ICM20689_FIFO_READ
 };
 
-extern icm20689_fifo_t icm20689_fifo;
-extern enum icm20689_state_t icm20689_state;
+int ICM20689_Init(spi_cfg_t *spi, gpio_cfg_t *cs, exti_cfg_t *drdy);
+int ICM20689_Operation(void);
+void ICM20689_Run(void);
+void ICM20689_DataReadyHandler(void);
 
-int ICM20689_Init();
-void ICM20689_Run();
+double ICM20689_Get_ax(void);
+double ICM20689_Get_ay(void);
+double ICM20689_Get_az(void);
+double ICM20689_Get_wx(void);
+double ICM20689_Get_wy(void);
+double ICM20689_Get_wz(void);
+int ICM20689_MeasReady(void);

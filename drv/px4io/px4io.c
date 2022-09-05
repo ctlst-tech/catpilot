@@ -8,47 +8,54 @@
 
 static char *device = "PX4IO";
 
-px4io_reg_t px4io_reg;
-
-enum px4io_state_t px4io_state;
-
-int PX4IO_Read(uint16_t address, uint16_t length);
-int PX4IO_Write(uint16_t address, uint16_t *data, uint16_t length);
-int PX4IO_ReadRegs(uint8_t page, uint8_t offset, uint8_t num);
-int PX4IO_WriteRegs(uint8_t page, uint8_t offset, uint16_t *data, uint8_t num);
-uint32_t PX4IO_ReadReg(uint8_t page, uint8_t offset);
-int PX4IO_WriteReg(uint8_t page, uint8_t offset, uint16_t data);
-int PX4IO_SetClearReg(uint8_t page, uint8_t offset, uint16_t setbits, uint16_t clearbits);
-int PX4IO_SetArmingState();
-int PX4IO_GetIOStatus();
-int PX4IO_GetRCPacket(uint16_t *data);
-int PX4IO_SetPWM(uint16_t *outputs, uint32_t num);
-
-typedef struct {
-    usart_cfg_t *usart;
-} px4io_cfg_t;
+// Data structures
 static px4io_cfg_t px4io_cfg;
-
-static SemaphoreHandle_t iordy_semaphore;
-
-static SemaphoreHandle_t timer_semaphore;
-static uint32_t t0;
-
+static px4io_reg_t px4io_reg;
+static enum px4io_state_t px4io_state;
 static px4io_packet_t px4io_tx_packet;
 static px4io_packet_t px4io_rx_packet;
 
-int PX4IO_Init() {
-    int rv = 0;
-    px4io_cfg.usart = &usart8;
-    px4io_state = PX4IO_RESET;
+// Private functions
+static int PX4IO_Write(uint16_t address, uint16_t *data, uint16_t length);
+static int PX4IO_Read(uint16_t address, uint16_t length);
+static int PX4IO_WriteRegs(uint8_t page, 
+                           uint8_t offset, 
+                           uint16_t *data, 
+                           uint8_t num);
+static int PX4IO_ReadRegs(uint8_t page, uint8_t offset, uint8_t num);
+static int PX4IO_WriteReg(uint8_t page, uint8_t offset, uint16_t data);
+static uint32_t PX4IO_ReadReg(uint8_t page, uint8_t offset);
+static int PX4IO_SetClearReg(uint8_t page, 
+                             uint8_t offset, 
+                             uint16_t setbits, 
+                             uint16_t clearbits);
+static int PX4IO_SetArmingState(void);
+static int PX4IO_GetIOStatus(void);
+static int PX4IO_GetRCPacket(uint16_t *data);
+static int PX4IO_SetPWM(uint16_t *outputs, uint32_t num);
+
+// Sync
+static SemaphoreHandle_t iordy_semaphore;
+static SemaphoreHandle_t timer_semaphore;
+static uint32_t t0;
+
+// Public functions
+int PX4IO_Init(usart_cfg_t *usart) {
+    if(usart == NULL) return -1;
+
+    px4io_cfg.usart = usart;
+
     if(timer_semaphore == NULL) timer_semaphore = xSemaphoreCreateBinary();
     if(iordy_semaphore == NULL) iordy_semaphore = xSemaphoreCreateBinary();
+
     xSemaphoreGive(timer_semaphore);
     xSemaphoreGive(iordy_semaphore);
-    return rv;
+    px4io_state = PX4IO_RESET;
+
+    return 0;
 }
 
-void PX4IO_Run() {
+void PX4IO_Run(void) {
     int rv;
     uint16_t outputs[PX4IO_MAX_ACTUATORS];
     switch(px4io_state) {
@@ -80,7 +87,6 @@ void PX4IO_Run() {
                     LOG_ERROR(device, "Wrong configuration");
                     px4io_state = PX4IO_ERROR;
             } else {
-                LOG_DEBUG(device, "Initialization successful");
                 px4io_state = PX4IO_CONF;
             }
 
@@ -91,7 +97,6 @@ void PX4IO_Run() {
             // Disarm IO
             rv = PX4IO_SetClearReg(PX4IO_PAGE_SETUP, PX4IO_P_SETUP_ARMING, 0,
                 PX4IO_P_SETUP_ARMING_FMU_ARMED | PX4IO_P_SETUP_ARMING_LOCKDOWN);
-            LOG_INFO(device, "Disarming");
 
             if(rv) {
                 LOG_ERROR(device, "Failed disarming proccess");
@@ -118,6 +123,9 @@ void PX4IO_Run() {
         if(rv) {
             LOG_ERROR(device, "Configuration proccess failed");
             px4io_state = PX4IO_ERROR;
+        } else {
+            LOG_DEBUG(device, "Device configured");
+            LOG_INFO(device, "Disarming");
         }
         break;
 
@@ -134,7 +142,15 @@ void PX4IO_Run() {
     }
 }
 
-int PX4IO_Ready() {
+int PX4IO_Operation(void) {
+    if(px4io_state == PX4IO_OPERATION) {
+        return 0;
+    } else {
+        return -1;
+    }
+}
+
+int PX4IO_Ready(void) {
     xSemaphoreTake(iordy_semaphore, portMAX_DELAY);
     return 1;
 }
@@ -155,7 +171,7 @@ void PX4IO_SetMinPWM(int pwm) {
     px4io_reg.min_pwm = pwm;
 }
 
-void PX4IO_UpdateOutput() {
+void PX4IO_UpdateOutput(void) {
     PX4IO_SetArmingState();
     PX4IO_SetPWM(px4io_reg.outputs, PX4IO_MAX_ACTUATORS);
 }
@@ -182,63 +198,8 @@ double PX4IO_GetRC(int channel) {
     }
 }
 
-int PX4IO_SetArmingState() {
-    int rv = 0;
-    uint16_t set = 0;
-    uint16_t clear = 0;
-
-    if(px4io_reg.arm == PX4IO_ARM) {
-        set |= PX4IO_P_SETUP_ARMING_FMU_ARMED;
-        set |= PX4IO_P_SETUP_ARMING_FMU_PREARMED;
-        set |= PX4IO_P_SETUP_ARMING_IO_ARM_OK;
-        clear |= PX4IO_P_SETUP_ARMING_LOCKDOWN;
-        clear |= PX4IO_P_SETUP_ARMING_FORCE_FAILSAFE;
-    } else {
-        set |= PX4IO_P_SETUP_ARMING_IO_ARM_OK;
-        set |= PX4IO_P_SETUP_ARMING_FMU_ARMED;
-        set |= PX4IO_P_SETUP_ARMING_FMU_PREARMED;
-        set |= PX4IO_P_SETUP_ARMING_LOCKDOWN;
-        clear |= PX4IO_P_SETUP_ARMING_FORCE_FAILSAFE;
-    }
-
-    rv = PX4IO_SetClearReg(PX4IO_PAGE_SETUP, PX4IO_P_SETUP_ARMING, set, clear);
-
-    return rv;
-}
-
-int PX4IO_GetIOStatus() {
-	int rv = 0;
-
-    rv = PX4IO_ReadRegs(PX4IO_PAGE_STATUS, PX4IO_P_STATUS_FLAGS, 6);
-    if(rv) return rv;
-
-    px4io_reg.general_status = px4io_rx_packet.regs[0];
-    px4io_reg.alarms_status = px4io_rx_packet.regs[1];
-    px4io_reg.vservo_status = px4io_rx_packet.regs[4];
-    px4io_reg.vrssi_status  = px4io_rx_packet.regs[5];
-
-    px4io_reg.arm_status = PX4IO_ReadReg(PX4IO_PAGE_SETUP, PX4IO_P_SETUP_ARMING);
-
-    return rv;
-}
-
-int PX4IO_GetRCPacket(uint16_t *data) {
-    int rv = 0;
-    const uint32_t prolog = (PX4IO_P_RAW_RC_BASE - PX4IO_P_RAW_RC_COUNT);
-    rv = PX4IO_ReadRegs(PX4IO_PAGE_RAW_RC_INPUT, PX4IO_P_RAW_RC_COUNT, prolog + PX4IO_RC_CHANNELS);
-    for(int i = 0; i < PX4IO_RC_CHANNELS; i++){
-        data[i] = px4io_rx_packet.regs[i + prolog];
-    }
-    return rv;
-}
-
-int PX4IO_SetPWM(uint16_t *outputs, uint32_t num) {
-    int rv = 0;
-    rv = PX4IO_WriteRegs(PX4IO_PAGE_DIRECT_PWM, 0, (uint16_t *)outputs, num);
-    return rv;
-}
-
-int PX4IO_Write(uint16_t address, uint16_t *data, uint16_t length) {
+// Private functions
+static int PX4IO_Write(uint16_t address, uint16_t *data, uint16_t length) {
     int rv = 0;
     uint8_t page = address >> 8;
     uint8_t offset = address & 0xFF;
@@ -275,7 +236,7 @@ int PX4IO_Write(uint16_t address, uint16_t *data, uint16_t length) {
     return rv;
 }
 
-int PX4IO_Read(uint16_t address, uint16_t length) {
+static int PX4IO_Read(uint16_t address, uint16_t length) {
     int rv = 0;
     uint8_t page = address >> 8;
     uint8_t offset = address & 0xFF;
@@ -309,33 +270,36 @@ int PX4IO_Read(uint16_t address, uint16_t length) {
     return rv;
 }
 
-int PX4IO_ReadRegs(uint8_t page, uint8_t offset, uint8_t num) {
-    int rv = 0;
-    rv = PX4IO_Read((page << 8) | offset, num);
-    return rv;
-}
-
-int PX4IO_WriteRegs(uint8_t page, uint8_t offset, uint16_t *data, uint8_t num) {
+static int PX4IO_WriteRegs(uint8_t page, uint8_t offset, uint16_t *data, uint8_t num) {
     int rv = 0;
     rv = PX4IO_Write((page << 8) | offset, data, num);
     return rv;
 }
 
-uint32_t PX4IO_ReadReg(uint8_t page, uint8_t offset) {
+static int PX4IO_ReadRegs(uint8_t page, uint8_t offset, uint8_t num) {
     int rv = 0;
-    rv = PX4IO_ReadRegs(page, offset, 1);
-    if(rv != SUCCESS) return PX4IO_READREG_ERROR;
-    return px4io_rx_packet.regs[0];
+    rv = PX4IO_Read((page << 8) | offset, num);
+    return rv;
 }
 
-int PX4IO_WriteReg(uint8_t page, uint8_t offset, uint16_t data) {
+static int PX4IO_WriteReg(uint8_t page, uint8_t offset, uint16_t data) {
     int rv = 0;
     rv = PX4IO_WriteRegs(page, offset, &data, 1);
     if(rv != SUCCESS) return ERROR;
     return rv;
 }
 
-int PX4IO_SetClearReg(uint8_t page, uint8_t offset, uint16_t setbits, uint16_t clearbits) {
+static uint32_t PX4IO_ReadReg(uint8_t page, uint8_t offset) {
+    int rv = 0;
+    rv = PX4IO_ReadRegs(page, offset, 1);
+    if(rv != SUCCESS) return PX4IO_READREG_ERROR;
+    return px4io_rx_packet.regs[0];
+}
+
+static int PX4IO_SetClearReg(uint8_t page, 
+                             uint8_t offset, 
+                             uint16_t setbits, 
+                             uint16_t clearbits) {
     int value = 0;
 
     value = PX4IO_ReadReg(page, offset);
@@ -345,4 +309,60 @@ int PX4IO_SetClearReg(uint8_t page, uint8_t offset, uint16_t setbits, uint16_t c
     value |= setbits;
 
     return PX4IO_WriteReg(page, offset, value);
+}
+
+static int PX4IO_SetArmingState(void) {
+    int rv = 0;
+    uint16_t set = 0;
+    uint16_t clear = 0;
+
+    if(px4io_reg.arm == PX4IO_ARM) {
+        set |= PX4IO_P_SETUP_ARMING_FMU_ARMED;
+        set |= PX4IO_P_SETUP_ARMING_FMU_PREARMED;
+        set |= PX4IO_P_SETUP_ARMING_IO_ARM_OK;
+        clear |= PX4IO_P_SETUP_ARMING_LOCKDOWN;
+        clear |= PX4IO_P_SETUP_ARMING_FORCE_FAILSAFE;
+    } else {
+        set |= PX4IO_P_SETUP_ARMING_IO_ARM_OK;
+        set |= PX4IO_P_SETUP_ARMING_FMU_ARMED;
+        set |= PX4IO_P_SETUP_ARMING_FMU_PREARMED;
+        set |= PX4IO_P_SETUP_ARMING_LOCKDOWN;
+        clear |= PX4IO_P_SETUP_ARMING_FORCE_FAILSAFE;
+    }
+
+    rv = PX4IO_SetClearReg(PX4IO_PAGE_SETUP, PX4IO_P_SETUP_ARMING, set, clear);
+
+    return rv;
+}
+
+static int PX4IO_GetIOStatus(void) {
+    int rv = 0;
+
+    rv = PX4IO_ReadRegs(PX4IO_PAGE_STATUS, PX4IO_P_STATUS_FLAGS, 6);
+    if(rv) return rv;
+
+    px4io_reg.general_status = px4io_rx_packet.regs[0];
+    px4io_reg.alarms_status = px4io_rx_packet.regs[1];
+    px4io_reg.vservo_status = px4io_rx_packet.regs[4];
+    px4io_reg.vrssi_status  = px4io_rx_packet.regs[5];
+
+    px4io_reg.arm_status = PX4IO_ReadReg(PX4IO_PAGE_SETUP, PX4IO_P_SETUP_ARMING);
+
+    return rv;
+}
+
+static int PX4IO_GetRCPacket(uint16_t *data) {
+    int rv = 0;
+    const uint32_t prolog = (PX4IO_P_RAW_RC_BASE - PX4IO_P_RAW_RC_COUNT);
+    rv = PX4IO_ReadRegs(PX4IO_PAGE_RAW_RC_INPUT, PX4IO_P_RAW_RC_COUNT, prolog + PX4IO_RC_CHANNELS);
+    for(int i = 0; i < PX4IO_RC_CHANNELS; i++){
+        data[i] = px4io_rx_packet.regs[i + prolog];
+    }
+    return rv;
+}
+
+static int PX4IO_SetPWM(uint16_t *outputs, uint32_t num) {
+    int rv = 0;
+    rv = PX4IO_WriteRegs(PX4IO_PAGE_DIRECT_PWM, 0, (uint16_t *)outputs, num);
+    return rv;
 }
