@@ -44,7 +44,7 @@ elseif (TYPE STREQUAL "Cube")
     set(CATOM_NO_SOCKET "1")
     set(FAKE_PTHREAD "1")
 
-    set(MCU stm32h753)
+    set(MCU stm32h743)
     set(BOARD cube)
     set(DIR_MCU bsp/${BOARD}/mcu/${MCU})
     set(ASM_FILE ${PROJECT_BINARY_DIR}/${PROJ_NAME}.asm)
@@ -81,6 +81,7 @@ if (TYPE STREQUAL "PX4" OR TYPE STREQUAL "Cube")
 
     add_definitions(
         -DSTM32
+        -DSTM32H7
     )
 
     include_directories(
