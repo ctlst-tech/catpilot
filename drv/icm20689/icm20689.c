@@ -84,6 +84,12 @@ void ICM20689_Run(void) {
                 LOG_ERROR(device, "Wrong default registers values after reset");
                 icm20689_state = ICM20689_RESET;
                 xSemaphoreGive(timer_semaphore);
+                attempt++;
+                if(attempt > 5) {
+                    icm20689_state = ICM20689_FAIL;
+                    LOG_ERROR(device, "Fatal error");
+                    attempt = 0;
+                }
             }
         }
         if(xTaskGetTickCount() - t0 > 100) {
@@ -130,6 +136,10 @@ void ICM20689_Run(void) {
         icm20689_fifo.samples = icm20689_FIFOParam.samples;
         icm20689_last_sample = xTaskGetTickCount();
         xSemaphoreGive(measrdy_semaphore);
+        break;
+
+    case ICM20689_FAIL:
+        vTaskDelay(1000);
         break;
     }
 }

@@ -25,7 +25,8 @@ enum ist8310_state_t {
     IST8310_RESET_WAIT,
     IST8310_CONF,
     IST8310_MEAS,
-    IST8310_READ
+    IST8310_READ,
+    IST8310_FAIL
 };
 
 int IST8310_Init(i2c_cfg_t *i2c);

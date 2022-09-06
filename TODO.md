@@ -55,9 +55,9 @@
 - [x] Restuct project
 - [x] Replace drivers to shared dir
 - [ ] Start on STM32H743 evaluation board
-  - [ ] RCC
+  - [x] RCC
   - [ ] GPIO
-  - [ ] USART
+  - [x] USART
   - [ ] EXTI
   - [ ] SPI
   - [ ] ADC

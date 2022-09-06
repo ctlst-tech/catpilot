@@ -8,15 +8,37 @@ void Board_Fail() {
 }
 
 int Board_Init() {
-    int rv = 0;
-    rv |= GPIOBoard_Init();
-    vTaskDelay(2);
-    rv |= USART7_Init();
-    rv |= USART6_Init();
-    rv |= SPI1_Init();
-    rv |= SPI2_Init();
-    rv |= SPI4_Init();
-    rv |= SDMMC1_Init();
+    if(GPIOBoard_Init()) {
+        LOG_ERROR("GPIO", "Initialization failed");
+        return -1;
+    }
 
-    return rv;
+    vTaskDelay(2);
+
+    if(USART6_Init()) {
+        LOG_ERROR("USART6", "Initialization failed");
+        return -1;
+    }
+
+    if(SPI1_Init()) {
+        LOG_ERROR("SPI1", "Initialization failed");
+        return -1;     
+    }
+
+    if(SPI2_Init()) {
+        LOG_ERROR("SPI2", "Initialization failed");
+        return -1;         
+    }
+
+    if(SPI4_Init()) {
+        LOG_ERROR("SPI4", "Initialization failed");
+        return -1;       
+    }
+
+    if(SDMMC1_Init()) {
+        LOG_ERROR("SDMMC1", "Initialization failed");
+        return -1;    
+    }
+
+    return 0;
 }

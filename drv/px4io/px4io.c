@@ -37,6 +37,7 @@ static int PX4IO_SetPWM(uint16_t *outputs, uint32_t num);
 // Sync
 static SemaphoreHandle_t iordy_semaphore;
 static SemaphoreHandle_t timer_semaphore;
+uint32_t attempt;
 static uint32_t t0;
 
 // Public functions
@@ -85,14 +86,14 @@ void PX4IO_Run(void) {
                 (px4io_reg.max_transfer < 16) || (px4io_reg.max_transfer > 255)  ||
                 (px4io_reg.max_rc_input < 1)  || (px4io_reg.max_rc_input > 255)) {
                     LOG_ERROR(device, "Wrong configuration");
-                    px4io_state = PX4IO_ERROR;
+                    px4io_state = PX4IO_FAIL;
             } else {
                 px4io_state = PX4IO_CONF;
             }
 
             // Get last IO state
             PX4IO_GetIOStatus();
-            if(px4io_reg.arm_status == PX4IO_READREG_ERROR) px4io_state = PX4IO_ERROR;
+            if(px4io_reg.arm_status == PX4IO_READREG_ERROR) px4io_state = PX4IO_FAIL;
 
             // Disarm IO
             rv = PX4IO_SetClearReg(PX4IO_PAGE_SETUP, PX4IO_P_SETUP_ARMING, 0,
@@ -100,10 +101,15 @@ void PX4IO_Run(void) {
 
             if(rv) {
                 LOG_ERROR(device, "Failed disarming proccess");
-                px4io_state = PX4IO_ERROR;
+                px4io_state = PX4IO_FAIL;
             }
         } else {
             LOG_ERROR(device, "Wrong protocol version: %lu", px4io_reg.protocol_version);
+            attempt++;
+            if(attempt > 5) {
+                LOG_ERROR(device, "Fatal error");
+                px4io_state = PX4IO_FAIL;
+            }
         }
         break;
 
@@ -122,7 +128,7 @@ void PX4IO_Run(void) {
 
         if(rv) {
             LOG_ERROR(device, "Configuration proccess failed");
-            px4io_state = PX4IO_ERROR;
+            px4io_state = PX4IO_FAIL;
         } else {
             LOG_DEBUG(device, "Device configured");
             LOG_INFO(device, "Disarming");
@@ -136,8 +142,8 @@ void PX4IO_Run(void) {
         PX4IO_UpdateOutput();
         break;
 
-    case PX4IO_ERROR:
-        LOG_ERROR(device, "Fatal error");
+    case PX4IO_FAIL:
+        vTaskDelay(1000);
         break;
     }
 }

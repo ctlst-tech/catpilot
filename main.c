@@ -84,7 +84,12 @@ void *ctlst(void *param) {
         log_enable(false);
     #endif
 
-    Devices_Init();
+    if(Devices_Init()) {
+        LOG_INFO("BOARD", "Sleeping...");
+        while(1) {
+            vTaskDelay(1000);
+        }
+    }
 
     res = f_mount(&fs, "/", 1);
     mkdir("/fs", S_IRWXU);

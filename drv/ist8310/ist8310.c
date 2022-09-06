@@ -22,6 +22,7 @@ static int IST8310_Probe(void);
 
 static SemaphoreHandle_t measrdy_semaphore;
 static SemaphoreHandle_t timer_semaphore;
+static uint32_t attempt = 0;
 static uint32_t t0;
 
 // Public functions
@@ -65,6 +66,12 @@ void IST8310_Run(void) {
                     LOG_ERROR(device, "Wrong default registers values after reset");
                     ist8310_state = IST8310_RESET;
                     xSemaphoreGive(timer_semaphore);
+                    attempt++;
+                    if(attempt > 5) {
+                        ist8310_state = IST8310_FAIL;
+                        LOG_ERROR(device, "Fatal error");
+                        attempt = 0;
+                    }
                 }
         }
         if(xTaskGetTickCount() - t0 > 10.0) {
@@ -99,6 +106,10 @@ void IST8310_Run(void) {
             ist8310_data.dt = xTaskGetTickCount() - t0;
             xSemaphoreGive(measrdy_semaphore);
         }
+        break;
+    
+    case IST8310_FAIL:
+        vTaskDelay(1000);
         break;
     }
 }

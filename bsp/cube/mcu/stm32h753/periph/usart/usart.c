@@ -24,6 +24,7 @@ int USART_Init(usart_cfg_t *cfg) {
 
     cfg->inst.USART_InitStruct.Instance = cfg->USART;
     cfg->inst.USART_InitStruct.Init.BaudRate = cfg->speed;
+    cfg->inst.USART_InitStruct.Init.ClockPrescaler = 1;
     cfg->inst.USART_InitStruct.Init.Mode = UART_MODE_TX_RX;
     cfg->inst.USART_InitStruct.Init.OverSampling = UART_OVERSAMPLING_16;
     cfg->inst.USART_InitStruct.Init.Parity = UART_PARITY_NONE;

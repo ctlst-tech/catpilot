@@ -13,8 +13,8 @@ void DMA1_Stream1_IRQHandler(void) {
     USART_DMA_RX_Handler(&usart7);
 }
 
-/* UART6 Handlers */
-void UART6_IRQHandler(void) {
+/* USART6 Handlers */
+void USART6_IRQHandler(void) {
     USART_Handler(&usart6);
 }
 

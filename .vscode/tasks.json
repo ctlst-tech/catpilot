@@ -14,7 +14,7 @@
         {
             "label": "Flash_Cube",
             "type": "shell",
-            "command": "openocd -f interface/stlink.cfg -f target/stm32h7x.cfg -c \"program ./build/firmware/ctlst-fmuv5.elf reset exit\"",
+            "command": "openocd -f interface/stlink.cfg -f ./bsp/cube/mcu/stm32h743/core/stm32h7.cfg -c \"program ./build/firmware/ctlst-fmuv5.elf verify reset exit\"",
             "problemMatcher": [],
             "group": {
                 "kind": "build",

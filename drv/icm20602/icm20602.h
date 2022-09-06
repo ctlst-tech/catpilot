@@ -36,7 +36,8 @@ enum icm20602_state_t {
     ICM20602_RESET,
     ICM20602_RESET_WAIT,
     ICM20602_CONF,
-    ICM20602_FIFO_READ
+    ICM20602_FIFO_READ,
+    ICM20602_FAIL
 };
 
 int ICM20602_Init(spi_cfg_t *spi, gpio_cfg_t *cs, exti_cfg_t *drdy);

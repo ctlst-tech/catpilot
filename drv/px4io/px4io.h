@@ -34,7 +34,7 @@ enum px4io_state_t {
     PX4IO_RESET,
     PX4IO_CONF,
     PX4IO_OPERATION,
-    PX4IO_ERROR,
+    PX4IO_FAIL,
 };
 
 int PX4IO_Init(usart_cfg_t *usart);

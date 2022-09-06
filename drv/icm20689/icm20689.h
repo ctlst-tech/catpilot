@@ -36,7 +36,8 @@ enum icm20689_state_t {
     ICM20689_RESET,
     ICM20689_RESET_WAIT,
     ICM20689_CONF,
-    ICM20689_FIFO_READ
+    ICM20689_FIFO_READ,
+    ICM20689_FAIL
 };
 
 int ICM20689_Init(spi_cfg_t *spi, gpio_cfg_t *cs, exti_cfg_t *drdy);

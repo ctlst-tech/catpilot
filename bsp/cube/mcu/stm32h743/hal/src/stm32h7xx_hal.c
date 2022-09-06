@@ -133,48 +133,25 @@ HAL_TickFreqTypeDef uwTickFreq = HAL_TICK_FREQ_DEFAULT;  /* 1KHz */
   */
 HAL_StatusTypeDef HAL_Init(void)
 {
+  /* Configure Instruction cache through ART accelerator */ 
+#if (ART_ACCLERATOR_ENABLE != 0)
+   __HAL_FLASH_ART_ENABLE();
+#endif /* ART_ACCLERATOR_ENABLE */
 
-uint32_t common_system_clock;
-
-#if defined(DUAL_CORE) && defined(CORE_CM4)
-   /* Configure Cortex-M4 Instruction cache through ART accelerator */
-   __HAL_RCC_ART_CLK_ENABLE();                   /* Enable the Cortex-M4 ART Clock */
-   __HAL_ART_CONFIG_BASE_ADDRESS(0x08100000UL);  /* Configure the Cortex-M4 ART Base address to the Flash Bank 2 : */
-   __HAL_ART_ENABLE();                           /* Enable the Cortex-M4 ART */
-#endif /* DUAL_CORE &&  CORE_CM4 */
+  /* Configure Flash prefetch */
+#if (PREFETCH_ENABLE != 0U)
+  __HAL_FLASH_PREFETCH_BUFFER_ENABLE();
+#endif /* PREFETCH_ENABLE */
 
   /* Set Interrupt Group Priority */
   HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
 
-  /* Update the SystemCoreClock global variable */
-#if defined(RCC_D1CFGR_D1CPRE)
-  common_system_clock = HAL_RCC_GetSysClockFreq() >> ((D1CorePrescTable[(RCC->D1CFGR & RCC_D1CFGR_D1CPRE)>> RCC_D1CFGR_D1CPRE_Pos]) & 0x1FU);
-#else
-  common_system_clock = HAL_RCC_GetSysClockFreq() >> ((D1CorePrescTable[(RCC->CDCFGR1 & RCC_CDCFGR1_CDCPRE)>> RCC_CDCFGR1_CDCPRE_Pos]) & 0x1FU);
-#endif
-
-  /* Update the SystemD2Clock global variable */
-#if defined(RCC_D1CFGR_HPRE)
-  SystemD2Clock = (common_system_clock >> ((D1CorePrescTable[(RCC->D1CFGR & RCC_D1CFGR_HPRE)>> RCC_D1CFGR_HPRE_Pos]) & 0x1FU));
-#else
-  SystemD2Clock = (common_system_clock >> ((D1CorePrescTable[(RCC->CDCFGR1 & RCC_CDCFGR1_HPRE)>> RCC_CDCFGR1_HPRE_Pos]) & 0x1FU));
-#endif
-
-#if defined(DUAL_CORE) && defined(CORE_CM4)
-  SystemCoreClock = SystemD2Clock;
-#else
-  SystemCoreClock = common_system_clock;
-#endif /* DUAL_CORE && CORE_CM4 */
-
   /* Use systick as time base source and configure 1ms tick (default clock after Reset is HSI) */
-  if(HAL_InitTick(TICK_INT_PRIORITY) != HAL_OK)
-  {
-    return HAL_ERROR;
-  }
-
+  HAL_InitTick(TICK_INT_PRIORITY);
+  
   /* Init the low level hardware */
   HAL_MspInit();
-
+  
   /* Return function status */
   return HAL_OK;
 }
