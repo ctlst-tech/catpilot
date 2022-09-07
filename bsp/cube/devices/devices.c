@@ -6,12 +6,6 @@
 int Devices_Init(void) {
     int rv;
 
-    if(!USART7_Init()) {
-        CLI_Init(&usart7);
-    }
-
-    WELCOME();
-
     rv = Board_Init();
 
     if(rv) {

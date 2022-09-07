@@ -12,9 +12,12 @@ FILE stderr_stream;
 char stdin_buf[256];
 char stdout_buf[256];
 char stderr_buf[256];
+static uint8_t buf_read[1024];
+static uint8_t buf_write[1024];
 
 // Private functions
-void CLI_StreamInit(void);
+static void CLI_StreamInit(void);
+void CLI_EchoThread(void *ptr);
 
 // Sync
 static SemaphoreHandle_t cli_put_mutex;
@@ -24,7 +27,7 @@ int CLI_Init(usart_cfg_t *usart) {
     if(usart == NULL) return -1;
     cli_cfg.usart = usart;
 
-    int nd = nodereg("/dev/stdout");
+    int nd = nodereg("/dev/cli");
     noderegopen(nd, usart_posix_open);
     noderegwrite(nd, usart_posix_write);
     noderegread(nd, usart_posix_read);
@@ -32,8 +35,10 @@ int CLI_Init(usart_cfg_t *usart) {
     noderegfilealloc(nd, NULL);
     noderegdevcfg(nd, cli_cfg.usart);
 
-    cli_cfg.fd = open("/dev/stdout", O_RDWR | O_CREAT | O_TRUNC);
+    cli_cfg.fd = open("/dev/cli", O_RDWR);
+
     struct termios termios_p = {};
+
     tcgetattr(cli_cfg.fd, &termios_p);
     cfsetispeed(&termios_p, 115200U);
     cfsetospeed(&termios_p, 115200U);
@@ -69,8 +74,17 @@ int CLI_Get(struct __file * file) {
     return file->buf[0];
 }
 
+int CLI_EchoStart(void) {
+    int rv;
+    rv = xTaskCreate(CLI_EchoThread, "CLI_Echo", 512, NULL, 1, NULL);
+    if(rv != pdPASS) {
+        return -1;
+    }
+    return 0;
+}
+
 // Private functions
-void CLI_StreamInit(void) {
+static void CLI_StreamInit(void) {
     int rv;
     stdin = &stdin_stream;
     stdin->get = CLI_Get;
@@ -92,4 +106,24 @@ void CLI_StreamInit(void) {
     stderr->size = sizeof(stderr_buf);
     stderr->len = 0;
     stderr->flags = __SWR | __SRD;
+}
+
+void CLI_EchoThread(void *ptr) {
+    int rd_len, wr_len;
+    char new_line[4] = "\r\n# ";
+    while(1) {
+        rd_len = 0;
+        wr_len = 0;
+        rd_len = read(cli_cfg.fd, buf_read, 1024);
+        for(int i = 0; i < rd_len; i++) {
+            if(buf_read[i] == '\r') {
+                memcpy(buf_write + wr_len, new_line, sizeof(new_line));
+                wr_len += sizeof(new_line);
+            } else {
+                buf_write[wr_len] = buf_read[i];
+                wr_len++;
+            }
+        }
+        wr_len = write(cli_cfg.fd, buf_write, wr_len);
+    }
 }
