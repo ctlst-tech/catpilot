@@ -74,6 +74,20 @@ int CLI_Get(struct __file * file) {
     return file->buf[0];
 }
 
+int _write(int fd, char* ptr, int len)
+{
+    (void)fd;
+    int i = 0;
+    while (ptr[i] && (i < len)) {
+        write(cli_cfg.fd, (uint8_t *)&ptr[i], 1);
+        if (ptr[i] == '\n') {
+            write(cli_cfg.fd, (uint8_t *)&ptr[i], 1);;
+        }
+        i++;
+    }
+    return len;
+}
+
 int CLI_EchoStart(void) {
     int rv;
     rv = xTaskCreate(CLI_EchoThread, "CLI_Echo", 512, NULL, 1, NULL);
