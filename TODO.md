@@ -56,11 +56,11 @@
 - [x] Replace drivers to shared dir
 - [ ] Start on STM32H743 evaluation board
   - [x] RCC
-  - [ ] GPIO
+  - [x] GPIO
   - [x] USART
   - [ ] EXTI
   - [ ] SPI
-  - [ ] ADC
+  - [x] ADC
 - [ ] Refactor timers and initialization for drivers
 - [ ] Add ICM20948 driver
 - [ ] Add ICM20649 driver
