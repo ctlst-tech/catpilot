@@ -71,7 +71,14 @@ int SPI1_Init() {
     spi1_dma_rx.DMA_InitStruct.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
     spi1_dma_rx.priority = spi1_priority;
 
-    rv = SPI_Init(&spi1);
+    rv |= GPIO_Init(&gpio_spi1_cs1);
+    GPIO_Set(&gpio_spi1_cs1);
+    rv |= GPIO_Init(&gpio_spi1_cs2);
+    GPIO_Set(&gpio_spi1_cs2);
+    rv |= EXTI_Init(&exti_spi1_drdy1);
+    EXTI_DisableIRQ(&exti_spi1_drdy1);
+
+    rv |= SPI_Init(&spi1);
 
     return rv;
 }
@@ -113,7 +120,10 @@ int SPI2_Init() {
     spi2_dma_rx.DMA_InitStruct.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
     spi2_dma_rx.priority = spi2_priority;
 
-    rv = SPI_Init(&spi2);
+    rv |= GPIO_Init(&gpio_spi2_cs1);
+    GPIO_Set(&gpio_spi2_cs1);
+
+    rv |= SPI_Init(&spi2);
 
     return rv;
 }
@@ -155,7 +165,14 @@ int SPI4_Init() {
     spi4_dma_rx.DMA_InitStruct.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
     spi4_dma_rx.priority = spi4_priority;
 
-    rv = SPI_Init(&spi4);
+    rv |= GPIO_Init(&gpio_spi4_cs1);
+    GPIO_Set(&gpio_spi4_cs1);
+    rv |= GPIO_Init(&gpio_spi4_cs2);
+    GPIO_Set(&gpio_spi4_cs2);
+    rv |= GPIO_Init(&gpio_spi4_cs3);
+    GPIO_Set(&gpio_spi4_cs3);
+
+    rv |= SPI_Init(&spi4);
 
     return rv;
 }

@@ -85,3 +85,12 @@ void SDMMC1_IRQHandler(void) {
 /* EXIT Handlers */
 void EXTI15_10_IRQHandler(void) {
 }
+
+/* ADC Handlers */
+void ADC_IRQHandler(void) {
+    ADC_Handler(&adc12);
+}
+
+void DMA2_Stream2_IRQHandler(void) {
+    ADC_DMA_Handler(&adc12);
+}

@@ -1,4 +1,5 @@
 #pragma once
+#include "adc.h"
 #include "rcc.h"
 #include "gpio.h"
 #include "exti.h"

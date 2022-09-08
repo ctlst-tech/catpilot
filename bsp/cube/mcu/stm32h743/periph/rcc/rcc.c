@@ -36,8 +36,8 @@ void RCC_Init(void) {
 
     // PLL2
     PeriphClkInitStruct.PLL2.PLL2FRACN = 0;
-    PeriphClkInitStruct.PLL2.PLL2M = 2;
-    PeriphClkInitStruct.PLL2.PLL2N = 30;
+    PeriphClkInitStruct.PLL2.PLL2M = 8;
+    PeriphClkInitStruct.PLL2.PLL2N = 150;
     PeriphClkInitStruct.PLL2.PLL2P = 4;
     PeriphClkInitStruct.PLL2.PLL2Q = 5;
     PeriphClkInitStruct.PLL2.PLL2R = 1;

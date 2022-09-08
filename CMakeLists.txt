@@ -100,6 +100,7 @@ if (TYPE STREQUAL "PX4" OR TYPE STREQUAL "Cube")
         ${DIR_OSA}/fs_posix
 
         ${DIR_PERIPH}
+        ${DIR_PERIPH}/adc
         ${DIR_PERIPH}/rcc
         ${DIR_PERIPH}/gpio
         ${DIR_PERIPH}/exti

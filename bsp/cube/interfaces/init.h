@@ -12,6 +12,7 @@ extern spi_cfg_t spi4;
 extern usart_cfg_t usart6;
 extern usart_cfg_t usart7;
 extern sdio_cfg_t sdmmc1;
+extern adc_cfg_t adc12;
 
 extern gpio_cfg_t gpio_sdcard_pwr;
 extern gpio_cfg_t gpio_spi1_cs1;
@@ -30,3 +31,4 @@ int SPI1_Init();
 int SPI2_Init();
 int SPI4_Init();
 int SDMMC1_Init();
+int ADC12_Init();

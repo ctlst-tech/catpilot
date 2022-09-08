@@ -35,6 +35,11 @@ int Board_Init() {
         return -1;       
     }
 
+    if(ADC12_Init()) {
+        LOG_ERROR("ADC12", "Initialization failed");
+        return -1;    
+    }
+
     if(SDMMC1_Init()) {
         LOG_ERROR("SDMMC1", "Initialization failed");
         return -1;    
