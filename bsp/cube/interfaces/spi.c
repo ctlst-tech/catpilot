@@ -7,8 +7,9 @@ dma_cfg_t spi1_dma_tx;
 gpio_cfg_t spi1_mosi = GPIO_SPI1_MOSI;
 gpio_cfg_t spi1_miso = GPIO_SPI1_MISO;
 gpio_cfg_t spi1_sck  = GPIO_SPI1_SCK;
-gpio_cfg_t spi1_cs1  = GPIO_SPI1_CS1;
-gpio_cfg_t spi1_cs2  = GPIO_SPI1_CS2;
+gpio_cfg_t gpio_spi1_cs1  = GPIO_SPI1_CS1;
+gpio_cfg_t gpio_spi1_cs2  = GPIO_SPI1_CS2;
+exti_cfg_t exti_spi1_drdy1 = EXTI_SPI1_DRDY1;
 const int spi1_timeout = 20;
 const int spi1_priority = 6;
 
@@ -18,7 +19,7 @@ dma_cfg_t spi2_dma_tx;
 gpio_cfg_t spi2_mosi = GPIO_SPI2_MOSI;
 gpio_cfg_t spi2_miso = GPIO_SPI2_MISO;
 gpio_cfg_t spi2_sck  = GPIO_SPI2_SCK;
-gpio_cfg_t spi2_cs1  = GPIO_SPI2_CS1;
+gpio_cfg_t gpio_spi2_cs1  = GPIO_SPI2_CS1;
 const int spi2_timeout = 20;
 const int spi2_priority = 6;
 
@@ -28,9 +29,9 @@ dma_cfg_t spi4_dma_tx;
 gpio_cfg_t spi4_mosi = GPIO_SPI4_MOSI;
 gpio_cfg_t spi4_miso = GPIO_SPI4_MISO;
 gpio_cfg_t spi4_sck  = GPIO_SPI4_SCK;
-gpio_cfg_t spi4_cs1  = GPIO_SPI4_CS1;
-gpio_cfg_t spi4_cs2  = GPIO_SPI4_CS2;
-gpio_cfg_t spi4_cs3  = GPIO_SPI4_CS3;
+gpio_cfg_t gpio_spi4_cs1  = GPIO_SPI4_CS1;
+gpio_cfg_t gpio_spi4_cs2  = GPIO_SPI4_CS2;
+gpio_cfg_t gpio_spi4_cs3  = GPIO_SPI4_CS3;
 const int spi4_timeout = 20;
 const int spi4_priority = 6;
 
@@ -75,6 +76,7 @@ int SPI1_Init() {
     GPIO_Set(&gpio_spi1_cs1);
     rv |= GPIO_Init(&gpio_spi1_cs2);
     GPIO_Set(&gpio_spi1_cs2);
+
     rv |= EXTI_Init(&exti_spi1_drdy1);
     EXTI_DisableIRQ(&exti_spi1_drdy1);
 

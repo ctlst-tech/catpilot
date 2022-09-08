@@ -14,7 +14,8 @@ extern usart_cfg_t usart7;
 extern sdio_cfg_t sdmmc1;
 extern adc_cfg_t adc12;
 
-extern gpio_cfg_t gpio_sdcard_pwr;
+extern gpio_cfg_t gpio_periph_pwr;
+extern gpio_cfg_t gpio_sensors_pwr;
 extern gpio_cfg_t gpio_spi1_cs1;
 extern gpio_cfg_t gpio_spi1_cs2;
 extern gpio_cfg_t gpio_spi2_cs1;
