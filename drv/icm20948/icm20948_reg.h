@@ -40,6 +40,19 @@ type_t I2C_SLV0_CTRL        = 0x05;
 type_t I2C_SLV0_DO          = 0x06;
 type_t I2C_SLV4_CTRL        = 0x15;
 
+// Internal MAG AK09916
+type_t WIA2                 = 0x01; // Device ID
+type_t ST1                  = 0x10; // Status 1
+type_t HXL                  = 0x11;
+type_t HXH                  = 0x12;
+type_t HYL                  = 0x13;
+type_t HYH                  = 0x14;
+type_t HZL                  = 0x15;
+type_t HZH                  = 0x16;
+type_t ST2                  = 0x18; // Status 2
+type_t CNTL2                = 0x31; // Control 2
+type_t CNTL3                = 0x32; // Control 3
+
 // BANK 1 Registers
 // USER_CTRL
 type_t DMP_EN               = BIT7;
@@ -129,7 +142,24 @@ type_t I2C_SLV0_LENG        = BIT3 | BIT2 | BIT1 | BIT0;
 // I2C_SLV4_CTRL
 type_t I2C_MST_DLY          = BIT4 | BIT3 | BIT2 | BIT1 | BIT0;
 
-// Data
+// AK09916 Registers values
+// ST1
+type_t DOR                  = BIT1; // Data overrun
+type_t DRDY                 = BIT0; // Data is ready
+
+// ST2
+type_t HOFL                 = BIT3; // Magnetic overflow
+
+// CNTL2
+type_t MODE1                = BIT1;        // “00010”: Continuous measurement mode 1 (10Hz)
+type_t MODE2                = BIT2;        // “00100”: Continuous measurement mode 2 (20Hz)
+type_t MODE3                = BIT2 | BIT1; // “00110”: Continuous measurement mode 3 (50Hz)
+type_t MODE4                = BIT3;        // “01000”: Continuous measurement mode 4 (100Hz)
+
+// CNTL3
+type_t SRST                 = BIT0;
+
+// Data and parameters
 type_t WHOAMI               = 0xEA; 
 
 #define FIFO_SIZE 512
@@ -153,6 +183,18 @@ typedef struct {
     uint8_t GYRO_ZOUT_H;
     uint8_t GYRO_ZOUT_L;
 } FIFO_t;
+
+typedef struct {
+    uint8_t ST1;
+    uint8_t HXL;
+    uint8_t HXH;
+    uint8_t HYL;
+    uint8_t HYH;
+    uint8_t HZL;
+    uint8_t HZH;
+    uint8_t TMPS;
+    uint8_t ST2;
+} MAG_t;
 
 #define BANK1_SIZE_REG_CFG 6
 #define BANK2_SIZE_REG_CFG 2

@@ -8,7 +8,7 @@ static char *device = "ICM20948";
 
 // Data structures
 static icm20948_cfg_t icm20948_cfg;
-static icm20948_fifo_t icm20948_fifo;
+static icm20948_data_t icm20948_fifo;
 static enum icm20948_state_t icm20948_state;
 static FIFOBuffer_t icm20948_FIFOBuffer;
 static FIFOParam_t icm20948_FIFOParam;
@@ -40,11 +40,12 @@ static uint32_t attempt = 0;
 static TickType_t icm20948_last_sample = 0;
 
 // Public functions
-int ICM20948_Init(spi_cfg_t *spi, gpio_cfg_t *cs, exti_cfg_t *drdy) {
+int ICM20948_Init(spi_cfg_t *spi, gpio_cfg_t *cs, exti_cfg_t *drdy, i2c_cfg_t *i2c) {
     if(spi == NULL || cs == NULL) return -1;
 
     icm20948_cfg.spi = spi;
     icm20948_cfg.cs = cs;
+    icm20948_cfg.i2c = i2c;
 
     if(drdy != NULL) {
         icm20948_cfg.drdy = drdy;
