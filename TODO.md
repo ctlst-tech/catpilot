@@ -54,6 +54,7 @@
 - [x] Actualize DMA channels for periph
 - [x] Restuct project
 - [x] Replace drivers to shared dir
+- [x] Add ADC driver
 - [x] Start on STM32H743 evaluation board
   - [x] RCC
   - [x] GPIO
@@ -61,10 +62,9 @@
   - [x] EXTI
   - [x] SPI
   - [x] ADC
-- [ ] Check cond
+- [x] Check cond
+- [x] Refactor timers and initialization for drivers
 - [ ] Add post-test changes to STM32H753
-- [ ] Refactor timers and initialization for drivers
 - [ ] Add ICM20948 driver
 - [ ] Add ICM20649 driver
-- [ ] Add ADC driver
 - [ ] Add CAN driver

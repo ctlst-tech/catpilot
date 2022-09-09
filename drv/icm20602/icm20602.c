@@ -2,6 +2,7 @@
 #include "icm20602_reg.h"
 #include "init.h"
 #include "cfg.h"
+#include "timer.h"
 
 static char *device = "ICM20602";
 
@@ -31,11 +32,11 @@ static void ICM20602_GyroProcess(void);
 static void ICM20602_TempProcess(void);
 
 // Sync
+static int timer_id;
+static int timer_status;
 static SemaphoreHandle_t drdy_semaphore;
 static SemaphoreHandle_t measrdy_semaphore;
-static SemaphoreHandle_t timer_semaphore;
 static uint32_t attempt = 0;
-static uint32_t t0;
 static TickType_t icm20602_last_sample = 0;
 
 // Public functions
@@ -44,14 +45,17 @@ int ICM20602_Init(spi_cfg_t *spi, gpio_cfg_t *cs, exti_cfg_t *drdy) {
 
     icm20602_cfg.spi = spi;
     icm20602_cfg.cs = cs;
-    icm20602_cfg.drdy = drdy;
 
-    if(drdy_semaphore == NULL) drdy_semaphore = xSemaphoreCreateBinary();
+    if(drdy != NULL) {
+        icm20602_cfg.drdy = drdy;
+        if(drdy_semaphore == NULL) drdy_semaphore = xSemaphoreCreateBinary();
+    }
+
     if(measrdy_semaphore == NULL) measrdy_semaphore = xSemaphoreCreateBinary();
-    if(timer_semaphore == NULL) timer_semaphore = xSemaphoreCreateBinary();
+
+    timer_id = Timer_Create("ICM20602_Timer");
 
     xSemaphoreTake(measrdy_semaphore, 0);
-    xSemaphoreGive(timer_semaphore);
     icm20602_state = ICM20602_RESET;
 
     return 0;
@@ -61,31 +65,32 @@ void ICM20602_Run(void) {
     switch(icm20602_state) {
 
     case ICM20602_RESET:
-        if(xSemaphoreTake(timer_semaphore, 0)) {
+        timer_status = Timer_Start(timer_id, 2000);
+
+        if(timer_status == TIMER_START) {
             ICM20602_WriteReg(PWR_MGMT_1, DEVICE_RESET);
-            t0 = xTaskGetTickCount();
-        }
-        if(xTaskGetTickCount() - t0 > 2.0) {
+        } else if(timer_status == TIMER_WORK) {
+        } else if(timer_status == TIMER_END) {
             icm20602_state = ICM20602_RESET_WAIT;
-            xSemaphoreGive(timer_semaphore);
         }
+
         break;
 
     case ICM20602_RESET_WAIT:
-        if(xSemaphoreTake(timer_semaphore, 0)) {
+        timer_status = Timer_Start(timer_id, 100);
+    
+        if(timer_status == TIMER_START) {
+        } else if(timer_status == TIMER_WORK) {
             if((ICM20602_ReadReg(WHO_AM_I) == WHOAMI) && 
                (ICM20602_ReadReg(PWR_MGMT_1) == 0x41) && 
-               (ICM20602_ReadReg(CONFIG) == 0x80)) 
-            {
+               (ICM20602_ReadReg(CONFIG) == 0x80)) {
                 ICM20602_WriteReg(I2C_IF, I2C_IF_DIS);
                 ICM20602_WriteReg(PWR_MGMT_1, CLKSEL_0);
                 ICM20602_WriteReg(SIGNAL_PATH_RESET, ACCEL_RST | TEMP_RST);
                 ICM20602_SetClearReg(USER_CTRL, SIG_COND_RST, 0);
-                t0 = xTaskGetTickCount();
             } else {
                 LOG_ERROR(device, "Wrong default registers values after reset");
                 icm20602_state = ICM20602_RESET;
-                xSemaphoreGive(timer_semaphore);
                 attempt++;
                 if(attempt > 5) {
                     icm20602_state = ICM20602_FAIL;
@@ -93,43 +98,38 @@ void ICM20602_Run(void) {
                     attempt = 0;
                 }
             }
-        }
-        if(xTaskGetTickCount() - t0 > 100) {
+        } else if(timer_status == TIMER_END) {
             icm20602_state = ICM20602_CONF;
             LOG_DEBUG(device, "Device available");
-            xSemaphoreGive(timer_semaphore);
         }
+
         break;
 
     case ICM20602_CONF:
-        if(xTaskGetTickCount() - t0 > 100) {
-            if(xSemaphoreTake(timer_semaphore, 0)) t0 = xTaskGetTickCount();
-            if(ICM20602_Configure()) {
-                icm20602_state = ICM20602_FIFO_READ;
-                ICM20602_FIFOReset();
-                icm20602_last_sample = xTaskGetTickCount();
-                LOG_DEBUG(device, "Device configured");
-                ICM20602_FIFOCount();
-                ICM20602_FIFORead();
-                xSemaphoreGive(timer_semaphore);
-            } else {
-                LOG_ERROR(device, "Failed configuration, retrying...");
-                t0 = xTaskGetTickCount();
-                attempt++;
-                if(attempt > 5) {
-                    icm20602_state = ICM20602_RESET;
-                    LOG_ERROR(device, "Failed configuration, reset...");
-                    attempt = 0;
-                    xSemaphoreGive(timer_semaphore);
-                }
+        if(ICM20602_Configure()) {
+            ICM20602_FIFOReset();
+            icm20602_last_sample = xTaskGetTickCount();
+            ICM20602_FIFOCount();
+            ICM20602_FIFORead();
+            LOG_DEBUG(device, "Device configured");
+            icm20602_state = ICM20602_FIFO_READ;
+        } else {
+            LOG_ERROR(device, "Failed configuration, retrying...");
+            attempt++;
+            if(attempt > 5) {
+                icm20602_state = ICM20602_RESET;
+                LOG_ERROR(device, "Failed configuration, reset...");
+                attempt = 0;
             }
         }
+
         break;
 
     case ICM20602_FIFO_READ:
-        if(icm20602_cfg.drdy != NULL) {
+        if(drdy_semaphore != NULL) {
             xSemaphoreTake(drdy_semaphore, portMAX_DELAY);
         } else {
+            // TODO: Add hardware timer
             vTaskDelay(1);
         }
         ICM20602_FIFOCount();
@@ -267,7 +267,7 @@ static int ICM20602_Configure(void) {
     ICM20602_GyroConfigure();
 
     // Enable EXTI IRQ for DataReady pin
-    if(icm20602_cfg.drdy != NULL) {
+    if(drdy_semaphore != NULL) {
         EXTI_EnableIRQ(icm20602_cfg.drdy);
     }
 
@@ -334,7 +334,7 @@ static int ICM20602_FIFORead(void) {
     ICM20602_AccelProcess();
     ICM20602_GyroProcess();
 
-    if(icm20602_cfg.drdy != NULL) {
+    if(drdy_semaphore != NULL) {
         EXTI_EnableIRQ(icm20602_cfg.drdy);
     }
 
