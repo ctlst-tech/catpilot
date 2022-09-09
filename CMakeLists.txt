@@ -117,6 +117,7 @@ if (TYPE STREQUAL "PX4" OR TYPE STREQUAL "Cube")
         ${DIR_DRV}
         ${DIR_DRV}/icm20602
         ${DIR_DRV}/icm20689
+        ${DIR_DRV}/icm20948
         # ${DIR_DRV}/bmi055
         ${DIR_DRV}/ist8310
         ${DIR_DRV}/sdcard

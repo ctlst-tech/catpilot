@@ -66,5 +66,16 @@
 - [x] Refactor timers and initialization for drivers
 - [ ] Add post-test changes to STM32H753
 - [ ] Add ICM20948 driver
+  - [ ] Copy sources from ICM20602
+  - [ ] Update registers header
+  - [ ] Actualize functions
+  - [ ] Integrate magnetic meas functional
 - [ ] Add ICM20649 driver
+  - [ ] Copy sources from ICM20602
+  - [ ] Update registers header
+  - [ ] Actualize functions
+  - [ ] Integrate magnetic meas functional
 - [ ] Add CAN driver
+- [ ] Merge px4 and cube periph drivers
+- [ ] Add CMakeLists for each main directory
+- [ ] Clean main CMakeLists 
