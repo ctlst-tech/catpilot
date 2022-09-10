@@ -1,5 +1,6 @@
 #include "stm32_base.h"
 #include "bit.h"
+#include "icm20689.h"
 #pragma once
 
 #define type_t static const uint8_t
@@ -139,7 +140,7 @@ static const reg_cfg_t reg_cfg[SIZE_REG_CFG] = {
 typedef struct {
     uint8_t COUNTH;
     uint8_t COUNTL;
-    FIFO_t buf[FIFO_SIZE / sizeof(FIFO_t)];
+    FIFO_t buf[ICM20689_FIFO_SAMPLES / sizeof(FIFO_t)];
 } FIFOBuffer_t;
 
 typedef struct {

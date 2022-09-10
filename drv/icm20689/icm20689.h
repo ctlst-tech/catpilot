@@ -3,8 +3,8 @@
 #include "stm32_periph.h"
 #include "const.h"
 
-#define FIFO_SIZE 1008
-#define FIFO_SAMPLES 72
+#define ICM20689_FIFO_SIZE 1008
+#define ICM20689_FIFO_SAMPLES 72
 
 typedef struct {
     float gyro_scale;
@@ -14,12 +14,12 @@ typedef struct {
 } icm20689_param_t;
 
 typedef struct {
-    float accel_x[FIFO_SAMPLES];
-    float accel_y[FIFO_SAMPLES];
-    float accel_z[FIFO_SAMPLES];
-    float gyro_x[FIFO_SAMPLES];
-    float gyro_y[FIFO_SAMPLES];
-    float gyro_z[FIFO_SAMPLES];
+    float accel_x[ICM20689_FIFO_SAMPLES];
+    float accel_y[ICM20689_FIFO_SAMPLES];
+    float accel_z[ICM20689_FIFO_SAMPLES];
+    float gyro_x[ICM20689_FIFO_SAMPLES];
+    float gyro_y[ICM20689_FIFO_SAMPLES];
+    float gyro_z[ICM20689_FIFO_SAMPLES];
     float temp;
     uint32_t samples;
     uint32_t dt;

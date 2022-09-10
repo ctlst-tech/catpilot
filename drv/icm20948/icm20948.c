@@ -74,88 +74,86 @@ int ICM20948_Init(spi_cfg_t *spi,
 }
 
 void ICM20948_Run(void) {
-    // switch(icm20948_state) {
+    switch(icm20948_state) {
 
-    // case ICM20948_RESET:
-    //     timer_status = Timer_Start(timer_id, 2000);
+    case ICM20948_RESET:
+        timer_status = Timer_Start(timer_id, 2000);
 
-    //     if(timer_status == TIMER_START) {
-    //         ICM20948_WriteReg(PWR_MGMT_1, DEVICE_RESET);
-    //     } else if(timer_status == TIMER_WORK) {
-    //     } else if(timer_status == TIMER_END) {
-    //         icm20948_state = ICM20948_RESET_WAIT;
-    //     }
+        if(timer_status == TIMER_START) {
+            ICM20948_WriteReg(BANK_0, PWR_MGMT_1, DEVICE_RESET);
+        } else if(timer_status == TIMER_WORK) {
+        } else if(timer_status == TIMER_END) {
+            icm20948_state = ICM20948_RESET_WAIT;
+        }
 
-    //     break;
+        break;
 
-    // case ICM20948_RESET_WAIT:
-    //     timer_status = Timer_Start(timer_id, 100);
+    case ICM20948_RESET_WAIT:
+        timer_status = Timer_Start(timer_id, 100);
     
-    //     if(timer_status == TIMER_START) {
-    //     } else if(timer_status == TIMER_WORK) {
-    //         if((ICM20948_ReadReg(WHO_AM_I) == WHOAMI) && 
-    //            (ICM20948_ReadReg(PWR_MGMT_1) == 0x41) && 
-    //            (ICM20948_ReadReg(CONFIG) == 0x80)) {
-    //             ICM20948_WriteReg(I2C_IF, I2C_IF_DIS);
-    //             ICM20948_WriteReg(PWR_MGMT_1, CLKSEL_0);
-    //             ICM20948_WriteReg(SIGNAL_PATH_RESET, ACCEL_RST | TEMP_RST);
-    //             ICM20948_SetClearReg(USER_CTRL, SIG_COND_RST, 0);
-    //         } else {
-    //             LOG_ERROR(device, "Wrong default registers values after reset");
-    //             icm20948_state = ICM20948_RESET;
-    //             attempt++;
-    //             if(attempt > 5) {
-    //                 icm20948_state = ICM20948_FAIL;
-    //                 LOG_ERROR(device, "Fatal error");
-    //                 attempt = 0;
-    //             }
-    //         }
-    //     } else if(timer_status == TIMER_END) {
-    //         icm20948_state = ICM20948_CONF;
-    //         LOG_DEBUG(device, "Device available");
-    //     }
+        if(timer_status == TIMER_START) {
+        } else if(timer_status == TIMER_WORK) {
+            if((ICM20948_ReadReg(BANK_0, WHO_AM_I) == WHOAMI) && 
+               (ICM20948_ReadReg(BANK_0, PWR_MGMT_1) == 0x41)) {
+                ICM20948_WriteReg(BANK_0, PWR_MGMT_1, CLKSEL_0);
+                ICM20948_WriteReg(BANK_0, USER_CTRL, I2C_IF_DIS | SRAM_RST);
+            } else {
+                Timer_Stop(timer_id);
+                LOG_ERROR(device, "Wrong default registers values after reset");
+                icm20948_state = ICM20948_RESET;
+                attempt++;
+                if(attempt > 5) {
+                    icm20948_state = ICM20948_FAIL;
+                    LOG_ERROR(device, "Fatal error");
+                    attempt = 0;
+                }
+            }
+        } else if(timer_status == TIMER_END) {
+            icm20948_state = ICM20948_CONF;
+            LOG_DEBUG(device, "Device available");
+        }
 
-    //     break;
+        break;
 
-    // case ICM20948_CONF:
-    //     if(ICM20948_Configure()) {
-    //         ICM20948_FIFOReset();
-    //         icm20948_last_sample = xTaskGetTickCount();
-    //         ICM20948_FIFOCount();
-    //         ICM20948_FIFORead();
-    //         LOG_DEBUG(device, "Device configured");
-    //         icm20948_state = ICM20948_FIFO_READ;
-    //     } else {
-    //         LOG_ERROR(device, "Failed configuration, retrying...");
-    //         attempt++;
-    //         if(attempt > 5) {
-    //             icm20948_state = ICM20948_RESET;
-    //             LOG_ERROR(device, "Failed configuration, reset...");
-    //             attempt = 0;
-    //         }
-    //     }
+    case ICM20948_CONF:
+        if(ICM20948_Configure()) {
+            ICM20948_FIFOReset();
+            icm20948_last_sample = xTaskGetTickCount();
+            ICM20948_FIFOCount();
+            ICM20948_FIFORead();
+            LOG_DEBUG(device, "Device configured");
+            icm20948_state = ICM20948_FIFO_READ;
+        } else {
+            LOG_ERROR(device, "Failed configuration, retrying...");
+            attempt++;
+            if(attempt > 5) {
+                icm20948_state = ICM20948_RESET;
+                LOG_ERROR(device, "Failed configuration, reset...");
+                attempt = 0;
+            }
+        }
 
-    //     break;
+        break;
 
-    // case ICM20948_FIFO_READ:
-    //     if(drdy_semaphore != NULL) {
-    //         xSemaphoreTake(drdy_semaphore, portMAX_DELAY);
-    //     } else {
-    //         // TODO: Add hardware timer
-    //         vTaskDelay(1);
-    //     }
-    //     ICM20948_FIFOCount();
-    //     ICM20948_FIFORead();
-    //     icm20948_fifo.dt = xTaskGetTickCount() - icm20948_last_sample;
-    //     icm20948_fifo.samples = icm20948_FIFOParam.samples;
-    //     icm20948_last_sample = xTaskGetTickCount();
-    //     xSemaphoreGive(measrdy_semaphore);
-    //     break;
+    case ICM20948_FIFO_READ:
+        if(drdy_semaphore != NULL) {
+            xSemaphoreTake(drdy_semaphore, portMAX_DELAY);
+        } else {
+            // TODO: Add hardware timer
+            vTaskDelay(1);
+        }
+        ICM20948_FIFOCount();
+        ICM20948_FIFORead();
+        icm20948_fifo.imu_dt = xTaskGetTickCount() - icm20948_last_sample;
+        icm20948_fifo.samples = icm20948_FIFOParam.samples;
+        icm20948_last_sample = xTaskGetTickCount();
+        xSemaphoreGive(measrdy_semaphore);
+        break;
 
-    // case ICM20948_FAIL:
-    //     vTaskDelay(1000);
-    //     break;
-    // }
+    case ICM20948_FAIL:
+        vTaskDelay(1000);
+        break;
+    }
 }
 
 int ICM20948_Operation(void) {
@@ -473,18 +471,17 @@ static void ICM20948_GyroProcess(void) {
 }
 
 static void ICM20948_TempProcess(void) {
-    // float temperature_sum = 0;
+    uint8_t data[3];
+    data[0] = TEMP_OUT_H | READ;
 
-    // for (int i = 0; i < icm20948_FIFOParam.samples; i++) {
-    //     const int16_t t = msblsb16(icm20948_FIFOBuffer.buf[i].TEMP_H,
-    //                                 icm20948_FIFOBuffer.buf[i].TEMP_L);
-    //     temperature_sum += t;
-    // }
+    ICM20948_ChipSelection();
+    ICM20948_SetBank(BANK_0);
+    SPI_Transmit(icm20948_cfg.spi, data, 1);
+    SPI_Receive(icm20948_cfg.spi, &data[1], 2);
+    ICM20948_ChipDeselection();
 
-    // const float temperature_avg = temperature_sum / icm20948_FIFOParam.samples;
-    // const float temperature_C = (temperature_avg / TEMP_SENS) + TEMP_OFFSET;
-
-    // icm20948_fifo.temp = temperature_C;
+    int16_t temp_raw = msblsb16(data[1], data[2]);
+    icm20948_fifo.temp = temp_raw / TEMP_SENS + TEMP_OFFSET;
 }
 
 static int ICM20948_Probe(void) {
