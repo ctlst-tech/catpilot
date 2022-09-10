@@ -44,7 +44,7 @@ elseif (TYPE STREQUAL "Cube")
     set(CATOM_NO_SOCKET "1")
     set(FAKE_PTHREAD "1")
 
-    set(MCU stm32h743)
+    set(MCU stm32h753)
     set(BOARD cube)
     set(DIR_MCU bsp/${BOARD}/mcu/${MCU})
     set(ASM_FILE ${PROJECT_BINARY_DIR}/${PROJ_NAME}.asm)

@@ -6,7 +6,7 @@ static void Timer_Callback(TimerHandle_t timer);
 
 int Timer_Create(const char *const name) {
     timer_[id_].id = id_;
-    timer_[id_].tim = xTimerCreate(name, 0, pdFALSE, &timer_[id_], Timer_Callback);
+    timer_[id_].tim = xTimerCreate(name, 1, pdFALSE, &timer_[id_], Timer_Callback);
     if(timer_[id_].tim == NULL) return TIMER_ERROR;
     timer_[id_].sem = xSemaphoreCreateBinary();
     if(timer_[id_].sem == NULL) return TIMER_ERROR;
@@ -25,11 +25,11 @@ int Timer_Start(int timer_id, uint32_t period_ms) {
         }
         return TIMER_WORK;
     } else {
-        rv = xTimerChangePeriod(timer_[id_].tim, 
+        rv = xTimerChangePeriod(timer_[id].tim, 
                                 period_ms / portTICK_PERIOD_MS, 
                                 10 / portTICK_PERIOD_MS);
         if(rv == pdFALSE) return TIMER_ERROR;
-        rv = xTimerStart(timer_[id_].tim, 10 / portTICK_PERIOD_MS);
+        rv = xTimerStart(timer_[id].tim, 10 / portTICK_PERIOD_MS);
         if(rv == pdFALSE) return TIMER_ERROR;
         return TIMER_START;
     }

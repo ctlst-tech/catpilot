@@ -8,7 +8,7 @@ int GPIOBoard_Init() {
     int rv = 0;
 
     rv |= GPIO_Init(&gpio_periph_pwr);
-    GPIO_Set(&gpio_periph_pwr);
+    GPIO_Reset(&gpio_periph_pwr);
     rv |= GPIO_Init(&gpio_sensors_pwr);
     GPIO_Set(&gpio_sensors_pwr);
 
