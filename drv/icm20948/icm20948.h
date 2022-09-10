@@ -37,6 +37,8 @@ typedef struct {
     exti_cfg_t *drdy;
     i2c_cfg_t *i2c;
     icm20948_param_t param;
+    int enable_mag;
+    int enable_drdy;
 } icm20948_cfg_t;
 
 enum icm20948_state_t {
@@ -47,7 +49,12 @@ enum icm20948_state_t {
     ICM20948_FAIL
 };
 
-int ICM20948_Init(spi_cfg_t *spi, gpio_cfg_t *cs, exti_cfg_t *drdy, i2c_cfg_t *i2c);
+int ICM20948_Init(spi_cfg_t *spi, 
+                  gpio_cfg_t *cs, 
+                  exti_cfg_t *drdy, 
+                  i2c_cfg_t *i2c,
+                  int enable_mag,
+                  int enable_drdy);
 int ICM20948_Operation(void);
 void ICM20948_Run(void);
 void ICM20948_DataReadyHandler(void);

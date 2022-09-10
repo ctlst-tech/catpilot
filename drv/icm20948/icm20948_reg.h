@@ -93,10 +93,10 @@ type_t SNAPSHOT             = BIT0;
 // FIFO_CFG
 type_t FIFO_CFG_BIT         = BIT0;
 
-type_t USER_BANK_0          = 0;         
-type_t USER_BANK_1          = BIT4;      
-type_t USER_BANK_2          = BIT5;      
-type_t USER_BANK_3          = BIT5 | BIT4;
+type_t BANK_0               = 0;         
+type_t BANK_1               = BIT4;      
+type_t BANK_2               = BIT5;      
+type_t BANK_3               = BIT5 | BIT4;
 
 // BANK 2 Registers
 // 5:3 GYRO_DLPFCFG[2:0]
@@ -196,9 +196,9 @@ typedef struct {
     uint8_t ST2;
 } MAG_t;
 
-#define BANK1_SIZE_REG_CFG 6
-#define BANK2_SIZE_REG_CFG 2
-#define BANK3_SIZE_REG_CFG 3
+#define BANK_1_SIZE_REG_CFG 6
+#define BANK_2_SIZE_REG_CFG 2
+#define BANK_3_SIZE_REG_CFG 3
 
 typedef struct {
     uint8_t reg;
@@ -206,7 +206,7 @@ typedef struct {
     uint8_t clearbits;
 } reg_cfg_t;
 
-static const reg_cfg_t bank_1_reg_cfg[BANK1_SIZE_REG_CFG] = {
+static const reg_cfg_t bank_1_reg_cfg[BANK_1_SIZE_REG_CFG] = {
     {USER_CTRL,    FIFO_EN | I2C_MST_EN | I2C_IF_DIS, DMP_EN},
     {PWR_MGMT_1,   CLKSEL_0, DEVICE_RESET | SLEEP},
     {INT_PIN_CFG,  INT1_ACTL, 0},
@@ -215,15 +215,21 @@ static const reg_cfg_t bank_1_reg_cfg[BANK1_SIZE_REG_CFG] = {
     {FIFO_MODE,    SNAPSHOT, 0},
 };
 
-static const reg_cfg_t bank_2_reg_cfg[BANK2_SIZE_REG_CFG] = {
+static const reg_cfg_t bank_2_reg_cfg[BANK_2_SIZE_REG_CFG] = {
     {GYRO_CONFIG_1, GYRO_FS_SEL_2000_DPS, GYRO_FCHOICE},
     {ACCEL_CONFIG,  ACCEL_FS_SEL_16G, ACCEL_FCHOICE},
 };
 
-static const reg_cfg_t bank_3_reg_cfg[BANK3_SIZE_REG_CFG] = {
+static const reg_cfg_t bank_3_reg_cfg_wo_mag[BANK_3_SIZE_REG_CFG] = {
     {I2C_MST_CTRL,       0, 0},
     {I2C_MST_DELAY_CTRL, 0, 0},
     {I2C_SLV4_CTRL,      0, 0},
+};
+
+static const reg_cfg_t bank_3_reg_cfg_w_mag[BANK_3_SIZE_REG_CFG] = {
+    {I2C_MST_CTRL,       I2C_MST_P_NSR | I2C_MST_CLK_400_kHz, 0},
+    {I2C_MST_DELAY_CTRL, I2C_SLVX_DLY_EN, 0},
+    {I2C_SLV4_CTRL,      I2C_MST_DLY, 0},
 };
 
 typedef struct {
