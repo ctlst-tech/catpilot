@@ -35,6 +35,12 @@ int Timer_Start(int timer_id, uint32_t period_ms) {
     }
 }
 
+int Timer_Stop(int timer_id) {
+    int id = timer_id;
+    xTimerStop(timer_[id].tim, 10 / portTICK_PERIOD_MS);
+    return 0;
+}
+
 static void Timer_Callback(TimerHandle_t timer) {
     tim_sem_id_t *timer_id;
     timer_id = (tim_sem_id_t *)pvTimerGetTimerID(timer);

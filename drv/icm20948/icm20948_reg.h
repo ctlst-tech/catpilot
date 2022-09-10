@@ -1,5 +1,6 @@
 #include "stm32_base.h"
 #include "bit.h"
+#include "icm20948.h"
 #pragma once
 
 #define type_t static const uint8_t
@@ -162,11 +163,13 @@ type_t SRST                 = BIT0;
 // Data and parameters
 type_t WHOAMI               = 0xEA; 
 
-#define FIFO_SIZE 512
-
 // Register read/write flag
 type_t READ = 0x80;
 type_t WRITE = 0x00;
+
+// Temp settings
+static const float TEMP_SENS     = 333.87f;
+static const float TEMP_OFFSET   = 21.f;
 
 // FIFO layout
 typedef struct {
@@ -235,7 +238,7 @@ static const reg_cfg_t bank_3_reg_cfg_w_mag[BANK_3_SIZE_REG_CFG] = {
 typedef struct {
     uint8_t COUNTH;
     uint8_t COUNTL;
-    FIFO_t buf[FIFO_SIZE / sizeof(FIFO_t)];
+    FIFO_t buf[ICM20948_FIFO_SIZE / sizeof(FIFO_t)];
 } FIFOBuffer_t;
 
 typedef struct {

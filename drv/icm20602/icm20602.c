@@ -89,6 +89,7 @@ void ICM20602_Run(void) {
                 ICM20602_WriteReg(SIGNAL_PATH_RESET, ACCEL_RST | TEMP_RST);
                 ICM20602_SetClearReg(USER_CTRL, SIG_COND_RST, 0);
             } else {
+                Timer_Stop(timer_id);
                 LOG_ERROR(device, "Wrong default registers values after reset");
                 icm20602_state = ICM20602_RESET;
                 attempt++;

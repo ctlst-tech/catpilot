@@ -20,4 +20,5 @@ typedef struct {
 
 int Timer_Create(const char *const name);
 int Timer_Start(int timer_id, uint32_t period_ms);
+int Timer_Stop(int timer_id);
             

@@ -3,19 +3,19 @@
 #include "stm32_periph.h"
 #include "const.h"
 
-#define FIFO_SIZE 1008
-#define FIFO_SAMPLES 72
+#define ICM20948_FIFO_SIZE 512
+#define ICM20948_FIFO_SAMPLES 72
 
 typedef struct {
-    double accel_x[FIFO_SAMPLES];
-    double accel_y[FIFO_SAMPLES];
-    double accel_z[FIFO_SAMPLES];
-    double gyro_x[FIFO_SAMPLES];
-    double gyro_y[FIFO_SAMPLES];
-    double gyro_z[FIFO_SAMPLES];
-    double mag_x[FIFO_SAMPLES];
-    double mag_y[FIFO_SAMPLES];
-    double mag_z[FIFO_SAMPLES];
+    double accel_x[ICM20948_FIFO_SAMPLES];
+    double accel_y[ICM20948_FIFO_SAMPLES];
+    double accel_z[ICM20948_FIFO_SAMPLES];
+    double gyro_x[ICM20948_FIFO_SAMPLES];
+    double gyro_y[ICM20948_FIFO_SAMPLES];
+    double gyro_z[ICM20948_FIFO_SAMPLES];
+    double mag_x[ICM20948_FIFO_SAMPLES];
+    double mag_y[ICM20948_FIFO_SAMPLES];
+    double mag_z[ICM20948_FIFO_SAMPLES];
     double temp;
     uint32_t samples;
     uint32_t imu_dt;
