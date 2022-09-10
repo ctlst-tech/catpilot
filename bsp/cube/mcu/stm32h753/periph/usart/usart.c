@@ -175,7 +175,7 @@ int USART_Handler(usart_cfg_t *cfg) {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
     DMA_Stream_TypeDef *dma_inst = 
-        (DMA_Stream_TypeDef *)(&(cfg->dma_rx_cfg->DMA_InitStruct.Instance));
+        (DMA_Stream_TypeDef *)((cfg->dma_rx_cfg->DMA_InitStruct.Instance));
 
     HAL_UART_IRQHandler(&cfg->inst.USART_InitStruct);
 

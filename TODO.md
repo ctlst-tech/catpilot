@@ -64,10 +64,10 @@
   - [x] ADC
 - [x] Check cond
 - [x] Refactor timers and initialization for drivers
-- [ ] Add post-test changes to STM32H753
+- [x] Add post-test changes to STM32H753
 - [ ] Add ICM20948 driver
-  - [ ] Copy sources from ICM20602
-  - [ ] Update registers header
+  - [x] Copy sources from ICM20602
+  - [x] Update registers header
   - [ ] Actualize functions
   - [ ] Integrate magnetic meas functional
 - [ ] Add ICM20649 driver
