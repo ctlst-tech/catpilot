@@ -32,6 +32,7 @@ gpio_cfg_t spi4_sck  = GPIO_SPI4_SCK;
 gpio_cfg_t gpio_spi4_cs1  = GPIO_SPI4_CS1;
 gpio_cfg_t gpio_spi4_cs2  = GPIO_SPI4_CS2;
 gpio_cfg_t gpio_spi4_cs3  = GPIO_SPI4_CS3;
+gpio_cfg_t gpio_spi4_cs4  = GPIO_SPI4_CS4;
 const int spi4_timeout = 20;
 const int spi4_priority = 6;
 
@@ -173,6 +174,8 @@ int SPI4_Init() {
     GPIO_Set(&gpio_spi4_cs2);
     rv |= GPIO_Init(&gpio_spi4_cs3);
     GPIO_Set(&gpio_spi4_cs3);
+    rv |= GPIO_Init(&gpio_spi4_cs4);
+    GPIO_Set(&gpio_spi4_cs4);
 
     rv |= SPI_Init(&spi4);
 

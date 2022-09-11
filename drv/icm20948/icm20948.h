@@ -4,7 +4,7 @@
 #include "const.h"
 
 #define ICM20948_FIFO_SIZE 512
-#define ICM20948_FIFO_SAMPLES 72
+#define ICM20948_FIFO_SAMPLES 42
 
 typedef struct {
     double accel_x[ICM20948_FIFO_SAMPLES];
@@ -13,9 +13,9 @@ typedef struct {
     double gyro_x[ICM20948_FIFO_SAMPLES];
     double gyro_y[ICM20948_FIFO_SAMPLES];
     double gyro_z[ICM20948_FIFO_SAMPLES];
-    double mag_x[ICM20948_FIFO_SAMPLES];
-    double mag_y[ICM20948_FIFO_SAMPLES];
-    double mag_z[ICM20948_FIFO_SAMPLES];
+    double mag_x;
+    double mag_y;
+    double mag_z;
     double temp;
     uint32_t samples;
     uint32_t imu_dt;

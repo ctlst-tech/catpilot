@@ -502,9 +502,9 @@ static void ICM20948_Statistics(void) {
     LOG_DEBUG(device, "gyro_x  = %.3f [deg/s]", icm20948_fifo.gyro_x[0]);
     LOG_DEBUG(device, "gyro_y  = %.3f [deg/s]", icm20948_fifo.gyro_y[0]);
     LOG_DEBUG(device, "gyro_z  = %.3f [deg/s]", icm20948_fifo.gyro_z[0]);
-    LOG_DEBUG(device, "mag_x   = %.3f [G]", icm20948_fifo.mag_x[0]);
-    LOG_DEBUG(device, "mag_y   = %.3f [G]", icm20948_fifo.mag_y[0]);
-    LOG_DEBUG(device, "mag_z   = %.3f [G]", icm20948_fifo.mag_z[0]);
+    LOG_DEBUG(device, "mag_x   = %.3f [G]", icm20948_fifo.mag_x);
+    LOG_DEBUG(device, "mag_y   = %.3f [G]", icm20948_fifo.mag_y);
+    LOG_DEBUG(device, "mag_z   = %.3f [G]", icm20948_fifo.mag_z);
     LOG_DEBUG(device, "temp    = %.3f [C]", icm20948_fifo.temp);
     LOG_DEBUG(device, "N       = %lu [samples]", icm20948_fifo.samples);
     LOG_DEBUG(device, "IMU dt  = %lu [ms]", icm20948_fifo.imu_dt);
