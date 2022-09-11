@@ -23,7 +23,7 @@ const int usart6_priority = 15;
 int USART2_Init() {
     int rv = 0;
 
-    usart2.USART = UART7;
+    usart2.USART = USART2;
     usart2.gpio_tx_cfg = &usart2_tx;
     usart2.gpio_rx_cfg = &usart2_rx;
     usart2.dma_tx_cfg = &usart2_dma_tx;
