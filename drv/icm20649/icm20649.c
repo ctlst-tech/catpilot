@@ -215,7 +215,7 @@ static void ICM20649_SetBank(uint8_t bank) {
     data[0] = REG_BANK_SEL;
     data[1] = bank;
     if(bank != prev_bank) {
-        SPI_Transmit(icm20649_cfg.spi, data, 2);
+        SPI_Transmit(icm20649_cfg.spi, data, sizeof(data));
     }
     prev_bank = bank;
 }
@@ -226,8 +226,7 @@ static uint8_t ICM20649_ReadReg(uint8_t bank, uint8_t reg) {
 
     ICM20649_ChipSelection();
     ICM20649_SetBank(bank);
-    SPI_Transmit(icm20649_cfg.spi, data, 1);
-    SPI_Receive(icm20649_cfg.spi, &data[1], 1);
+    SPI_TransmitReceive(icm20649_cfg.spi, &data[0], &data[1], sizeof(data));
     ICM20649_ChipDeselection();
 
     return data[1];
@@ -240,7 +239,7 @@ static void ICM20649_WriteReg(uint8_t bank, uint8_t reg, uint8_t value) {
 
     ICM20649_ChipSelection();
     ICM20649_SetBank(bank);
-    SPI_Transmit(icm20649_cfg.spi, data, 2);
+    SPI_Transmit(icm20649_cfg.spi, data, sizeof(data));
     ICM20649_ChipDeselection();
 }
 
@@ -358,8 +357,7 @@ static void ICM20649_FIFOCount(void) {
 
     ICM20649_ChipSelection();
     ICM20649_SetBank(BANK_0);
-    SPI_Transmit(icm20649_cfg.spi, data, 1);
-    SPI_Receive(icm20649_cfg.spi, &data[1], 2);
+    SPI_TransmitReceive(icm20649_cfg.spi, &data[0], &data[1], sizeof(data));
     ICM20649_ChipDeselection();
 
     icm20649_FIFOParam.samples = msblsb16(data[1], data[2]);
@@ -372,9 +370,10 @@ static int ICM20649_FIFORead(void) {
 
     ICM20649_ChipSelection();
     ICM20649_SetBank(BANK_0);
-    SPI_Transmit(icm20649_cfg.spi, data, 1);
-    SPI_Receive(icm20649_cfg.spi, (uint8_t *)&icm20649_FIFOBuffer,
-                icm20649_FIFOParam.bytes);
+    SPI_TransmitReceive(icm20649_cfg.spi, 
+                        &data[0], 
+                        (uint8_t *)&icm20649_FIFOBuffer,
+                        icm20649_FIFOParam.bytes + sizeof(data));
     ICM20649_ChipDeselection();
 
     ICM20649_TempProcess();
@@ -433,8 +432,7 @@ static void ICM20649_TempProcess(void) {
 
     ICM20649_ChipSelection();
     ICM20649_SetBank(BANK_0);
-    SPI_Transmit(icm20649_cfg.spi, data, 1);
-    SPI_Receive(icm20649_cfg.spi, &data[1], 2);
+    SPI_TransmitReceive(icm20649_cfg.spi, &data[0], &data[1], sizeof(data));
     ICM20649_ChipDeselection();
 
     int16_t temp_raw = msblsb16(data[1], data[2]);

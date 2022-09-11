@@ -53,7 +53,7 @@ int SPI1_Init() {
     spi1.SPI_InitStruct.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_16;
     spi1.SPI_InitStruct.Init.CLKPhase = SPI_PHASE_2EDGE;
     spi1.SPI_InitStruct.Init.CLKPolarity = SPI_POLARITY_HIGH;
-    spi1.SPI_InitStruct.Init.DataSize = SPI_DATASIZE_16BIT;
+    spi1.SPI_InitStruct.Init.DataSize = SPI_DATASIZE_8BIT;
     spi1.SPI_InitStruct.Init.Direction = SPI_DIRECTION_2LINES;
     spi1.SPI_InitStruct.Init.FirstBit = SPI_FIRSTBIT_MSB;
     spi1.SPI_InitStruct.Init.NSS = SPI_NSS_SOFT;
@@ -172,7 +172,7 @@ int SPI4_Init() {
     spi4.SPI_InitStruct.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_16;
     spi4.SPI_InitStruct.Init.CLKPhase = SPI_PHASE_2EDGE;
     spi4.SPI_InitStruct.Init.CLKPolarity = SPI_POLARITY_HIGH;
-    spi4.SPI_InitStruct.Init.DataSize = SPI_DATASIZE_16BIT;
+    spi4.SPI_InitStruct.Init.DataSize = SPI_DATASIZE_8BIT;
     spi4.SPI_InitStruct.Init.Direction = SPI_DIRECTION_2LINES;
     spi4.SPI_InitStruct.Init.FirstBit = SPI_FIRSTBIT_MSB;
     spi4.SPI_InitStruct.Init.NSS = SPI_NSS_SOFT;
