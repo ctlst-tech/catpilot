@@ -1,15 +1,15 @@
 #include "init.h"
 #include "cfg.h"
 
-usart_cfg_t usart7;
-dma_cfg_t usart7_dma_tx;
-dma_cfg_t usart7_dma_rx;
-gpio_cfg_t usart7_tx = GPIO_USART7_TX;
-gpio_cfg_t usart7_rx = GPIO_USART7_RX;
-const int usart7_bitrate = 115200;
-const int usart7_timeout = portMAX_DELAY;
-const int usart7_priority = 15;
-const int usart7_task_priority = 1;
+usart_cfg_t usart2;
+dma_cfg_t usart2_dma_tx;
+dma_cfg_t usart2_dma_rx;
+gpio_cfg_t usart2_tx = GPIO_USART2_TX;
+gpio_cfg_t usart2_rx = GPIO_USART2_RX;
+const int usart2_bitrate = 115200;
+const int usart2_timeout = portMAX_DELAY;
+const int usart2_priority = 15;
+const int usart2_task_priority = 1;
 
 usart_cfg_t usart6;
 dma_cfg_t usart6_dma_tx;
@@ -20,46 +20,46 @@ const int usart6_bitrate = 1500000;
 const int usart6_timeout = 20;
 const int usart6_priority = 15;
 
-int USART7_Init() {
+int USART2_Init() {
     int rv = 0;
 
-    usart7.USART = UART7;
-    usart7.gpio_tx_cfg = &usart7_tx;
-    usart7.gpio_rx_cfg = &usart7_rx;
-    usart7.dma_tx_cfg = &usart7_dma_tx;
-    usart7.dma_rx_cfg = &usart7_dma_rx;
-    usart7.speed = usart7_bitrate;
-    usart7.timeout = usart7_timeout;
-    usart7.priority = usart7_priority;
-    usart7.buf_size = 1024;
-    usart7.mode = USART_IDLE;
-    usart7.task_priority = usart7_task_priority;
+    usart2.USART = UART7;
+    usart2.gpio_tx_cfg = &usart2_tx;
+    usart2.gpio_rx_cfg = &usart2_rx;
+    usart2.dma_tx_cfg = &usart2_dma_tx;
+    usart2.dma_rx_cfg = &usart2_dma_rx;
+    usart2.speed = usart2_bitrate;
+    usart2.timeout = usart2_timeout;
+    usart2.priority = usart2_priority;
+    usart2.buf_size = 1024;
+    usart2.mode = USART_IDLE;
+    usart2.task_priority = usart2_task_priority;
 
-    usart7_dma_tx.DMA_InitStruct.Instance = DMA1_Stream0;
-    usart7_dma_tx.DMA_InitStruct.Init.Request = DMA_REQUEST_UART7_TX;
-    usart7_dma_tx.DMA_InitStruct.Init.Direction = DMA_MEMORY_TO_PERIPH;
-    usart7_dma_tx.DMA_InitStruct.Init.PeriphInc = DMA_PINC_DISABLE;
-    usart7_dma_tx.DMA_InitStruct.Init.MemInc = DMA_MINC_ENABLE;
-    usart7_dma_tx.DMA_InitStruct.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-    usart7_dma_tx.DMA_InitStruct.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-    usart7_dma_tx.DMA_InitStruct.Init.Mode = DMA_NORMAL;
-    usart7_dma_tx.DMA_InitStruct.Init.Priority = DMA_PRIORITY_LOW;
-    usart7_dma_tx.DMA_InitStruct.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-    usart7_dma_tx.priority = usart7_priority;
+    usart2_dma_tx.DMA_InitStruct.Instance = DMA1_Stream0;
+    usart2_dma_tx.DMA_InitStruct.Init.Request = DMA_REQUEST_USART2_TX;
+    usart2_dma_tx.DMA_InitStruct.Init.Direction = DMA_MEMORY_TO_PERIPH;
+    usart2_dma_tx.DMA_InitStruct.Init.PeriphInc = DMA_PINC_DISABLE;
+    usart2_dma_tx.DMA_InitStruct.Init.MemInc = DMA_MINC_ENABLE;
+    usart2_dma_tx.DMA_InitStruct.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+    usart2_dma_tx.DMA_InitStruct.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+    usart2_dma_tx.DMA_InitStruct.Init.Mode = DMA_NORMAL;
+    usart2_dma_tx.DMA_InitStruct.Init.Priority = DMA_PRIORITY_LOW;
+    usart2_dma_tx.DMA_InitStruct.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+    usart2_dma_tx.priority = usart2_priority;
 
-    usart7_dma_rx.DMA_InitStruct.Instance = DMA1_Stream1;
-    usart7_dma_rx.DMA_InitStruct.Init.Request = DMA_REQUEST_UART7_RX;
-    usart7_dma_rx.DMA_InitStruct.Init.Direction = DMA_PERIPH_TO_MEMORY;
-    usart7_dma_rx.DMA_InitStruct.Init.PeriphInc = DMA_PINC_DISABLE;
-    usart7_dma_rx.DMA_InitStruct.Init.MemInc = DMA_MINC_ENABLE;
-    usart7_dma_rx.DMA_InitStruct.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-    usart7_dma_rx.DMA_InitStruct.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-    usart7_dma_rx.DMA_InitStruct.Init.Mode = DMA_NORMAL;
-    usart7_dma_rx.DMA_InitStruct.Init.Priority = DMA_PRIORITY_LOW;
-    usart7_dma_rx.DMA_InitStruct.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-    usart7_dma_rx.priority = usart7_priority;
+    usart2_dma_rx.DMA_InitStruct.Instance = DMA1_Stream1;
+    usart2_dma_rx.DMA_InitStruct.Init.Request = DMA_REQUEST_USART2_RX;
+    usart2_dma_rx.DMA_InitStruct.Init.Direction = DMA_PERIPH_TO_MEMORY;
+    usart2_dma_rx.DMA_InitStruct.Init.PeriphInc = DMA_PINC_DISABLE;
+    usart2_dma_rx.DMA_InitStruct.Init.MemInc = DMA_MINC_ENABLE;
+    usart2_dma_rx.DMA_InitStruct.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+    usart2_dma_rx.DMA_InitStruct.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+    usart2_dma_rx.DMA_InitStruct.Init.Mode = DMA_NORMAL;
+    usart2_dma_rx.DMA_InitStruct.Init.Priority = DMA_PRIORITY_LOW;
+    usart2_dma_rx.DMA_InitStruct.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+    usart2_dma_rx.priority = usart2_priority;
 
-    rv = USART_Init(&usart7);
+    rv = USART_Init(&usart2);
 
     return rv;
 }

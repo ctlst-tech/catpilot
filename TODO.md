@@ -65,16 +65,24 @@
 - [x] Check cond
 - [x] Refactor timers and initialization for drivers
 - [x] Add post-test changes to STM32H753
-- [ ] Add ICM20948 driver
+- [x] Add ICM20948 driver
   - [x] Copy sources from ICM20602
   - [x] Update registers header
-  - [ ] Actualize functions
-  - [ ] Integrate magnetic meas functional
-- [ ] Add ICM20649 driver
-  - [ ] Copy sources from ICM20602
-  - [ ] Update registers header
-  - [ ] Actualize functions
-  - [ ] Integrate magnetic meas functional
+  - [x] Actualize functions
+  - [x] Integrate magnetic meas functional
+- [x] Add ICM20649 driver
+  - [x] Copy sources from ICM20602
+  - [x] Update registers header
+  - [x] Actualize functions
+- [x] Add USART cfg for TELEM1/2, GPS1/2
+- [ ] Add non-DMA USART transfer driver
+- [ ] Primary Cube Orange testing
+  - [x] SD card
+  - [ ] USART
+  - [ ] IMU
+  - [ ] IO
+  - [ ] MAG
+- [ ] Add USB COM/Strorage driver
 - [ ] Add CAN driver
 - [ ] Merge px4 and cube periph drivers
 - [ ] Add CMakeLists for each main directory

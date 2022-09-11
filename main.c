@@ -54,8 +54,8 @@ void *ctlst(void *param) {
 
     pthread_setname_np(__func__);
 
-    if(!USART7_Init()) {
-        CLI_Init(&usart7);
+    if(!USART2_Init()) {
+        CLI_Init(&usart2);
     }
 
     WELCOME();
