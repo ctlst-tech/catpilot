@@ -6,7 +6,8 @@
 enum spi_state_t {
     SPI_FREE,
     SPI_TRANSMIT,
-    SPI_RECEIVE
+    SPI_RECEIVE,
+    SPI_TRANSMIT_RECEIVE,
 };
 
 struct spi_inst_t {
@@ -33,6 +34,10 @@ int SPI_Init(spi_cfg_t *cfg);
 int SPI_ClockEnable(spi_cfg_t *cfg);
 int SPI_Transmit(spi_cfg_t *cfg, uint8_t *pdata, uint16_t length);
 int SPI_Receive(spi_cfg_t *cfg, uint8_t *pdata, uint16_t length);
+int SPI_TransmitReceive(spi_cfg_t *cfg, 
+                        uint8_t *tdata, 
+                        uint8_t *rdata, 
+                        uint16_t length);
 int SPI_EnableIRQ(spi_cfg_t *cfg);
 int SPI_DisableIRQ(spi_cfg_t *cfg);
 int SPI_IT_Handler(spi_cfg_t *cfg);

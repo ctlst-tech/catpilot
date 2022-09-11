@@ -101,6 +101,38 @@ int SPI_Receive(spi_cfg_t *cfg, uint8_t *pdata, uint16_t length) {
     return rv;
 }
 
+int SPI_TransmitReceive(spi_cfg_t *cfg, 
+                        uint8_t *tdata, 
+                        uint8_t *rdata, 
+                        uint16_t length) {
+    int rv = 0;
+
+    if(length == 0) return EINVAL;
+    if(tdata ==  NULL) return EINVAL;
+    if(rdata ==  NULL) return EINVAL;
+
+    if(xSemaphoreTake(cfg->inst.mutex, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
+        return ETIMEDOUT;
+    }
+
+    xSemaphoreTake(cfg->inst.semaphore, 0);
+
+    cfg->inst.state = SPI_TRANSMIT_RECEIVE;
+
+    HAL_SPI_TransmitReceive_DMA(&cfg->SPI_InitStruct, tdata, rdata, length);
+
+    if(xSemaphoreTake(cfg->inst.semaphore, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
+        rv = ETIMEDOUT;
+    } else {
+        rv = 0;
+    }
+
+    cfg->inst.state = SPI_FREE;
+    xSemaphoreGive(cfg->inst.mutex);
+
+    return rv;
+}
+
 int SPI_IT_Handler(spi_cfg_t *cfg) {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
