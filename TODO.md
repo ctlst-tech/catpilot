@@ -78,7 +78,7 @@
 - [ ] Add non-DMA USART transfer driver
 - [ ] Primary Cube Orange testing
   - [x] SD card
-  - [ ] USART
+  - [x] USART
   - [ ] IMU
   - [ ] IO
   - [ ] MAG

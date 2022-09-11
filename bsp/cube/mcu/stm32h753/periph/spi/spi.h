@@ -10,7 +10,6 @@ enum spi_state_t {
 };
 
 struct spi_inst_t {
-    SPI_HandleTypeDef SPI_InitStruct;
     SemaphoreHandle_t semaphore;
     SemaphoreHandle_t mutex;
     IRQn_Type IRQ;
@@ -19,6 +18,7 @@ struct spi_inst_t {
 
 typedef struct {
     SPI_TypeDef *SPI;
+    SPI_HandleTypeDef SPI_InitStruct;
     gpio_cfg_t *mosi_cfg;
     gpio_cfg_t *miso_cfg;
     gpio_cfg_t *sck_cfg;
