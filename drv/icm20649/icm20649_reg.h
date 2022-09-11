@@ -76,7 +76,7 @@ type_t GYRO_DLPFCFG         = BIT5 | BIT4 | BIT3;
 
 // 2:1 GYRO_FS_SEL[1:0]
 type_t GYRO_FS_SEL_500_DPS  = 0;           // ±250 dps
-type_t GYRO_FS_SEL_1000_DPS  = BIT1;        // ±500 dps
+type_t GYRO_FS_SEL_1000_DPS = BIT1;        // ±500 dps
 type_t GYRO_FS_SEL_2000_DPS = BIT2;        // ±1000 dps
 type_t GYRO_FS_SEL_4000_DPS = BIT2 | BIT1; // ±2000 dps
 type_t GYRO_FCHOICE         = BIT0;        // 0 – Bypass gyro DLPF
@@ -84,12 +84,12 @@ type_t GYRO_FCHOICE         = BIT0;        // 0 – Bypass gyro DLPF
 // 2:1 ACCEL_FS_SEL[1:0]
 type_t ACCEL_FS_SEL_4G      = 0;           // 0b00: ±2g
 type_t ACCEL_FS_SEL_8G      = BIT1;        // 0b01: ±4g
-type_t ACCEL_FS_SEL_16G      = BIT2;        // 0b10: ±8g
+type_t ACCEL_FS_SEL_16G     = BIT2;        // 0b10: ±8g
 type_t ACCEL_FS_SEL_30G     = BIT2 | BIT1; // 0b11: ±16g
 type_t ACCEL_FCHOICE        = BIT0;        // 0: Bypass accel DLPF
 
 // Data and parameters
-type_t WHOAMI               = 0xEA; 
+type_t WHOAMI               = 0xE1; 
 
 // Register read/write flag
 type_t READ = 0x80;

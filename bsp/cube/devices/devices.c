@@ -21,11 +21,11 @@ int Devices_Init(void) {
                  2,
                  10);
 
-    Module_Start("IMU_EXT",
-                 IMU_EXT_Init,
-                 IMU_EXT_Update,
-                 2,
-                 10);
+    // Module_Start("IMU_EXT",
+    //              IMU_EXT_Init,
+    //              IMU_EXT_Update,
+    //              2,
+    //              10);
 
     Module_Start("IO",
                  IO_Init,

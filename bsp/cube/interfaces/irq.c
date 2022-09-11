@@ -1,6 +1,6 @@
 #include "init.h"
 
-/* UART7 Handlers */
+/* USART2 Handlers */
 void USART2_IRQHandler(void) {
     USART_Handler(&usart2);
 }
