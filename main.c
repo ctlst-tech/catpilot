@@ -98,6 +98,9 @@ void *ctlst(void *param) {
     }
 
     if (res == FR_OK) {
+        while(1) {
+            vTaskDelay(1000);
+        }
         swsys_rv_t swsys_rv = swsys_load("/fs/config/mvp_swsys.xml", "/fs/config", &sys);
         if (swsys_rv == swsys_e_ok) {
             LOG_INFO("SYSTEM", "System starts")
@@ -108,6 +111,8 @@ void *ctlst(void *param) {
     } else {
     }
 
-    while(1);
+    while(1) {
+        vTaskDelay(1000);
+    }
 }
 
