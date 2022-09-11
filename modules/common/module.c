@@ -55,6 +55,6 @@ void Module_Task(void *param) {
 
     while(1) {
         module->update();
-        xTaskDelayUntil(&xLastWakeTime, module->period);
+        xTaskDelayUntil(&xLastWakeTime, module->period / portTICK_PERIOD_MS);
     }
 }

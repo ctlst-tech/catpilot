@@ -15,16 +15,22 @@ int Devices_Init(void) {
         LOG_INFO("BOARD", "Initialization successful");
     }
 
-    Module_Start("IMU",
-                 IMU_Init,
-                 IMU_Update,
-                 2 * portTICK_PERIOD_MS,
+    Module_Start("IMU_INT",
+                 IMU_INT_Init,
+                 IMU_INT_Update,
+                 2,
+                 10);
+
+    Module_Start("IMU_EXT",
+                 IMU_EXT_Init,
+                 IMU_EXT_Update,
+                 2,
                  10);
 
     Module_Start("IO",
                  IO_Init,
                  IO_Update,
-                 5 * portTICK_PERIOD_MS,
+                 5,
                  10);
 
     return 0;

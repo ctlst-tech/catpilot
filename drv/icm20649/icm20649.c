@@ -43,24 +43,17 @@ static TickType_t icm20649_last_sample = 0;
 int ICM20649_Init(spi_cfg_t *spi, 
                   gpio_cfg_t *cs, 
                   exti_cfg_t *drdy, 
-                  i2c_cfg_t *i2c,
-                  int enable_mag,
                   int enable_drdy) {
     if(spi == NULL || cs == NULL) return -1;
 
     icm20649_cfg.spi = spi;
     icm20649_cfg.cs = cs;
     icm20649_cfg.enable_drdy = enable_drdy;
-    icm20649_cfg.enable_mag = enable_mag;
 
     if(enable_drdy) {
         if(drdy == NULL) return -1;
         icm20649_cfg.drdy = drdy;
         if(drdy_semaphore == NULL) drdy_semaphore = xSemaphoreCreateBinary();
-    }
-    if(enable_mag) {
-        if(i2c == NULL) return -1;
-        icm20649_cfg.i2c = i2c;
     }
 
     if(measrdy_semaphore == NULL) measrdy_semaphore = xSemaphoreCreateBinary();
@@ -466,9 +459,6 @@ static void ICM20649_Statistics(void) {
     LOG_DEBUG(device, "gyro_x  = %.3f [deg/s]", icm20649_fifo.gyro_x[0]);
     LOG_DEBUG(device, "gyro_y  = %.3f [deg/s]", icm20649_fifo.gyro_y[0]);
     LOG_DEBUG(device, "gyro_z  = %.3f [deg/s]", icm20649_fifo.gyro_z[0]);
-    LOG_DEBUG(device, "mag_x   = %.3f [G]", icm20649_fifo.mag_x[0]);
-    LOG_DEBUG(device, "mag_y   = %.3f [G]", icm20649_fifo.mag_y[0]);
-    LOG_DEBUG(device, "mag_z   = %.3f [G]", icm20649_fifo.mag_z[0]);
     LOG_DEBUG(device, "temp    = %.3f [C]", icm20649_fifo.temp);
     LOG_DEBUG(device, "N       = %lu [samples]", icm20649_fifo.samples);
     LOG_DEBUG(device, "IMU dt  = %lu [ms]", icm20649_fifo.imu_dt);

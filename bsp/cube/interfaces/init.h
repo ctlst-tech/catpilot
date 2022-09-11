@@ -1,6 +1,8 @@
 #pragma once
 #include "stm32_base.h"
 #include "stm32_periph.h"
+#include "icm20649.h"
+#include "icm20948.h"
 #include "icm20602.h"
 #include "px4io.h"
 #include "sdcard.h"

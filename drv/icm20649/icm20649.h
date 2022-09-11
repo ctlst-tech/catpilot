@@ -13,9 +13,6 @@ typedef struct {
     double gyro_x[ICM20649_FIFO_SAMPLES];
     double gyro_y[ICM20649_FIFO_SAMPLES];
     double gyro_z[ICM20649_FIFO_SAMPLES];
-    double mag_x[ICM20649_FIFO_SAMPLES];
-    double mag_y[ICM20649_FIFO_SAMPLES];
-    double mag_z[ICM20649_FIFO_SAMPLES];
     double temp;
     uint32_t samples;
     uint32_t imu_dt;
@@ -27,17 +24,13 @@ typedef struct {
     double gyro_range;
     double accel_scale;
     double accel_range;
-    double mag_scale;
-    double mag_range;
 } icm20649_param_t;
 
 typedef struct {
     spi_cfg_t *spi;
     gpio_cfg_t *cs;
     exti_cfg_t *drdy;
-    i2c_cfg_t *i2c;
     icm20649_param_t param;
-    int enable_mag;
     int enable_drdy;
 } icm20649_cfg_t;
 
@@ -52,8 +45,6 @@ enum icm20649_state_t {
 int ICM20649_Init(spi_cfg_t *spi, 
                   gpio_cfg_t *cs, 
                   exti_cfg_t *drdy, 
-                  i2c_cfg_t *i2c,
-                  int enable_mag,
                   int enable_drdy);
 int ICM20649_Operation(void);
 void ICM20649_Run(void);
