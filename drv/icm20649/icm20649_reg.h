@@ -115,7 +115,7 @@ typedef struct {
     uint8_t GYRO_ZOUT_L;
 } FIFO_t;
 
-#define BANK_1_SIZE_REG_CFG 6
+#define BANK_0_SIZE_REG_CFG 6
 #define BANK_2_SIZE_REG_CFG 2
 
 typedef struct {
@@ -124,7 +124,7 @@ typedef struct {
     uint8_t clearbits;
 } reg_cfg_t;
 
-static const reg_cfg_t bank_1_reg_cfg[BANK_1_SIZE_REG_CFG] = {
+static const reg_cfg_t bank_0_reg_cfg[BANK_0_SIZE_REG_CFG] = {
     {USER_CTRL,    FIFO_EN | I2C_IF_DIS, DMP_EN | I2C_MST_EN},
     {PWR_MGMT_1,   CLKSEL_0, DEVICE_RESET | SLEEP},
     {INT_PIN_CFG,  INT1_ACTL, 0},
