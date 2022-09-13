@@ -263,27 +263,27 @@ static int ICM20948_Configure(void) {
     uint8_t orig_val;
     int rv = 1;
 
-    // Set configure BANK_1
-    for(int i = 0; i < BANK_1_SIZE_REG_CFG; i++) {
-        ICM20948_SetClearReg(BANK_1, 
-                             bank_1_reg_cfg[i].reg, 
-                             bank_1_reg_cfg[i].setbits, 
-                             bank_1_reg_cfg[i].clearbits);
+    // Set configure BANK_0
+    for(int i = 0; i < BANK_0_SIZE_REG_CFG; i++) {
+        ICM20948_SetClearReg(BANK_0, 
+                             bank_0_reg_cfg[i].reg, 
+                             bank_0_reg_cfg[i].setbits, 
+                             bank_0_reg_cfg[i].clearbits);
     }
 
-    // Check BANK_1
-    for(int i = 0; i < BANK_1_SIZE_REG_CFG; i++) {
-        orig_val = ICM20948_ReadReg(BANK_1, bank_1_reg_cfg[i].reg);
+    // Check BANK_0
+    for(int i = 0; i < BANK_0_SIZE_REG_CFG; i++) {
+        orig_val = ICM20948_ReadReg(BANK_0, bank_0_reg_cfg[i].reg);
 
-        if((orig_val & bank_1_reg_cfg[i].setbits) != bank_1_reg_cfg[i].setbits) {
+        if((orig_val & bank_0_reg_cfg[i].setbits) != bank_0_reg_cfg[i].setbits) {
             LOG_ERROR(device, "0x%02x: 0x%02x (0x%02x not set)",
-            (uint8_t)bank_1_reg_cfg[i].reg, orig_val, bank_1_reg_cfg[i].setbits);
+            (uint8_t)bank_0_reg_cfg[i].reg, orig_val, bank_0_reg_cfg[i].setbits);
             rv = 0;
         }
 
-        if((orig_val & bank_1_reg_cfg[i].clearbits) != 0) {
+        if((orig_val & bank_0_reg_cfg[i].clearbits) != 0) {
             LOG_ERROR(device, "0x%02x: 0x%02x (0x%02x not cleared)",
-            (uint8_t)bank_1_reg_cfg[i].reg, orig_val, bank_1_reg_cfg[i].clearbits);
+            (uint8_t)bank_0_reg_cfg[i].reg, orig_val, bank_0_reg_cfg[i].clearbits);
             rv = 0;
         }
     }
