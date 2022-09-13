@@ -19,12 +19,12 @@ int Timer_Start(int timer_id, uint32_t period_ms) {
     int id = timer_id;
 
     if(xTimerIsTimerActive(timer_[id].tim)) {
+        return TIMER_WORK;
+    } else {
         if(xSemaphoreTake(timer_[id].sem, 0)) {
             xTimerStop(timer_[id].tim, 10 / portTICK_PERIOD_MS);
             return TIMER_END;
         }
-        return TIMER_WORK;
-    } else {
         rv = xTimerChangePeriod(timer_[id].tim, 
                                 period_ms / portTICK_PERIOD_MS, 
                                 10 / portTICK_PERIOD_MS);
