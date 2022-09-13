@@ -366,15 +366,14 @@ static void ICM20649_FIFOCount(void) {
 }
 
 static int ICM20649_FIFORead(void) {
-    uint8_t data[1];
-    data[0] = FIFO_COUNTH | READ;
+    icm20649_FIFOBuffer.CMD = FIFO_COUNTH | READ;
 
     ICM20649_ChipSelection();
     ICM20649_SetBank(BANK_0);
     SPI_TransmitReceive(icm20649_cfg.spi, 
-                        &data[0], 
+                        (uint8_t *)&icm20649_FIFOBuffer, 
                         (uint8_t *)&icm20649_FIFOBuffer,
-                        icm20649_FIFOParam.bytes + sizeof(data));
+                        icm20649_FIFOParam.bytes + 1);
     ICM20649_ChipDeselection();
 
     ICM20649_TempProcess();
