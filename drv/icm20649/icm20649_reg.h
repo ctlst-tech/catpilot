@@ -100,6 +100,7 @@ static const float TEMP_SENS     = 333.87f;
 static const float TEMP_OFFSET   = 21.f;
 
 // FIFO layout
+#pragma pack(push,1)
 typedef struct {
     uint8_t ACCEL_XOUT_H;
     uint8_t ACCEL_XOUT_L;
@@ -114,6 +115,7 @@ typedef struct {
     uint8_t GYRO_ZOUT_H;
     uint8_t GYRO_ZOUT_L;
 } FIFO_t;
+#pragma pack(pop)
 
 #define BANK_0_SIZE_REG_CFG 6
 #define BANK_2_SIZE_REG_CFG 2
@@ -142,7 +144,7 @@ typedef struct {
     uint8_t CMD;
     uint8_t COUNTH;
     uint8_t COUNTL;
-    FIFO_t buf[ICM20649_FIFO_SIZE / sizeof(FIFO_t)];
+    FIFO_t buf[ICM20649_FIFO_SIZE / sizeof(FIFO_t) + 1];
 } FIFOBuffer_t;
 
 typedef struct {

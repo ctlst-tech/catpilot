@@ -353,16 +353,17 @@ static void ICM20649_GyroConfigure(void) {
 }
 
 static void ICM20649_FIFOCount(void) {
-    uint8_t data[3];
-    data[0] = FIFO_COUNTH | READ;
-
     ICM20649_ChipSelection();
     ICM20649_SetBank(BANK_0);
-    SPI_TransmitReceive(icm20649_cfg.spi, &data[0], &data[1], sizeof(data));
+    
     ICM20649_ChipDeselection();
-
-    icm20649_FIFOParam.samples = msblsb16(data[1], data[2]);
-    icm20649_FIFOParam.bytes = icm20649_FIFOParam.samples * sizeof(FIFO_t);
+    SPI_TransmitReceive(icm20649_cfg.spi, 
+                        (uint8_t *)&icm20649_FIFOBuffer, 
+                        (uint8_t *)&icm20649_FIFOBuffer,
+                        3);
+    icm20649_FIFOParam.bytes = msblsb16(icm20649_FIFOBuffer.COUNTH, 
+                                        icm20649_FIFOBuffer.COUNTL);
+    icm20649_FIFOParam.samples = icm20649_FIFOParam.bytes / sizeof(FIFO_t);
 }
 
 static int ICM20649_FIFORead(void) {
@@ -373,7 +374,7 @@ static int ICM20649_FIFORead(void) {
     SPI_TransmitReceive(icm20649_cfg.spi, 
                         (uint8_t *)&icm20649_FIFOBuffer, 
                         (uint8_t *)&icm20649_FIFOBuffer,
-                        icm20649_FIFOParam.bytes + 1);
+                        icm20649_FIFOParam.bytes + 3);
     ICM20649_ChipDeselection();
 
     ICM20649_TempProcess();
