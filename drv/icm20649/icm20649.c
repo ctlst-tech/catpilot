@@ -129,11 +129,11 @@ void ICM20649_Run(void) {
         break;
 
     case ICM20649_FIFO_READ:
-        if(drdy_semaphore != NULL) {
+        if(icm20649_cfg.enable_drdy) {
             xSemaphoreTake(drdy_semaphore, portMAX_DELAY);
         } else {
             // TODO: Add hardware timer
-            vTaskDelay(1);
+            vTaskDelay(2);
         }
         ICM20649_FIFOCount();
         ICM20649_FIFORead();
@@ -141,6 +141,12 @@ void ICM20649_Run(void) {
         icm20649_fifo.samples = icm20649_FIFOParam.samples;
         icm20649_last_sample = xTaskGetTickCount();
         xSemaphoreGive(measrdy_semaphore);
+        static uint16_t count = 0;
+        count++;
+        if(count > 1000) {
+            ICM20649_Statistics();
+            count = 0;
+        }
         break;
 
     case ICM20649_FAIL:
@@ -256,7 +262,7 @@ static int ICM20649_Configure(void) {
     uint8_t orig_val;
     int rv = 1;
 
-    // Set configure BANK_1
+    // Set configure BANK_0
     for(int i = 0; i < BANK_0_SIZE_REG_CFG; i++) {
         ICM20649_SetClearReg(BANK_0, 
                              bank_0_reg_cfg[i].reg, 
@@ -264,7 +270,7 @@ static int ICM20649_Configure(void) {
                              bank_0_reg_cfg[i].clearbits);
     }
 
-    // Check BANK_1
+    // Check BANK_0
     for(int i = 0; i < BANK_0_SIZE_REG_CFG; i++) {
         orig_val = ICM20649_ReadReg(BANK_0, bank_0_reg_cfg[i].reg);
 
@@ -353,14 +359,15 @@ static void ICM20649_GyroConfigure(void) {
 }
 
 static void ICM20649_FIFOCount(void) {
+    icm20649_FIFOBuffer.CMD = FIFO_COUNTH | READ;
+
     ICM20649_ChipSelection();
     ICM20649_SetBank(BANK_0);
-    
-    ICM20649_ChipDeselection();
     SPI_TransmitReceive(icm20649_cfg.spi, 
                         (uint8_t *)&icm20649_FIFOBuffer, 
                         (uint8_t *)&icm20649_FIFOBuffer,
                         3);
+    ICM20649_ChipDeselection();
     icm20649_FIFOParam.bytes = msblsb16(icm20649_FIFOBuffer.COUNTH, 
                                         icm20649_FIFOBuffer.COUNTL);
     icm20649_FIFOParam.samples = icm20649_FIFOParam.bytes / sizeof(FIFO_t);
@@ -381,7 +388,7 @@ static int ICM20649_FIFORead(void) {
     ICM20649_AccelProcess();
     ICM20649_GyroProcess();
 
-    if(drdy_semaphore != NULL) {
+    if(icm20649_cfg.enable_drdy) {
         EXTI_EnableIRQ(icm20649_cfg.drdy);
     }
 
@@ -394,7 +401,14 @@ static void ICM20649_FIFOReset(void) {
 }
 
 static void ICM20649_AccelProcess(void) {
+    static int count = 0;
+    static int count_err = 0;
+    static int ind = 0;
+    ind = 0;
     for (int i = 0; i < icm20649_FIFOParam.samples; i++) {
+        count++;
+        uint16_t accel_x_uint16 = msblsb16(icm20649_FIFOBuffer.buf[i].ACCEL_XOUT_H,
+                                    icm20649_FIFOBuffer.buf[i].ACCEL_XOUT_L);
         int16_t accel_x = msblsb16(icm20649_FIFOBuffer.buf[i].ACCEL_XOUT_H,
                                     icm20649_FIFOBuffer.buf[i].ACCEL_XOUT_L);
         int16_t accel_y = msblsb16(icm20649_FIFOBuffer.buf[i].ACCEL_YOUT_H,
@@ -407,6 +421,14 @@ static void ICM20649_AccelProcess(void) {
                                         icm20649_cfg.param.accel_scale;
         icm20649_fifo.accel_z[i] = ((accel_z == INT16_MIN) ? INT16_MAX : -accel_z) *
                                         icm20649_cfg.param.accel_scale;
+        if(fabs(icm20649_fifo.accel_x[i]) > 10000 || 
+            fabs(icm20649_fifo.accel_y[i]) > 10000 ||
+            fabs(icm20649_fifo.accel_z[i]) > 10000 ||
+            fabs(icm20649_fifo.gyro_x[i]) > 10000 ||
+            fabs(icm20649_fifo.gyro_y[i]) > 10000 || 
+            fabs(icm20649_fifo.gyro_z[i]) > 10000) {
+            ind = 1;
+        }
     }
 }
 

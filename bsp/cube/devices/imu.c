@@ -7,7 +7,7 @@ int IMU_INT_Init(void) {
     rv = ICM20649_Init(&spi1, 
                        &gpio_spi1_cs1, 
                        &exti_spi1_drdy1,
-                       0);
+                       1);
 
     if(rv) return -1;
 

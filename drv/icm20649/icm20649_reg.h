@@ -6,9 +6,10 @@
 #define type_t static const uint8_t
 
 // Register addresses
-// BANK 1
+// BANK 0
 type_t WHO_AM_I             = 0x00;
 type_t USER_CTRL            = 0x03;
+type_t LP_CONFIG            = 0x05;
 type_t PWR_MGMT_1           = 0x06;
 type_t INT_PIN_CFG          = 0x0F;
 type_t INT_ENABLE_1         = 0x11;
@@ -27,8 +28,15 @@ type_t REG_BANK_SEL         = 0x7F;
 // BANK 2
 type_t GYRO_CONFIG_1        = 0x01;
 type_t ACCEL_CONFIG         = 0x14;
+type_t ACCEL_SMPLRT_DIV_1   = 0x10;
+type_t ACCEL_SMPLRT_DIV_2   = 0x11;
+type_t GYRO_SMPLRT_DIV      = 0x00;
 
-// BANK 1 Registers
+// BANK 0 Registers
+// LP_CONFIG
+type_t GYRO_CYCLE           = BIT4;
+type_t ACCEL_CYCLE          = BIT5;
+
 // USER_CTRL
 type_t DMP_EN               = BIT7;
 type_t FIFO_EN              = BIT6;
@@ -74,6 +82,9 @@ type_t BANK_3               = BIT5 | BIT4;
 // 5:3 GYRO_DLPFCFG[2:0]
 type_t GYRO_DLPFCFG         = BIT5 | BIT4 | BIT3;
 
+// 5:3 ACCEL_DLPFCFG[2:0]
+type_t ACCEL_DLPFCFG        = BIT5 | BIT4 | BIT3;
+
 // 2:1 GYRO_FS_SEL[1:0]
 type_t GYRO_FS_SEL_500_DPS  = 0;           // ±250 dps
 type_t GYRO_FS_SEL_1000_DPS = BIT1;        // ±500 dps
@@ -117,8 +128,8 @@ typedef struct {
 } FIFO_t;
 #pragma pack(pop)
 
-#define BANK_0_SIZE_REG_CFG 6
-#define BANK_2_SIZE_REG_CFG 2
+#define BANK_0_SIZE_REG_CFG 7
+#define BANK_2_SIZE_REG_CFG 5
 
 typedef struct {
     uint8_t reg;
@@ -127,17 +138,21 @@ typedef struct {
 } reg_cfg_t;
 
 static const reg_cfg_t bank_0_reg_cfg[BANK_0_SIZE_REG_CFG] = {
-    {USER_CTRL,    FIFO_EN | I2C_IF_DIS, DMP_EN | I2C_MST_EN},
-    {PWR_MGMT_1,   CLKSEL_0, DEVICE_RESET | SLEEP},
-    {INT_PIN_CFG,  INT1_ACTL, 0},
-    {INT_ENABLE_1, RAW_DATA_0_RDY_EN, 0},
-    {FIFO_EN_2,    ACCEL_FIFO_EN | GYRO_Z_FIFO_EN | GYRO_Y_FIFO_EN | GYRO_X_FIFO_EN, TEMP_FIFO_EN},
-    {FIFO_MODE,    SNAPSHOT, 0},
+    {USER_CTRL,          FIFO_EN | I2C_IF_DIS, DMP_EN | I2C_MST_EN},
+    {PWR_MGMT_1,         CLKSEL_0, DEVICE_RESET | SLEEP},
+    {INT_PIN_CFG,        INT1_ACTL, 0},
+    {INT_ENABLE_1,       RAW_DATA_0_RDY_EN, 0},
+    {FIFO_EN_2,          ACCEL_FIFO_EN | GYRO_Z_FIFO_EN | GYRO_Y_FIFO_EN | GYRO_X_FIFO_EN, TEMP_FIFO_EN},
+    {FIFO_MODE,          SNAPSHOT, 0},
+    {LP_CONFIG,          0, ACCEL_CYCLE | GYRO_CYCLE},
 };
 
 static const reg_cfg_t bank_2_reg_cfg[BANK_2_SIZE_REG_CFG] = {
-    {GYRO_CONFIG_1, GYRO_FS_SEL_2000_DPS, GYRO_FCHOICE},
-    {ACCEL_CONFIG,  ACCEL_FS_SEL_30G, ACCEL_FCHOICE},
+    {GYRO_CONFIG_1, GYRO_FS_SEL_500_DPS | GYRO_FCHOICE | ACCEL_DLPFCFG, 0},
+    {ACCEL_CONFIG,  ACCEL_FS_SEL_4G | ACCEL_FCHOICE | ACCEL_DLPFCFG, 0},
+    {ACCEL_SMPLRT_DIV_1, 0, 0xFF},
+    {ACCEL_SMPLRT_DIV_2, 0, 0xFE},
+    {GYRO_SMPLRT_DIV,    0, 0xFE},
 };
 
 typedef struct {
@@ -149,5 +164,5 @@ typedef struct {
 
 typedef struct {
     uint16_t bytes;
-    uint8_t samples;
+    uint16_t samples;
 } FIFOParam_t;

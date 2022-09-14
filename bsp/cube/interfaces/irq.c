@@ -86,7 +86,7 @@ void SDMMC1_IRQHandler(void) {
 void EXTI15_10_IRQHandler(void) {
     uint32_t line = EXTI->PR1;
     if(line & GPIO_PIN_15) {
-        ICM20602_DataReadyHandler();
+        ICM20649_DataReadyHandler();
     }
 }
 

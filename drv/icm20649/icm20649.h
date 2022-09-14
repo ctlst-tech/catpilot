@@ -3,8 +3,8 @@
 #include "stm32_periph.h"
 #include "const.h"
 
-#define ICM20649_FIFO_SIZE 512
-#define ICM20649_FIFO_SAMPLES 42
+#define ICM20649_FIFO_SIZE 4096
+#define ICM20649_FIFO_SAMPLES 342
 
 typedef struct {
     double accel_x[ICM20649_FIFO_SAMPLES];

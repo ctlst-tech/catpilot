@@ -50,14 +50,14 @@ int SPI1_Init() {
     spi1.dma_miso_cfg = &spi1_dma_rx;
 
     spi1.SPI_InitStruct.Init.Mode = SPI_MODE_MASTER;
-    spi1.SPI_InitStruct.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_16;
+    spi1.SPI_InitStruct.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;
     spi1.SPI_InitStruct.Init.CLKPhase = SPI_PHASE_1EDGE;
     spi1.SPI_InitStruct.Init.CLKPolarity = SPI_POLARITY_LOW;
     spi1.SPI_InitStruct.Init.DataSize = SPI_DATASIZE_8BIT;
     spi1.SPI_InitStruct.Init.Direction = SPI_DIRECTION_2LINES;
     spi1.SPI_InitStruct.Init.FirstBit = SPI_FIRSTBIT_MSB;
-    spi1.SPI_InitStruct.Init.MasterSSIdleness = SPI_MASTER_SS_IDLENESS_00CYCLE;
-    spi1.SPI_InitStruct.Init.MasterInterDataIdleness = SPI_MASTER_INTERDATA_IDLENESS_00CYCLE;
+    spi1.SPI_InitStruct.Init.MasterSSIdleness = SPI_MASTER_SS_IDLENESS_03CYCLE;
+    spi1.SPI_InitStruct.Init.MasterInterDataIdleness = SPI_MASTER_INTERDATA_IDLENESS_03CYCLE;
     spi1.SPI_InitStruct.Init.NSS = SPI_NSS_SOFT;
     spi1.SPI_InitStruct.Init.TIMode = SPI_TIMODE_DISABLE;
     spi1.SPI_InitStruct.Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
