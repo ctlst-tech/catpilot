@@ -227,23 +227,19 @@ static void ICM20649_SetBank(uint8_t bank) {
 }
 
 static uint8_t ICM20649_ReadReg(uint8_t bank, uint8_t reg) {
-    uint8_t tx[2] = {};
-    uint8_t rx[2] = {};
-    tx[0] = reg | READ;
-
+    uint8_t data[2];
+    data[0] = reg | READ;
     ICM20649_ChipSelection();
     ICM20649_SetBank(bank);
-    SPI_TransmitReceive(icm20649_cfg.spi, tx, rx, sizeof(tx));
+    SPI_TransmitReceive(icm20649_cfg.spi, data, data, sizeof(data));
     ICM20649_ChipDeselection();
-
-    return rx[1];
+    return data[1];
 }
 
 static void ICM20649_WriteReg(uint8_t bank, uint8_t reg, uint8_t value) {
     uint8_t data[2];
     data[0] = reg;
     data[1] = value;
-
     ICM20649_ChipSelection();
     ICM20649_SetBank(bank);
     SPI_Transmit(icm20649_cfg.spi, data, sizeof(data));
