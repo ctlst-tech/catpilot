@@ -80,7 +80,6 @@ void ICM20602_Run(void) {
         timer_status = Timer_Start(timer_id, 100);
     
         if(timer_status == TIMER_START) {
-        } else if(timer_status == TIMER_WORK) {
             if((ICM20602_ReadReg(WHO_AM_I) == WHOAMI) && 
                (ICM20602_ReadReg(PWR_MGMT_1) == 0x41) && 
                (ICM20602_ReadReg(CONFIG) == 0x80)) {
@@ -99,6 +98,7 @@ void ICM20602_Run(void) {
                     attempt = 0;
                 }
             }
+        } else if(timer_status == TIMER_WORK) {
         } else if(timer_status == TIMER_END) {
             icm20602_state = ICM20602_CONF;
             LOG_DEBUG(device, "Device available");
@@ -310,25 +310,27 @@ static void ICM20602_GyroConfigure(void) {
 }
 
 static void ICM20602_FIFOCount(void) {
-    uint8_t cmd = FIFO_COUNTH | READ;
-    uint8_t data[2];
+    icm20602_FIFOBuffer.CMD = FIFO_COUNTH | READ;
 
     ICM20602_ChipSelection();
-    SPI_Transmit(icm20602_cfg.spi, &cmd, 1);
-    SPI_Receive(icm20602_cfg.spi, data, 2);
+    SPI_TransmitReceive(icm20602_cfg.spi, 
+                        (uint8_t *)&icm20602_FIFOBuffer, 
+                        (uint8_t *)&icm20602_FIFOBuffer,
+                        3);
     ICM20602_ChipDeselection();
-
-    icm20602_FIFOParam.samples = msblsb16(data[0], data[1]);
-    icm20602_FIFOParam.bytes = icm20602_FIFOParam.samples * sizeof(FIFO_t);
+    icm20602_FIFOParam.bytes = msblsb16(icm20602_FIFOBuffer.COUNTH, 
+                                        icm20602_FIFOBuffer.COUNTL);
+    icm20602_FIFOParam.samples = icm20602_FIFOParam.bytes / sizeof(FIFO_t);
 }
 
 static int ICM20602_FIFORead(void) {
-    uint8_t cmd = FIFO_COUNTH | READ;
+    icm20602_FIFOBuffer.CMD = FIFO_COUNTH | READ;
 
     ICM20602_ChipSelection();
-    SPI_Transmit(icm20602_cfg.spi, &cmd, 1);
-    SPI_Receive(icm20602_cfg.spi, (uint8_t *)&icm20602_FIFOBuffer,
-                icm20602_FIFOParam.bytes);
+    SPI_TransmitReceive(icm20602_cfg.spi, 
+                        (uint8_t *)&icm20602_FIFOBuffer, 
+                        (uint8_t *)&icm20602_FIFOBuffer,
+                        icm20602_FIFOParam.bytes + 3);
     ICM20602_ChipDeselection();
 
     ICM20602_TempProcess();
@@ -368,6 +370,7 @@ static void ICM20602_AccelProcess(void) {
         icm20602_fifo.accel_z[i] = ((accel_z == INT16_MIN) ? INT16_MAX : -accel_z) *
                                         icm20602_cfg.param.accel_scale;
     }
+
 }
 
 static void ICM20602_GyroProcess(void) {

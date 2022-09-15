@@ -28,26 +28,26 @@ void IMU_INT_Update(void) {
 int IMU_EXT_Init(void) {
     int rv;
 
-    rv = ICM20948_Init(&spi4, 
-                       &gpio_spi4_cs1, 
-                       NULL,
-                       NULL,
-                       0,
-                       0);
+    // rv = ICM20948_Init(&spi4, 
+    //                    &gpio_spi4_cs1, 
+    //                    NULL,
+    //                    NULL,
+    //                    0,
+    //                    0);
 
-    if(rv) return -1;
-
-    // rv = ICM20602_Init(&spi4, 
-    //                    &gpio_spi4_cs2, 
-    //                    NULL);
     // if(rv) return -1;
+
+    rv = ICM20602_Init(&spi4, 
+                       &gpio_spi4_cs2, 
+                       NULL);
+    if(rv) return -1;
 
     vTaskDelay(1);
 
-    // while(ICM20602_Operation() && ICM20948_Operation()) {
-    while(ICM20948_Operation()) {
-        // ICM20602_Run();
-        ICM20948_Run();
+    while(ICM20602_Operation() && ICM20948_Operation()) {
+    // while(ICM20948_Operation()) {
+        ICM20602_Run();
+        // ICM20948_Run();
         vTaskDelay(2);
     }
 
@@ -56,5 +56,5 @@ int IMU_EXT_Init(void) {
 
 void IMU_EXT_Update(void) {
     ICM20602_Run();
-    ICM20948_Run();
+    // ICM20948_Run();
 }
