@@ -73,6 +73,16 @@ int ICM20948_Init(spi_cfg_t *spi,
     return 0;
 }
 
+static int ind = 0;
+static void _debug(void) {
+    static int all = 0;
+    static int error = 0;
+    all += icm20948_fifo.samples * 6;
+    if(xTaskGetTickCount() > 60000) {
+            vTaskDelay(100);
+    }
+}
+
 void ICM20948_Run(void) {
     switch(icm20948_state) {
 
@@ -148,12 +158,7 @@ void ICM20948_Run(void) {
         icm20948_fifo.samples = icm20948_FIFOParam.samples;
         icm20948_last_sample = xTaskGetTickCount();
         xSemaphoreGive(measrdy_semaphore);
-        static uint16_t count = 0;
-        count++;
-        if(count > 1000) {
-            ICM20948_Statistics();
-            count = 0;
-        }
+        _debug();
         break;
 
     case ICM20948_FAIL:
@@ -336,7 +341,7 @@ static int ICM20948_Configure(void) {
 
     // Check BANK_3
     for(int i = 0; i < BANK_3_SIZE_REG_CFG; i++) {
-        orig_val = ICM20948_ReadReg(BANK_2, bank_3_reg_cfg[i].reg);
+        orig_val = ICM20948_ReadReg(BANK_3, bank_3_reg_cfg[i].reg);
 
         if((orig_val & bank_3_reg_cfg[i].setbits) != bank_3_reg_cfg[i].setbits) {
             LOG_ERROR(device, "0x%02x: 0x%02x (0x%02x not set)",
@@ -440,14 +445,7 @@ static void ICM20948_FIFOReset(void) {
 }
 
 static void ICM20948_AccelProcess(void) {
-    static int count = 0;
-    static int count_err = 0;
-    static int ind = 0;
-    ind = 0;
     for (int i = 0; i < icm20948_FIFOParam.samples; i++) {
-        count++;
-        uint16_t accel_x_uint16 = msblsb16(icm20948_FIFOBuffer.buf[i].ACCEL_XOUT_H,
-                                    icm20948_FIFOBuffer.buf[i].ACCEL_XOUT_L);
         int16_t accel_x = msblsb16(icm20948_FIFOBuffer.buf[i].ACCEL_XOUT_H,
                                     icm20948_FIFOBuffer.buf[i].ACCEL_XOUT_L);
         int16_t accel_y = msblsb16(icm20948_FIFOBuffer.buf[i].ACCEL_YOUT_H,
@@ -460,14 +458,10 @@ static void ICM20948_AccelProcess(void) {
                                         icm20948_cfg.param.accel_scale;
         icm20948_fifo.accel_z[i] = ((accel_z == INT16_MIN) ? INT16_MAX : -accel_z) *
                                         icm20948_cfg.param.accel_scale;
-        if(fabs(icm20948_fifo.accel_x[i]) > 10000 || 
-            fabs(icm20948_fifo.accel_y[i]) > 10000 ||
-            fabs(icm20948_fifo.accel_z[i]) > 10000 ||
-            fabs(icm20948_fifo.gyro_x[i]) > 10000 ||
-            fabs(icm20948_fifo.gyro_y[i]) > 10000 || 
-            fabs(icm20948_fifo.gyro_z[i]) > 10000) {
-            ind = 1;
-        }
+
+        ind += (fabs(icm20948_fifo.accel_x[i]) > 10 ? 1 : 0);
+        ind += (fabs(icm20948_fifo.accel_y[i]) > 10 ? 1 : 0);
+        ind += (fabs(icm20948_fifo.accel_z[i]) > 10 ? 1 : 0);
     }
 }
 
@@ -485,6 +479,9 @@ static void ICM20948_GyroProcess(void) {
                                     icm20948_cfg.param.gyro_scale;
         icm20948_fifo.gyro_z[i] = ((gyro_z == INT16_MIN) ? INT16_MAX : -gyro_z) *
                                     icm20948_cfg.param.gyro_scale;
+        ind += (fabs(icm20948_fifo.gyro_x[i]) > 10 ? 1 : 0);
+        ind += (fabs(icm20948_fifo.gyro_y[i]) > 10 ? 1 : 0);
+        ind += (fabs(icm20948_fifo.gyro_z[i]) > 10 ? 1 : 0);
     }
 }
 

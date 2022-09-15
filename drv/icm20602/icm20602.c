@@ -61,6 +61,16 @@ int ICM20602_Init(spi_cfg_t *spi, gpio_cfg_t *cs, exti_cfg_t *drdy) {
     return 0;
 }
 
+static int ind = 0;
+static void _debug(void) {
+    static int all = 0;
+    static int error = 0;
+    all += icm20602_fifo.samples * 6;
+    if(xTaskGetTickCount() > 60000) {
+            vTaskDelay(100);
+    }
+}
+
 void ICM20602_Run(void) {
     switch(icm20602_state) {
 
@@ -139,6 +149,7 @@ void ICM20602_Run(void) {
         icm20602_fifo.samples = icm20602_FIFOParam.samples;
         icm20602_last_sample = xTaskGetTickCount();
         xSemaphoreGive(measrdy_semaphore);
+        _debug();
         break;
 
     case ICM20602_FAIL:
@@ -369,6 +380,9 @@ static void ICM20602_AccelProcess(void) {
                                         icm20602_cfg.param.accel_scale;
         icm20602_fifo.accel_z[i] = ((accel_z == INT16_MIN) ? INT16_MAX : -accel_z) *
                                         icm20602_cfg.param.accel_scale;
+        ind += (fabs(icm20602_fifo.accel_x[i]) > 10 ? 1 : 0);
+        ind += (fabs(icm20602_fifo.accel_y[i]) > 10 ? 1 : 0);
+        ind += (fabs(icm20602_fifo.accel_z[i]) > 10 ? 1 : 0);
     }
 
 }
@@ -387,6 +401,9 @@ static void ICM20602_GyroProcess(void) {
                                     icm20602_cfg.param.gyro_scale;
         icm20602_fifo.gyro_z[i] = ((gyro_z == INT16_MIN) ? INT16_MAX : -gyro_z) *
                                     icm20602_cfg.param.gyro_scale;
+        ind += (fabs(icm20602_fifo.gyro_x[i]) > 10 ? 1 : 0);
+        ind += (fabs(icm20602_fifo.gyro_y[i]) > 10 ? 1 : 0);
+        ind += (fabs(icm20602_fifo.gyro_z[i]) > 10 ? 1 : 0);
     }
 }
 

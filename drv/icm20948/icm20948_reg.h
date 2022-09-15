@@ -29,8 +29,9 @@ type_t REG_BANK_SEL         = 0x7F;
 // BANK 2
 type_t GYRO_SMPLRT_DIV      = 0x00;
 type_t GYRO_CONFIG_1        = 0x01;
-type_t ACCEL_SMPLRT_DIV_2   = 0x11;
 type_t ACCEL_CONFIG         = 0x14;
+type_t ACCEL_SMPLRT_DIV_1   = 0x10;
+type_t ACCEL_SMPLRT_DIV_2   = 0x11;
 
 // BANK 3
 type_t I2C_MST_CTRL         = 0x01;
@@ -100,15 +101,15 @@ type_t BANK_2               = BIT5;
 type_t BANK_3               = BIT5 | BIT4;
 
 // BANK 2 Registers
-// 5:3 GYRO_DLPFCFG[2:0]
-type_t GYRO_DLPFCFG         = BIT5 | BIT4 | BIT3;
-
 // 2:1 GYRO_FS_SEL[1:0]
 type_t GYRO_FS_SEL_250_DPS  = 0;           // ±250 dps
 type_t GYRO_FS_SEL_500_DPS  = BIT1;        // ±500 dps
 type_t GYRO_FS_SEL_1000_DPS = BIT2;        // ±1000 dps
 type_t GYRO_FS_SEL_2000_DPS = BIT2 | BIT1; // ±2000 dps
 type_t GYRO_FCHOICE         = BIT0;        // 0 – Bypass gyro DLPF
+
+// 5:3 GYRO_DLPFCFG[2:0]
+type_t GYRO_DLPFCFG         = BIT5 | BIT4 | BIT3;
 
 // 5:3 ACCEL_DLPFCFG[2:0]
 type_t ACCEL_DLPFCFG        = BIT5 | BIT4 | BIT3;
@@ -200,7 +201,7 @@ typedef struct {
 } MAG_t;
 
 #define BANK_0_SIZE_REG_CFG 6
-#define BANK_2_SIZE_REG_CFG 2
+#define BANK_2_SIZE_REG_CFG 5
 #define BANK_3_SIZE_REG_CFG 3
 
 typedef struct {
@@ -218,9 +219,14 @@ static const reg_cfg_t bank_0_reg_cfg[BANK_0_SIZE_REG_CFG] = {
     {FIFO_MODE,    SNAPSHOT, 0},
 };
 
+// ACCEL 473 Hz -3dB BW, 1.125 kHz ODR rate
+// GYRO 361.4 Hz -3dB BW, 1.125 kHz ODR rate
 static const reg_cfg_t bank_2_reg_cfg[BANK_2_SIZE_REG_CFG] = {
-    {GYRO_CONFIG_1, GYRO_FS_SEL_2000_DPS, GYRO_FCHOICE},
-    {ACCEL_CONFIG,  ACCEL_FS_SEL_16G, ACCEL_FCHOICE},
+    {GYRO_CONFIG_1, GYRO_FS_SEL_2000_DPS | GYRO_FCHOICE | GYRO_DLPFCFG, 0},
+    {ACCEL_CONFIG,  ACCEL_FS_SEL_16G | ACCEL_FCHOICE | ACCEL_DLPFCFG, 0},
+    {ACCEL_SMPLRT_DIV_1, 0, 0xFF},
+    {ACCEL_SMPLRT_DIV_2, 0, 0xFF},
+    {GYRO_SMPLRT_DIV,    0, 0xFF},
 };
 
 static const reg_cfg_t bank_3_reg_cfg_wo_mag[BANK_3_SIZE_REG_CFG] = {

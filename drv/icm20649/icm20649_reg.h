@@ -47,6 +47,7 @@ type_t SRAM_RST             = BIT2;
 // PWR_MGMT_1
 type_t DEVICE_RESET         = BIT7;
 type_t SLEEP                = BIT6;
+type_t LP_EN                = BIT5;
 type_t CLKSEL_2             = BIT2;
 type_t CLKSEL_1             = BIT1;
 type_t CLKSEL_0             = BIT0;
@@ -139,20 +140,21 @@ typedef struct {
 
 static const reg_cfg_t bank_0_reg_cfg[BANK_0_SIZE_REG_CFG] = {
     {USER_CTRL,          FIFO_EN | I2C_IF_DIS, DMP_EN | I2C_MST_EN},
-    {PWR_MGMT_1,         CLKSEL_0, DEVICE_RESET | SLEEP},
+    {PWR_MGMT_1,         CLKSEL_0, DEVICE_RESET | SLEEP | LP_EN},
     {INT_PIN_CFG,        INT1_ACTL, 0},
     {INT_ENABLE_1,       RAW_DATA_0_RDY_EN, 0},
     {FIFO_EN_2,          ACCEL_FIFO_EN | GYRO_Z_FIFO_EN | GYRO_Y_FIFO_EN | GYRO_X_FIFO_EN, TEMP_FIFO_EN},
     {FIFO_MODE,          SNAPSHOT, 0},
-    {LP_CONFIG,          0, ACCEL_CYCLE | GYRO_CYCLE},
 };
 
+// ACCEL 473 Hz -3dB BW, 1.125 kHz ODR rate
+// GYRO 361.4 Hz -3dB BW, 1.125 kHz ODR rate
 static const reg_cfg_t bank_2_reg_cfg[BANK_2_SIZE_REG_CFG] = {
-    {GYRO_CONFIG_1, GYRO_FS_SEL_500_DPS | GYRO_FCHOICE | ACCEL_DLPFCFG, 0},
-    {ACCEL_CONFIG,  ACCEL_FS_SEL_4G | ACCEL_FCHOICE | ACCEL_DLPFCFG, 0},
+    {GYRO_CONFIG_1, GYRO_FS_SEL_4000_DPS | ACCEL_DLPFCFG | GYRO_FCHOICE, 0},
+    {ACCEL_CONFIG,  ACCEL_FS_SEL_30G | ACCEL_DLPFCFG | ACCEL_FCHOICE, 0},
     {ACCEL_SMPLRT_DIV_1, 0, 0xFF},
-    {ACCEL_SMPLRT_DIV_2, 0, 0xFE},
-    {GYRO_SMPLRT_DIV,    0, 0xFE},
+    {ACCEL_SMPLRT_DIV_2, 0, 0xFF},
+    {GYRO_SMPLRT_DIV,    0, 0xFF},
 };
 
 typedef struct {
