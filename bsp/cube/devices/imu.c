@@ -37,15 +37,16 @@ int IMU_EXT_Init(void) {
 
     if(rv) return -1;
 
-    rv = ICM20602_Init(&spi4, 
-                       &gpio_spi4_cs2, 
-                       NULL);
-    if(rv) return -1;
+    // rv = ICM20602_Init(&spi4, 
+    //                    &gpio_spi4_cs2, 
+    //                    NULL);
+    // if(rv) return -1;
 
     vTaskDelay(1);
 
-    while(ICM20602_Operation() && ICM20948_Operation()) {
-        ICM20602_Run();
+    // while(ICM20602_Operation() && ICM20948_Operation()) {
+    while(ICM20948_Operation()) {
+        // ICM20602_Run();
         ICM20948_Run();
         vTaskDelay(2);
     }
