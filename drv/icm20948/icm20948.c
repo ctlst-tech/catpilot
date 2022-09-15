@@ -92,7 +92,6 @@ void ICM20948_Run(void) {
         timer_status = Timer_Start(timer_id, 100);
     
         if(timer_status == TIMER_START) {
-        } else if(timer_status == TIMER_WORK) {
             if((ICM20948_ReadReg(BANK_0, WHO_AM_I) == WHOAMI) && 
                (ICM20948_ReadReg(BANK_0, PWR_MGMT_1) == 0x41)) {
                 ICM20948_WriteReg(BANK_0, PWR_MGMT_1, CLKSEL_0);
@@ -108,6 +107,7 @@ void ICM20948_Run(void) {
                     attempt = 0;
                 }
             }
+        } else if(timer_status == TIMER_WORK) {
         } else if(timer_status == TIMER_END) {
             icm20948_state = ICM20948_CONF;
             LOG_DEBUG(device, "Device available");
@@ -136,11 +136,11 @@ void ICM20948_Run(void) {
         break;
 
     case ICM20948_FIFO_READ:
-        if(drdy_semaphore != NULL) {
+        if(icm20948_cfg.enable_drdy) {
             xSemaphoreTake(drdy_semaphore, portMAX_DELAY);
         } else {
             // TODO: Add hardware timer
-            vTaskDelay(1);
+            vTaskDelay(2);
         }
         ICM20948_FIFOCount();
         ICM20948_FIFORead();
@@ -148,6 +148,12 @@ void ICM20948_Run(void) {
         icm20948_fifo.samples = icm20948_FIFOParam.samples;
         icm20948_last_sample = xTaskGetTickCount();
         xSemaphoreGive(measrdy_semaphore);
+        static uint16_t count = 0;
+        count++;
+        if(count > 1000) {
+            ICM20948_Statistics();
+            count = 0;
+        }
         break;
 
     case ICM20948_FAIL:
@@ -222,7 +228,7 @@ static void ICM20948_SetBank(uint8_t bank) {
     data[0] = REG_BANK_SEL;
     data[1] = bank;
     if(bank != prev_bank) {
-        SPI_Transmit(icm20948_cfg.spi, data, 2);
+        SPI_Transmit(icm20948_cfg.spi, data, sizeof(data));
     }
     prev_bank = bank;
 }
@@ -230,13 +236,10 @@ static void ICM20948_SetBank(uint8_t bank) {
 static uint8_t ICM20948_ReadReg(uint8_t bank, uint8_t reg) {
     uint8_t data[2];
     data[0] = reg | READ;
-
     ICM20948_ChipSelection();
     ICM20948_SetBank(bank);
-    SPI_Transmit(icm20948_cfg.spi, data, 1);
-    SPI_Receive(icm20948_cfg.spi, &data[1], 1);
+    SPI_TransmitReceive(icm20948_cfg.spi, data, data, sizeof(data));
     ICM20948_ChipDeselection();
-
     return data[1];
 }
 
@@ -244,10 +247,9 @@ static void ICM20948_WriteReg(uint8_t bank, uint8_t reg, uint8_t value) {
     uint8_t data[2];
     data[0] = reg;
     data[1] = value;
-
     ICM20948_ChipSelection();
     ICM20948_SetBank(bank);
-    SPI_Transmit(icm20948_cfg.spi, data, 2);
+    SPI_Transmit(icm20948_cfg.spi, data, sizeof(data));
     ICM20948_ChipDeselection();
 }
 
@@ -396,35 +398,36 @@ static void ICM20948_GyroConfigure(void) {
 }
 
 static void ICM20948_FIFOCount(void) {
-    uint8_t data[3];
-    data[0] = FIFO_COUNTH | READ;
+    icm20948_FIFOBuffer.CMD = FIFO_COUNTH | READ;
 
     ICM20948_ChipSelection();
     ICM20948_SetBank(BANK_0);
-    SPI_Transmit(icm20948_cfg.spi, data, 1);
-    SPI_Receive(icm20948_cfg.spi, &data[1], 2);
+    SPI_TransmitReceive(icm20948_cfg.spi, 
+                        (uint8_t *)&icm20948_FIFOBuffer, 
+                        (uint8_t *)&icm20948_FIFOBuffer,
+                        3);
     ICM20948_ChipDeselection();
-
-    icm20948_FIFOParam.samples = msblsb16(data[1], data[2]);
-    icm20948_FIFOParam.bytes = icm20948_FIFOParam.samples * sizeof(FIFO_t);
+    icm20948_FIFOParam.bytes = msblsb16(icm20948_FIFOBuffer.COUNTH, 
+                                        icm20948_FIFOBuffer.COUNTL);
+    icm20948_FIFOParam.samples = icm20948_FIFOParam.bytes / sizeof(FIFO_t);
 }
 
 static int ICM20948_FIFORead(void) {
-    uint8_t data[1];
-    data[0] = FIFO_COUNTH | READ;
+    icm20948_FIFOBuffer.CMD = FIFO_COUNTH | READ;
 
     ICM20948_ChipSelection();
     ICM20948_SetBank(BANK_0);
-    SPI_Transmit(icm20948_cfg.spi, data, 1);
-    SPI_Receive(icm20948_cfg.spi, (uint8_t *)&icm20948_FIFOBuffer,
-                icm20948_FIFOParam.bytes);
+    SPI_TransmitReceive(icm20948_cfg.spi, 
+                        (uint8_t *)&icm20948_FIFOBuffer, 
+                        (uint8_t *)&icm20948_FIFOBuffer,
+                        icm20948_FIFOParam.bytes + 3);
     ICM20948_ChipDeselection();
 
     ICM20948_TempProcess();
     ICM20948_AccelProcess();
     ICM20948_GyroProcess();
 
-    if(drdy_semaphore != NULL) {
+    if(icm20948_cfg.enable_drdy) {
         EXTI_EnableIRQ(icm20948_cfg.drdy);
     }
 
@@ -437,7 +440,14 @@ static void ICM20948_FIFOReset(void) {
 }
 
 static void ICM20948_AccelProcess(void) {
+    static int count = 0;
+    static int count_err = 0;
+    static int ind = 0;
+    ind = 0;
     for (int i = 0; i < icm20948_FIFOParam.samples; i++) {
+        count++;
+        uint16_t accel_x_uint16 = msblsb16(icm20948_FIFOBuffer.buf[i].ACCEL_XOUT_H,
+                                    icm20948_FIFOBuffer.buf[i].ACCEL_XOUT_L);
         int16_t accel_x = msblsb16(icm20948_FIFOBuffer.buf[i].ACCEL_XOUT_H,
                                     icm20948_FIFOBuffer.buf[i].ACCEL_XOUT_L);
         int16_t accel_y = msblsb16(icm20948_FIFOBuffer.buf[i].ACCEL_YOUT_H,
@@ -450,6 +460,14 @@ static void ICM20948_AccelProcess(void) {
                                         icm20948_cfg.param.accel_scale;
         icm20948_fifo.accel_z[i] = ((accel_z == INT16_MIN) ? INT16_MAX : -accel_z) *
                                         icm20948_cfg.param.accel_scale;
+        if(fabs(icm20948_fifo.accel_x[i]) > 10000 || 
+            fabs(icm20948_fifo.accel_y[i]) > 10000 ||
+            fabs(icm20948_fifo.accel_z[i]) > 10000 ||
+            fabs(icm20948_fifo.gyro_x[i]) > 10000 ||
+            fabs(icm20948_fifo.gyro_y[i]) > 10000 || 
+            fabs(icm20948_fifo.gyro_z[i]) > 10000) {
+            ind = 1;
+        }
     }
 }
 
@@ -476,8 +494,7 @@ static void ICM20948_TempProcess(void) {
 
     ICM20948_ChipSelection();
     ICM20948_SetBank(BANK_0);
-    SPI_Transmit(icm20948_cfg.spi, data, 1);
-    SPI_Receive(icm20948_cfg.spi, &data[1], 2);
+    SPI_TransmitReceive(icm20948_cfg.spi, &data[0], &data[1], sizeof(data));
     ICM20948_ChipDeselection();
 
     int16_t temp_raw = msblsb16(data[1], data[2]);

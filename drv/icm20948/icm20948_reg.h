@@ -236,6 +236,7 @@ static const reg_cfg_t bank_3_reg_cfg_w_mag[BANK_3_SIZE_REG_CFG] = {
 };
 
 typedef struct {
+    uint8_t CMD;
     uint8_t COUNTH;
     uint8_t COUNTL;
     FIFO_t buf[ICM20948_FIFO_SIZE / sizeof(FIFO_t)];
