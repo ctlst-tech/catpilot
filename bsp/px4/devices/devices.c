@@ -37,3 +37,10 @@ int Devices_Init(void) {
 
     return 0;
 }
+
+int CLI(void) {
+    if(USART7_Init()) return -1;
+    CLI_Init(&usart7);
+    WELCOME();
+    return 0;
+}

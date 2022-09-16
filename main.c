@@ -54,11 +54,7 @@ void *ctlst(void *param) {
 
     pthread_setname_np(__func__);
 
-    if(!USART2_Init()) {
-        CLI_Init(&usart2);
-    }
-
-    WELCOME();
+    CLI();
 
     #if(LOG_STDOUT_ENABLE)
         log_enable(true);
@@ -98,9 +94,6 @@ void *ctlst(void *param) {
     }
 
     if (res == FR_OK) {
-        while(1) {
-            vTaskDelay(100);
-        }
         swsys_rv_t swsys_rv = swsys_load("/fs/config/mvp_swsys.xml", "/fs/config", &sys);
         if (swsys_rv == swsys_e_ok) {
             LOG_INFO("SYSTEM", "System starts")

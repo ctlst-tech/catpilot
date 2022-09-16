@@ -6,44 +6,12 @@ set(PROJ_NAME "ctlst-fmuv5")
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
 if (TYPE STREQUAL "PX4")
-    include_directories(BEFORE
-        osa/freertos_posix/include/FreeRTOS_POSIX
-        osa/freertos_posix/include
-        osa/freertos_posix/include
-        osa/freertos_posix/FreeRTOS-Plus-POSIX/include
-        osa/freertos_posix/FreeRTOS-Plus-POSIX/include/portable/
-        osa/freertos_posix/include/private
-        os/freertos/core/inc
-        os/freertos/
-        os/freertos/port/stm32f765ii/
-    )
-    set(MAP_CREATION "ON")
-    set(ESWB_EQRB_NO_SOCKET "1")
-    set(CATOM_NO_SOCKET "1")
-    set(FAKE_PTHREAD "1")
-
     set(MCU stm32f765ii)
     set(BOARD px4)
     set(DIR_MCU bsp/${BOARD}/mcu/${MCU})
     set(ASM_FILE ${PROJECT_BINARY_DIR}/${PROJ_NAME}.asm)
     set(CMAKE_TOOLCHAIN_FILE ${DIR_MCU}/core/f7_toolchain.cmake)
 elseif (TYPE STREQUAL "Cube")
-    include_directories(BEFORE
-        osa/freertos_posix/include/FreeRTOS_POSIX
-        osa/freertos_posix/include
-        osa/freertos_posix/include
-        osa/freertos_posix/FreeRTOS-Plus-POSIX/include
-        osa/freertos_posix/FreeRTOS-Plus-POSIX/include/portable/
-        osa/freertos_posix/include/private
-        os/freertos/core/inc
-        os/freertos/
-        os/freertos/port/stm32f765ii/
-    )
-    set(MAP_CREATION "ON")
-    set(ESWB_EQRB_NO_SOCKET "1")
-    set(CATOM_NO_SOCKET "1")
-    set(FAKE_PTHREAD "1")
-
     set(MCU stm32h753)
     set(BOARD cube)
     set(DIR_MCU bsp/${BOARD}/mcu/${MCU})
@@ -56,6 +24,24 @@ else ()
     message(FATAL_ERROR "TYPE is not set!")
 endif ()
 
+if (TYPE STREQUAL "PX4" OR TYPE STREQUAL "Cube")
+    include_directories(BEFORE
+        osa/freertos_posix/include/FreeRTOS_POSIX
+        osa/freertos_posix/include
+        osa/freertos_posix/include
+        osa/freertos_posix/FreeRTOS-Plus-POSIX/include
+        osa/freertos_posix/FreeRTOS-Plus-POSIX/include/portable/
+        osa/freertos_posix/include/private
+        os/freertos/core/inc
+        os/freertos/
+        os/freertos/port/stm32f765ii/
+    )
+    set(MAP_CREATION "ON")
+    set(ESWB_EQRB_NO_SOCKET "1")
+    set(CATOM_NO_SOCKET "1")
+    set(FAKE_PTHREAD "1")
+endif ()
+
 project(${PROJ_NAME} C ASM)
 
 if (TYPE STREQUAL "PX4" OR TYPE STREQUAL "Cube")
@@ -64,7 +50,7 @@ if (TYPE STREQUAL "PX4" OR TYPE STREQUAL "Cube")
     set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "" )
     set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "" )
 
-    ## Defines
+    # Defines
     set(DIR_OS os/freertos)
     set(DIR_FS os/fatfs)
     set(DIR_OSA osa)
@@ -74,15 +60,8 @@ if (TYPE STREQUAL "PX4" OR TYPE STREQUAL "Cube")
     set(DIR_DRV drv)
     set(DIR_C_ATOM c-atom)
     set(DIR_ESWB c-atom/eswb)
-
-    # Temporarily
     set(DIR_MDL modules)
     set(DIR_MISC misc)
-
-    add_definitions(
-        -DSTM32
-        -DSTM32H7
-    )
 
     include_directories(
         ${DIR_MCU}
@@ -119,7 +98,6 @@ if (TYPE STREQUAL "PX4" OR TYPE STREQUAL "Cube")
         ${DIR_DRV}/icm20689
         ${DIR_DRV}/icm20948
         ${DIR_DRV}/icm20649
-        # ${DIR_DRV}/bmi055
         ${DIR_DRV}/ist8310
         ${DIR_DRV}/sdcard
         ${DIR_DRV}/px4io
@@ -199,7 +177,6 @@ if (TYPE STREQUAL "PX4" OR TYPE STREQUAL "Cube")
     )
 
 elseif (TYPE STREQUAL "Linux")
-
     find_package(Threads)
 
     set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/build/linux)

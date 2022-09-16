@@ -13,3 +13,4 @@ void IO_Update(void);
 void MAG_Update(void);
 
 int Devices_Init(void);
+int CLI(void);

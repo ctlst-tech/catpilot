@@ -1,4 +1,6 @@
-#include "stm32_base.h"
+#include <stdio.h>
+#include "FreeRTOS.h"
+#include "task.h"
 
 static volatile int stack_overflow_cnt = 0;
 static volatile int stack_overflow_margin = 0;

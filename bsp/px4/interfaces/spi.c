@@ -27,6 +27,18 @@ int SPI1_Init() {
     spi1.dma_mosi_cfg = &spi1_dma_tx;
     spi1.dma_miso_cfg = &spi1_dma_rx;
 
+    spi1.SPI_InitStruct.Init.Mode = SPI_MODE_MASTER;
+    spi1.SPI_InitStruct.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_16;
+    spi1.SPI_InitStruct.Init.CLKPhase = SPI_PHASE_2EDGE;
+    spi1.SPI_InitStruct.Init.CLKPolarity = SPI_POLARITY_HIGH;
+    spi1.SPI_InitStruct.Init.DataSize = SPI_DATASIZE_8BIT;
+    spi1.SPI_InitStruct.Init.Direction = SPI_DIRECTION_2LINES;
+    spi1.SPI_InitStruct.Init.FirstBit = SPI_FIRSTBIT_MSB;
+    spi1.SPI_InitStruct.Init.NSS = SPI_NSS_SOFT;
+    spi1.SPI_InitStruct.Init.TIMode = SPI_TIMODE_DISABLE;
+    spi1.SPI_InitStruct.Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
+    spi1.SPI_InitStruct.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+
     spi1_dma_tx.DMA_InitStruct.Instance = DMA2_Stream3;
     spi1_dma_tx.DMA_InitStruct.Init.Channel = DMA_CHANNEL_3;
     spi1_dma_tx.DMA_InitStruct.Init.Direction = DMA_MEMORY_TO_PERIPH;

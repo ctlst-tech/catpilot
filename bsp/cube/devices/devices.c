@@ -35,3 +35,10 @@ int Devices_Init(void) {
 
     return 0;
 }
+
+int CLI(void) {
+    if(USART2_Init()) return -1;
+    CLI_Init(&usart2);
+    WELCOME();
+    return 0;
+}
