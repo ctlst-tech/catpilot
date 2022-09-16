@@ -66,6 +66,7 @@ void CubeIO_Run(void) {
 
     case CubeIO_RESET:
         vTaskDelay(2000);
+        cubeio_state = CubeIO_CONF;
 
         // Check protocol version
         rv = CubeIO_ReadRegs(PAGE_CONFIG, 
@@ -84,13 +85,22 @@ void CubeIO_Run(void) {
                 cubeio_state = CubeIO_FAIL;
             }
         }
+        attempt = 0;
 
         // Set ARM
-
+        if(CubeIO_SetClearReg(PAGE_SETUP, PAGE_REG_SETUP_ALTRATE, 
+                              P_SETUP_ARMING_IO_ARM_OK |
+                              P_SETUP_ARMING_FMU_ARMED |
+                              P_SETUP_ARMING_RC_HANDLING_DISABLED, 0)) {
+            LOG_ERROR(device, "Arming setup error");
+            cubeio_state = CubeIO_FAIL;
+        }
 
         break;
 
     case CubeIO_CONF:
+        // There will be a default configuration
+        cubeio_state = CubeIO_OPERATION;
         break;
 
     case CubeIO_OPERATION:
