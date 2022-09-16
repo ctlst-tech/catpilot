@@ -160,8 +160,8 @@ typedef struct {
     uint8_t  page;
     uint8_t  offset;
     uint16_t regs[PKT_MAX_REGS];
-#pragma pack(pop)
 } px4io_packet_t;
+#pragma pack(pop)
 
 #if (PX4IO_MAX_TRANSFER_LEN > PKT_MAX_REGS * 2)
 #error The max transfer length of the IO protocol must not be larger than the IO packet size

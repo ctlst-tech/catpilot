@@ -101,6 +101,7 @@ if (TYPE STREQUAL "PX4" OR TYPE STREQUAL "Cube")
         ${DIR_DRV}/ist8310
         ${DIR_DRV}/sdcard
         ${DIR_DRV}/px4io
+        ${DIR_DRV}/cubeio
         ${DIR_DRV}/cli
 
         ${DIR_IF}

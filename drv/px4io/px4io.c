@@ -37,7 +37,7 @@ static int PX4IO_SetPWM(uint16_t *outputs, uint32_t num);
 // Sync
 static SemaphoreHandle_t iordy_semaphore;
 static SemaphoreHandle_t timer_semaphore;
-uint32_t attempt;
+static uint32_t attempt;
 static uint32_t t0;
 
 // Public functions
