@@ -12,7 +12,7 @@
         }
     },
     {
-        "name": "Linux",
+        "name": "PC_unix",
         "compilers": {
             "C": "/usr/bin/gcc"
         }

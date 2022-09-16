@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Posix",
+            "name": "PC_unix",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/posix/ctlst-fmuv5",
