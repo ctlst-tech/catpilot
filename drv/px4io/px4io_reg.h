@@ -180,15 +180,15 @@ typedef struct {
 #define PKT_CODE(_str)    ((_str).count_code & PKT_CODE_MASK)
 #define PKT_SIZE(_str)    ((size_t)((uint8_t *)&((_str).regs[PKT_COUNT(_str)]) - ((uint8_t *)&(_str))))
 
-uint16_t get_pkt_count(px4io_packet_t *pkt) {
+static uint16_t get_pkt_count(px4io_packet_t *pkt) {
     return (pkt->count_code & PKT_COUNT_MASK);
 }
 
-uint16_t get_pkt_code(px4io_packet_t *pkt) {
+static uint16_t get_pkt_code(px4io_packet_t *pkt) {
     return (pkt->count_code & PKT_CODE_MASK);
 }
 
-uint32_t get_pkt_size(px4io_packet_t *pkt) {
+static uint32_t get_pkt_size(px4io_packet_t *pkt) {
     return ((size_t)((uint8_t *)(pkt->regs[get_pkt_count(pkt)]) - ((uint8_t *)(pkt))));
 }
 

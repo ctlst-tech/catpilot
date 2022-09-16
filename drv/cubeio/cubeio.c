@@ -21,21 +21,21 @@ static struct page_config config;
 static int CubeIO_WriteRegs(uint8_t page, 
                             uint8_t offset, 
                             uint8_t count, 
-                            uint8_t *ptr);
+                            uint16_t *ptr);
 
 static int CubeIO_ReadRegs(uint8_t page, 
                            uint8_t offset, 
                            uint8_t count, 
-                           uint8_t *ptr);
+                           uint16_t *ptr);
 
 static int CubeIO_WriteReg(uint8_t page, 
                            uint8_t offset, 
                            uint16_t data);
 
-static int CubeIO_ModifyReg(uint8_t page, 
-                            uint8_t offset, 
-                            uint16_t clearbits, 
-                            uint16_t setbits);
+static int CubeIO_SetClearReg(uint8_t page, 
+                              uint8_t offset, 
+                              uint16_t setbits, 
+                              uint16_t clearbits);
 
 // Sync
 static int timer_id;
@@ -70,21 +70,23 @@ void CubeIO_Run(void) {
         // Check protocol version
         rv = CubeIO_ReadRegs(PAGE_CONFIG, 
                              0, 
-                             sizeof(config), 
-                             (uint8_t *)&config);
+                             sizeof(config) / 2, 
+                             (uint16_t *)&config);
 
         if(config.protocol_version != PROTOCOL_VERSION ||
            config.protocol_version2 != PROTOCOL_VERSION2) {
-            LOG_ERROR(device, 
-                      "Wrong protocols versions: %lu, %lu", 
-                      config.protocol_version, 
-                      config.protocol_version2);
+            LOG_ERROR(device, "Wrong protocols versions: %lu, %lu", 
+                              config.protocol_version, 
+                              config.protocol_version2);
             attempt++;
             if(attempt > 5) {
                 LOG_ERROR(device, "Fatal error");
                 cubeio_state = CubeIO_FAIL;
             }
         }
+
+        // Set ARM
+
 
         break;
 
@@ -118,26 +120,104 @@ int CubeIO_Ready(void) {
 static int CubeIO_WriteRegs(uint8_t page, 
                             uint8_t offset, 
                             uint8_t count, 
-                            uint8_t *ptr) {
-    return 0;
+                            uint16_t *regs) {
+    int rv;
+    cubeio_packet_t tx_pkt = {};
+    cubeio_packet_t rx_pkt = {};
+
+    tx_pkt.count_code = count | PKT_CODE_WRITE;
+    tx_pkt.page = page;
+    tx_pkt.offset = offset;
+    tx_pkt.crc = 0;
+    memcpy(tx_pkt.regs, regs, 2 * count);
+    tx_pkt.crc = crc_packet(&tx_pkt);
+
+    for (uint8_t att = 0; att < 3; att++) {
+        rv = USART_TransmitReceive(cubeio_cfg.usart,
+                                    (uint8_t *)&tx_pkt, (uint8_t *)&rx_pkt,
+                                    sizeof(tx_pkt), sizeof(rx_pkt));
+
+        if(rv != SUCCESS) {
+            continue;
+        }
+        if(get_pkt_code(&rx_pkt) != PKT_CODE_SUCCESS) {
+            LOG_ERROR(device, "Bad code, 0x%X, 0x%X, %d",
+                        page, offset, count);
+            rv = EINVAL;
+            continue;
+        }
+        if(crc_packet(&rx_pkt) != rx_pkt.crc) {
+            LOG_ERROR(device, "Bad crc, 0x%X, 0x%X, %d",
+                        page, offset, count);
+            rv = EPROTO;
+            continue;
+        }
+        break;
+    }
+
+    return rv;
 }
 
 static int CubeIO_ReadRegs(uint8_t page, 
                            uint8_t offset, 
                            uint8_t count, 
-                           uint8_t *ptr) {
-    return 0;
+                           uint16_t *regs) {
+    int rv;
+    cubeio_packet_t tx_pkt = {};
+    cubeio_packet_t rx_pkt = {};
+
+    tx_pkt.count_code = count | PKT_CODE_READ;
+    tx_pkt.page = page;
+    tx_pkt.offset = offset;
+    tx_pkt.crc = 0;
+    memcpy(tx_pkt.regs, regs, 2 * count);
+    tx_pkt.crc = crc_packet(&tx_pkt);
+
+    for (uint8_t att = 0; att < 3; att++) {
+        rv = USART_TransmitReceive(cubeio_cfg.usart,
+                                    (uint8_t *)&tx_pkt, (uint8_t *)&rx_pkt,
+                                    sizeof(tx_pkt), sizeof(rx_pkt));
+
+        if(rv != SUCCESS) {
+            continue;
+        }
+        if(get_pkt_code(&rx_pkt) != PKT_CODE_SUCCESS) {
+            LOG_ERROR(device, "Bad code, 0x%X, 0x%X, %d",
+                        page, offset, count);
+            rv = EINVAL;
+            continue;
+        }
+        if(get_pkt_size(&rx_pkt) != count) {
+            LOG_ERROR(device, "Bad count, %d, %d",
+                      count, get_pkt_size(&rx_pkt));
+            rv = EINVAL;
+            continue;
+        }
+        if(crc_packet(&rx_pkt) != rx_pkt.crc) {
+            LOG_ERROR(device, "Bad crc, 0x%X, 0x%X, %d",
+                        page, offset, count);
+            rv = EPROTO;
+            continue;
+        }
+        memcpy(regs, rx_pkt.regs, 2 * count);
+        break;
+    }
+
+    return rv;
 }
 
 static int CubeIO_WriteReg(uint8_t page, 
                            uint8_t offset, 
-                           uint16_t data) {
-    return 0;
+                           uint16_t reg) {
+    return CubeIO_WriteRegs(page, offset, 1, &reg);
 }
 
-static int CubeIO_ModifyReg(uint8_t page, 
-                            uint8_t offset, 
-                            uint16_t clearbits, 
-                            uint16_t setbits) {
-    return 0;
+static int CubeIO_SetClearReg(uint8_t page, 
+                              uint8_t offset, 
+                              uint16_t setbits, 
+                              uint16_t clearbits) {
+    uint16_t reg = 0;
+    if(CubeIO_ReadRegs(page, offset, 1, &reg)) return -1;
+    reg = (reg & ~clearbits) | setbits;
+    return CubeIO_WriteReg(page, offset, reg);
 }
