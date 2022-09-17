@@ -19,11 +19,11 @@ int Timer_Start(int timer_id, uint32_t period_ms) {
     int id = timer_id;
 
     if(xTimerIsTimerActive(timer_[id].tim)) {
-        return TIMER_WORK;
+        return TIMER_COUNTING;
     } else {
         if(xSemaphoreTake(timer_[id].sem, 0)) {
             xTimerStop(timer_[id].tim, 10 / portTICK_PERIOD_MS);
-            return TIMER_END;
+            return TIMER_FINISHED;
         }
         rv = xTimerChangePeriod(timer_[id].tim, 
                                 period_ms / portTICK_PERIOD_MS, 
@@ -31,7 +31,7 @@ int Timer_Start(int timer_id, uint32_t period_ms) {
         if(rv == pdFALSE) return TIMER_ERROR;
         rv = xTimerStart(timer_[id].tim, 10 / portTICK_PERIOD_MS);
         if(rv == pdFALSE) return TIMER_ERROR;
-        return TIMER_START;
+        return TIMER_STARTED;
     }
 }
 

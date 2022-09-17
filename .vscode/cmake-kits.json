@@ -6,12 +6,6 @@
         }
     },
     {
-        "name": "MCU_win",
-        "compilers": {
-        "C": "C:/Program Files (x86)/GNU Arm Embedded Toolchain/10 2021.10/bin/arm-none-eabi-gcc"
-        }
-    },
-    {
         "name": "PC_unix",
         "compilers": {
             "C": "/usr/bin/gcc"

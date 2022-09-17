@@ -6,9 +6,9 @@
 
 #define TIMER_OK    0
 #define TIMER_ERROR -1
-#define TIMER_START 1
-#define TIMER_WORK  2
-#define TIMER_END   3
+#define TIMER_STARTED 1
+#define TIMER_COUNTING  2
+#define TIMER_FINISHED   3
 
 #define MAX_TIMERS 16
 

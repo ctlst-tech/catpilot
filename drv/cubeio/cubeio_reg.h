@@ -2,12 +2,14 @@
 #include "stm32_base.h"
 #include "bit.h"
 
+// Protocol
 #define PKT_MAX_REGS                        22
 #define MAX_CHANNELS                        16
 
 #pragma pack(push, 1)
 typedef struct {
-    uint8_t count_code;
+    uint8_t count:6;
+    uint8_t code:2;
     uint8_t crc;
     uint8_t page;
     uint8_t offset;
@@ -66,8 +68,9 @@ typedef struct {
 #define PAGE_REG_SETUP_FORCE_SAFETY_ON      14
 #define FORCE_SAFETY_MAGIC                  22027
 
+// Status
 #define PKT_CODE_READ                       0x00
-#define PKT_CODE_WRITE                      0x40
+#define PKT_CODE_WRITE                      0x01
 
 #define PKT_CODE_SUCCESS                    0x00
 #define PKT_CODE_CORRUPT                    0x01
@@ -75,16 +78,45 @@ typedef struct {
 #define PKT_CODE_MASK                       0xC0
 #define PKT_COUNT_MASK                      0x3F
 
-#define PKT_COUNT(_str)   ((_str).count_code & PKT_COUNT_MASK)
-#define PKT_CODE(_str)    ((_str).count_code & PKT_CODE_MASK)
+#define PKT_COUNT(_str)   ((_str).count)
+#define PKT_CODE(_str)    ((_str).code)
 #define PKT_SIZE(_str)    ((size_t)((uint8_t *)&((_str).regs[PKT_COUNT(_str)]) - ((uint8_t *)&(_str))))
 
-struct page_config {
+// Values
+#define ARMED                               1
+#define DISARMED                            0
+
+#define SAFETY_OFF                          1
+#define SAFETY_ON                           0
+
+// Structures
+typedef struct {
     uint16_t protocol_version;
     uint16_t protocol_version2;
-};
+} cubeio_page_config_t;
 
-struct page_reg_status {
+typedef struct {
+    uint8_t num_channels;
+    uint16_t pwm[MAX_CHANNELS];
+    uint16_t failsafe_pwm[MAX_CHANNELS];
+    uint8_t heater_duty;
+    uint16_t safety_mask;
+} cubeio_pwm_out_t;
+
+typedef struct {
+    uint16_t pwm[MAX_CHANNELS];
+} cubeio_pwm_in_t;
+
+typedef struct {
+    uint16_t freq;
+    uint16_t chmask;
+    uint16_t default_freq;
+    uint16_t sbus_rate_hz;
+    uint8_t oneshot_enabled;
+    uint8_t brushed_enabled;
+} cubeio_rate_t;
+
+typedef struct {
     uint16_t freemem;
     uint32_t timestamp_ms;
     uint16_t vservo;
@@ -92,26 +124,27 @@ struct page_reg_status {
     uint32_t num_errors;
     uint32_t total_pkts;
     uint8_t flag_safety_off;
+    uint8_t safety_forced_off;
     uint8_t err_crc;
     uint8_t err_bad_opcode;
     uint8_t err_read;
     uint8_t err_write;
     uint8_t err_uart;
-};
+} cubeio_page_reg_status_t;
 
-struct page_rc_input {
+typedef struct {
     uint8_t count;
     uint8_t flags_failsafe:1;
     uint8_t flags_rc_ok:1;
     uint8_t rc_protocol;
-    uint16_t pwm[MAX_CHANNELS];
+    uint16_t channel[MAX_CHANNELS];
     int16_t rssi;
-};
+} cubeio_page_rc_input_t;
 
 /*
   data for mixing on FMU failsafe
  */
-struct page_mixing {
+typedef struct {
     uint16_t servo_min[MAX_CHANNELS];
     uint16_t servo_max[MAX_CHANNELS];
     uint16_t servo_trim[MAX_CHANNELS];
@@ -141,44 +174,24 @@ struct page_mixing {
     uint8_t enabled;
 
     uint8_t pad;
-};
+} cubeio_page_mixing_t;
 
-struct __attribute__((packed, aligned(2))) page_GPIO {
+typedef struct __attribute__((packed, aligned(2))) {
     uint8_t channel_mask;
     uint8_t output_mask;
-};
+} cubeio_page_gpio_t;
 
-#pragma pack(push, 1)
-typedef struct {
-    uint16_t general_status;
-    uint16_t vservo_status;
-    uint16_t vrssi_status;
-    uint16_t alarms_status;
-    uint32_t arm_status;
-    uint16_t rc[MAX_CHANNELS];
-    uint16_t outputs[MAX_CHANNELS];
-    uint32_t protocol_version;
-    uint32_t hardware_version;
-    uint32_t max_actuators;
-    uint32_t max_controls;
-    uint32_t max_transfer;
-    uint32_t max_rc_input;
-    uint16_t arm;
-    uint16_t max_pwm;
-    uint16_t min_pwm;
-} cubeio_reg_t;
-#pragma pack(pop)
-
+// Helpers
 static uint16_t get_pkt_count(cubeio_packet_t *pkt) {
-    return (pkt->count_code & PKT_COUNT_MASK);
+    return (pkt->count);
 }
 
 static uint16_t get_pkt_code(cubeio_packet_t *pkt) {
-    return (pkt->count_code & PKT_CODE_MASK);
+    return (pkt->code);
 }
 
-static uint32_t get_pkt_size(cubeio_packet_t *pkt) {
-    return ((size_t)((uint8_t *)(pkt->regs[get_pkt_count(pkt)]) - ((uint8_t *)(pkt))));
+static intptr_t get_pkt_size(cubeio_packet_t *pkt) {
+    return (((intptr_t)(pkt->regs[get_pkt_count(pkt)]) - ((intptr_t)(pkt))));
 }
 
 static const uint8_t crc8_tab[256] __attribute__((unused)) = {

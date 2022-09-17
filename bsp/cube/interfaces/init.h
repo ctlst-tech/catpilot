@@ -4,7 +4,7 @@
 #include "icm20649.h"
 #include "icm20948.h"
 #include "icm20602.h"
-#include "px4io.h"
+#include "cubeio.h"
 #include "sdcard.h"
 #include "cli.h"
 

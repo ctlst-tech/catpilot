@@ -10,12 +10,16 @@ static char *device = "CubeIO";
 
 // Data structures
 static cubeio_cfg_t cubeio_cfg;
-static cubeio_reg_t cubeio_reg;
 static enum cubeio_state_t cubeio_state;
 static cubeio_packet_t cubeio_tx_packet;
 static cubeio_packet_t cubeio_rx_packet;
-
-static struct page_config config;
+static cubeio_eventmask_t cubeio_eventmask;
+static cubeio_page_config_t cubeio_config;
+static cubeio_pwm_out_t cubeio_pwm_out;
+static cubeio_pwm_in_t cubeio_pwm_in;
+static cubeio_rate_t cubeio_rate;
+static cubeio_page_reg_status_t cubeio_page_reg_status;
+static cubeio_page_rc_input_t cubeio_page_rc_input;
 
 // Private functions
 static int CubeIO_WriteRegs(uint8_t page, 
@@ -37,11 +41,22 @@ static int CubeIO_SetClearReg(uint8_t page,
                               uint16_t setbits, 
                               uint16_t clearbits);
 
+static int CubeIO_PopEvent(cubeio_eventmask_t eventmask, 
+                           enum cubeio_event_t event);
+
+static void CubeIO_PushEvent(cubeio_eventmask_t eventmask, 
+                             enum cubeio_event_t event);
+
+void CubeIO_UpdateSafetyOptions(void);
+
 // Sync
-static int timer_id;
-static int timer_status;
 static SemaphoreHandle_t iordy_semaphore;
 static uint32_t attempt;
+static TickType_t now;
+static TickType_t last_rc_read_ms;
+static TickType_t last_status_read_ms;
+static TickType_t last_servo_read_ms;
+static TickType_t last_safety_ms;
 
 // Public functions
 int CubeIO_Init(usart_cfg_t *usart) {
@@ -51,8 +66,6 @@ int CubeIO_Init(usart_cfg_t *usart) {
 
     if(iordy_semaphore == NULL) iordy_semaphore = xSemaphoreCreateBinary();
 
-    timer_id = Timer_Create("CubeIO_Timer");
-
     xSemaphoreGive(iordy_semaphore);
     cubeio_state = CubeIO_RESET;
 
@@ -60,25 +73,23 @@ int CubeIO_Init(usart_cfg_t *usart) {
 }
 
 void CubeIO_Run(void) {
-    int rv;
-
     switch(cubeio_state) {
 
     case CubeIO_RESET:
-        vTaskDelay(2000);
+        vTaskDelay(100);
         cubeio_state = CubeIO_CONF;
 
         // Check protocol version
-        rv = CubeIO_ReadRegs(PAGE_CONFIG, 
-                             0, 
-                             sizeof(config) / 2, 
-                             (uint16_t *)&config);
+        CubeIO_ReadRegs(PAGE_CONFIG, 
+                        0, 
+                        sizeof(cubeio_config) / 2, 
+                        (uint16_t *)&cubeio_config);
 
-        if(config.protocol_version != PROTOCOL_VERSION ||
-           config.protocol_version2 != PROTOCOL_VERSION2) {
+        if(cubeio_config.protocol_version != PROTOCOL_VERSION ||
+           cubeio_config.protocol_version2 != PROTOCOL_VERSION2) {
             LOG_ERROR(device, "Wrong protocols versions: %lu, %lu", 
-                              config.protocol_version, 
-                              config.protocol_version2);
+                              cubeio_config.protocol_version, 
+                              cubeio_config.protocol_version2);
             attempt++;
             if(attempt > 5) {
                 LOG_ERROR(device, "Fatal error");
@@ -88,7 +99,7 @@ void CubeIO_Run(void) {
         attempt = 0;
 
         // Set ARM
-        if(CubeIO_SetClearReg(PAGE_SETUP, PAGE_REG_SETUP_ALTRATE, 
+        if(CubeIO_SetClearReg(PAGE_SETUP, PAGE_REG_SETUP_ARMING, 
                               P_SETUP_ARMING_IO_ARM_OK |
                               P_SETUP_ARMING_FMU_ARMED |
                               P_SETUP_ARMING_RC_HANDLING_DISABLED, 0)) {
@@ -99,11 +110,78 @@ void CubeIO_Run(void) {
         break;
 
     case CubeIO_CONF:
-        // There will be a default configuration
+        // TODO: There will be a default configuration
         cubeio_state = CubeIO_OPERATION;
         break;
 
     case CubeIO_OPERATION:
+        now = xTaskGetTickCount() * portTICK_PERIOD_MS;
+
+        // Event handling
+        if(CubeIO_PopEvent(cubeio_eventmask, CubeIO_SET_PWM)) {
+            CubeIO_WriteRegs(PAGE_DIRECT_PWM, 0, 8, cubeio_pwm_out.pwm);
+        }
+        if(CubeIO_PopEvent(cubeio_eventmask, CubeIO_SET_FAILSAFE_PWM)) {
+            CubeIO_WriteRegs(PAGE_FAILSAFE_PWM, 0, MAX_CHANNELS, 
+                             cubeio_pwm_out.failsafe_pwm);
+        }
+        if(CubeIO_PopEvent(cubeio_eventmask, CubeIO_FORCE_SAFETY_OFF)) {
+            CubeIO_WriteReg(PAGE_SETUP, PAGE_REG_SETUP_FORCE_SAFETY_OFF, 
+                            FORCE_SAFETY_MAGIC);
+        }
+        if(CubeIO_PopEvent(cubeio_eventmask, CubeIO_FORCE_SAFETY_ON)) {
+            CubeIO_WriteReg(PAGE_SETUP, PAGE_REG_SETUP_FORCE_SAFETY_ON, 
+                            FORCE_SAFETY_MAGIC);
+        }
+        if(CubeIO_PopEvent(cubeio_eventmask, CubeIO_SET_RATES)) {
+            CubeIO_WriteReg(PAGE_SETUP, PAGE_REG_SETUP_ALTRATE, 
+                            cubeio_rate.freq);
+            CubeIO_WriteReg(PAGE_SETUP, PAGE_REG_SETUP_PWM_RATE_MASK, 
+                            cubeio_rate.chmask);
+        }
+        if(CubeIO_PopEvent(cubeio_eventmask, CubeIO_SET_IMU_HEATER_DUTY)) {
+            CubeIO_WriteReg(PAGE_SETUP, PAGE_REG_SETUP_HEATER_DUTY_CYCLE, 
+                            cubeio_pwm_out.heater_duty);
+        }
+        if(CubeIO_PopEvent(cubeio_eventmask, CubeIO_SET_DEFAULT_RATE)) {
+            CubeIO_WriteReg(PAGE_SETUP, PAGE_REG_SETUP_DEFAULTRATE, 
+                            cubeio_rate.default_freq);
+        }
+        if(CubeIO_PopEvent(cubeio_eventmask, CubeIO_BRUSHED_ON)) {
+            CubeIO_SetClearReg(PAGE_SETUP, PAGE_REG_SETUP_FEATURES, 
+                               P_SETUP_FEATURES_BRUSHED, 0);
+        }
+        if(CubeIO_PopEvent(cubeio_eventmask, CubeIO_ONESHOT_ON)) {
+            CubeIO_SetClearReg(PAGE_SETUP, PAGE_REG_SETUP_FEATURES, 
+                               P_SETUP_FEATURES_ONESHOT, 0);
+        }
+        if(CubeIO_PopEvent(cubeio_eventmask, CubeIO_SET_SAFETY_MASK)) {
+            CubeIO_WriteReg(PAGE_SETUP, PAGE_REG_SETUP_IGNORE_SAFETY, 
+                            cubeio_pwm_out.safety_mask);
+        }
+        // TODO: Add MIXING event for FMU dying case
+
+        // Routine
+        if(now - last_rc_read_ms > 20) {
+            CubeIO_ReadRegs(PAGE_RAW_RCIN, 0, sizeof(cubeio_page_rc_input) / 2,
+                            (uint16_t *)&cubeio_page_rc_input);
+            last_rc_read_ms = xTaskGetTickCount() * portTICK_PERIOD_MS;
+        }
+        if(now - last_status_read_ms > 50) {
+            CubeIO_ReadRegs(PAGE_STATUS, 0, sizeof(cubeio_page_reg_status) / 2, 
+                                (uint16_t *)&cubeio_page_reg_status);
+            last_status_read_ms = xTaskGetTickCount() * portTICK_PERIOD_MS;
+        }
+        if(now - last_servo_read_ms > 50) {
+            CubeIO_ReadRegs(PAGE_SERVOS, 0, cubeio_pwm_out.num_channels, 
+                            (uint16_t *)&cubeio_pwm_in);
+            last_servo_read_ms = xTaskGetTickCount() * portTICK_PERIOD_MS;
+        }
+        if(now - last_safety_ms > 1000) {
+            CubeIO_UpdateSafetyOptions();
+            last_safety_ms = xTaskGetTickCount() * portTICK_PERIOD_MS;
+        }
+
         xSemaphoreGive(iordy_semaphore);
         break;
 
@@ -126,6 +204,106 @@ int CubeIO_Ready(void) {
     return 1;
 }
 
+void CubeIO_SetPWM(uint8_t channels, uint16_t *pwm) {
+    if(channels < 1) return;
+    cubeio_pwm_out.num_channels = MIN(channels, MAX_CHANNELS);
+    memcpy(cubeio_pwm_out.pwm, pwm, 2 * channels);
+    CubeIO_PushEvent(cubeio_eventmask, CubeIO_SET_PWM);
+}
+
+void CubeIO_SetPWMCh(uint8_t channel, uint16_t pwm) {
+    if(channel >= MAX_CHANNELS) return;
+    cubeio_pwm_out.pwm[channel] = pwm;
+    CubeIO_PushEvent(cubeio_eventmask, CubeIO_SET_PWM);    
+}
+
+uint16_t CubeIO_GetPWMCh(uint8_t channel) {
+    if(channel >= MAX_CHANNELS) return 0xFFFF;
+    return cubeio_pwm_out.pwm[channel];
+}
+
+void CubeIO_SetFailsafePWM(uint8_t channels, uint16_t pwm) {
+    if(channels < 1) return;
+    channels = MIN(channels, MAX_CHANNELS);
+    for(int i = 0; i < channels; i++) {
+        cubeio_pwm_out.failsafe_pwm[i] = pwm;
+    }
+    CubeIO_PushEvent(cubeio_eventmask, CubeIO_SET_FAILSAFE_PWM);    
+}
+
+void CubeIO_SetSafetyMask(uint16_t safety_mask) {
+    if(cubeio_pwm_out.safety_mask != safety_mask) {
+        cubeio_pwm_out.safety_mask = safety_mask;
+    }
+    CubeIO_PushEvent(cubeio_eventmask, CubeIO_SET_SAFETY_MASK);
+}
+
+void CubeIO_SetFreq(uint16_t chmask, uint16_t freq) {
+    const uint8_t ch_masks[3] = {0x03, 0x0C, 0xF0};
+    for(size_t i = 0; i < (sizeof(ch_masks) / sizeof(ch_masks[0])); i++) {
+        if(chmask & ch_masks[i]) {
+            chmask |= ch_masks[i];
+        }
+    }
+    cubeio_rate.freq = freq;
+    cubeio_rate.chmask = chmask;
+    CubeIO_PushEvent(cubeio_eventmask, CubeIO_SET_RATES);
+}
+
+uint16_t CubeIO_GetFreq(uint16_t channel) {
+    if(1 << channel & cubeio_rate.chmask) {
+        return cubeio_rate.freq;
+    }
+    return cubeio_rate.default_freq;
+}
+
+void CubeIO_SetDefaultFreq(uint16_t freq) {
+    if(cubeio_rate.default_freq != freq) {
+        cubeio_rate.default_freq = freq;
+        CubeIO_PushEvent(cubeio_eventmask, CubeIO_SET_DEFAULT_RATE);
+    }
+}
+
+void CubeIO_SetOneshotMode(void) {
+    cubeio_rate.oneshot_enabled = 1;
+    CubeIO_PushEvent(cubeio_eventmask, CubeIO_ONESHOT_ON);
+}
+
+void CubeIO_SetBrushedMode(void) {
+    cubeio_rate.brushed_enabled = 1;
+    CubeIO_PushEvent(cubeio_eventmask, CubeIO_BRUSHED_ON);
+}
+
+int CubeIO_GetSafetySwitchState(void) {
+    return (cubeio_page_reg_status.flag_safety_off ? 
+            ARMED : 
+            DISARMED);
+}
+
+void CubeIO_ForceSafetyOn(void) {
+    cubeio_page_reg_status.safety_forced_off = SAFETY_ON;
+    CubeIO_PushEvent(cubeio_eventmask, CubeIO_FORCE_SAFETY_ON);
+}
+
+void CubeIO_ForceSafetyOff(void) {
+    cubeio_page_reg_status.safety_forced_off = SAFETY_OFF;
+    CubeIO_PushEvent(cubeio_eventmask, CubeIO_FORCE_SAFETY_OFF);
+}
+
+void CubeIO_SetIMUHeaterDuty(uint8_t duty) {
+    cubeio_pwm_out.heater_duty = duty;
+    CubeIO_PushEvent(cubeio_eventmask, CubeIO_SET_IMU_HEATER_DUTY);
+}
+
+int16_t CubeIO_GetRSSI(void) {
+    return cubeio_page_rc_input.rssi;
+}
+
+uint16_t CubeIO_GetRCCh(uint8_t channel) {
+    if(channel >= MAX_CHANNELS) return 0xFFFF;
+    return cubeio_page_rc_input.channel[channel];
+}
+
 // Private functions
 static int CubeIO_WriteRegs(uint8_t page, 
                             uint8_t offset, 
@@ -135,7 +313,8 @@ static int CubeIO_WriteRegs(uint8_t page,
     cubeio_packet_t tx_pkt = {};
     cubeio_packet_t rx_pkt = {};
 
-    tx_pkt.count_code = count | PKT_CODE_WRITE;
+    tx_pkt.count = count;
+    tx_pkt.code = PKT_CODE_WRITE;
     tx_pkt.page = page;
     tx_pkt.offset = offset;
     tx_pkt.crc = 0;
@@ -176,7 +355,8 @@ static int CubeIO_ReadRegs(uint8_t page,
     cubeio_packet_t tx_pkt = {};
     cubeio_packet_t rx_pkt = {};
 
-    tx_pkt.count_code = count | PKT_CODE_READ;
+    tx_pkt.count = count;
+    tx_pkt.code = PKT_CODE_READ;
     tx_pkt.page = page;
     tx_pkt.offset = offset;
     tx_pkt.crc = 0;
@@ -230,4 +410,29 @@ static int CubeIO_SetClearReg(uint8_t page,
     if(CubeIO_ReadRegs(page, offset, 1, &reg)) return -1;
     reg = (reg & ~clearbits) | setbits;
     return CubeIO_WriteReg(page, offset, reg);
+}
+
+static int CubeIO_PopEvent(cubeio_eventmask_t eventmask, 
+                           enum cubeio_event_t event) {
+    if(eventmask & (1 << event)) {
+        eventmask &= ~(1 << event);
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+static void CubeIO_PushEvent(cubeio_eventmask_t eventmask, 
+                            enum cubeio_event_t event) { 
+    eventmask |= (1 << event);
+}
+
+void CubeIO_UpdateSafetyOptions(void) {
+    uint16_t reg = 0;
+    // TODO: there will check the safety board button
+    reg = P_SETUP_ARMING_SAFETY_DISABLE_OFF;
+    uint16_t mask = (P_SETUP_ARMING_SAFETY_DISABLE_OFF | 
+                     P_SETUP_ARMING_SAFETY_DISABLE_ON);
+    CubeIO_SetClearReg(PAGE_SETUP, PAGE_REG_SETUP_ARMING,
+                       reg & mask, (~reg) & mask);
 }

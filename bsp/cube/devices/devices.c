@@ -30,8 +30,8 @@ int Devices_Init(void) {
     Module_Start("IO",
                  IO_Init,
                  IO_Update,
-                 5,
-                 10);
+                 2,
+                 11);
 
     return 0;
 }

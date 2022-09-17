@@ -82,10 +82,10 @@ void ICM20649_Run(void) {
     case ICM20649_RESET:
         timer_status = Timer_Start(timer_id, 100);
 
-        if(timer_status == TIMER_START) {
+        if(timer_status == TIMER_STARTED) {
             ICM20649_WriteReg(BANK_0, PWR_MGMT_1, DEVICE_RESET);
-        } else if(timer_status == TIMER_WORK) {
-        } else if(timer_status == TIMER_END) {
+        } else if(timer_status == TIMER_COUNTING) {
+        } else if(timer_status == TIMER_FINISHED) {
             icm20649_state = ICM20649_RESET_WAIT;
         }
 
@@ -94,7 +94,7 @@ void ICM20649_Run(void) {
     case ICM20649_RESET_WAIT:
         timer_status = Timer_Start(timer_id, 100);
     
-        if(timer_status == TIMER_START) {
+        if(timer_status == TIMER_STARTED) {
             if((ICM20649_ReadReg(BANK_0, WHO_AM_I) == WHOAMI) && 
                (ICM20649_ReadReg(BANK_0, PWR_MGMT_1) == 0x41)) {
                 ICM20649_WriteReg(BANK_0, PWR_MGMT_1, CLKSEL_0);
@@ -110,8 +110,8 @@ void ICM20649_Run(void) {
                     attempt = 0;
                 }
             }
-        } else if(timer_status == TIMER_WORK) {
-        } else if(timer_status == TIMER_END) {
+        } else if(timer_status == TIMER_COUNTING) {
+        } else if(timer_status == TIMER_FINISHED) {
             icm20649_state = ICM20649_CONF;
             LOG_DEBUG(device, "Device available");
         }

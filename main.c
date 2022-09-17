@@ -52,7 +52,7 @@ void *ctlst(void *param) {
     int rv = 0;
     int fd;
 
-    pthread_setname_np(__func__);
+    pthread_setname_np((char *)__func__);
 
     CLI();
 

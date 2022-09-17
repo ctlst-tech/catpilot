@@ -6,4 +6,12 @@
     "cortex-debug.armToolchainPath": "/usr/bin",
     "cortex-debug.openocdPath": "/usr/local/bin/openocd",
     "cortex-debug.gdbPath": "/usr/bin/gdb-multiarch",
+    "files.associations": {
+        "random": "c",
+        "atomic": "cpp",
+        "cstdint": "cpp",
+        "module.h": "c",
+        "devices.h": "c",
+        "stm32_base.h": "c"
+    },
 }
