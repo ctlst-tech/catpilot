@@ -93,6 +93,8 @@ void *ctlst(void *param) {
         LOG_ERROR("SDMMC", "Mount error");
     }
 
+    while(1) vTaskDelay(1000);
+
     if (res == FR_OK) {
         swsys_rv_t swsys_rv = swsys_load("/fs/config/mvp_swsys.xml", "/fs/config", &sys);
         if (swsys_rv == swsys_e_ok) {

@@ -189,6 +189,9 @@ void CubeIO_Run(void) {
             last_safety_ms = xTaskGetTickCount() * portTICK_PERIOD_MS;
         }
 
+        uint32_t rc_protocol = 1;
+        CubeIO_WriteRegs(PAGE_SETUP, PAGE_REG_SETUP_RC_PROTOCOLS, 2, (uint16_t *)&rc_protocol);
+
         xSemaphoreGive(iordy_semaphore);
         break;
 
