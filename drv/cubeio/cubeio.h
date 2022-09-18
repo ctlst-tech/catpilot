@@ -18,6 +18,7 @@ enum cubeio_event_t {
     CubeIO_SET_FAILSAFE_PWM,
     CubeIO_FORCE_SAFETY_OFF,
     CubeIO_FORCE_SAFETY_ON,
+    CubeIO_ENABLE_SBUS_OUT,
     CubeIO_ONESHOT_ON,
     CubeIO_BRUSHED_ON,
     CubeIO_SET_RATES,
@@ -50,3 +51,4 @@ void CubeIO_ForceSafetyOff(void);
 void CubeIO_SetIMUHeaterDuty(uint8_t duty);
 int16_t CubeIO_GetRSSI(void);
 uint16_t CubeIO_GetRCCh(uint8_t channel);
+void CubeIO_EnableSBUSOut(uint16_t freq);

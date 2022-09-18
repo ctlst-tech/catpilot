@@ -41,10 +41,10 @@ static int CubeIO_SetClearReg(uint8_t page,
                               uint16_t setbits, 
                               uint16_t clearbits);
 
-static int CubeIO_PopEvent(cubeio_eventmask_t eventmask, 
+static int CubeIO_PopEvent(cubeio_eventmask_t *eventmask, 
                            enum cubeio_event_t event);
 
-static void CubeIO_PushEvent(cubeio_eventmask_t eventmask, 
+static void CubeIO_PushEvent(cubeio_eventmask_t *eventmask, 
                              enum cubeio_event_t event);
 
 void CubeIO_UpdateSafetyOptions(void);
@@ -118,44 +118,51 @@ void CubeIO_Run(void) {
         now = xTaskGetTickCount() * portTICK_PERIOD_MS;
 
         // Event handling
-        if(CubeIO_PopEvent(cubeio_eventmask, CubeIO_SET_PWM)) {
-            CubeIO_WriteRegs(PAGE_DIRECT_PWM, 0, 8, cubeio_pwm_out.pwm);
+        if(CubeIO_PopEvent(&cubeio_eventmask, CubeIO_SET_PWM)) {
+            CubeIO_WriteRegs(PAGE_DIRECT_PWM, 0, cubeio_pwm_out.num_channels, 
+                             cubeio_pwm_out.pwm);
         }
-        if(CubeIO_PopEvent(cubeio_eventmask, CubeIO_SET_FAILSAFE_PWM)) {
+        if(CubeIO_PopEvent(&cubeio_eventmask, CubeIO_SET_FAILSAFE_PWM)) {
             CubeIO_WriteRegs(PAGE_FAILSAFE_PWM, 0, MAX_CHANNELS, 
                              cubeio_pwm_out.failsafe_pwm);
         }
-        if(CubeIO_PopEvent(cubeio_eventmask, CubeIO_FORCE_SAFETY_OFF)) {
+        if(CubeIO_PopEvent(&cubeio_eventmask, CubeIO_FORCE_SAFETY_OFF)) {
             CubeIO_WriteReg(PAGE_SETUP, PAGE_REG_SETUP_FORCE_SAFETY_OFF, 
                             FORCE_SAFETY_MAGIC);
         }
-        if(CubeIO_PopEvent(cubeio_eventmask, CubeIO_FORCE_SAFETY_ON)) {
+        if(CubeIO_PopEvent(&cubeio_eventmask, CubeIO_FORCE_SAFETY_ON)) {
             CubeIO_WriteReg(PAGE_SETUP, PAGE_REG_SETUP_FORCE_SAFETY_ON, 
-                            FORCE_SAFETY_MAGIC);
+                FORCE_SAFETY_MAGIC);
         }
-        if(CubeIO_PopEvent(cubeio_eventmask, CubeIO_SET_RATES)) {
+        if(CubeIO_PopEvent(&cubeio_eventmask, CubeIO_ENABLE_SBUS_OUT)) {
+            CubeIO_WriteReg(PAGE_SETUP, PAGE_REG_SETUP_SBUS_RATE, 
+                            cubeio_rate.sbus_rate_hz);
+            CubeIO_SetClearReg(PAGE_SETUP, PAGE_REG_SETUP_FEATURES, 
+                               P_SETUP_FEATURES_SBUS1_OUT, 0);
+        }
+        if(CubeIO_PopEvent(&cubeio_eventmask, CubeIO_SET_RATES)) {
             CubeIO_WriteReg(PAGE_SETUP, PAGE_REG_SETUP_ALTRATE, 
                             cubeio_rate.freq);
             CubeIO_WriteReg(PAGE_SETUP, PAGE_REG_SETUP_PWM_RATE_MASK, 
                             cubeio_rate.chmask);
         }
-        if(CubeIO_PopEvent(cubeio_eventmask, CubeIO_SET_IMU_HEATER_DUTY)) {
+        if(CubeIO_PopEvent(&cubeio_eventmask, CubeIO_SET_IMU_HEATER_DUTY)) {
             CubeIO_WriteReg(PAGE_SETUP, PAGE_REG_SETUP_HEATER_DUTY_CYCLE, 
                             cubeio_pwm_out.heater_duty);
         }
-        if(CubeIO_PopEvent(cubeio_eventmask, CubeIO_SET_DEFAULT_RATE)) {
+        if(CubeIO_PopEvent(&cubeio_eventmask, CubeIO_SET_DEFAULT_RATE)) {
             CubeIO_WriteReg(PAGE_SETUP, PAGE_REG_SETUP_DEFAULTRATE, 
                             cubeio_rate.default_freq);
         }
-        if(CubeIO_PopEvent(cubeio_eventmask, CubeIO_BRUSHED_ON)) {
+        if(CubeIO_PopEvent(&cubeio_eventmask, CubeIO_BRUSHED_ON)) {
             CubeIO_SetClearReg(PAGE_SETUP, PAGE_REG_SETUP_FEATURES, 
                                P_SETUP_FEATURES_BRUSHED, 0);
         }
-        if(CubeIO_PopEvent(cubeio_eventmask, CubeIO_ONESHOT_ON)) {
+        if(CubeIO_PopEvent(&cubeio_eventmask, CubeIO_ONESHOT_ON)) {
             CubeIO_SetClearReg(PAGE_SETUP, PAGE_REG_SETUP_FEATURES, 
                                P_SETUP_FEATURES_ONESHOT, 0);
         }
-        if(CubeIO_PopEvent(cubeio_eventmask, CubeIO_SET_SAFETY_MASK)) {
+        if(CubeIO_PopEvent(&cubeio_eventmask, CubeIO_SET_SAFETY_MASK)) {
             CubeIO_WriteReg(PAGE_SETUP, PAGE_REG_SETUP_IGNORE_SAFETY, 
                             cubeio_pwm_out.safety_mask);
         }
@@ -208,18 +215,18 @@ void CubeIO_SetPWM(uint8_t channels, uint16_t *pwm) {
     if(channels < 1) return;
     cubeio_pwm_out.num_channels = MIN(channels, MAX_CHANNELS);
     memcpy(cubeio_pwm_out.pwm, pwm, 2 * channels);
-    CubeIO_PushEvent(cubeio_eventmask, CubeIO_SET_PWM);
+    CubeIO_PushEvent(&cubeio_eventmask, CubeIO_SET_PWM);
 }
 
 void CubeIO_SetPWMCh(uint8_t channel, uint16_t pwm) {
     if(channel >= MAX_CHANNELS) return;
     cubeio_pwm_out.pwm[channel] = pwm;
-    CubeIO_PushEvent(cubeio_eventmask, CubeIO_SET_PWM);    
+    CubeIO_PushEvent(&cubeio_eventmask, CubeIO_SET_PWM);    
 }
 
 uint16_t CubeIO_GetPWMCh(uint8_t channel) {
     if(channel >= MAX_CHANNELS) return 0xFFFF;
-    return cubeio_pwm_out.pwm[channel];
+    return cubeio_pwm_in.pwm[channel];
 }
 
 void CubeIO_SetFailsafePWM(uint8_t channels, uint16_t pwm) {
@@ -228,14 +235,14 @@ void CubeIO_SetFailsafePWM(uint8_t channels, uint16_t pwm) {
     for(int i = 0; i < channels; i++) {
         cubeio_pwm_out.failsafe_pwm[i] = pwm;
     }
-    CubeIO_PushEvent(cubeio_eventmask, CubeIO_SET_FAILSAFE_PWM);    
+    CubeIO_PushEvent(&cubeio_eventmask, CubeIO_SET_FAILSAFE_PWM);    
 }
 
 void CubeIO_SetSafetyMask(uint16_t safety_mask) {
     if(cubeio_pwm_out.safety_mask != safety_mask) {
         cubeio_pwm_out.safety_mask = safety_mask;
     }
-    CubeIO_PushEvent(cubeio_eventmask, CubeIO_SET_SAFETY_MASK);
+    CubeIO_PushEvent(&cubeio_eventmask, CubeIO_SET_SAFETY_MASK);
 }
 
 void CubeIO_SetFreq(uint16_t chmask, uint16_t freq) {
@@ -247,7 +254,7 @@ void CubeIO_SetFreq(uint16_t chmask, uint16_t freq) {
     }
     cubeio_rate.freq = freq;
     cubeio_rate.chmask = chmask;
-    CubeIO_PushEvent(cubeio_eventmask, CubeIO_SET_RATES);
+    CubeIO_PushEvent(&cubeio_eventmask, CubeIO_SET_RATES);
 }
 
 uint16_t CubeIO_GetFreq(uint16_t channel) {
@@ -260,18 +267,18 @@ uint16_t CubeIO_GetFreq(uint16_t channel) {
 void CubeIO_SetDefaultFreq(uint16_t freq) {
     if(cubeio_rate.default_freq != freq) {
         cubeio_rate.default_freq = freq;
-        CubeIO_PushEvent(cubeio_eventmask, CubeIO_SET_DEFAULT_RATE);
+        CubeIO_PushEvent(&cubeio_eventmask, CubeIO_SET_DEFAULT_RATE);
     }
 }
 
 void CubeIO_SetOneshotMode(void) {
     cubeio_rate.oneshot_enabled = 1;
-    CubeIO_PushEvent(cubeio_eventmask, CubeIO_ONESHOT_ON);
+    CubeIO_PushEvent(&cubeio_eventmask, CubeIO_ONESHOT_ON);
 }
 
 void CubeIO_SetBrushedMode(void) {
     cubeio_rate.brushed_enabled = 1;
-    CubeIO_PushEvent(cubeio_eventmask, CubeIO_BRUSHED_ON);
+    CubeIO_PushEvent(&cubeio_eventmask, CubeIO_BRUSHED_ON);
 }
 
 int CubeIO_GetSafetySwitchState(void) {
@@ -282,17 +289,17 @@ int CubeIO_GetSafetySwitchState(void) {
 
 void CubeIO_ForceSafetyOn(void) {
     cubeio_page_reg_status.safety_forced_off = SAFETY_ON;
-    CubeIO_PushEvent(cubeio_eventmask, CubeIO_FORCE_SAFETY_ON);
+    CubeIO_PushEvent(&cubeio_eventmask, CubeIO_FORCE_SAFETY_ON);
 }
 
 void CubeIO_ForceSafetyOff(void) {
     cubeio_page_reg_status.safety_forced_off = SAFETY_OFF;
-    CubeIO_PushEvent(cubeio_eventmask, CubeIO_FORCE_SAFETY_OFF);
+    CubeIO_PushEvent(&cubeio_eventmask, CubeIO_FORCE_SAFETY_OFF);
 }
 
 void CubeIO_SetIMUHeaterDuty(uint8_t duty) {
     cubeio_pwm_out.heater_duty = duty;
-    CubeIO_PushEvent(cubeio_eventmask, CubeIO_SET_IMU_HEATER_DUTY);
+    CubeIO_PushEvent(&cubeio_eventmask, CubeIO_SET_IMU_HEATER_DUTY);
 }
 
 int16_t CubeIO_GetRSSI(void) {
@@ -302,6 +309,11 @@ int16_t CubeIO_GetRSSI(void) {
 uint16_t CubeIO_GetRCCh(uint8_t channel) {
     if(channel >= MAX_CHANNELS) return 0xFFFF;
     return cubeio_page_rc_input.channel[channel];
+}
+
+void CubeIO_EnableSBUSOut(uint16_t freq) {
+    cubeio_rate.sbus_rate_hz = freq;
+    CubeIO_PushEvent(&cubeio_eventmask, CubeIO_ENABLE_SBUS_OUT);
 }
 
 // Private functions
@@ -335,7 +347,9 @@ static int CubeIO_WriteRegs(uint8_t page,
             rv = EINVAL;
             continue;
         }
-        if(crc_packet(&rx_pkt) != rx_pkt.crc) {
+        uint8_t got_crc = rx_pkt.crc;
+        rx_pkt.crc = 0;
+        if(crc_packet(&rx_pkt) != got_crc) {
             LOG_ERROR(device, "Bad crc, 0x%X, 0x%X, %d",
                         page, offset, count);
             rv = EPROTO;
@@ -377,13 +391,15 @@ static int CubeIO_ReadRegs(uint8_t page,
             rv = EINVAL;
             continue;
         }
-        if(get_pkt_size(&rx_pkt) != count) {
+        if(get_pkt_count(&rx_pkt) != count) {
             LOG_ERROR(device, "Bad count, %d, %d",
                       count, get_pkt_size(&rx_pkt));
             rv = EINVAL;
             continue;
         }
-        if(crc_packet(&rx_pkt) != rx_pkt.crc) {
+        uint8_t got_crc = rx_pkt.crc;
+        rx_pkt.crc = 0;
+        if(crc_packet(&rx_pkt) != got_crc) {
             LOG_ERROR(device, "Bad crc, 0x%X, 0x%X, %d",
                         page, offset, count);
             rv = EPROTO;
@@ -412,19 +428,19 @@ static int CubeIO_SetClearReg(uint8_t page,
     return CubeIO_WriteReg(page, offset, reg);
 }
 
-static int CubeIO_PopEvent(cubeio_eventmask_t eventmask, 
+static int CubeIO_PopEvent(cubeio_eventmask_t *eventmask, 
                            enum cubeio_event_t event) {
-    if(eventmask & (1 << event)) {
-        eventmask &= ~(1 << event);
+    if(*(eventmask) & (1 << event)) {
+        *(eventmask) &= ~(1 << event);
         return 1;
     } else {
         return 0;
     }
 }
 
-static void CubeIO_PushEvent(cubeio_eventmask_t eventmask, 
+static void CubeIO_PushEvent(cubeio_eventmask_t *eventmask, 
                             enum cubeio_event_t event) { 
-    eventmask |= (1 << event);
+    *(eventmask) |= (1 << event);
 }
 
 void CubeIO_UpdateSafetyOptions(void) {
