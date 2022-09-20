@@ -79,9 +79,10 @@
 - [ ] Primary Cube Orange testing
   - [x] SD card
   - [x] USART
-  - [ ] IMU
-  - [ ] IO
+  - [x] IMU
+  - [x] IO
   - [ ] MAG
+  - [ ] BAR
 - [ ] Add USB COM/Strorage driver
 - [ ] Add CAN driver
 - [ ] Merge px4 and cube periph drivers

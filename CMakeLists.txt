@@ -103,6 +103,7 @@ if (TYPE STREQUAL "PX4" OR TYPE STREQUAL "Cube")
         ${DIR_DRV}/px4io
         ${DIR_DRV}/cubeio
         ${DIR_DRV}/cli
+        ${DIR_DRV}/ms5611
 
         ${DIR_IF}
         ${DIR_DEV}
