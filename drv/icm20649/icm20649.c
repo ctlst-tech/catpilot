@@ -26,6 +26,7 @@ static int ICM20649_Probe(void);
 static void ICM20649_Statistics(void);
 static void ICM20649_FIFOCount(void);
 static int ICM20649_FIFORead(void);
+static int ICM20649_SampleRead(void);
 static void ICM20649_FIFOReset(void);
 static void ICM20649_AccelProcess(void);
 static void ICM20649_GyroProcess(void);
@@ -122,8 +123,8 @@ void ICM20649_Run(void) {
         if(ICM20649_Configure()) {
             ICM20649_FIFOReset();
             icm20649_last_sample = xTaskGetTickCount();
-            ICM20649_FIFOCount();
-            ICM20649_FIFORead();
+            // ICM20649_FIFOCount();
+            // ICM20649_FIFORead();
             LOG_DEBUG(device, "Device configured");
             icm20649_state = ICM20649_FIFO_READ;
         } else {
@@ -142,8 +143,9 @@ void ICM20649_Run(void) {
         if(icm20649_cfg.enable_drdy) {
             xSemaphoreTake(drdy_semaphore, portMAX_DELAY);
         }
-        ICM20649_FIFOCount();
-        ICM20649_FIFORead();
+        // ICM20649_FIFOCount();
+        // ICM20649_FIFORead();
+        ICM20649_SampleRead();
         icm20649_fifo.imu_dt = xTaskGetTickCount() - icm20649_last_sample;
         icm20649_fifo.samples = icm20649_FIFOParam.samples;
         icm20649_last_sample = xTaskGetTickCount();
@@ -366,6 +368,7 @@ static void ICM20649_FIFOCount(void) {
                         (uint8_t *)&icm20649_FIFOBuffer,
                         3);
     ICM20649_ChipDeselection();
+
     icm20649_FIFOParam.bytes = msblsb16(icm20649_FIFOBuffer.COUNTH, 
                                         icm20649_FIFOBuffer.COUNTL);
     icm20649_FIFOParam.samples = icm20649_FIFOParam.bytes / sizeof(FIFO_t);
@@ -382,7 +385,31 @@ static int ICM20649_FIFORead(void) {
                         icm20649_FIFOParam.bytes + 3);
     ICM20649_ChipDeselection();
 
-    // ICM20649_TempProcess();
+    ICM20649_TempProcess();
+    ICM20649_AccelProcess();
+    ICM20649_GyroProcess();
+
+    if(icm20649_cfg.enable_drdy) {
+        EXTI_EnableIRQ(icm20649_cfg.drdy);
+    }
+
+    return 0;
+}
+
+static int ICM20649_SampleRead(void) {
+    icm20649_FIFOBuffer.COUNTL = ACCEL_XOUT_H | READ;
+    icm20649_FIFOParam.bytes = 13;
+    icm20649_FIFOParam.samples = 1;
+
+    ICM20649_ChipSelection();
+    ICM20649_SetBank(BANK_0);
+    SPI_TransmitReceive(icm20649_cfg.spi, 
+                (uint8_t *)&icm20649_FIFOBuffer.COUNTL, 
+                (uint8_t *)&icm20649_FIFOBuffer.COUNTL,
+                icm20649_FIFOParam.bytes);
+    ICM20649_ChipDeselection();
+
+    ICM20649_TempProcess();
     ICM20649_AccelProcess();
     ICM20649_GyroProcess();
 
@@ -399,12 +426,7 @@ static void ICM20649_FIFOReset(void) {
 }
 
 static void ICM20649_AccelProcess(void) {
-    static int count = 0;
-    static int count_err = 0;
     for (int i = 0; i < icm20649_FIFOParam.samples; i++) {
-        count++;
-        uint16_t accel_x_uint16 = msblsb16(icm20649_FIFOBuffer.buf[i].ACCEL_XOUT_H,
-                                    icm20649_FIFOBuffer.buf[i].ACCEL_XOUT_L);
         int16_t accel_x = msblsb16(icm20649_FIFOBuffer.buf[i].ACCEL_XOUT_H,
                                     icm20649_FIFOBuffer.buf[i].ACCEL_XOUT_L);
         int16_t accel_y = msblsb16(icm20649_FIFOBuffer.buf[i].ACCEL_YOUT_H,
@@ -420,6 +442,11 @@ static void ICM20649_AccelProcess(void) {
         ind += (fabs(icm20649_fifo.accel_x[i]) > 12 ? 1 : 0);
         ind += (fabs(icm20649_fifo.accel_y[i]) > 12 ? 1 : 0);
         ind += (fabs(icm20649_fifo.accel_z[i]) > 12 ? 1 : 0);
+        if((fabs(icm20649_fifo.accel_x[i]) > 10) ||
+        (fabs(icm20649_fifo.accel_y[i]) > 10) ||
+        (fabs(icm20649_fifo.accel_z[i]) > 10)) {
+            ind += 0;
+        }
     }
 }
 
@@ -440,6 +467,11 @@ static void ICM20649_GyroProcess(void) {
         ind += (fabs(icm20649_fifo.gyro_x[i]) > 10 ? 1 : 0);
         ind += (fabs(icm20649_fifo.gyro_y[i]) > 10 ? 1 : 0);
         ind += (fabs(icm20649_fifo.gyro_z[i]) > 10 ? 1 : 0);
+        if((fabs(icm20649_fifo.gyro_x[i]) > 10) ||
+        (fabs(icm20649_fifo.gyro_y[i]) > 10) ||
+        (fabs(icm20649_fifo.gyro_z[i]) > 10)) {
+            ind += 0;
+        }
     }
 }
 

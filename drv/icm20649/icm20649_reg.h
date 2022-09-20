@@ -14,6 +14,7 @@ type_t PWR_MGMT_1           = 0x06;
 type_t INT_PIN_CFG          = 0x0F;
 type_t INT_ENABLE_1         = 0x11;
 type_t I2C_MST_STATUS       = 0x17;
+type_t ACCEL_XOUT_H         = 0x2D;
 type_t TEMP_OUT_H           = 0x39;
 type_t TEMP_OUT_L           = 0x3A;
 type_t FIFO_EN_2            = 0x67;
@@ -139,19 +140,19 @@ typedef struct {
 } reg_cfg_t;
 
 static const reg_cfg_t bank_0_reg_cfg[BANK_0_SIZE_REG_CFG] = {
-    {USER_CTRL,          FIFO_EN | I2C_IF_DIS, DMP_EN | I2C_MST_EN},
-    {PWR_MGMT_1,         CLKSEL_0, DEVICE_RESET | SLEEP | LP_EN},
-    {INT_PIN_CFG,        INT1_ACTL, 0},
-    {INT_ENABLE_1,       RAW_DATA_0_RDY_EN, 0},
-    {FIFO_EN_2,          ACCEL_FIFO_EN | GYRO_Z_FIFO_EN | GYRO_Y_FIFO_EN | GYRO_X_FIFO_EN, TEMP_FIFO_EN},
-    {FIFO_MODE,          SNAPSHOT, 0},
+    {USER_CTRL,    FIFO_EN | I2C_IF_DIS, DMP_EN | I2C_MST_EN},
+    {PWR_MGMT_1,   CLKSEL_0, DEVICE_RESET | SLEEP | LP_EN},
+    {INT_PIN_CFG,  INT1_ACTL, 0},
+    {INT_ENABLE_1, RAW_DATA_0_RDY_EN, 0},
+    {FIFO_EN_2,    0, ACCEL_FIFO_EN | GYRO_Z_FIFO_EN | GYRO_Y_FIFO_EN | GYRO_X_FIFO_EN | TEMP_FIFO_EN},
+    {FIFO_MODE,    SNAPSHOT, 0},
 };
 
 // ACCEL 473 Hz -3dB BW, 1.125 kHz ODR rate
 // GYRO 361.4 Hz -3dB BW, 1.125 kHz ODR rate
 static const reg_cfg_t bank_2_reg_cfg[BANK_2_SIZE_REG_CFG] = {
-    {GYRO_CONFIG_1, GYRO_FS_SEL_4000_DPS | ACCEL_DLPFCFG | GYRO_FCHOICE, 0},
-    {ACCEL_CONFIG,  ACCEL_FS_SEL_30G | ACCEL_DLPFCFG | ACCEL_FCHOICE, 0},
+    {GYRO_CONFIG_1,      GYRO_FS_SEL_4000_DPS | ACCEL_DLPFCFG | GYRO_FCHOICE, 0},
+    {ACCEL_CONFIG,       ACCEL_FS_SEL_30G | ACCEL_DLPFCFG | ACCEL_FCHOICE, 0},
     {ACCEL_SMPLRT_DIV_1, 0, 0xFF},
     {ACCEL_SMPLRT_DIV_2, 0, 0xFF},
     {GYRO_SMPLRT_DIV,    0, 0xFF},
