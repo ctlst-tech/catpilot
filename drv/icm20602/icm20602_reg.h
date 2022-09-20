@@ -40,7 +40,7 @@ type_t ZA_OFFSET_L          = 0x7E;
 
 // CONFIG
 type_t FIFO_MODE            = BIT6;
-type_t DLPF_CFG_8KHZ        = 7;
+type_t DLPF_CFG_8KHZ        = BIT1 | BIT2;
 
 // GYRO_CONFIG
 type_t FS_SEL_250_DPS       = 0x00;
@@ -128,10 +128,10 @@ typedef struct {
     uint8_t clearbits;
 } reg_cfg_t;
 
-// ACCEL 420Hz -3db BW, 1Hz ODR rate
-// GYRO 250Hz -3db BW, 1Hz ODR rate
+// ACCEL 420Hz -3db BW, 1kHz ODR rate
+// GYRO 250Hz -3db BW, 1kHz ODR rate
 static const reg_cfg_t reg_cfg[SIZE_REG_CFG] = {
-    {CONFIG,        FIFO_MODE, DLPF_CFG_8KHZ},
+    {CONFIG,        FIFO_MODE | BIT0, DLPF_CFG_8KHZ},
     {GYRO_CONFIG,   FS_SEL_2000_DPS, FCHOICE_B_8KHZ},
     {ACCEL_CONFIG,  ACCEL_FS_SEL_16G, 0},
     {ACCEL_CONFIG2, A_DLPF_CFG_1KHZ, ACCEL_FCHOICE_B},

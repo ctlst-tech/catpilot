@@ -65,10 +65,10 @@ static int ind = 0;
 static void _debug(void) {
     static int all = 0;
     static int error = 0;
-    all += icm20602_fifo.samples * 6;
-    if(xTaskGetTickCount() > 60000) {
-            vTaskDelay(100);
-    }
+    all += icm20602_fifo.samples;
+    // if(xTaskGetTickCount() > 60000) {
+    //         vTaskDelay(100);
+    // }
 }
 
 void ICM20602_Run(void) {
@@ -139,9 +139,6 @@ void ICM20602_Run(void) {
     case ICM20602_FIFO_READ:
         if(drdy_semaphore != NULL) {
             xSemaphoreTake(drdy_semaphore, portMAX_DELAY);
-        } else {
-            // TODO: Add hardware timer
-            vTaskDelay(1);
         }
         ICM20602_FIFOCount();
         ICM20602_FIFORead();
@@ -380,9 +377,9 @@ static void ICM20602_AccelProcess(void) {
                                         icm20602_cfg.param.accel_scale;
         icm20602_fifo.accel_z[i] = ((accel_z == INT16_MIN) ? INT16_MAX : -accel_z) *
                                         icm20602_cfg.param.accel_scale;
-        ind += (fabs(icm20602_fifo.accel_x[i]) > 10 ? 1 : 0);
-        ind += (fabs(icm20602_fifo.accel_y[i]) > 10 ? 1 : 0);
-        ind += (fabs(icm20602_fifo.accel_z[i]) > 10 ? 1 : 0);
+        ind += (fabs(icm20602_fifo.accel_x[i]) > 12 ? 1 : 0);
+        ind += (fabs(icm20602_fifo.accel_y[i]) > 12 ? 1 : 0);
+        ind += (fabs(icm20602_fifo.accel_z[i]) > 12 ? 1 : 0);
     }
 
 }
