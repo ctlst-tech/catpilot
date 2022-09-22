@@ -17,23 +17,38 @@ type_t CMD_MS5611_CONVERT_D2_OSR1024    = 0x54;
 type_t CMD_MS5611_CONVERT_D2_OSR2048    = 0x56;
 type_t CMD_MS5611_CONVERT_D2_OSR4096    = 0x58;
 type_t CMD_MS5611_READ_ADC              = 0x00;
-type_t CMD_MS5611_PROM                  = 0xA0;
+type_t CMD_MS5611_PROM_ADDR             = 0xA0;
 
+#define MS5611_PROM_SIZE 8
+
+#pragma pack(push, 1)
 typedef struct {
+    uint16_t FACTORY;
     uint16_t C1;
     uint16_t C2;
     uint16_t C3;
     uint16_t C4;
     uint16_t C5;
     uint16_t C6;
-} ms5611_calib_t;
+    uint16_t SERIAL:12;
+    uint16_t CRC4:4;
+} ms5611_prom_t;
+#pragma pack(pop)
 
 typedef struct {
     uint32_t D1;
     uint32_t D2;
-} ms5611_data_t;
+} ms5611_raw_t;
 
 typedef struct {
     double T;
     double P;
 } ms5611_meas_t;
+
+typedef enum {
+    MS5611_READ_TEMP = 0,
+    MS5611_READ_PRES_1,
+    MS5611_READ_PRES_2,
+    MS5611_READ_PRES_3,
+    MS5611_READ_PRES_4,
+} ms5611_meas_state_t;

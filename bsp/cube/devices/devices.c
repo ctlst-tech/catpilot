@@ -21,6 +21,12 @@ int Devices_Init(void) {
                  2,
                  10);
 
+    Module_Start("BARO_INT",
+                 BARO_INT_Init,
+                 BARO_INT_Update,
+                 10,
+                 9);
+
     Module_Start("IMU_EXT",
                  IMU_EXT_Init,
                  IMU_EXT_Update,
