@@ -13,6 +13,7 @@ type_t PWR_MGMT_1           = 0x06;
 type_t INT_PIN_CFG          = 0x0F;
 type_t INT_ENABLE_1         = 0x11;
 type_t I2C_MST_STATUS       = 0x17;
+type_t ACCEL_XOUT_H         = 0x2D;
 type_t TEMP_OUT_H           = 0x39;
 type_t TEMP_OUT_L           = 0x3A;
 type_t EXT_SLV_SENS_DATA_00 = 0x3B;
@@ -215,7 +216,7 @@ static const reg_cfg_t bank_0_reg_cfg[BANK_0_SIZE_REG_CFG] = {
     {PWR_MGMT_1,   CLKSEL_0, DEVICE_RESET | SLEEP},
     {INT_PIN_CFG,  INT1_ACTL, 0},
     {INT_ENABLE_1, RAW_DATA_0_RDY_EN, 0},
-    {FIFO_EN_2,    ACCEL_FIFO_EN | GYRO_Z_FIFO_EN | GYRO_Y_FIFO_EN | GYRO_X_FIFO_EN, TEMP_FIFO_EN},
+    {FIFO_EN_2,    0, ACCEL_FIFO_EN | GYRO_Z_FIFO_EN | GYRO_Y_FIFO_EN | GYRO_X_FIFO_EN | TEMP_FIFO_EN},
     {FIFO_MODE,    SNAPSHOT, 0},
 };
 

@@ -140,7 +140,7 @@ typedef struct {
 } reg_cfg_t;
 
 static const reg_cfg_t bank_0_reg_cfg[BANK_0_SIZE_REG_CFG] = {
-    {USER_CTRL,    FIFO_EN | I2C_IF_DIS, DMP_EN | I2C_MST_EN},
+    {USER_CTRL,     I2C_IF_DIS, DMP_EN | I2C_MST_EN | FIFO_EN},
     {PWR_MGMT_1,   CLKSEL_0, DEVICE_RESET | SLEEP | LP_EN},
     {INT_PIN_CFG,  INT1_ACTL, 0},
     {INT_ENABLE_1, RAW_DATA_0_RDY_EN, 0},

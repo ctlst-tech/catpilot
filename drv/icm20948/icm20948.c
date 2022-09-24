@@ -24,6 +24,7 @@ static void ICM20948_AccelConfigure(void);
 static void ICM20948_GyroConfigure(void);
 static int ICM20948_Probe(void);
 static void ICM20948_Statistics(void);
+static int ICM20948_SampleRead(void);
 static void ICM20948_FIFOCount(void);
 static int ICM20948_FIFORead(void);
 static void ICM20948_FIFOReset(void);
@@ -77,7 +78,7 @@ static int ind = 0;
 static void _debug(void) {
     static int all = 0;
     static int error = 0;
-    all += icm20948_fifo.samples * 6;
+    all += icm20948_fifo.samples;
     if(xTaskGetTickCount() > 60000) {
             vTaskDelay(100);
     }
@@ -129,8 +130,8 @@ void ICM20948_Run(void) {
         if(ICM20948_Configure()) {
             ICM20948_FIFOReset();
             icm20948_last_sample = xTaskGetTickCount();
-            ICM20948_FIFOCount();
-            ICM20948_FIFORead();
+            // ICM20948_FIFOCount();
+            // ICM20948_FIFORead();
             LOG_DEBUG(device, "Device configured");
             icm20948_state = ICM20948_FIFO_READ;
         } else {
@@ -148,12 +149,10 @@ void ICM20948_Run(void) {
     case ICM20948_FIFO_READ:
         if(icm20948_cfg.enable_drdy) {
             xSemaphoreTake(drdy_semaphore, portMAX_DELAY);
-        } else {
-            // TODO: Add hardware timer
-            vTaskDelay(2);
         }
-        ICM20948_FIFOCount();
-        ICM20948_FIFORead();
+        // ICM20948_FIFOCount();
+        // ICM20948_FIFORead();
+        ICM20948_SampleRead();
         icm20948_fifo.imu_dt = xTaskGetTickCount() - icm20948_last_sample;
         icm20948_fifo.samples = icm20948_FIFOParam.samples;
         icm20948_last_sample = xTaskGetTickCount();
@@ -219,11 +218,11 @@ int ICM20948_MeasReady(void) {
 
 // Private functions
 static void ICM20948_ChipSelection(void) {
-    GPIO_Reset(icm20948_cfg.cs);
+    SPI_ChipSelect(icm20948_cfg.spi, icm20948_cfg.cs);
 }
 
 static void ICM20948_ChipDeselection(void) {
-    GPIO_Set(icm20948_cfg.cs);
+    SPI_ChipDeselect(icm20948_cfg.spi, icm20948_cfg.cs);
 }
 
 static void ICM20948_SetBank(uint8_t bank) {
@@ -232,7 +231,7 @@ static void ICM20948_SetBank(uint8_t bank) {
     data[0] = REG_BANK_SEL;
     data[1] = bank;
     if(bank != prev_bank) {
-        SPI_Transmit(icm20948_cfg.spi, data, sizeof(data));
+        SPI_TransmitReceive(icm20948_cfg.spi, data, data, sizeof(data));
     }
     prev_bank = bank;
 }
@@ -355,6 +354,8 @@ static int ICM20948_Configure(void) {
         }
     }
 
+    vTaskDelay(1);
+
     // Set scale and range for processing
     ICM20948_AccelConfigure();
     ICM20948_GyroConfigure();
@@ -368,7 +369,9 @@ static int ICM20948_Configure(void) {
 }
 
 static void ICM20948_AccelConfigure(void) {
-    const uint8_t ACCEL_FS_SEL = ICM20948_ReadReg(BANK_2, ACCEL_CONFIG) & (BIT1 | BIT2);
+    uint8_t ACCEL_FS_SEL = ICM20948_ReadReg(BANK_2, ACCEL_CONFIG) & (BIT1 | BIT2);
+    ACCEL_FS_SEL = ICM20948_ReadReg(BANK_2, ACCEL_CONFIG) & (BIT1 | BIT2);
+
 
     if(ACCEL_FS_SEL == ACCEL_FS_SEL_2G) {
         icm20948_cfg.param.accel_scale = (CONST_G / 16384.f);
@@ -386,7 +389,8 @@ static void ICM20948_AccelConfigure(void) {
 }
 
 static void ICM20948_GyroConfigure(void) {
-    const uint8_t FS_SEL = ICM20948_ReadReg(BANK_2, GYRO_CONFIG_1) & (BIT1 | BIT2);
+    uint8_t FS_SEL = ICM20948_ReadReg(BANK_2, GYRO_CONFIG_1) & (BIT1 | BIT2);
+    FS_SEL = ICM20948_ReadReg(BANK_2, GYRO_CONFIG_1) & (BIT1 | BIT2);
 
     if(FS_SEL == GYRO_FS_SEL_250_DPS) {
         icm20948_cfg.param.gyro_range = 250.f;
@@ -399,6 +403,30 @@ static void ICM20948_GyroConfigure(void) {
     }
 
     icm20948_cfg.param.gyro_scale = (icm20948_cfg.param.gyro_range / 32768.f);
+}
+
+static int ICM20948_SampleRead(void) {
+    icm20948_FIFOBuffer.COUNTL = ACCEL_XOUT_H | READ;
+    icm20948_FIFOParam.bytes = 13;
+    icm20948_FIFOParam.samples = 1;
+
+    ICM20948_ChipSelection();
+    ICM20948_SetBank(BANK_0);
+    SPI_TransmitReceive(icm20948_cfg.spi, 
+                (uint8_t *)&icm20948_FIFOBuffer.COUNTL, 
+                (uint8_t *)&icm20948_FIFOBuffer.COUNTL,
+                icm20948_FIFOParam.bytes);
+    ICM20948_ChipDeselection();
+
+    ICM20948_TempProcess();
+    ICM20948_AccelProcess();
+    ICM20948_GyroProcess();
+
+    if(icm20948_cfg.enable_drdy) {
+        EXTI_EnableIRQ(icm20948_cfg.drdy);
+    }
+
+    return 0;
 }
 
 static void ICM20948_FIFOCount(void) {
@@ -461,6 +489,7 @@ static void ICM20948_AccelProcess(void) {
         ind += (fabs(icm20948_fifo.accel_x[i]) > 10 ? 1 : 0);
         ind += (fabs(icm20948_fifo.accel_y[i]) > 10 ? 1 : 0);
         ind += (fabs(icm20948_fifo.accel_z[i]) > 10 ? 1 : 0);
+        ind += (fabs(icm20948_fifo.accel_z[i]) < 9 ? 1 : 0);
     }
 }
 

@@ -52,3 +52,27 @@ typedef enum {
     MS5611_READ_PRES_3,
     MS5611_READ_PRES_4,
 } ms5611_meas_state_t;
+
+uint16_t crc4(uint16_t *data) {
+    uint16_t n_rem = 0;
+    uint8_t n_bit;
+
+    for (uint8_t cnt = 0; cnt < 16; cnt++) {
+        /* uneven bytes */
+        if (cnt & 1) {
+            n_rem ^= (uint8_t)((data[cnt >> 1]) & 0x00FF);
+        } else {
+            n_rem ^= (uint8_t)(data[cnt >> 1] >> 8);
+        }
+
+        for (n_bit = 8; n_bit > 0; n_bit--) {
+            if (n_rem & 0x8000) {
+                n_rem = (n_rem << 1) ^ 0x3000;
+            } else {
+                n_rem = (n_rem << 1);
+            }
+        }
+    }
+
+    return (n_rem >> 12) & 0xF;
+}

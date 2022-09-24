@@ -150,7 +150,6 @@ void ICM20602_Run(void) {
         break;
 
     case ICM20602_FAIL:
-        vTaskDelay(1000);
         break;
     }
 }
@@ -208,11 +207,11 @@ int ICM20602_MeasReady(void) {
 
 // Private functions
 static void ICM20602_ChipSelection(void) {
-    GPIO_Reset(icm20602_cfg.cs);
+    SPI_ChipSelect(icm20602_cfg.spi, icm20602_cfg.cs);
 }
 
 static void ICM20602_ChipDeselection(void) {
-    GPIO_Set(icm20602_cfg.cs);
+    SPI_ChipDeselect(icm20602_cfg.spi, icm20602_cfg.cs);
 }
 
 static uint8_t ICM20602_ReadReg(uint8_t reg) {

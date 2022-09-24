@@ -1,16 +1,16 @@
 #include "init.h"
 
-/* USART2 Handlers */
-void USART2_IRQHandler(void) {
-    USART_Handler(&usart2);
+/* UART7 Handlers */
+void UART7_IRQHandler(void) {
+    USART_Handler(&usart7);
 }
 
 void DMA1_Stream0_IRQHandler(void) {
-    USART_DMA_TX_Handler(&usart2);
+    USART_DMA_TX_Handler(&usart7);
 }
 
 void DMA1_Stream1_IRQHandler(void) {
-    USART_DMA_RX_Handler(&usart2);
+    USART_DMA_RX_Handler(&usart7);
 }
 
 /* USART6 Handlers */

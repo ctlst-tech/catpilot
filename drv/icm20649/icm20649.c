@@ -212,11 +212,11 @@ int ICM20649_MeasReady(void) {
 
 // Private functions
 static void ICM20649_ChipSelection(void) {
-    GPIO_Reset(icm20649_cfg.cs);
+    SPI_ChipSelect(icm20649_cfg.spi, icm20649_cfg.cs);
 }
 
 static void ICM20649_ChipDeselection(void) {
-    GPIO_Set(icm20649_cfg.cs);
+    SPI_ChipDeselect(icm20649_cfg.spi, icm20649_cfg.cs);
 }
 
 static void ICM20649_SetBank(uint8_t bank) {

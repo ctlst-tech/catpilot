@@ -12,7 +12,6 @@ static enum ms5611_state_t ms5611_state;
 static ms5611_prom_t ms5611_calib;
 static ms5611_raw_t ms5611_raw;
 static ms5611_meas_t ms5611_meas;
-static ms5611_meas_state_t ms5611_meas_state;
 
 // Private functions
 static void MS5611_ChipSelection(void);
@@ -58,6 +57,11 @@ void MS5611_Run(void) {
             LOG_ERROR(device, "Failed to read calibration values");
             attempt++;
         } else {
+            vTaskDelay(10);
+            MS5611_ChipSelection();
+            SPI_Transmit(ms5611_cfg.spi, 
+                         (uint8_t *)&CMD_MS5611_CONVERT_D1_OSR1024, 1);
+            MS5611_ChipDeselection();
             ms5611_state = MS5611_READ_MEAS;
         }
         if(attempt > 5) {
@@ -67,8 +71,9 @@ void MS5611_Run(void) {
         break;
 
     case MS5611_READ_MEAS:
-        MS5611_ReadMeas();
-        MS5611_ProcessMeas();
+        if(!MS5611_ReadMeas()) {
+            MS5611_ProcessMeas();
+        }
         break;
 
     case MS5611_FAIL:
@@ -100,11 +105,11 @@ int MS5611_MeasReady(void) {
 
 // Private functions
 static void MS5611_ChipSelection(void) {
-    GPIO_Reset(ms5611_cfg.cs);
+    SPI_ChipSelect(ms5611_cfg.spi, ms5611_cfg.cs);
 }
 
 static void MS5611_ChipDeselection(void) {
-    GPIO_Set(ms5611_cfg.cs);
+    SPI_ChipDeselect(ms5611_cfg.spi, ms5611_cfg.cs);
 }
 
 static void MS5611_Reset(void) {
@@ -127,18 +132,19 @@ uint16_t MS5611_ReadPROM(uint8_t word) {
 }
 
 static int MS5611_ReadCalib(void) {
-    uint16_t prom[MS5611_PROM_SIZE];
+    uint16_t prom[MS5611_PROM_SIZE] = {};
 
     for(int i = 0; i < MS5611_PROM_SIZE; i++) {
         prom[i] = MS5611_ReadPROM(i);
-        if(prom[i] == 0) {
+        if(prom[i] == 0 && i > 1) {
             return -1;
         }
     }
 
     uint16_t crc_get = prom[7] & 0xF;
     prom[7] &= 0xFF00;
-    if(crc_get != prom[7]) {
+    uint16_t crc_calc = crc4(prom);
+    if(crc_get != crc_calc) {
         return -1;
     }
 
@@ -153,25 +159,24 @@ static int MS5611_ReadCalib(void) {
 }
 
 static uint32_t MS5611_ReadADC(void) {
-    uint8_t data[4];
+    uint8_t data[4] = {};
     data[0] = CMD_MS5611_READ_ADC;
 
     MS5611_ChipSelection();
     SPI_TransmitReceive(ms5611_cfg.spi, data, data, sizeof(data));
     MS5611_ChipDeselection();
 
-    return(data[1] << 16 | data[2] << 8 | data[3]);
+    uint32_t reg = (data[1] << 16) | (data[2] << 8) | data[3];
+
+    return reg;
 }
 
 // Read 4 samples for pressure and 1 sample for temperature
 static int MS5611_ReadMeas(void) {
     uint8_t cmd;
     static int ignore_next = 0;
-    static int meas_previous_state;
-    static int meas_current_state;
-
-    meas_previous_state = ms5611_state;
-    meas_current_state = ms5611_state;
+    static int meas_previous_state = MS5611_READ_TEMP;
+    static int meas_current_state = MS5611_READ_TEMP;
 
     // Read ADC after previous command
     uint32_t reg = MS5611_ReadADC();
@@ -181,12 +186,10 @@ static int MS5611_ReadMeas(void) {
     }
 
     if(meas_current_state > MS5611_READ_PRES_4) {
-        ms5611_meas_state = MS5611_READ_TEMP;
-    } else {
-        ms5611_meas_state = meas_current_state;
+        meas_current_state = MS5611_READ_TEMP;
     }
 
-    switch(ms5611_meas_state) {
+    switch(meas_current_state) {
     case(MS5611_READ_TEMP):
         cmd = CMD_MS5611_CONVERT_D1_OSR1024;
         break;
@@ -224,25 +227,43 @@ static int MS5611_ReadMeas(void) {
         break;
     }
 
+    meas_previous_state = meas_current_state;
+
     return 0;
 }
 
 static void MS5611_ProcessMeas(void) {
-    int32_t dT;
-    int32_t TEMP;
-    int64_t OFF;
-    int64_t SENS;
-    int64_t P;
+    int32_t dT = 0, TEMP = 0, T2 = 0, P = 0;
+    int64_t OFF = 0, SENS = 0, OFF2 = 0, SENS2 = 0;
 
     // Temperature
-    dT = ms5611_raw.D2 - ms5611_calib.C5 * (1 << 8);
+    dT = ms5611_raw.D2 - (uint32_t)(ms5611_calib.C5) * (1 << 8);
     TEMP = 2000 + dT * ms5611_calib.C6 / (1 << 23);
 
     // Pressure
-    OFF = ms5611_calib.C2 * (1 << 16) + ms5611_calib.C4 * dT / (1 << 7);
-    SENS = ms5611_calib.C1 * (1 << 15) + ms5611_calib.C3 * dT / (1 << 8);
+    OFF = (uint32_t)ms5611_calib.C2 * (1 << 16) + 
+          (uint32_t)(ms5611_calib.C4 * dT) / (1 << 7);
+
+    SENS = (uint32_t)ms5611_calib.C1 * (1 << 15) + 
+           (uint32_t)(ms5611_calib.C3 * dT) / (1 << 8);
+
+    // Low temperature compensation
+    if(TEMP < 2000) {
+        T2 = (dT * dT) / (1 << 31);
+        OFF2 = 5 * (TEMP - 2000) * (TEMP - 2000) / 2;
+        SENS2 = 5 * (TEMP - 2000) * (TEMP - 2000) / 4;
+        if(TEMP < -1500) {
+            OFF2 = OFF2 + 7 * (TEMP + 1500) * (TEMP + 1500);
+            SENS2 = SENS2 + 11 * (TEMP + 1500) * (TEMP + 1500) / 2;
+        }
+    }
+
+    TEMP = TEMP - T2;
+    OFF = OFF - OFF2;
+    SENS = SENS - SENS2;
+
     P = (ms5611_raw.D1 * SENS / (1 << 21) - OFF) / (1 << 15);
 
-    ms5611_meas.T = (double)(TEMP / 100.f);
-    ms5611_meas.P = (double)P;
+    ms5611_meas.T = TEMP / 100.f;
+    ms5611_meas.P = P;
 }

@@ -197,11 +197,11 @@ int ICM20689_MeasReady(void) {
 
 // Private functions
 static void ICM20689_ChipSelection(void) {
-    GPIO_Reset(icm20689_cfg.cs);
+    SPI_ChipSelect(icm20689_cfg.spi, icm20689_cfg.cs);
 }
 
 static void ICM20689_ChipDeselection(void) {
-    GPIO_Set(icm20689_cfg.cs);
+    SPI_ChipDeselect(icm20689_cfg.spi, icm20689_cfg.cs);
 }
 
 static uint8_t ICM20689_ReadReg(uint8_t reg) {

@@ -24,7 +24,7 @@ int Devices_Init(void) {
     Module_Start("BARO_INT",
                  BARO_INT_Init,
                  BARO_INT_Update,
-                 10,
+                 11,
                  9);
 
     Module_Start("IMU_EXT",
@@ -43,8 +43,8 @@ int Devices_Init(void) {
 }
 
 int CLI(void) {
-    if(USART2_Init()) return -1;
-    CLI_Init(&usart2);
+    if(USART7_Init()) return -1;
+    CLI_Init(&usart7);
     WELCOME();
     return 0;
 }

@@ -13,7 +13,7 @@ extern spi_cfg_t spi1;
 extern spi_cfg_t spi2;
 extern spi_cfg_t spi4;
 extern usart_cfg_t usart6;
-extern usart_cfg_t usart2;
+extern usart_cfg_t usart7;
 extern sdio_cfg_t sdmmc1;
 extern adc_cfg_t adc12;
 
@@ -31,6 +31,7 @@ int Board_Init();
 int GPIOBoard_Init();
 int USART2_Init();
 int USART6_Init();
+int USART7_Init();
 int SPI1_Init();
 int SPI2_Init();
 int SPI4_Init();
