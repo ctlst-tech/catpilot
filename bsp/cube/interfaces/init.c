@@ -45,5 +45,15 @@ int Board_Init() {
         return -1;    
     }
 
+    if(USART2_Init()) {
+        LOG_ERROR("USART2", "Initialization failed");
+        return -1;
+    }
+
+    if(USART3_Init()) {
+        LOG_ERROR("USART3", "Initialization failed");
+        return -1;
+    }
+
     return 0;
 }

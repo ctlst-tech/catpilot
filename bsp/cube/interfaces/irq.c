@@ -98,3 +98,29 @@ void ADC_IRQHandler(void) {
 void DMA2_Stream2_IRQHandler(void) {
     ADC_DMA_Handler(&adc12);
 }
+
+/* USART2 Handlers */
+void USART2_IRQHandler(void) {
+    USART_Handler(&usart2);
+}
+
+void DMA2_Stream3_IRQHandler(void) {
+    USART_DMA_TX_Handler(&usart2);
+}
+
+void DMA2_Stream4_IRQHandler(void) {
+    USART_DMA_RX_Handler(&usart2);
+}
+
+/* USART3 Handlers */
+void USART3_IRQHandler(void) {
+    USART_Handler(&usart3);
+}
+
+void DMA2_Stream5_IRQHandler(void) {
+    USART_DMA_TX_Handler(&usart3);
+}
+
+void DMA2_Stream6_IRQHandler(void) {
+    USART_DMA_RX_Handler(&usart3);
+}
