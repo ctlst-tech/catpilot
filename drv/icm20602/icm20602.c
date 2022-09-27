@@ -158,6 +158,7 @@ void ICM20602_Run(void) {
         break;
 
     case ICM20602_FAIL:
+        vTaskDelay(0);
         break;
     }
 }

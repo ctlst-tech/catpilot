@@ -16,6 +16,10 @@ void GPIO_Reset(gpio_cfg_t *cfg) {
     HAL_GPIO_WritePin(cfg->GPIO, cfg->GPIO_InitStruct.Pin, GPIO_PIN_RESET);
 }
 
+void GPIO_Toggle(gpio_cfg_t *cfg) {
+    HAL_GPIO_TogglePin(cfg->GPIO, cfg->GPIO_InitStruct.Pin);
+}
+
 int GPIO_Read(gpio_cfg_t *cfg) {
     int rv;
     rv = HAL_GPIO_ReadPin(cfg->GPIO, cfg->GPIO_InitStruct.Pin);

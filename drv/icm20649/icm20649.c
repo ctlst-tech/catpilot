@@ -155,7 +155,7 @@ void ICM20649_Run(void) {
         break;
 
     case ICM20649_FAIL:
-        vTaskDelay(1000);
+        vTaskDelay(0);
         break;
     }
 }

@@ -11,4 +11,5 @@ int GPIO_ClockEnable(gpio_cfg_t *cfg);
 
 void GPIO_Set(gpio_cfg_t *cfg);
 void GPIO_Reset(gpio_cfg_t *cfg);
+void GPIO_Toggle(gpio_cfg_t *cfg);
 int GPIO_Read(gpio_cfg_t *cfg);

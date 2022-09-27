@@ -1,9 +1,13 @@
 #include "cube_io_pwm.h"
 #include "cubeio.h"
+#include "gpio.h"
+#include "init.h"
 
 void cube_io_pwm_exec(const cube_io_pwm_inputs_t *i, cube_io_pwm_outputs_t *o)
 {
     uint16_t pwm[16];
+
+    GPIO_Set(&gpio_fmu_pwm_2);
 
     if(i->arm) {
         CubeIO_ForceSafetyOff();
@@ -22,6 +26,9 @@ void cube_io_pwm_exec(const cube_io_pwm_inputs_t *i, cube_io_pwm_outputs_t *o)
 
     CubeIO_SetPWM(8, pwm);
 
-    o->stub = 0;
+    // For debug reset pin in CubeIO thread
+    // GPIO_Reset(&gpio_fmu_pwm_2);
+
+    o->stub = i->arm;
 }
 

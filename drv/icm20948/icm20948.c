@@ -162,6 +162,7 @@ void ICM20948_Run(void) {
         break;
 
     case ICM20948_FAIL:
+        vTaskDelay(0);
         break;
     }
 }

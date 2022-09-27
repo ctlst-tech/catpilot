@@ -1,9 +1,14 @@
 #include "cube_io_rc.h"
 #include "cubeio.h"
+#include "gpio.h"
+#include "init.h"
 
 void cube_io_rc_exec(cube_io_rc_outputs_t *o)
 {
     uint16_t rc[16];
+
+    GPIO_Set(&gpio_fmu_pwm_3);
+
     CubeIO_GetRC(rc);
     o->rc_channel1 = rc[0];
     o->rc_channel2 = rc[1];
@@ -21,5 +26,8 @@ void cube_io_rc_exec(cube_io_rc_outputs_t *o)
     o->rc_channel14 = rc[13];
     o->rc_channel15 = rc[14];
     o->rc_channel16 = rc[15];
+
+    // For debug reset pin in CubeIO thread
+    // GPIO_Reset(&gpio_fmu_pwm_3);
 }
 

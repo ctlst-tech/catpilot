@@ -2,35 +2,26 @@
 
 <swsys>
 
-    <bus name="imu_ext" max_topics="256" eq_channel="1">
-        <event_queue size="20" buffer_size="2000"/>
-    </bus>    
-    
     <bus name="control" max_topics="256" eq_channel="1">
         <event_queue size="20" buffer_size="2000"/>
     </bus>
 
-    <task type="flow" name="imu_ext_flow" config="mvp_flow_imu_ext.xml" priority="6" clk_method="freerun">
+    <task type="flow" name="control_flow" config="mvp_flow_control.xml" priority="6" clk_method="freerun">
         <connect>
-            <out alias="ax">itb:/imu_ext/ax</out>
-            <out alias="ay">itb:/imu_ext/ay</out>
-            <out alias="az">itb:/imu_ext/az</out>
-            <out alias="wx">itb:/imu_ext/wx</out>
-            <out alias="wy">itb:/imu_ext/wy</out>
-            <out alias="wz">itb:/imu_ext/wz</out>
-        </connect>
-    </task>
-
-    <task type="flow" name="control" config="mvp_flow_control.xml" priority="5" clk_method="freerun">
-        <connect>
-            <out alias="stub">itb:/control/ax</out>
+            <out alias="ax">itb:/control/ax</out>
+            <out alias="ay">itb:/control/ay</out>
+            <out alias="az">itb:/control/az</out>
+            <out alias="wx">itb:/control/wx</out>
+            <out alias="wy">itb:/control/wy</out>
+            <out alias="wz">itb:/control/wz</out>
+            <out alias="arm">itb:/control/arm</out>
         </connect>
     </task>
 
     <service type="eqrb_serial" name="debug">
         <param alias="baudrate">115200</param>
         <param alias="path">/dev/ttyS1</param>
-        <param alias="bus">imu_ext</param>
+        <param alias="bus">control</param>
     </service>
 
 </swsys>
