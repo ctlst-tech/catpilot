@@ -1,9 +1,9 @@
 from ctlst import *
 
 Function(
-    name='ph.periph.imu',
+    name='cube.sensors.icm20948',
     title=LocalizedString(
-        en='IMU'
+        en='icm20948'
     ),
     parameters=[],
     inputs=[],

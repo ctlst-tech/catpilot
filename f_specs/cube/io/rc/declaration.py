@@ -1,9 +1,9 @@
 from ctlst import *
 
 Function(
-    name='ph.periph.io.rc',
+    name='cube.io.rc',
     title=LocalizedString(
-        en='IO.rc'
+        en='io'
     ),
     parameters=[],
     inputs=[],

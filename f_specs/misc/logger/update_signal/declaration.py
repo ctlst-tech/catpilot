@@ -1,7 +1,7 @@
 from ctlst import *
 
 Function(
-    name='ph.logger.update_signal',
+    name='misc.logger.update_signal',
     title=LocalizedString(
         en='logger update signal'
     ),

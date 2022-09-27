@@ -50,5 +50,6 @@ void CubeIO_ForceSafetyOn(void);
 void CubeIO_ForceSafetyOff(void);
 void CubeIO_SetIMUHeaterDuty(uint8_t duty);
 int16_t CubeIO_GetRSSI(void);
+void CubeIO_GetRC(uint16_t *ptr);
 uint16_t CubeIO_GetRCCh(uint8_t channel);
 void CubeIO_EnableSBUSOut(uint16_t freq);

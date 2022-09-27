@@ -309,6 +309,11 @@ int16_t CubeIO_GetRSSI(void) {
     return cubeio_page_rc_input.rssi;
 }
 
+void CubeIO_GetRC(uint16_t *ptr) {
+    memcpy(ptr, cubeio_page_rc_input.channel, 
+           sizeof(cubeio_page_rc_input.channel));
+}
+
 uint16_t CubeIO_GetRCCh(uint8_t channel) {
     if(channel >= MAX_CHANNELS) return 0xFFFF;
     return cubeio_page_rc_input.channel[channel];

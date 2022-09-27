@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<flow>
+
+    <spec name="imu_ext">
+        <annotation>
+        </annotation>
+
+        <inputs>
+        </inputs>
+
+        <outputs>
+            <o alias="ax" annotation="ax"/>
+            <o alias="ay" annotation="ay"/>
+            <o alias="az" annotation="az"/>
+            <o alias="wx" annotation="wx"/>
+            <o alias="wy" annotation="wy"/>
+            <o alias="wz" annotation="wz"/>
+        </outputs>
+
+        <params>
+        </params>
+    </spec>
+
+    <functions>
+        <f name="icm20948" by_spec="cube.sensors.icm20948"/>
+    </functions>
+
+    <link_outputs>
+        <link alias="ax">icm20948/ax</link>
+        <link alias="ay">icm20948/ay</link>
+        <link alias="az">icm20948/az</link>
+        <link alias="wx">icm20948/wx</link>
+        <link alias="wy">icm20948/wy</link>
+        <link alias="wz">icm20948/wz</link>
+    </link_outputs>
+
+</flow>

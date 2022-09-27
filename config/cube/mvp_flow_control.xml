@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<flow>
+
+    <spec name="control">
+        <annotation>
+        </annotation>
+
+        <inputs>
+        </inputs>
+
+        <outputs>
+            <o alias="stub" annotation="stub"/>
+        </outputs>
+
+        <params>
+        </params>
+    </spec>
+
+    <functions>
+        <f name="zero" by_spec="core.source.constant">
+            <param alias="value">0.0</param>
+        </f>
+
+        <f name="half" by_spec="core.source.constant">
+            <param alias="value">0.5</param>
+        </f>
+
+        <f name="rc" by_spec="cube.io.rc"/>
+
+        <f name="arm_comp" by_spec="core.math.lt">
+            <in alias="input0">half/output</in>
+            <in alias="input1">rc/rc_channel5</in>
+        </f>
+
+        <f name="io" by_spec="cube.io.pwm">
+            <in alias="pwm_channel1">rc/rc_channel1</in>
+            <in alias="pwm_channel2">rc/rc_channel2</in>
+            <in alias="pwm_channel3">rc/rc_channel3</in>
+            <in alias="pwm_channel4">rc/rc_channel4</in>
+            <in alias="pwm_channel5">rc/rc_channel5</in>
+            <in alias="pwm_channel6">rc/rc_channel6</in>
+            <in alias="pwm_channel7">rc/rc_channel7</in>
+            <in alias="pwm_channel8">rc/rc_channel8</in>
+            <in alias="arm">arm_comp/output</in>
+        </f>
+
+    </functions>
+
+    <link_outputs>
+        <link alias="stub">arm_comp/output</link>
+    </link_outputs>
+
+</flow>
