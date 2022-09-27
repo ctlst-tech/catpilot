@@ -381,13 +381,13 @@ int USART_ClockEnable(usart_cfg_t *cfg) {
 
         xTaskCreate(USART_ReadTask,
                     read_task_name,
-                    cfg->buf_size + 256,
+                    512,
                     cfg,
                     cfg->task_priority,
                     NULL);
         xTaskCreate(USART_WriteTask,
                     write_task_name,
-                    cfg->buf_size + 256,
+                    512,
                     cfg,
                     cfg->task_priority,
                     NULL);

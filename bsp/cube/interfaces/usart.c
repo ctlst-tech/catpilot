@@ -169,6 +169,14 @@ int USART2_Init() {
     usart2_dma_rx.DMA_InitStruct.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
     usart2_dma_rx.priority = usart2_priority;
 
+    int nd = nodereg("/dev/ttyS1");
+    noderegopen(nd, usart_posix_open);
+    noderegwrite(nd, usart_posix_write);
+    noderegread(nd, usart_posix_read);
+    noderegclose(nd, usart_posix_close);
+    noderegfilealloc(nd, NULL);
+    noderegdevcfg(nd, &usart2);
+
     rv = USART_Init(&usart2);
 
     return rv;
@@ -213,6 +221,14 @@ int USART3_Init() {
     usart3_dma_rx.DMA_InitStruct.Init.Priority = DMA_PRIORITY_LOW;
     usart3_dma_rx.DMA_InitStruct.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
     usart3_dma_rx.priority = usart3_priority;
+
+    int nd = nodereg("/dev/ttyS2");
+    noderegopen(nd, usart_posix_open);
+    noderegwrite(nd, usart_posix_write);
+    noderegread(nd, usart_posix_read);
+    noderegclose(nd, usart_posix_close);
+    noderegfilealloc(nd, NULL);
+    noderegdevcfg(nd, &usart3);
 
     rv = USART_Init(&usart3);
 
