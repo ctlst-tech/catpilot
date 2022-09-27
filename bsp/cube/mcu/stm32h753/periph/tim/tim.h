@@ -3,21 +3,20 @@
 #include "gpio.h"
 
 enum tim_state_t {
-    TIM_ENABLE,
-    TIM_DISABLE,
+    TIM_ACTIVE,
+    TIM_INACTIVE,
 };
 
 struct tim_inst_t {
-    TIM_HandleTypeDef TIM_InitStruct;
-    SemaphoreHandle_t mutex;
     IRQn_Type IRQ;
     enum tim_state_t state;
 };
 
 typedef struct {
     TIM_TypeDef *TIM;
-    int priority;
+    TIM_HandleTypeDef TIM_InitStruct;
     struct tim_inst_t inst;
+    int priority;
 } tim_cfg_t;
 
 int TIM_Init(tim_cfg_t *cfg);

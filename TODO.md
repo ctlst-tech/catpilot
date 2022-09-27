@@ -34,7 +34,7 @@
 ## Hardware
 - [x] Add ICM20689 driver
 - [x] Add BMI055 driver
-- [ ] Add MS5611 driver
+- [x] Add MS5611 driver
 - [ ] Tests with statistics
   - [ ] Max freq
   - [ ] Collizions on the SPI1 bus
@@ -75,14 +75,18 @@
   - [x] Update registers header
   - [x] Actualize functions
 - [x] Add USART cfg for TELEM1/2, GPS1/2
-- [ ] Add non-DMA USART transfer driver
-- [ ] Primary Cube Orange testing
+- [x] Primary Cube Orange testing
   - [x] SD card
   - [x] USART
   - [x] IMU
   - [x] IO
-  - [ ] MAG
-  - [ ] BAR
+  - [x] BAR
+- [ ] Add non-DMA USART transfer driver
+- [ ] Blocking and non-blocking function for sensors and periph
+- [ ] Rename specs function
+- [ ] Use structure for getting measurement
+- [ ] Add pin toggle function to specs for flow analysis
+- [ ] Add CPU load statistics
 - [ ] Add USB COM/Strorage driver
 - [ ] Add CAN driver
 - [ ] Merge px4 and cube periph drivers

@@ -7,10 +7,8 @@ int TIM_Init(tim_cfg_t *cfg) {
     int rv = 0;
     if((rv = TIM_ClockEnable(cfg)) != 0) return rv;
 
-    if(HAL_TIM_Base_Init(&cfg->inst.TIM_InitStruct) != HAL_OK) return EINVAL;
-    TIM_EnableIRQ(cfg);
-
-    if(cfg->inst.mutex == NULL) cfg->inst.mutex = xSemaphoreCreateMutex();
+    if(HAL_TIM_Base_Init(&cfg->TIM_InitStruct) != HAL_OK) return EINVAL;
+    TIM_DisableIRQ(cfg);
 
     portEXIT_CRITICAL();
 
@@ -18,11 +16,11 @@ int TIM_Init(tim_cfg_t *cfg) {
 }
 
 void TIM_Start(tim_cfg_t *cfg) {
-    HAL_TIM_Base_Start_IT(&cfg->inst.TIM_InitStruct);
+    HAL_TIM_Base_Start_IT(&cfg->TIM_InitStruct);
 }
 
 void TIM_Stop(tim_cfg_t *cfg) {
-    HAL_TIM_Base_Stop_IT(&cfg->inst.TIM_InitStruct);
+    HAL_TIM_Base_Stop_IT(&cfg->TIM_InitStruct);
 }
 
 int TIM_EnableIRQ(tim_cfg_t *cfg) {
