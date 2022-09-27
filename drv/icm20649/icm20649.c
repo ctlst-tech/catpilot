@@ -9,6 +9,7 @@ static char *device = "ICM20649";
 // Data structures
 static icm20649_cfg_t icm20649_cfg;
 static icm20649_data_t icm20649_fifo;
+static icm20649_imu_meas_t icm20649_imu_meas;
 static enum icm20649_state_t icm20649_state;
 static FIFOBuffer_t icm20649_FIFOBuffer;
 static FIFOParam_t icm20649_FIFOParam;
@@ -181,33 +182,13 @@ void ICM20649_DataReadyHandler(void) {
     }
 }
 
-double ICM20649_Get_ax(void) {
-    return (icm20649_fifo.accel_x[0]);
-}
-
-double ICM20649_Get_ay(void) {
-    return (icm20649_fifo.accel_y[0]);
-}
-
-double ICM20649_Get_az(void) {
-    return (icm20649_fifo.accel_z[0]);
-}
-
-double ICM20649_Get_wx(void) {
-    return (icm20649_fifo.gyro_x[0]);
-}
-
-double ICM20649_Get_wy(void) {
-    return (icm20649_fifo.gyro_y[0]);
-}
-
-double ICM20649_Get_wz(void) {
-    return (icm20649_fifo.gyro_z[0]);
-}
-
-int ICM20649_MeasReady(void) {
+void ICM20649_GetMeasBlock(void *ptr) {
     xSemaphoreTake(measrdy_semaphore, portMAX_DELAY);
-    return 1;
+    memcpy(ptr, (void *)&icm20649_imu_meas, sizeof(icm20649_imu_meas_t));
+}
+
+void ICM20649_GetMeasNonBlock(void *ptr) {
+    memcpy(ptr, (void *)&icm20649_imu_meas, sizeof(icm20649_imu_meas_t));
 }
 
 // Private functions
@@ -412,6 +393,14 @@ static int ICM20649_SampleRead(void) {
     ICM20649_TempProcess();
     ICM20649_AccelProcess();
     ICM20649_GyroProcess();
+
+    icm20649_imu_meas.accel_x = icm20649_fifo.accel_x[0];
+    icm20649_imu_meas.accel_y = icm20649_fifo.accel_y[0];
+    icm20649_imu_meas.accel_z = icm20649_fifo.accel_z[0];
+    icm20649_imu_meas.gyro_x = icm20649_fifo.gyro_x[0];
+    icm20649_imu_meas.gyro_y = icm20649_fifo.gyro_y[0];
+    icm20649_imu_meas.gyro_z = icm20649_fifo.gyro_z[0];
+    icm20649_imu_meas.imu_dt = icm20649_fifo.imu_dt;
 
     if(icm20649_cfg.enable_drdy) {
         EXTI_EnableIRQ(icm20649_cfg.drdy);

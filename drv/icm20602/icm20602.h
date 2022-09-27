@@ -19,6 +19,16 @@ typedef struct {
 } icm20602_fifo_t;
 
 typedef struct {
+    double accel_x;
+    double accel_y;
+    double accel_z;
+    double gyro_x;
+    double gyro_y;
+    double gyro_z;
+    double imu_dt;
+} icm20602_imu_meas_t;
+
+typedef struct {
     double gyro_scale;
     double gyro_range;
     double accel_scale;
@@ -45,10 +55,5 @@ int ICM20602_Operation(void);
 void ICM20602_Run(void);
 void ICM20602_DataReadyHandler(void);
 
-double ICM20602_Get_ax(void);
-double ICM20602_Get_ay(void);
-double ICM20602_Get_az(void);
-double ICM20602_Get_wx(void);
-double ICM20602_Get_wy(void);
-double ICM20602_Get_wz(void);
-int ICM20602_MeasReady(void);
+void ICM20602_GetMeasBlock(void *ptr);
+void ICM20602_GetMeasNonBlock(void *ptr);

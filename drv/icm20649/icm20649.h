@@ -20,6 +20,16 @@ typedef struct {
 } icm20649_data_t;
 
 typedef struct {
+    double accel_x;
+    double accel_y;
+    double accel_z;
+    double gyro_x;
+    double gyro_y;
+    double gyro_z;
+    double imu_dt;
+} icm20649_imu_meas_t;
+
+typedef struct {
     double gyro_scale;
     double gyro_range;
     double accel_scale;
@@ -50,10 +60,5 @@ int ICM20649_Operation(void);
 void ICM20649_Run(void);
 void ICM20649_DataReadyHandler(void);
 
-double ICM20649_Get_ax(void);
-double ICM20649_Get_ay(void);
-double ICM20649_Get_az(void);
-double ICM20649_Get_wx(void);
-double ICM20649_Get_wy(void);
-double ICM20649_Get_wz(void);
-int ICM20649_MeasReady(void);
+void ICM20649_GetMeasBlock(void *ptr);
+void ICM20649_GetMeasNonBlock(void *ptr);
