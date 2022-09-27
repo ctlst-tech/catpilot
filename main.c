@@ -93,7 +93,18 @@ void *ctlst(void *param) {
         LOG_ERROR("SDMMC", "Mount error");
     }
 
-    while(1) vTaskDelay(1000);
+    // Debug
+    int rv1;
+    int rv2;
+    const char *buf1 = "ttyS1 probe\n";
+    const char *buf2 = "ttyS2 probe\n";
+    int ttyS1 = open("/dev/ttyS1", O_RDWR);
+    int ttyS2 = open("/dev/ttyS2", O_RDWR);
+    while(1) {
+        rv1 = write(ttyS1, buf1, strlen(buf1));
+        rv2 = write(ttyS2, buf2, strlen(buf2));
+        vTaskDelay(1000);
+    }
 
     if (res == FR_OK) {
         swsys_rv_t swsys_rv = swsys_load("/fs/config/mvp_swsys.xml", "/fs/config", &sys);

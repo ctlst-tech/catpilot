@@ -79,9 +79,9 @@ static void _debug(void) {
     static int all = 0;
     static int error = 0;
     all += icm20948_fifo.samples;
-    if(xTaskGetTickCount() > 60000) {
-            vTaskDelay(100);
-    }
+    // if(xTaskGetTickCount() > 60000) {
+    //         vTaskDelay(100);
+    // }
 }
 
 void ICM20948_Run(void) {
