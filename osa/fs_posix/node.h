@@ -20,7 +20,7 @@ typedef struct {
     node_dev_t dev;
 } node_t;
 
-int nodereg(char *nodepath);
+int nodereg(const char *nodepath);
 int nodedel(int nd);
 int nodefind(const char *nodepath);
 

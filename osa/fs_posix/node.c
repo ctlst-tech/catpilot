@@ -5,7 +5,7 @@
 node_t __node[MAX_NODES];
 node_t *node[MAX_NODES];
 
-int nodereg(char *nodepath) {
+int nodereg(const char *nodepath) {
     int nd = -1;
     if(strlen(nodepath) < 1) return -1;
 
@@ -45,6 +45,7 @@ int nodefind(const char *nodepath) {
         if((!strcmp(head, node[i]->nodepath)) && nodelen > maxnodelen) {
             nd = i;
             maxnodelen = nodelen;
+            break;
         }
     }
 
@@ -133,8 +134,14 @@ int noderegfilealloc(int nd,
 
 int nodeopen(int nd, void *file, const char *pathname, int flags) {
     int rv;
-    if(node[nd] == NULL) return -1;
-    if(node[nd]->dev.open == NULL) return -1;
+    if(node[nd] == NULL) {
+        errno = ENOENT;
+        return -1;
+    }
+    if(node[nd]->dev.open == NULL) {
+        errno = ENOSYS;
+        return -1;
+    }
 
     node_dev_t *dev = &node[nd]->dev;
     rv = node[nd]->dev.open(dev->devcfg, file, pathname, flags);
@@ -144,8 +151,14 @@ int nodeopen(int nd, void *file, const char *pathname, int flags) {
 
 ssize_t nodewrite(int nd, void *file, const void *buf, size_t count) {
     int rv;
-    if(node[nd] == NULL) return -1;
-    if(node[nd]->dev.write == NULL) return -1;
+    if(node[nd] == NULL) {
+        errno = ENOENT;
+        return -1;
+    }
+    if(node[nd]->dev.write == NULL) {
+        errno = ENOSYS;
+        return -1;
+    }
 
     node_dev_t *dev = &node[nd]->dev;
     rv = node[nd]->dev.write(dev->devcfg, file, buf, count);
@@ -155,8 +168,14 @@ ssize_t nodewrite(int nd, void *file, const void *buf, size_t count) {
 
 ssize_t noderead(int nd, void *file, void *buf, size_t count) {
     int rv;
-    if(node[nd] == NULL) return -1;
-    if(node[nd]->dev.read == NULL) return -1;
+    if(node[nd] == NULL) {
+        errno = ENOENT;
+        return -1;
+    }
+    if(node[nd]->dev.read == NULL) {
+        errno = ENOSYS;
+        return -1;
+    }
 
     node_dev_t *dev = &node[nd]->dev;
     rv = node[nd]->dev.read(dev->devcfg, file, buf, count);
@@ -166,8 +185,14 @@ ssize_t noderead(int nd, void *file, void *buf, size_t count) {
 
 int nodeclose(int nd, void *file) {
     int rv;
-    if(node[nd] == NULL) return -1;
-    if(node[nd]->dev.close == NULL) return -1;
+    if(node[nd] == NULL) {
+        errno = ENOENT;
+        return -1;
+    }
+    if(node[nd]->dev.close == NULL) {
+        errno = ENOSYS;
+        return -1;
+    }
 
     node_dev_t *dev = &node[nd]->dev;
     rv = node[nd]->dev.close(dev->devcfg, file);
@@ -177,8 +202,14 @@ int nodeclose(int nd, void *file) {
 
 int nodeioctl(int nd, int cmd) {
     int rv;
-    if(node[nd] == NULL) return -1;
-    if(node[nd]->dev.ioctl == NULL) return -1;
+    if(node[nd] == NULL) {
+        errno = ENOENT;
+        return -1;
+    }
+    if(node[nd]->dev.ioctl == NULL) {
+        errno = ENOSYS;
+        return -1;
+    }
 
     node_dev_t *dev = &node[nd]->dev;
     rv = node[nd]->dev.ioctl(dev->devcfg, cmd);
