@@ -18,10 +18,5 @@
         </connect>
     </task>
 
-    <service type="eqrb_serial" name="debug">
-        <param alias="baudrate">115200</param>
-        <param alias="path">/dev/ttyS1</param>
-        <param alias="bus">control</param>
-    </service>
 
 </swsys>
