@@ -48,6 +48,28 @@ void main_thread(void *param) {
     pthread_exit(NULL);
 }
 
+static void uart_testing() {
+    int rv1;
+    int rv2;
+    const char *buf1 = "ttyS1 probe\n\r";
+    const char *buf2 = "ttyS2 probe\n";
+    const char *buf1_r = "same_fd_write\n\r";
+    int ttyS1 = open("/dev/ttyS1", O_RDWR);
+    int ttyS1_d = open("/dev/ttyS1", O_RDWR);
+    //    int ttyS2 = open("/dev/ttyS2", O_RDWR);
+    int cntr = 0;
+    while(1) {
+        cntr++;
+        if (cntr > 10) {
+            write(ttyS1, buf1, strlen(buf1));
+            cntr = 0;
+        }
+        write(ttyS1_d, buf1_r, strlen(buf1_r));
+    //        write(ttyS2, buf2, strlen(buf2));
+        vTaskDelay(10);
+    }
+}
+
 void *ctlst(void *param) {
     static FRESULT res;
     swsys_t sys;
@@ -95,26 +117,7 @@ void *ctlst(void *param) {
         LOG_ERROR("SDMMC", "Mount error");
     }
 
-//    // Debug
-//    int rv1;
-//    int rv2;
-//    const char *buf1 = "ttyS1 probe\n\r";
-//    const char *buf2 = "ttyS2 probe\n";
-//    const char *buf1_r = "same_fd_write\n\r";
-//    int ttyS1 = open("/dev/ttyS1", O_RDWR);
-//    int ttyS1_d = open("/dev/ttyS1", O_RDWR);
-////    int ttyS2 = open("/dev/ttyS2", O_RDWR);
-//    int cntr = 0;
-//    while(1) {
-//        cntr++;
-//        if (cntr > 10) {
-//            write(ttyS1, buf1, strlen(buf1));
-//            cntr = 0;
-//        }
-//        write(ttyS1_d, buf1_r, strlen(buf1_r));
-////        write(ttyS2, buf2, strlen(buf2));
-//        vTaskDelay(10);
-//    }
+
 
     xml_inline_mount("/cfg");
 
