@@ -7,7 +7,7 @@ dma_cfg_t usart2_dma_tx;
 dma_cfg_t usart2_dma_rx;
 gpio_cfg_t usart2_tx = GPIO_USART2_TX;
 gpio_cfg_t usart2_rx = GPIO_USART2_RX;
-const int usart2_bitrate = 115200;
+const int usart2_bitrate = 57600;
 const int usart2_timeout = portMAX_DELAY;
 const int usart2_priority = 15;
 const int usart2_task_priority = 1;
