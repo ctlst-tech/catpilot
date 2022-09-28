@@ -1,8 +1,5 @@
 #include "usart.h"
 
-static int usart_num = 0;
-static usart_cfg_t *usart_fd[8];
-
 int USART_Init(usart_cfg_t *cfg) {
 
     if(cfg->inst.periph_init) return 0;
@@ -48,16 +45,6 @@ int USART_Init(usart_cfg_t *cfg) {
     cfg->inst.periph_init = true;
 
     portEXIT_CRITICAL();
-
-    #ifdef USART_POSIX_OSA
-        usart_fd[usart_num] = cfg;
-        sprintf(__dev[usart_num].path, "/dev/ttyS%d", usart_num);
-        __dev[usart_num].open = usart_posix_open;
-        __dev[usart_num].write = usart_posix_write;
-        __dev[usart_num].read = usart_posix_read;
-        __dev[usart_num].close = usart_posix_close;
-        usart_num++;
-    #endif
 
     return rv;
 }
@@ -168,6 +155,18 @@ int USART_TransmitReceive(usart_cfg_t *cfg, uint8_t *tx_pdata, uint8_t *rx_pdata
     xSemaphoreGive(cfg->inst.rx_mutex);
 
     return rv;
+}
+
+int USART_SetSpeed(usart_cfg_t *cfg, uint32_t speed) {
+    cfg->speed = speed;
+    cfg->inst.USART_InitStruct.Init.BaudRate = cfg->speed;
+    cfg->USART->BRR = (uint16_t)(UART_DIV_SAMPLING16(HAL_RCC_GetPCLK1Freq(),
+                                cfg->inst.USART_InitStruct.Init.BaudRate));
+    return 0;
+}
+
+uint32_t USART_GetSpeed(usart_cfg_t *cfg) {
+    return (cfg->speed);
 }
 
 int USART_Handler(usart_cfg_t *cfg) {
@@ -308,68 +307,6 @@ int USART_ClockEnable(usart_cfg_t *cfg) {
     return 0;
 }
 
-#ifdef USART_TERMIOS
-
-    int tcgetattr(int __fd, struct termios *__termios_p) {
-        int dev_fd = __fd - 3;
-        if(usart_fd[dev_fd] == NULL) {
-            errno = EBADF;
-            return -1;
-        }
-        __termios_p->c_ispeed = usart_fd[dev_fd]->speed;
-        __termios_p->c_ospeed = usart_fd[dev_fd]->speed;
-        return __fd;
-    }
-
-    int tcsetattr(int __fd, int __optional_actions,
-                 const struct termios *__termios_p) {
-        int rv = 0;
-        (void)__optional_actions;
-        int dev_fd = __fd - 3;
-        if(usart_fd[dev_fd] == NULL) {
-            errno = EBADF;
-            return -1;
-        }
-         // FIXME
-        usart_fd[dev_fd]->speed = __termios_p->c_ispeed;
-        usart_fd[dev_fd]->speed = __termios_p->c_ospeed;
-        usart_fd[dev_fd]->inst.USART_InitStruct.Init.BaudRate = usart_fd[dev_fd]->speed;
-        usart_fd[dev_fd]->USART->BRR =
-                                (uint16_t)(UART_DIV_SAMPLING16(HAL_RCC_GetPCLK1Freq(),
-                                 usart_fd[dev_fd]->inst.USART_InitStruct.Init.BaudRate));
-        // rv = USART_ReInit(usart_fd[dev_fd]);
-
-        if(rv) {
-            errno = EPROTO;
-            return -1;
-        }
-        return 0;
-    }
-
-    speed_t cfgetospeed(const struct termios *__termios_p) {
-        return __termios_p->c_ospeed;
-    }
-
-    speed_t cfgetispeed(const struct termios *__termios_p) {
-        return __termios_p->c_ispeed;
-    }
-
-    int cfsetospeed(struct termios *__termios_p, speed_t __speed) {
-        __termios_p->c_ospeed = __speed;
-        return 0;
-    }
-
-    int cfsetispeed(struct termios *__termios_p, speed_t __speed) {
-        __termios_p->c_ispeed = __speed;
-        return 0;
-    }
-
-    int tcflush(int __fd, int __queue_selector) {
-        return 0;
-    }
-
-#endif
-
 #ifdef USART_POSIX_OSA
 
     void USART_ReadTask(void *cfg_ptr) {
@@ -402,82 +339,97 @@ int USART_ClockEnable(usart_cfg_t *cfg) {
         }
     }
 
-    int usart_posix_open(const char *pathname, int flags) {
-        (void)pathname;
+    int usart_posix_open(void *devcfg, void *file, const char* pathname, int flags) {
         (void)flags;
+        (void)file;
+        usart_cfg_t *cfg = (usart_cfg_t *)devcfg;
+
         errno = 0;
-        for(int i = 0; i < usart_num; i++) {
-            if(strcmp(pathname, __dev[i].path)) continue;
-            if(usart_fd[i]->inst.tasks_init) return (i + 3);
-            if(usart_fd[i]->buf_size <= 0) {
+
+        if(cfg->inst.tasks_init) return 0;
+
+        if(cfg->buf_size <= 0) {
+            errno = ENXIO;
+            return -1;
+        }
+
+        cfg->inst.read_buf = RingBuf_Init(cfg->buf_size);
+        cfg->inst.write_buf = RingBuf_Init(cfg->buf_size);
+        
+        if(cfg->inst.read_buf == NULL ||
+            cfg->inst.write_buf == NULL) {
                 errno = ENXIO;
                 return -1;
-            }
-            usart_fd[i]->inst.read_buf = RingBuf_Init(usart_fd[i]->buf_size);
-            usart_fd[i]->inst.write_buf = RingBuf_Init(usart_fd[i]->buf_size);
-            if(usart_fd[i]->inst.read_buf == NULL ||
-                usart_fd[i]->inst.write_buf == NULL) {
-                    errno = ENXIO;
-                    return -1;
-                }
-            char read_task_name[configMAX_TASK_NAME_LEN];
-            char write_task_name[configMAX_TASK_NAME_LEN];
-            usart_fd[i]->inst.read_semaphore = xSemaphoreCreateBinary();
-            usart_fd[i]->inst.write_semaphore = xSemaphoreCreateBinary();
-            if(usart_fd[i]->inst.read_semaphore == NULL) return -1;
-            if(usart_fd[i]->inst.write_semaphore == NULL) return -1;
-            sprintf(read_task_name, "ttyS%d_ReadTask\n", i);
-            sprintf(write_task_name, "ttyS%d_WriteTask\n", i);
-            xTaskCreate(USART_ReadTask,
-                        read_task_name,
-                        usart_fd[i]->buf_size + 256,
-                        usart_fd[i],
-                        usart_fd[i]->task_priority,
-                        NULL);
-            xTaskCreate(USART_WriteTask,
-                        write_task_name,
-                        usart_fd[i]->buf_size + 256,
-                        usart_fd[i],
-                        usart_fd[i]->task_priority,
-                        NULL);
-            usart_fd[i]->inst.tasks_init = true;
-            return (i + 3);
         }
-        errno = ENODEV;
-        return -1;
+
+        cfg->inst.read_semaphore = xSemaphoreCreateBinary();
+        cfg->inst.write_semaphore = xSemaphoreCreateBinary();
+        if(cfg->inst.read_semaphore == NULL) return -1;
+        if(cfg->inst.write_semaphore == NULL) return -1;
+
+        static int usartnum = 0;
+        char read_task_name[configMAX_TASK_NAME_LEN];
+        char write_task_name[configMAX_TASK_NAME_LEN];
+        sprintf(read_task_name, "usart%d_ReadTask\n", usartnum);
+        sprintf(write_task_name, "usart%d_WriteTask\n", usartnum);
+        usartnum++;
+
+        xTaskCreate(USART_ReadTask,
+                    read_task_name,
+                    cfg->buf_size + 256,
+                    cfg,
+                    cfg->task_priority,
+                    NULL);
+        xTaskCreate(USART_WriteTask,
+                    write_task_name,
+                    cfg->buf_size + 256,
+                    cfg,
+                    cfg->task_priority,
+                    NULL);
+
+        cfg->inst.tasks_init = true;
+        return 0;
     }
 
-    ssize_t usart_posix_write(int fd, const void *buf, size_t count) {
+    ssize_t usart_posix_write(void *devcfg, void *file, const void *buf, size_t count) {
         ssize_t rv;
+        (void)file;
+        usart_cfg_t *cfg = (usart_cfg_t *)devcfg;
+
         errno = 0;
-        rv = RingBuf_Write(usart_fd[fd]->inst.write_buf,
+        rv = RingBuf_Write(cfg->inst.write_buf,
                            (uint8_t *)buf,
                            count);
-        xSemaphoreGive(usart_fd[fd]->inst.write_semaphore);
-        if(usart_fd[fd]->inst.error) {
+        xSemaphoreGive(cfg->inst.write_semaphore);
+        if(cfg->inst.error) {
             errno = EPROTO;
             return -1;
         }
         return rv;
     }
 
-    ssize_t usart_posix_read(int fd, const void *buf, size_t count) {
+    ssize_t usart_posix_read(void *devcfg, void *file, void *buf, size_t count) {
         ssize_t rv;
         errno = 0;
-        xSemaphoreTake(usart_fd[fd]->inst.read_semaphore, portMAX_DELAY);
-        rv = RingBuf_Read(usart_fd[fd]->inst.read_buf,
+        (void)file;
+        usart_cfg_t *cfg = (usart_cfg_t *)devcfg;
+
+        xSemaphoreTake(cfg->inst.read_semaphore, portMAX_DELAY);
+        rv = RingBuf_Read(cfg->inst.read_buf,
                            (uint8_t *)buf,
                            count);
-        if(usart_fd[fd]->inst.error) {
+        if(cfg->inst.error) {
             errno = EPROTO;
             return -1;
         }
         return rv;
     }
 
-    int usart_posix_close(int fd) {
+    int usart_posix_close(void *devcfg, void *file) {
         errno = 0;
-        (void)fd;
+        (void)file;
+        usart_cfg_t *cfg = (usart_cfg_t *)devcfg;
+        (void)cfg;
         return 0;
     }
 

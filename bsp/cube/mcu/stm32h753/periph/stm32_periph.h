@@ -1,0 +1,11 @@
+#pragma once
+#include "adc.h"
+#include "rcc.h"
+#include "gpio.h"
+#include "exti.h"
+#include "usart.h"
+#include "spi.h"
+#include "dma.h"
+#include "i2c.h"
+#include "sdio.h"
+#include "tim.h"

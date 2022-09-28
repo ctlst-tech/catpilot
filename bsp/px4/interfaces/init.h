@@ -1,6 +1,12 @@
 #pragma once
 #include "stm32_base.h"
 #include "stm32_periph.h"
+#include "icm20602.h"
+#include "icm20689.h"
+#include "ist8310.h"
+#include "px4io.h"
+#include "sdcard.h"
+#include "cli.h"
 
 extern spi_cfg_t spi1;
 extern i2c_cfg_t i2c3;
@@ -18,10 +24,10 @@ extern exti_cfg_t exti_spi1_drdy2;
 extern exti_cfg_t exti_spi1_drdy3;
 extern exti_cfg_t exti_spi1_drdy4;
 
-int Board_Init();
-int GPIOBoard_Init();
-int USART7_Init();
-int USART8_Init();
-int SPI1_Init();
-int I2C3_Init();
-int SDMMC1_Init();
+int Board_Init(void);
+int GPIOBoard_Init(void);
+int USART7_Init(void);
+int USART8_Init(void);
+int SPI1_Init(void);
+int I2C3_Init(void);
+int SDMMC1_Init(void);

@@ -76,3 +76,18 @@ void SDMMC1_IRQHandler(void) {
 void DMA2_Stream6_IRQHandler(void) {
     SDIO_DMA_Handler(&sdmmc1);
 }
+
+/** EXTI Handlers */
+void EXTI9_5_IRQHandler(void) {
+    uint32_t line = EXTI->PR;
+    if(line & GPIO_PIN_5) {
+        ICM20602_DataReadyHandler();
+    }
+}
+
+void EXTI4_IRQHandler(void) {
+    uint32_t line = EXTI->PR;
+    if(line & GPIO_PIN_4) {
+        ICM20689_DataReadyHandler();
+    }
+}

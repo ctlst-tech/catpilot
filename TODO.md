@@ -26,20 +26,69 @@
 - [ ] pthread_cancel wrapper
   - This function doesn't work in existing implementations
 - [ ] stubs for tcp stack
-- [ ] <termios.h> wrappers
-- [ ] Add high wrapper layer for open/write/read/close
-- [ ] socket.h
+- [x] <termios.h> wrappers
+- [x] Add high wrapper layer for open/write/read/close
 - [ ] Add CMakeLists in board directories
 - [ ] Add modules as f_specs functions
 
 ## Hardware
 - [x] Add ICM20689 driver
 - [x] Add BMI055 driver
-- [ ] Add MS5611 driver
+- [x] Add MS5611 driver
 - [ ] Tests with statistics
   - [ ] Max freq
   - [ ] Collizions on the SPI1 bus
   - [ ] MCU load
 
 ## Utils
-- [ ] Add log func with types of msg and module
+- [x] Add log func with types of msg and module
+
+## Porting to Cube Orange
+- [x] Add core sources
+- [x] Rewrite RCC
+- [x] Rewrite DMA
+- [x] Rewrite EXTI
+- [x] Delete DMA from SDIO driver
+- [x] Update pinout
+- [x] Rewrite linker script
+- [x] Actualize DMA channels for periph
+- [x] Restuct project
+- [x] Replace drivers to shared dir
+- [x] Add ADC driver
+- [x] Start on STM32H743 evaluation board
+  - [x] RCC
+  - [x] GPIO
+  - [x] USART
+  - [x] EXTI
+  - [x] SPI
+  - [x] ADC
+- [x] Check cond
+- [x] Refactor timers and initialization for drivers
+- [x] Add post-test changes to STM32H753
+- [x] Add ICM20948 driver
+  - [x] Copy sources from ICM20602
+  - [x] Update registers header
+  - [x] Actualize functions
+  - [x] Integrate magnetic meas functional
+- [x] Add ICM20649 driver
+  - [x] Copy sources from ICM20602
+  - [x] Update registers header
+  - [x] Actualize functions
+- [x] Add USART cfg for TELEM1/2, GPS1/2
+- [x] Primary Cube Orange testing
+  - [x] SD card
+  - [x] USART
+  - [x] IMU
+  - [x] IO
+  - [x] BAR
+- [ ] Add non-DMA USART transfer driver
+- [ ] Blocking and non-blocking function for sensors and periph
+- [ ] Rename specs function
+- [ ] Use structure for getting measurement
+- [ ] Add pin toggle function to specs for flow analysis
+- [ ] Add CPU load statistics
+- [ ] Add USB COM/Strorage driver
+- [ ] Add CAN driver
+- [ ] Merge px4 and cube periph drivers
+- [ ] Add CMakeLists for each main directory
+- [ ] Clean main CMakeLists 

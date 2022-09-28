@@ -1,10 +1,12 @@
+#include "systemclock.h"
+
 #ifndef FREERTOS_CONFIG_H
 #define FREERTOS_CONFIG_H
 
 #define configUSE_PREEMPTION                    1
 #define configUSE_PORT_OPTIMISED_TASK_SELECTION 0
 #define configUSE_TICKLESS_IDLE                 0
-#define configCPU_CLOCK_HZ			            ( ( unsigned long ) 216000000 )
+#define configCPU_CLOCK_HZ			            ( ( unsigned long ) SYSTEMCLOCK )
 #define configTICK_RATE_HZ			            ( ( TickType_t ) 1000 )
 #define configMAX_PRIORITIES                    5
 #define configMINIMAL_STACK_SIZE                2048

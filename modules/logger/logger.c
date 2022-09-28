@@ -11,7 +11,7 @@ static char write_buf[LOGGER_WRITE_SIZE];
 static int frame_num;
 static logger_frame_t *frame[LOGGER_MAX_FRAMES];
 
-int Logger_Init() {
+int Logger_Init(void) {
     if(rw_mutex == NULL) rw_mutex = xSemaphoreCreateMutex();
     if(addsig_mutex == NULL) addsig_mutex = xSemaphoreCreateMutex();
     return 0;

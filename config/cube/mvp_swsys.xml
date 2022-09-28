@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<swsys>
+
+    <bus name="control" max_topics="256" eq_channel="1">
+        <event_queue size="20" buffer_size="2000"/>
+    </bus>
+
+    <task type="flow" name="control_flow" config="mvp_flow_control.xml" priority="6" clk_method="freerun">
+        <connect>
+            <out alias="ax">itb:/control/ax</out>
+            <out alias="ay">itb:/control/ay</out>
+            <out alias="az">itb:/control/az</out>
+            <out alias="wx">itb:/control/wx</out>
+            <out alias="wy">itb:/control/wy</out>
+            <out alias="wz">itb:/control/wz</out>
+            <out alias="arm">itb:/control/arm</out>
+        </connect>
+    </task>
+
+    <service type="eqrb_serial" name="debug">
+        <param alias="baudrate">115200</param>
+        <param alias="path">/dev/ttyS1</param>
+        <param alias="bus">control</param>
+    </service>
+
+</swsys>

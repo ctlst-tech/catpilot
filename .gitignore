@@ -12,3 +12,4 @@ f_specs_reg.c
 fspecs.cmake
 __pycache__
 .DS_Store
+.vscode/settings.json

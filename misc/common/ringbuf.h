@@ -11,17 +11,13 @@ typedef struct {
    uint8_t* end_ptr;
    uint16_t size;
    uint16_t count;
-   bool overrun_mode;
    SemaphoreHandle_t mutex;
 } ringbuf_t;
 
 ringbuf_t *RingBuf_Init(uint16_t size);
 ringbuf_t *RingBuf_Delete(ringbuf_t *ringbuf);
-int RingBuf_SetOverrunMode(ringbuf_t *ringbuf, bool overrun_enable);
-int RingBuf_GetDataSize(ringbuf_t *ringbuf);
-int RingBuf_GetFreeSize(ringbuf_t *ringbuf);
-bool RingBuf_IsFull(ringbuf_t *ringbuf);
-bool RingBuf_IsEmpty(ringbuf_t *ringbuf);
+uint16_t RingBuf_GetDataSize(ringbuf_t *ringbuf);
+uint16_t RingBuf_GetFreeSize(ringbuf_t *ringbuf);
 int RingBuf_Write(ringbuf_t *ringbuf, uint8_t *buf, uint16_t length);
 int RingBuf_Read(ringbuf_t *ringbuf, uint8_t *buf, uint16_t length);
 

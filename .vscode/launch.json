@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Posix",
+            "name": "PC_unix",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/posix/ctlst-fmuv5",
@@ -33,6 +33,20 @@
                 "/usr/local/share/openocd/scripts",],
             "configFiles": [
                 "bsp/px4/mcu/stm32f765ii/core/stm32f7.cfg"
+            ],
+        },
+        {
+            "name": "Cube",
+            "request": "launch",
+            "type": "cortex-debug",
+            "cwd": "${workspaceRoot}",
+            "servertype": "openocd",
+            "executable": "build/firmware/ctlst-fmuv5.elf",
+            "svdFile": "bsp/cube/mcu/stm32h753/core/STM32H753.svd",
+            "searchDir": [
+                "/usr/local/share/openocd/scripts",],
+            "configFiles": [
+                "bsp/cube/mcu/stm32h753/core/stm32h7.cfg"
             ],
         },
     ]

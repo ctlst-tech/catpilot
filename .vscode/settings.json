@@ -1,32 +1,17 @@
 {
     "cmake.setBuildTypeOnMultiConfig": true,
     "cmake.configureSettings": {
-        "TYPE": "PX4"
+        "TYPE": "Cube"
     },
-    "cortex-debug.armToolchainPath": "usr/bin",
+    "cortex-debug.armToolchainPath": "/usr/bin",
     "cortex-debug.openocdPath": "/usr/local/bin/openocd",
     "cortex-debug.gdbPath": "/usr/bin/gdb-multiarch",
     "files.associations": {
-        "*.tcc": "c",
-        "strings.h": "c",
-        "_ansi.h": "c",
-        "reent.h": "c",
-        "_locale.h": "c",
-        "stddef.h": "c",
-        "drv.h": "c",
-        "icm20602.h": "c",
-        "cli.h": "c",
-        "ist8310.h": "c",
-        "sdcard.h": "c",
-        "px4io.h": "c",
-        "init.h": "c",
-        "stm32_periph.h": "c",
-        "stm32_base.h": "c",
-        "stm32f765xx.h": "c",
-        "log.h": "c",
-        "swsys.h": "c",
-        "imu.h": "c",
-        "mag.h": "c",
-        "logger.h": "c"
-    }
+        "random": "c",
+        "atomic": "cpp",
+        "cstdint": "cpp",
+        "module.h": "c",
+        "devices.h": "c",
+        "stm32_base.h": "c"
+    },
 }
