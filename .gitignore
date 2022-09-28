@@ -9,6 +9,7 @@ TODO
 cmake-build-debug
 cmake-build-release
 f_specs_reg.c
+xml_inline_cfgs.c
 fspecs.cmake
 __pycache__
 .DS_Store

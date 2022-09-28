@@ -120,6 +120,8 @@ if (TYPE STREQUAL "PX4" OR TYPE STREQUAL "Cube")
     include(fspecs.cmake)
 
     set(SRC_MAIN main.c)
+    set(XML_INLINE xml_inline.c xml_inline_cfgs.c)
+
     file(GLOB STARTUP            ${DIR_MCU}/core/*.s)
     file(GLOB_RECURSE SRC_MCU    ${DIR_MCU}/*.c)
     file(GLOB_RECURSE SRC_PERIPH ${DIR_PERIPH}/*.c)
@@ -137,6 +139,7 @@ if (TYPE STREQUAL "PX4" OR TYPE STREQUAL "Cube")
 
     set(SOURCES
         ${SRC_MAIN}
+        ${XML_INLINE}
         ${STARTUP}
         ${SRC_MCU}
         ${SRC_PERIPH}

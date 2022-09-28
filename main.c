@@ -25,6 +25,8 @@
 
 void main_thread(void *param);
 void *ctlst(void *param);
+int xml_inline_mount(const char *mount_to);
+
 static FATFS fs;
 
 int main(void) {
@@ -93,21 +95,31 @@ void *ctlst(void *param) {
         LOG_ERROR("SDMMC", "Mount error");
     }
 
-    // Debug
-    int rv1;
-    int rv2;
-    const char *buf1 = "ttyS1 probe\n";
-    const char *buf2 = "ttyS2 probe\n";
-    int ttyS1 = open("/dev/ttyS1", O_RDWR);
-    int ttyS2 = open("/dev/ttyS2", O_RDWR);
-    while(1) {
-        rv1 = write(ttyS1, buf1, strlen(buf1));
-        rv2 = write(ttyS2, buf2, strlen(buf2));
-        vTaskDelay(1000);
-    }
+//    // Debug
+//    int rv1;
+//    int rv2;
+//    const char *buf1 = "ttyS1 probe\n\r";
+//    const char *buf2 = "ttyS2 probe\n";
+//    const char *buf1_r = "same_fd_write\n\r";
+//    int ttyS1 = open("/dev/ttyS1", O_RDWR);
+//    int ttyS1_d = open("/dev/ttyS1", O_RDWR);
+////    int ttyS2 = open("/dev/ttyS2", O_RDWR);
+//    int cntr = 0;
+//    while(1) {
+//        cntr++;
+//        if (cntr > 10) {
+//            write(ttyS1, buf1, strlen(buf1));
+//            cntr = 0;
+//        }
+//        write(ttyS1_d, buf1_r, strlen(buf1_r));
+////        write(ttyS2, buf2, strlen(buf2));
+//        vTaskDelay(10);
+//    }
+
+    xml_inline_mount("/cfg");
 
     if (res == FR_OK) {
-        swsys_rv_t swsys_rv = swsys_load("/fs/config/mvp_swsys.xml", "/fs/config", &sys);
+        swsys_rv_t swsys_rv = swsys_load("/cfg/mvp_swsys.xml", "/cfg/", &sys);
         if (swsys_rv == swsys_e_ok) {
             LOG_INFO("SYSTEM", "System starts")
             swsys_top_module_start(&sys);
@@ -118,7 +130,7 @@ void *ctlst(void *param) {
     }
 
     while(1) {
-        vTaskDelay(1000);
+        vTaskDelay(10000);
     }
 }
 
