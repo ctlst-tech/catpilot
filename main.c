@@ -17,6 +17,7 @@
 #include "init.h"
 #include "devices.h"
 #include "logger.h"
+#include "module.h"
 
 #include "fatfs_posix.h"
 
@@ -32,6 +33,11 @@ static FATFS fs;
 int main(void) {
     HAL_Init();
     RCC_Init();
+    Module_Start("Monitor",
+                Monitor,
+                Monitor_Update,
+                1000,
+                8);
     xTaskCreate(main_thread, "main_thread", 100, NULL, 3, NULL );
     vTaskStartScheduler();
     while(1);

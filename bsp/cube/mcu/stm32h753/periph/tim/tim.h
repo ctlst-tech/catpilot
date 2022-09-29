@@ -17,13 +17,16 @@ typedef struct {
     TIM_HandleTypeDef TIM_InitStruct;
     struct tim_inst_t inst;
     int priority;
+    uint32_t counter;
+    uint32_t counter_scaler_us;
 } tim_cfg_t;
 
 int TIM_Init(tim_cfg_t *cfg);
 int TIM_ClockEnable(tim_cfg_t *cfg);
 int TIM_EnableIRQ(tim_cfg_t *cfg);
 int TIM_DisableIRQ(tim_cfg_t *cfg);
+int TIM_Handler(tim_cfg_t *cfg);
 
 void TIM_Start(tim_cfg_t *cfg);
 void TIM_Stop(tim_cfg_t *cfg);
-void TIM_GetTick(tim_cfg_t *cfg);
+uint32_t TIM_GetTick(tim_cfg_t *cfg);

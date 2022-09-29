@@ -124,3 +124,9 @@ void DMA2_Stream5_IRQHandler(void) {
 void DMA2_Stream6_IRQHandler(void) {
     USART_DMA_RX_Handler(&usart3);
 }
+
+/* TIM2 Handler */
+void TIM2_IRQHandler(void) {
+    TIM_Handler(&tim2);
+    tim2.counter++;
+}

@@ -3,6 +3,19 @@
 #include "init.h"
 #include "log.h"
 
+int CLI(void) {
+    if(USART7_Init()) return -1;
+    CLI_Init(&usart7);
+    WELCOME();
+    return 0;
+}
+
+int Monitor(void) {
+    if(TIM2_Init()) return -1;
+    Monitor_Init(&tim2);
+    return 0;
+}
+
 int Devices_Init(void) {
     int rv;
 
@@ -39,12 +52,5 @@ int Devices_Init(void) {
                  2,
                  11);
 
-    return 0;
-}
-
-int CLI(void) {
-    if(USART7_Init()) return -1;
-    CLI_Init(&usart7);
-    WELCOME();
     return 0;
 }
