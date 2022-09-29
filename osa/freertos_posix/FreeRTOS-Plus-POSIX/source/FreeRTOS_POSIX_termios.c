@@ -13,11 +13,14 @@ int tcgetattr(int __fd, struct termios *__termios_p) {
         errno = EBADF;
         return -1;
     }
+
+    memset(__termios_p, 0, sizeof(*__termios_p));
+
     usart_cfg_t *cfg = nodegetdevcfg(file[__fd]->nd);
     speed_t speed = USART_GetSpeed(cfg);
     __termios_p->c_ispeed = speed;
     __termios_p->c_ospeed = speed;
-    return __fd;
+    return 0;
 }
 
 int tcsetattr(int __fd, int __optional_actions, const struct termios *__termios_p) {
@@ -31,7 +34,7 @@ int tcsetattr(int __fd, int __optional_actions, const struct termios *__termios_
     speed_t speed = __termios_p->c_ispeed;
     rv = USART_SetSpeed(cfg, speed);
     if(rv < 0) return -1;
-    return __fd;
+    return 0;
 }
 
 speed_t cfgetospeed(const struct termios *__termios_p) {
