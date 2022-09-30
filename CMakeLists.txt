@@ -86,7 +86,6 @@ if (TYPE STREQUAL "PX4" OR TYPE STREQUAL "Cube")
         ${DIR_PERIPH}/usart
         ${DIR_PERIPH}/spi
         ${DIR_PERIPH}/i2c
-        ${DIR_PERIPH}/adc
         ${DIR_PERIPH}/dma
         ${DIR_PERIPH}/hal
         ${DIR_PERIPH}/sdio
@@ -104,6 +103,7 @@ if (TYPE STREQUAL "PX4" OR TYPE STREQUAL "Cube")
         ${DIR_DRV}/cubeio
         ${DIR_DRV}/cli
         ${DIR_DRV}/ms5611
+        ${DIR_DRV}/monitor
 
         ${DIR_IF}
         ${DIR_DEV}

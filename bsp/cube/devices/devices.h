@@ -8,6 +8,7 @@
 #include "cubeio.h"
 #include "sdcard.h"
 #include "cli.h"
+#include "monitor.h"
 
 int IMU_INT_Init(void);
 int BARO_INT_Init(void);
@@ -23,3 +24,4 @@ void MAG_Update(void);
 
 int Devices_Init(void);
 int CLI(void);
+int Monitor(void);

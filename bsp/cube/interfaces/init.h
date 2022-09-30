@@ -8,6 +8,7 @@
 #include "cubeio.h"
 #include "sdcard.h"
 #include "cli.h"
+#include "monitor.h"
 
 extern spi_cfg_t spi1;
 extern spi_cfg_t spi2;
@@ -18,6 +19,7 @@ extern usart_cfg_t usart6;
 extern usart_cfg_t usart7;
 extern sdio_cfg_t sdmmc1;
 extern adc_cfg_t adc12;
+extern tim_cfg_t tim2;
 
 extern gpio_cfg_t gpio_periph_pwr;
 extern gpio_cfg_t gpio_sensors_pwr;
@@ -47,3 +49,4 @@ int SPI2_Init();
 int SPI4_Init();
 int SDMMC1_Init();
 int ADC12_Init();
+int TIM2_Init();
