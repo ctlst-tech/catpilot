@@ -7,6 +7,8 @@ int TIM_Init(tim_cfg_t *cfg) {
     int rv = 0;
     if((rv = TIM_ClockEnable(cfg)) != 0) return rv;
 
+    cfg->TIM_InitStruct.Instance = cfg->TIM;
+
     if(HAL_TIM_Base_Init(&cfg->TIM_InitStruct) != HAL_OK) return EINVAL;
     TIM_DisableIRQ(cfg);
 

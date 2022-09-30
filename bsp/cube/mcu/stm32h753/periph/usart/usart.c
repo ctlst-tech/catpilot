@@ -375,8 +375,8 @@ int USART_ClockEnable(usart_cfg_t *cfg) {
         static int usartnum = 0;
         char read_task_name[configMAX_TASK_NAME_LEN];
         char write_task_name[configMAX_TASK_NAME_LEN];
-        sprintf(read_task_name, "usart%d_ReadTask\n", usartnum);
-        sprintf(write_task_name, "usart%d_WriteTask\n", usartnum);
+        sprintf(read_task_name, "ttyS%d_ReadTask", usartnum);
+        sprintf(write_task_name, "ttyS%d_WriteTask", usartnum);
         usartnum++;
 
         xTaskCreate(USART_ReadTask,

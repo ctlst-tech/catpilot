@@ -33,11 +33,7 @@ static FATFS fs;
 int main(void) {
     HAL_Init();
     RCC_Init();
-    Module_Start("Monitor",
-                Monitor,
-                Monitor_Update,
-                1000,
-                8);
+    Monitor();
     xTaskCreate(main_thread, "main_thread", 100, NULL, 3, NULL );
     vTaskStartScheduler();
     while(1);

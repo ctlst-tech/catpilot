@@ -30,5 +30,6 @@ static char stat_buffer[1024];
 
 void Monitor_Update(void) {
     vTaskGetRunTimeStats(stat_buffer);
-    printf("%s" ,stat_buffer);
+    printf("%s", stat_buffer);
+    printf("--------------------------------------------------------\n");
 }
