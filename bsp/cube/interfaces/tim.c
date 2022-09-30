@@ -6,6 +6,7 @@ tim_cfg_t tim2;
 int TIM2_Init() {
     int rv;
 
+    if(tim2.TIM != NULL) return 0;
     tim2.TIM = TIM2;
     tim2.TIM_InitStruct.Init.CounterMode = TIM_COUNTERMODE_UP;
     tim2.TIM_InitStruct.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -17,5 +18,5 @@ int TIM2_Init() {
     rv = TIM_Init(&tim2);
     TIM_EnableIRQ(&tim2);
 
-    return 0;
+    return rv;
 }
