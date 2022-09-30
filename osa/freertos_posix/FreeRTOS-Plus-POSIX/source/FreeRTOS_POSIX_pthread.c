@@ -89,10 +89,11 @@ static void prvRunThread( void * pxArg );
 /**
  * @brief Default pthread_attr_t.
  */
+#define PTHREAD_DEFAULT_PRIORITY 3
 static const pthread_attr_internal_t xDefaultThreadAttributes =
 {
     .usStackSize                = PTHREAD_STACK_MIN,
-    .usSchedPriorityDetachState = ( ( uint16_t ) tskIDLE_PRIORITY & pthreadSCHED_PRIORITY_MASK ) | ( PTHREAD_CREATE_JOINABLE << pthreadDETACH_STATE_SHIFT ),
+    .usSchedPriorityDetachState = ( ( uint16_t ) PTHREAD_DEFAULT_PRIORITY & pthreadSCHED_PRIORITY_MASK ) | ( PTHREAD_CREATE_JOINABLE << pthreadDETACH_STATE_SHIFT ),
 };
 
 /*-----------------------------------------------------------*/
