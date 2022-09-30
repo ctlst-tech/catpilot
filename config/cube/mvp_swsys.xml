@@ -3,18 +3,77 @@
 <swsys>
 
     <bus name="control" max_topics="256" eq_channel="1">
-        <event_queue size="20" buffer_size="2000"/>
+<!--        <event_queue size="20" buffer_size="2000"/>-->
     </bus>
+
+    <bus name="gcu" max_topics="256">
+        <dir name="hk" eq_channel="16"/>
+        <dir name="nav" eq_channel="16"/>
+        <dir name="cont" eq_channel="16"/>
+
+        <event_queue size="20" buffer_size="4000"/>
+    </bus>
+
+
+    <service type="sdtl" name="gcu_link">
+        <param alias="baudrate">57600</param>
+        <param alias="ser_path">/dev/ttyS1</param>
+
+        <channel name="downlink" id="1" type="rel" />
+        <channel name="downlink_sk" id="2" type="unrel" />
+    </service>
+
+    <service type="eqrb_sdtl" name="debug_sdtl">
+        <param alias="service">gcu_link</param>
+        <param alias="channel_1">downlink</param>
+        <param alias="channel_2">downlink_sk</param>
+        <param alias="bus">gcu</param>
+    </service>
 
     <task type="flow" name="control_flow" config="mvp_flow_control.xml" priority="6" clk_method="freerun">
         <connect>
-            <out alias="ax">itb:/control/ax</out>
-            <out alias="ay">itb:/control/ay</out>
-            <out alias="az">itb:/control/az</out>
-            <out alias="wx">itb:/control/wx</out>
-            <out alias="wy">itb:/control/wy</out>
-            <out alias="wz">itb:/control/wz</out>
-            <out alias="arm">itb:/control/arm</out>
+            <out alias="wx">control/wx</out>
+            <out alias="wy">control/wy</out>
+            <out alias="wz">control/wz</out>
+            <out alias="ax">control/ax</out>
+            <out alias="ay">control/ay</out>
+            <out alias="az">control/az</out>
+            <out alias="arm">control/arm</out>
+        </connect>
+    </task>
+
+    <task type="flow" name="telemetric" config="mvp_flow_telemetric.xml" priority="2" clk_method="timer" clk_period="100">
+        <connect>
+            <in alias="wx">control/wx</in>
+            <in alias="wy">control/wy</in>
+            <in alias="wz">control/wz</in>
+            <in alias="ax">control/ax</in>
+            <in alias="ay">control/ay</in>
+            <in alias="az">control/az</in>
+
+            <in alias="manc_arm">control/arm</in>
+
+            <in alias="roll">control/ax</in>
+            <in alias="pitch">control/ay</in>
+            <in alias="yaw">control/az</in>
+
+            <out alias="roll">gcu/nav/roll</out>
+            <out alias="pitch">gcu/nav/pitch</out>
+            <out alias="yaw">gcu/nav/yaw</out>
+
+            <out alias="manc_lat">gcu/cont/manc_lat</out>
+            <out alias="manc_lon">gcu/cont/manc_lon</out>
+            <out alias="manc_thr">gcu/cont/manc_thr</out>
+            <out alias="manc_rud">gcu/cont/manc_rud</out>
+            <out alias="manc_arm">gcu/cont/manc_arm</out>
+
+            <out alias="ax">gcu/nav/ax</out>
+            <out alias="ay">gcu/nav/ay</out>
+            <out alias="az">gcu/nav/az</out>
+            <out alias="wx">gcu/nav/wx</out>
+            <out alias="wy">gcu/nav/wy</out>
+            <out alias="wz">gcu/nav/wz</out>
+            <out alias="sine">gcu/hk/sine</out>
         </connect>
     </task>
 

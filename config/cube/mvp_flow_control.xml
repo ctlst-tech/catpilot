@@ -16,6 +16,12 @@
             <o alias="wx" annotation="wx"/>
             <o alias="wy" annotation="wy"/>
             <o alias="wz" annotation="wz"/>
+
+            <o alias="manc_lat"/>
+            <o alias="manc_lon"/>
+            <o alias="manc_thr"/>
+            <o alias="manc_rud"/>
+
             <o alias="arm" annotation="arm"/>
         </outputs>
 
@@ -28,13 +34,17 @@
             <param alias="value">0.0</param>
         </f>
 
-        <f name="icm20948" by_spec="cube.sensors.icm20948"/>
+        <f name="imu1" by_spec="cube.sensors.icm20948"/>
 
         <f name="half" by_spec="core.source.constant">
             <param alias="value">0.5</param>
         </f>
 
         <f name="rc" by_spec="cube.io.rc"/>
+
+        <f name="sine" by_spec="core.source.sin">
+            <param alias="period">0.5</param>
+        </f>
 
         <f name="arm_comp" by_spec="core.math.lt">
             <in alias="input0">half/output</in>
@@ -55,13 +65,18 @@
     </functions>
 
     <link_outputs>
-        <link alias="ax">icm20948/ax</link>
-        <link alias="ay">icm20948/ay</link>
-        <link alias="az">icm20948/az</link>
-        <link alias="wx">icm20948/wx</link>
-        <link alias="wy">icm20948/wy</link>
-        <link alias="wz">icm20948/wz</link>
+        <link alias="ax">imu1/ax</link>
+        <link alias="ay">imu1/ay</link>
+        <link alias="az">imu1/az</link>
+        <link alias="wx">imu1/wx</link>
+        <link alias="wy">imu1/wy</link>
+        <link alias="wz">imu1/wz</link>
         <link alias="arm">arm_comp/output</link>
+
+        <in alias="manc_lat">rc/rc_channel1</in>
+        <in alias="manc_lon">rc/rc_channel2</in>
+        <in alias="manc_thr">rc/rc_channel3</in>
+        <in alias="manc_rud">rc/rc_channel4</in>
     </link_outputs>
 
 </flow>
