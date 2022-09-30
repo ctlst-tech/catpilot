@@ -25,7 +25,7 @@ int ADC12_Init() {
     adc12.ADC_InitStruct.Init.ConversionDataManagement = ADC_CONVERSIONDATA_DMA_CIRCULAR;
     adc12.ch_num = 6;
     adc12.dma_cfg = &adc12_dma;
-    adc12.priority = 5;
+    adc12.priority = 10;
 
     adc12_dma.DMA_InitStruct.Instance = DMA2_Stream2;
     adc12_dma.DMA_InitStruct.Init.Request = DMA_REQUEST_ADC1;

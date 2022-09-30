@@ -9,7 +9,7 @@ gpio_cfg_t usart2_tx = GPIO_USART2_TX;
 gpio_cfg_t usart2_rx = GPIO_USART2_RX;
 const int usart2_bitrate = 57600;
 const int usart2_timeout = portMAX_DELAY;
-const int usart2_priority = 15;
+const int usart2_priority = 7;
 const int usart2_task_priority = 1;
 
 // TELEM2
@@ -20,7 +20,7 @@ gpio_cfg_t usart3_tx = GPIO_USART3_TX;
 gpio_cfg_t usart3_rx = GPIO_USART3_RX;
 const int usart3_bitrate = 115200;
 const int usart3_timeout = portMAX_DELAY;
-const int usart3_priority = 15;
+const int usart3_priority = 7;
 const int usart3_task_priority = 1;
 
 // IO
@@ -31,7 +31,7 @@ gpio_cfg_t usart6_tx = GPIO_USART6_TX;
 gpio_cfg_t usart6_rx = GPIO_USART6_RX;
 const int usart6_bitrate = 1500000;
 const int usart6_timeout = 20;
-const int usart6_priority = 15;
+const int usart6_priority = 7;
 
 // DEBUG
 usart_cfg_t usart7;
@@ -41,7 +41,7 @@ gpio_cfg_t usart7_tx = GPIO_USART7_TX;
 gpio_cfg_t usart7_rx = GPIO_USART7_RX;
 const int usart7_bitrate = 115200;
 const int usart7_timeout = portMAX_DELAY;
-const int usart7_priority = 15;
+const int usart7_priority = 9;
 const int usart7_task_priority = 1;
 
 int USART6_Init() {

@@ -11,7 +11,7 @@ gpio_cfg_t sdmmc1_d2  = GPIO_SDMMC1_D2;
 gpio_cfg_t sdmmc1_d3  = GPIO_SDMMC1_D3;
 gpio_cfg_t sdmmc1_cd  = GPIO_SDMMC1_CD;
 const int sdmmc1_timeout = 1000;
-const int sdmmc1_priority = 7;
+const int sdmmc1_priority = 8;
 
 int SDMMC1_Init() {
     int rv = 0;

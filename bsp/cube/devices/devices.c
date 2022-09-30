@@ -38,7 +38,7 @@ int Devices_Init(void) {
                  BARO_INT_Init,
                  BARO_INT_Update,
                  11,
-                 9);
+                 10);
 
     Module_Start("IMU_EXT",
                  IMU_EXT_Init,
@@ -50,7 +50,7 @@ int Devices_Init(void) {
                  IO_Init,
                  IO_Update,
                  2,
-                 11);
+                 9);
 
     Module_Start("Monitor",
                  Monitor,
