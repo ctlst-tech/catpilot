@@ -33,7 +33,7 @@ static FATFS fs;
 int main(void) {
     HAL_Init();
     RCC_Init();
-    Monitor();
+//    Monitor();
     xTaskCreate(main_thread, "main_thread", 100, NULL, 3, NULL );
     vTaskStartScheduler();
     while(1);
@@ -127,7 +127,10 @@ void *ctlst(void *param) {
         swsys_rv_t swsys_rv = swsys_load("/cfg/mvp_swsys.xml", "/cfg/", &sys);
         if (swsys_rv == swsys_e_ok) {
             LOG_INFO("SYSTEM", "System starts")
-            swsys_top_module_start(&sys);
+            swsys_rv = swsys_top_module_start(&sys);
+            if (swsys_rv != swsys_e_ok) {
+                LOG_ERROR("SYSTEM", "SWSYS start error")
+            }
         } else {
             LOG_ERROR("SYSTEM", "SWSYS config load error")
         }

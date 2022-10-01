@@ -111,6 +111,21 @@
             <in alias="input">manc_arm</in>
         </f>
 
+        <f name="roll" by_spec="core.math.gain">
+            <param alias="gain">57.3</param>
+            <in alias="input">roll</in>
+        </f>
+
+        <f name="pitch" by_spec="core.math.gain">
+            <param alias="gain">57.3</param>
+            <in alias="input">pitch</in>
+        </f>
+
+        <f name="yaw" by_spec="core.math.gain">
+            <param alias="gain">57.3</param>
+            <in alias="input">yaw</in>
+        </f>
+
 
     </functions>
 
@@ -122,9 +137,9 @@
         <link alias="wy">wy/output</link>
         <link alias="wz">wz/output</link>
 
-        <link alias="roll" annotation="roll">sine/out</link>
-        <link alias="pitch" annotation="pitch">sine/out</link>
-        <link alias="yaw" annotation="yaw">sine/out</link>
+        <link alias="roll" annotation="roll">roll/output</link>
+        <link alias="pitch" annotation="pitch">pitch/output</link>
+        <link alias="yaw" annotation="yaw">yaw/output</link>
 
         <link alias="manc_lat">manc_lat/output</link>
         <link alias="manc_lon">manc_lon/output</link>

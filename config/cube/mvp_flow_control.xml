@@ -17,7 +17,10 @@
             <o alias="wy" annotation="wy"/>
             <o alias="wz" annotation="wz"/>
 
-            <o alias="manc_lat"/>
+            <o alias="roll"/>
+            <o alias="pitch"/>
+            <o alias="yaw"/>
+
             <o alias="manc_lon"/>
             <o alias="manc_thr"/>
             <o alias="manc_rud"/>
@@ -34,8 +37,68 @@
             <param alias="value">0.0</param>
         </f>
 
+        <!-- navigation -->
         <f name="imu1" by_spec="cube.sensors.icm20948"/>
 
+
+        <f name="zero" by_spec="core.source.constant">
+            <param alias="value">0.0</param>
+        </f>
+
+        <f name="roll0" by_spec="core.source.constant">
+            <param alias="value">0.0</param>
+        </f>
+        <f name="pitch0" by_spec="core.source.constant">
+            <param alias="value">0.0</param>
+        </f>
+        <f name="yaw0" by_spec="core.source.constant">
+            <param alias="value">0.0</param>
+        </f>
+
+        <f name="initial_euler" by_spec="core.quat.from_euler">
+            <in alias="roll">roll0/output</in>
+            <in alias="pitch">pitch0/output</in>
+            <in alias="yaw">yaw0/output</in>
+        </f>
+
+        <f name="bias_calib_proto" by_spec="core.filter.mvng_av">
+            <in alias="i1">imu1/wx</in>
+            <in alias="i2">imu1/wy</in>
+            <in alias="i3">imu1/wz</in>
+        </f>
+
+        <f name="wx_biased" by_spec="core.math.sub">
+            <in alias="input0">imu1/wx</in>
+            <in alias="input1">bias_calib_proto/a1</in>
+        </f>
+
+        <f name="wy_biased" by_spec="core.math.sub">
+            <in alias="input0">imu1/wy</in>
+            <in alias="input1">bias_calib_proto/a2</in>
+        </f>
+
+        <f name="wz_biased" by_spec="core.math.sub">
+            <in alias="input0">imu1/wz</in>
+            <in alias="input1">bias_calib_proto/a3</in>
+        </f>
+
+        <f name="integrate_att" by_spec="core.quat.prop">
+            <in alias="wx">wx_biased/output</in>
+            <in alias="wy">wy_biased/output</in>
+            <in alias="wz">wz_biased/output</in>
+            <in alias="q0">initial_euler/q</in>
+            <in alias="qN">norm_att_quat/q</in>
+        </f>
+
+        <f name="norm_att_quat" by_spec="core.quat.norm">
+            <in alias="q">integrate_att/q</in>
+        </f>
+
+        <f name="to_euler" by_spec="core.quat.to_euler">
+            <in alias="q">integrate_att/q</in>
+        </f>
+
+        <!-- control -->
         <f name="half" by_spec="core.source.constant">
             <param alias="value">0.5</param>
         </f>
@@ -68,15 +131,19 @@
         <link alias="ax">imu1/ax</link>
         <link alias="ay">imu1/ay</link>
         <link alias="az">imu1/az</link>
-        <link alias="wx">imu1/wx</link>
-        <link alias="wy">imu1/wy</link>
-        <link alias="wz">imu1/wz</link>
+        <link alias="wx">wx_biased/output</link>
+        <link alias="wy">wy_biased/output</link>
+        <link alias="wz">wz_biased/output</link>
         <link alias="arm">arm_comp/output</link>
 
-        <in alias="manc_lat">rc/rc_channel1</in>
-        <in alias="manc_lon">rc/rc_channel2</in>
-        <in alias="manc_thr">rc/rc_channel3</in>
-        <in alias="manc_rud">rc/rc_channel4</in>
+        <link alias="roll">to_euler/roll</link>
+        <link alias="pitch">to_euler/pitch</link>
+        <link alias="yaw">to_euler/yaw</link>
+
+        <link alias="manc_lat">rc/rc_channel1</link>
+        <link alias="manc_lon">rc/rc_channel2</link>
+        <link alias="manc_thr">rc/rc_channel3</link>
+        <link alias="manc_rud">rc/rc_channel4</link>
     </link_outputs>
 
 </flow>
