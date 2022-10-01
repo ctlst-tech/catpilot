@@ -61,25 +61,25 @@
             <in alias="yaw">yaw0/output</in>
         </f>
 
-        <f name="bias_calib_proto" by_spec="core.filter.mvng_av">
+        <!-- <f name="bias_calib_proto" by_spec="core.filter.mvng_av">
             <in alias="i1">imu1/wx</in>
             <in alias="i2">imu1/wy</in>
             <in alias="i3">imu1/wz</in>
-        </f>
+        </f> -->
 
         <f name="wx_biased" by_spec="core.math.sub">
             <in alias="input0">imu1/wx</in>
-            <in alias="input1">bias_calib_proto/a1</in>
+            <in alias="input1">zero</in>
         </f>
 
         <f name="wy_biased" by_spec="core.math.sub">
             <in alias="input0">imu1/wy</in>
-            <in alias="input1">bias_calib_proto/a2</in>
+            <in alias="input1">zero</in>
         </f>
 
         <f name="wz_biased" by_spec="core.math.sub">
             <in alias="input0">imu1/wz</in>
-            <in alias="input1">bias_calib_proto/a3</in>
+            <in alias="input1">zero</in>
         </f>
 
         <f name="integrate_att" by_spec="core.quat.prop">

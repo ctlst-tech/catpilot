@@ -23,12 +23,12 @@
         <channel name="downlink_sk" id="2" type="unrel" />
     </service>
 
-    <service type="eqrb_sdtl" name="debug_sdtl">
+    <!-- <service type="eqrb_sdtl" name="debug_sdtl">
         <param alias="service">gcu_link</param>
         <param alias="channel_1">downlink</param>
         <param alias="channel_2">downlink_sk</param>
         <param alias="bus">gcu</param>
-    </service>
+    </service> -->
 
     <task type="flow" name="control_flow" config="mvp_flow_control.xml" priority="6" clk_method="freerun">
         <connect>

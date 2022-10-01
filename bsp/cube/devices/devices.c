@@ -28,11 +28,11 @@ int Devices_Init(void) {
         LOG_INFO("BOARD", "Initialization successful");
     }
 
-    Module_Start("IMU_INT",
-                 IMU_INT_Init,
-                 IMU_INT_Update,
-                 2,
-                 10);
+//    Module_Start("IMU_INT",
+//                 IMU_INT_Init,
+//                 IMU_INT_Update,
+//                 2,
+//                 10);
 
     Module_Start("BARO_INT",
                  BARO_INT_Init,
@@ -52,11 +52,11 @@ int Devices_Init(void) {
                  2,
                  9);
 
-    Module_Start("Monitor",
-                 Monitor,
-                 Monitor_Update,
-                 3000,
-                 1);
+    // Module_Start("Monitor",
+    //              Monitor,
+    //              Monitor_Update,
+    //              3000,
+    //              1);
 
     return 0;
 }
