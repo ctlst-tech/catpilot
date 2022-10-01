@@ -26,10 +26,14 @@ uint32_t Monitor_GetCounter(void) {
     return TIM_GetTick(tim_monitor);
 }
 
-static char stat_buffer[1024];
+static char stat_buffer[4096];
 
 void Monitor_Update(void) {
+    static int first_delay = 1;
+    if(first_delay) vTaskDelay(15000);
+    first_delay = 0;
     vTaskGetRunTimeStats(stat_buffer);
+    printf("------------------------ Monitor ------------------------\n");
     printf("%s", stat_buffer);
-    printf("--------------------------------------------------------\n");
+    printf("---------------------------------------------------------\n\n");
 }

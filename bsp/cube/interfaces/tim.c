@@ -14,6 +14,7 @@ int TIM2_Init() {
     tim2.TIM_InitStruct.Init.Period = 10;
     tim2.TIM_InitStruct.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
     tim2.counter_scaler_us = 10;
+    tim2.priority = 15;
 
     rv = TIM_Init(&tim2);
     TIM_EnableIRQ(&tim2);

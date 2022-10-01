@@ -56,7 +56,7 @@ int Devices_Init(void) {
                  Monitor,
                  Monitor_Update,
                  3000,
-                 8);
+                 1);
 
     return 0;
 }
