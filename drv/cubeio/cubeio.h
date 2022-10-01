@@ -6,6 +6,12 @@ typedef struct {
     usart_cfg_t *usart;
 } cubeio_cfg_t;
 
+typedef struct {
+    uint16_t zero;
+    uint16_t min;
+    uint16_t max;
+} cubeio_range_cfg_t;
+
 enum cubeio_state_t {
     CubeIO_RESET,
     CubeIO_CONF,
@@ -29,16 +35,24 @@ enum cubeio_event_t {
     CubeIO_GPIO,
 };
 
+enum cubeio_type_t {
+    CubeIO_RC = 0,
+    CubeIO_PWM,
+};
+
 typedef uint32_t cubeio_eventmask_t;
 
 int CubeIO_Init(usart_cfg_t *usart);
 int CubeIO_Operation(void);
 void CubeIO_Run(void);
+void CubeIO_SetRange(int type, uint8_t channel, 
+                     uint16_t zero, uint16_t min, uint16_t max);
 
-void CubeIO_SetPWM(uint8_t channels, uint16_t *pwm);
-void CubeIO_SetPWMCh(uint8_t channel, uint16_t pwm);
-uint16_t CubeIO_GetPWMCh(uint8_t channel);
-void CubeIO_SetFailsafePWM(uint8_t channels, uint16_t pwm);
+void CubeIO_SetPWM(uint8_t channels, double *pwm);
+void CubeIO_SetFailsafePWM(double pwm);
+void CubeIO_GetRC(double *ptr);
+
+uint16_t CubeIO_GetPWMChannel(uint8_t channel);
 void CubeIO_SetSafetyMask(uint16_t safety_mask);
 void CubeIO_SetFreq(uint16_t chmask, uint16_t freq);
 uint16_t CubeIO_GetFreq(uint16_t channel);
@@ -50,6 +64,4 @@ void CubeIO_ForceSafetyOn(void);
 void CubeIO_ForceSafetyOff(void);
 void CubeIO_SetIMUHeaterDuty(uint8_t duty);
 int16_t CubeIO_GetRSSI(void);
-void CubeIO_GetRC(uint16_t *ptr);
-uint16_t CubeIO_GetRCCh(uint8_t channel);
 void CubeIO_EnableSBUSOut(uint16_t freq);

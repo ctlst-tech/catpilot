@@ -5,7 +5,7 @@
 
 void cube_io_pwm_exec(const cube_io_pwm_inputs_t *i, cube_io_pwm_outputs_t *o)
 {
-    uint16_t pwm[16];
+    double pwm[16];
 
     GPIO_Set(&gpio_fmu_pwm_2);
 
@@ -13,6 +13,14 @@ void cube_io_pwm_exec(const cube_io_pwm_inputs_t *i, cube_io_pwm_outputs_t *o)
         CubeIO_ForceSafetyOff();
     } else {
         CubeIO_ForceSafetyOn();
+    }
+
+    static int init = 0;
+    if(!init) {
+        for(int i = 0; i < 8; i++) {
+            CubeIO_SetRange(CubeIO_PWM, i, 1000, 1000, 3000);
+        }
+        init = 1;
     }
 
     pwm[0] = i->pwm_channel1;

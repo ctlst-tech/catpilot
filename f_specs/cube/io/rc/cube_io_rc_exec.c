@@ -5,9 +5,17 @@
 
 void cube_io_rc_exec(cube_io_rc_outputs_t *o)
 {
-    uint16_t rc[16];
+    double rc[16];
 
     GPIO_Set(&gpio_fmu_pwm_3);
+
+    static int init = 0;
+    if(!init) {
+        for(int i = 0; i < 16; i++) {
+            CubeIO_SetRange(CubeIO_RC, i, 982, 982, 2006);
+        }
+        init = 1;
+    }
 
     CubeIO_GetRC(rc);
     o->rc_channel1 = rc[0];

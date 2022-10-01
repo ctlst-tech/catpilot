@@ -21,6 +21,13 @@ static cubeio_rate_t cubeio_rate;
 static cubeio_page_reg_status_t cubeio_page_reg_status;
 static cubeio_page_rc_input_t cubeio_page_rc_input;
 
+static cubeio_range_cfg_t cubeio_rc_range_cfg[MAX_CHANNELS];
+static cubeio_range_cfg_t cubeio_pwm_range_cfg[MAX_CHANNELS];
+
+static double cubeio_pwm[MAX_CHANNELS];
+static double cubeio_failsafe_pwm;
+static double cubeio_rc[MAX_CHANNELS];
+
 // Private functions
 static int CubeIO_WriteRegs(uint8_t page, 
                             uint8_t offset, 
@@ -48,6 +55,8 @@ static void CubeIO_PushEvent(cubeio_eventmask_t *eventmask,
                              enum cubeio_event_t event);
 
 void CubeIO_UpdateSafetyOptions(void);
+uint16_t CubeIO_ScaleOutput(double out, cubeio_range_cfg_t *cfg);
+double CubeIO_ScaleInput(uint16_t in, cubeio_range_cfg_t *cfg);
 
 // Sync
 static SemaphoreHandle_t iordy_semaphore;
@@ -119,12 +128,22 @@ void CubeIO_Run(void) {
 
         // Event handling
         if(CubeIO_PopEvent(&cubeio_eventmask, CubeIO_SET_PWM)) {
+            for(int i = 0; i < cubeio_pwm_out.num_channels; i++) {
+                cubeio_pwm_out.pwm[i] = 
+                    CubeIO_ScaleOutput(cubeio_pwm[i], 
+                                        &cubeio_pwm_range_cfg[i]);
+            }
             CubeIO_WriteRegs(PAGE_DIRECT_PWM, 0, cubeio_pwm_out.num_channels, 
                              cubeio_pwm_out.pwm);
             // DEBUG
             GPIO_Reset(&gpio_fmu_pwm_2);
         }
         if(CubeIO_PopEvent(&cubeio_eventmask, CubeIO_SET_FAILSAFE_PWM)) {
+            for(int i = 0; i < MAX_CHANNELS; i++) {
+                cubeio_pwm_out.failsafe_pwm[i] = 
+                    CubeIO_ScaleOutput(cubeio_failsafe_pwm, 
+                                        &cubeio_pwm_range_cfg[i]);
+            }
             CubeIO_WriteRegs(PAGE_FAILSAFE_PWM, 0, MAX_CHANNELS, 
                              cubeio_pwm_out.failsafe_pwm);
         }
@@ -174,6 +193,11 @@ void CubeIO_Run(void) {
         if(now - last_rc_read_ms > 20) {
             CubeIO_ReadRegs(PAGE_RAW_RCIN, 0, sizeof(cubeio_page_rc_input) / 2,
                             (uint16_t *)&cubeio_page_rc_input);
+            for(int i = 0; i < MAX_CHANNELS; i++) {
+                cubeio_rc[i] = 
+                    CubeIO_ScaleInput(cubeio_page_rc_input.channel[i], 
+                                        &cubeio_pwm_range_cfg[i]);
+            }
             last_rc_read_ms = xTaskGetTickCount() * portTICK_PERIOD_MS;
             // DEBUG
             GPIO_Reset(&gpio_fmu_pwm_3);
@@ -218,31 +242,44 @@ int CubeIO_Ready(void) {
     return 1;
 }
 
-void CubeIO_SetPWM(uint8_t channels, uint16_t *pwm) {
+void CubeIO_SetRange(int type, uint8_t channel,
+                     uint16_t zero, uint16_t min, uint16_t max) {
+    cubeio_range_cfg_t *range_cfg;
+
+    if(type == CubeIO_RC) {
+        range_cfg = cubeio_rc_range_cfg;
+    } else if(type == CubeIO_PWM) {
+        range_cfg = cubeio_pwm_range_cfg;
+    } else {
+        return;
+    }
+
+    if(channel > MAX_CHANNELS) return;
+
+    range_cfg[channel].zero = zero;
+    range_cfg[channel].min = min;
+    range_cfg[channel].max = max;
+}
+
+void CubeIO_SetPWM(uint8_t channels, double *pwm) {
     if(channels < 1) return;
     cubeio_pwm_out.num_channels = MIN(channels, MAX_CHANNELS);
-    memcpy(cubeio_pwm_out.pwm, pwm, 2 * channels);
+    memcpy(cubeio_pwm, pwm,  sizeof(cubeio_pwm));
     CubeIO_PushEvent(&cubeio_eventmask, CubeIO_SET_PWM);
 }
 
-void CubeIO_SetPWMCh(uint8_t channel, uint16_t pwm) {
-    if(channel >= MAX_CHANNELS) return;
-    cubeio_pwm_out.pwm[channel] = pwm;
-    CubeIO_PushEvent(&cubeio_eventmask, CubeIO_SET_PWM);    
+void CubeIO_SetFailsafePWM(double pwm) {
+    cubeio_failsafe_pwm = pwm;
+    CubeIO_PushEvent(&cubeio_eventmask, CubeIO_SET_FAILSAFE_PWM);    
 }
 
-uint16_t CubeIO_GetPWMCh(uint8_t channel) {
+void CubeIO_GetRC(double *ptr) {
+    memcpy(ptr, cubeio_rc, sizeof(cubeio_rc));
+}
+
+uint16_t CubeIO_GetPWMChannel(uint8_t channel) {
     if(channel >= MAX_CHANNELS) return 0xFFFF;
     return cubeio_pwm_in.pwm[channel];
-}
-
-void CubeIO_SetFailsafePWM(uint8_t channels, uint16_t pwm) {
-    if(channels < 1) return;
-    channels = MIN(channels, MAX_CHANNELS);
-    for(int i = 0; i < channels; i++) {
-        cubeio_pwm_out.failsafe_pwm[i] = pwm;
-    }
-    CubeIO_PushEvent(&cubeio_eventmask, CubeIO_SET_FAILSAFE_PWM);    
 }
 
 void CubeIO_SetSafetyMask(uint16_t safety_mask) {
@@ -311,16 +348,6 @@ void CubeIO_SetIMUHeaterDuty(uint8_t duty) {
 
 int16_t CubeIO_GetRSSI(void) {
     return cubeio_page_rc_input.rssi;
-}
-
-void CubeIO_GetRC(uint16_t *ptr) {
-    memcpy(ptr, cubeio_page_rc_input.channel, 
-           sizeof(cubeio_page_rc_input.channel));
-}
-
-uint16_t CubeIO_GetRCCh(uint8_t channel) {
-    if(channel >= MAX_CHANNELS) return 0xFFFF;
-    return cubeio_page_rc_input.channel[channel];
 }
 
 void CubeIO_EnableSBUSOut(uint16_t freq) {
@@ -463,4 +490,12 @@ void CubeIO_UpdateSafetyOptions(void) {
                      P_SETUP_ARMING_SAFETY_DISABLE_ON);
     CubeIO_SetClearReg(PAGE_SETUP, PAGE_REG_SETUP_ARMING,
                        reg & mask, (~reg) & mask);
+}
+
+uint16_t CubeIO_ScaleOutput(double out, cubeio_range_cfg_t *cfg) {
+    return (uint16_t)(out * (cfg->max - cfg->min) + cfg->zero);
+}
+
+double CubeIO_ScaleInput(uint16_t in, cubeio_range_cfg_t *cfg) {
+    return (double)((in - cfg->zero) / (cfg->max - cfg->min));
 }
