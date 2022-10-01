@@ -38,6 +38,14 @@
             <out alias="ax">control/ax</out>
             <out alias="ay">control/ay</out>
             <out alias="az">control/az</out>
+
+            <out alias="roll">control/roll</out>
+            <out alias="pitch">control/pitch</out>
+            <out alias="yaw">control/yaw</out>
+
+            <out alias="ax">control/roll</out>
+            <out alias="ay">control/pitch</out>
+            <out alias="az">control/yaw</out>
             <out alias="arm">control/arm</out>
         </connect>
     </task>
@@ -51,11 +59,12 @@
             <in alias="ay">control/ay</in>
             <in alias="az">control/az</in>
 
-            <in alias="manc_arm">control/arm</in>
-
             <in alias="roll">control/roll</in>
             <in alias="pitch">control/pitch</in>
             <in alias="yaw">control/yaw</in>
+
+            <in alias="manc_arm">control/arm</in>
+
 
             <out alias="roll">gcu/nav/roll</out>
             <out alias="pitch">gcu/nav/pitch</out>
