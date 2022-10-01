@@ -33,7 +33,6 @@ static FATFS fs;
 int main(void) {
     HAL_Init();
     RCC_Init();
-//    Monitor();
     xTaskCreate(main_thread, "main_thread", 100, NULL, 3, NULL );
     vTaskStartScheduler();
     while(1);
@@ -122,6 +121,8 @@ void *ctlst(void *param) {
 
 
     xml_inline_mount("/cfg");
+
+    // while(1) vTaskDelay(100);
 
     if (res == FR_OK) {
         swsys_rv_t swsys_rv = swsys_load("/cfg/mvp_swsys.xml", "/cfg/", &sys);

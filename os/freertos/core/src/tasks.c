@@ -4484,7 +4484,8 @@ static void prvResetNextTaskUnblockTime( void )
         size_t x;
 
         /* Start by copying the entire string. */
-        strcpy( pcBuffer, pcTaskName );
+        strncpy( pcBuffer, pcTaskName, (size_t)(configMAX_TASK_NAME_LEN - 1));
+        pcBuffer[configMAX_TASK_NAME_LEN - 1] = '\0';
 
         /* Pad the end of the string with spaces to ensure columns line up when
          * printed out. */
@@ -4668,7 +4669,7 @@ TaskStatus_t pxTaskStatusArray[30];
             ulTotalTime /= 100UL;
 
             pcWriteBuffer = prvWriteNameToBuffer( pcWriteBuffer, "Thread name" );
-            sprintf(pcWriteBuffer, "\tTime, ms\tLoad\tPriority\n");
+            sprintf(pcWriteBuffer, "\tTime, ms\tLoad\tPriority\r\n");
             pcWriteBuffer += strlen( pcWriteBuffer );
 
             /* Avoid divide by zero errors. */
@@ -4697,7 +4698,7 @@ TaskStatus_t pxTaskStatusArray[30];
                             {
                                 /* sizeof( int ) == sizeof( long ) so a smaller
                                  * printf() library can be used. */
-                                sprintf( pcWriteBuffer, "\t%010.3f\t%u%%\t%u\n", 
+                                sprintf( pcWriteBuffer, "\t%010.3f\t%u%%\t%u\r\n", 
                                         ( float ) pxTaskStatusArray[ x ].ulRunTimeCounter / 1000.f, 
                                         ( unsigned int ) ulStatsAsPercentage, 
                                         ( unsigned int ) pxTaskStatusArray[ x ].uxCurrentPriority ); /*lint !e586 sprintf() allowed as this is compiled with many compilers and this is a utility function only - not part of the core kernel implementation. */
@@ -4716,7 +4717,7 @@ TaskStatus_t pxTaskStatusArray[30];
                             {
                                 /* sizeof( int ) == sizeof( long ) so a smaller
                                  * printf() library can be used. */
-                                sprintf( pcWriteBuffer, "\t%010.3f\t<1%%\t%u\n", 
+                                sprintf( pcWriteBuffer, "\t%010.3f\t<1%%\t%u\r\n", 
                                         ( float ) pxTaskStatusArray[ x ].ulRunTimeCounter / 1000.f,
                                         ( unsigned int ) pxTaskStatusArray[ x ].uxCurrentPriority ); /*lint !e586 sprintf() allowed as this is compiled with many compilers and this is a utility function only - not part of the core kernel implementation. */
                             }

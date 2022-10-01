@@ -9,24 +9,30 @@ static tim_cfg_t *tim_monitor;
 
 // Sync
 
+static int monitor_init = 0;
+
 // Public functions
 int Monitor_Init(tim_cfg_t *tim) {
     if(tim == NULL) return -1;
     tim_monitor = tim;
+    TIM_Stop(tim_monitor);
+    TIM_Start(tim_monitor);
+    monitor_init = 1;
 
     return 0;
 }
 
 void Monitor_StartTimer(void) {
-    TIM_Stop(tim_monitor);
+    if(!monitor_init) return;
     TIM_Start(tim_monitor);
 }
 
 uint32_t Monitor_GetCounter(void) {
+    if(!monitor_init) return 0;
     return TIM_GetTick(tim_monitor);
 }
 
-static char stat_buffer[4096];
+static char stat_buffer[1024];
 
 void Monitor_Update(void) {
     static int first_delay = 1;
