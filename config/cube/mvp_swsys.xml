@@ -11,7 +11,7 @@
         <dir name="nav" eq_channel="16"/>
         <dir name="cont" eq_channel="16"/>
 
-        <event_queue size="20" buffer_size="4000"/>
+        <event_queue size="16" buffer_size="4000"/>
     </bus>
 
 
@@ -53,9 +53,9 @@
 
             <in alias="manc_arm">control/arm</in>
 
-            <in alias="roll">control/ax</in>
-            <in alias="pitch">control/ay</in>
-            <in alias="yaw">control/az</in>
+            <in alias="roll">control/roll</in>
+            <in alias="pitch">control/pitch</in>
+            <in alias="yaw">control/yaw</in>
 
             <out alias="roll">gcu/nav/roll</out>
             <out alias="pitch">gcu/nav/pitch</out>

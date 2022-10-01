@@ -17,7 +17,10 @@
             <o alias="wy" annotation="wy"/>
             <o alias="wz" annotation="wz"/>
 
-            <o alias="manc_lat"/>
+            <o alias="roll"/>
+            <o alias="pitch"/>
+            <o alias="yaw"/>
+
             <o alias="manc_lon"/>
             <o alias="manc_thr"/>
             <o alias="manc_rud"/>
@@ -34,8 +37,52 @@
             <param alias="value">0.0</param>
         </f>
 
+        <!-- navigation -->
         <f name="imu1" by_spec="cube.sensors.icm20948"/>
 
+
+        <f name="omega_x" by_spec="core.math.gain">
+            <in alias="input">gen3/out</in>
+            <param alias="gain">0.1</param>
+        </f>
+
+        <f name="zero" by_spec="core.source.constant">
+            <param alias="value">0.0</param>
+        </f>
+
+        <f name="roll0" by_spec="core.source.constant">
+            <param alias="value">0.0</param>
+        </f>
+        <f name="pitch0" by_spec="core.source.constant">
+            <param alias="value">0.0</param>
+        </f>
+        <f name="yaw0" by_spec="core.source.constant">
+            <param alias="value">0.0</param>
+        </f>
+
+        <f name="initial_euler" by_spec="core.quat.from_euler">
+            <in alias="roll">roll0/output</in>
+            <in alias="pitch">pitch0/output</in>
+            <in alias="yaw">yaw0/output</in>
+        </f>
+
+        <f name="integrate_att" by_spec="core.quat.prop">
+            <in alias="wx">imu1/wx</in>
+            <in alias="wy">imu1/wy</in>
+            <in alias="wz">imu1/wz</in>
+            <in alias="q0">initial_euler/q</in>
+            <in alias="qN">norm_att_quat/q</in>
+        </f>
+
+        <f name="norm_att_quat" by_spec="core.quat.norm">
+            <in alias="q">integrate_att/q</in>
+        </f>
+
+        <f name="to_euler" by_spec="core.quat.to_euler">
+            <in alias="q">integrate_att/q</in>
+        </f>
+
+        <!-- control -->
         <f name="half" by_spec="core.source.constant">
             <param alias="value">0.5</param>
         </f>
@@ -72,6 +119,10 @@
         <link alias="wy">imu1/wy</link>
         <link alias="wz">imu1/wz</link>
         <link alias="arm">arm_comp/output</link>
+
+        <link alias="roll">to_euler/roll</link>
+        <link alias="pitch">to_euler/pitch</link>
+        <link alias="yaw">to_euler/yaw</link>
 
         <in alias="manc_lat">rc/rc_channel1</in>
         <in alias="manc_lon">rc/rc_channel2</in>
