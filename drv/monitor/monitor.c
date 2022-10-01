@@ -10,6 +10,7 @@ static tim_cfg_t *tim_monitor;
 // Sync
 
 static int monitor_init = 0;
+static int fd;
 
 // Public functions
 int Monitor_Init(tim_cfg_t *tim) {
@@ -18,6 +19,7 @@ int Monitor_Init(tim_cfg_t *tim) {
     TIM_Stop(tim_monitor);
     TIM_Start(tim_monitor);
     monitor_init = 1;
+    fd = open("/dev/cli", O_RDWR);
 
     return 0;
 }
@@ -40,6 +42,7 @@ void Monitor_Update(void) {
     first_delay = 0;
     vTaskGetRunTimeStats(stat_buffer);
     printf("------------------------ Monitor ------------------------\n");
-    printf("%s", stat_buffer);
+    // printf("%s", stat_buffer);
+    write(fd, stat_buffer, strlen(stat_buffer));
     printf("---------------------------------------------------------\n\n");
 }

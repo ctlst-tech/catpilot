@@ -52,11 +52,11 @@ int Devices_Init(void) {
                  2,
                  9);
 
-    // Module_Start("Monitor",
-    //              Monitor,
-    //              Monitor_Update,
-    //              3000,
-    //              1);
+    Module_Start("Monitor",
+                 Monitor,
+                 Monitor_Update,
+                 3000,
+                 1);
 
     return 0;
 }
