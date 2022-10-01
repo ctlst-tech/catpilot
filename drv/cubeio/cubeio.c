@@ -196,7 +196,7 @@ void CubeIO_Run(void) {
             for(int i = 0; i < MAX_CHANNELS; i++) {
                 cubeio_rc[i] = 
                     CubeIO_ScaleInput(cubeio_page_rc_input.channel[i], 
-                                        &cubeio_pwm_range_cfg[i]);
+                                        &cubeio_rc_range_cfg[i]);
             }
             last_rc_read_ms = xTaskGetTickCount() * portTICK_PERIOD_MS;
             // DEBUG
