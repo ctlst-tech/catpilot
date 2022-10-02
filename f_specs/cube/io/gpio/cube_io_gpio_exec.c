@@ -11,3 +11,4 @@ void cube_io_gpio_exec(const cube_io_gpio_inputs_t *i, cube_io_gpio_outputs_t *o
         GPIO_Toggle(&gpio_fmu_pwm[p->channel - 1]);
     }
 }
+
