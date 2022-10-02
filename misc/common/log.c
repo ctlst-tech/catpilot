@@ -31,8 +31,10 @@ static char *msg_color[5] = {
 static SemaphoreHandle_t log_mutex;
 
 void log_module(uint8_t msg_type, char *module, char *s, ...) {
-    if(log_mutex == NULL) log_mutex = xSemaphoreCreateMutex();
-    xSemaphoreTake(log_mutex, portMAX_DELAY);
+    if(log_mutex == NULL) {
+        log_mutex = xSemaphoreCreateMutex();
+    }
+
     ssize_t length = 0;
     char string[LOG_MAX_LENGTH] = {};
     char module_alig[20] = {};
@@ -55,11 +57,14 @@ void log_module(uint8_t msg_type, char *module, char *s, ...) {
     length += vsnprintf(string + length, MAX(LOG_MAX_LENGTH - length, 0), s, arg);
     va_end(arg);
 
+    xSemaphoreTake(log_mutex, portMAX_DELAY);
+
     if(enable_) {
         printf("%s\n", string);
     } else {
         strcpy(stdout_string + stdout_len, string);
         stdout_len += strlen(string);
     }
+
     xSemaphoreGive(log_mutex);
 }
