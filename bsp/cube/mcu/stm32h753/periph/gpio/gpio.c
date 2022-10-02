@@ -20,6 +20,14 @@ void GPIO_Toggle(gpio_cfg_t *cfg) {
     HAL_GPIO_TogglePin(cfg->GPIO, cfg->GPIO_InitStruct.Pin);
 }
 
+void GPIO_SetState(gpio_cfg_t *cfg, uint8_t state) {
+    if(state) {
+        GPIO_Set(cfg);
+    } else {
+        GPIO_Reset(cfg);
+    }
+}
+
 int GPIO_Read(gpio_cfg_t *cfg) {
     int rv;
     rv = HAL_GPIO_ReadPin(cfg->GPIO, cfg->GPIO_InitStruct.Pin);

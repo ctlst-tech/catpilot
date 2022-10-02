@@ -11,7 +11,7 @@ void cube_sensors_icm20948_exec(cube_sensors_icm20948_outputs_t *o)
 {
     icm20948_imu_meas_t meas;
 
-    GPIO_Set(&gpio_fmu_pwm_1);
+    GPIO_Set(&gpio_fmu_pwm[0]);
 
     ICM20948_GetMeasBlock(&meas);
     o->ax = meas.accel_x;
@@ -21,5 +21,5 @@ void cube_sensors_icm20948_exec(cube_sensors_icm20948_outputs_t *o)
     o->wy = deg2rad(meas.gyro_y);
     o->wz = deg2rad(meas.gyro_z);
 
-    GPIO_Reset(&gpio_fmu_pwm_1);
+    GPIO_Reset(&gpio_fmu_pwm[0]);
 }

@@ -23,12 +23,7 @@ extern tim_cfg_t tim2;
 
 extern gpio_cfg_t gpio_periph_pwr;
 extern gpio_cfg_t gpio_sensors_pwr;
-extern gpio_cfg_t gpio_fmu_pwm_1;
-extern gpio_cfg_t gpio_fmu_pwm_2;
-extern gpio_cfg_t gpio_fmu_pwm_3;
-extern gpio_cfg_t gpio_fmu_pwm_4;
-extern gpio_cfg_t gpio_fmu_pwm_5;
-extern gpio_cfg_t gpio_fmu_pwm_6;
+extern gpio_cfg_t gpio_fmu_pwm[6];
 extern gpio_cfg_t gpio_spi1_cs1;
 extern gpio_cfg_t gpio_spi1_cs2;
 extern gpio_cfg_t gpio_spi2_cs1;

@@ -136,7 +136,7 @@ void CubeIO_Run(void) {
             CubeIO_WriteRegs(PAGE_DIRECT_PWM, 0, cubeio_pwm_out.num_channels, 
                              cubeio_pwm_out.pwm);
             // DEBUG
-            GPIO_Reset(&gpio_fmu_pwm_2);
+            GPIO_Reset(&gpio_fmu_pwm[1]);
         }
         if(CubeIO_PopEvent(&cubeio_eventmask, CubeIO_SET_FAILSAFE_PWM)) {
             for(int i = 0; i < MAX_CHANNELS; i++) {
@@ -200,7 +200,7 @@ void CubeIO_Run(void) {
             }
             last_rc_read_ms = xTaskGetTickCount() * portTICK_PERIOD_MS;
             // DEBUG
-            GPIO_Reset(&gpio_fmu_pwm_3);
+            GPIO_Reset(&gpio_fmu_pwm[2]);
         }
         if(now - last_status_read_ms > 50) {
             CubeIO_ReadRegs(PAGE_STATUS, 0, sizeof(cubeio_page_reg_status) / 2, 
