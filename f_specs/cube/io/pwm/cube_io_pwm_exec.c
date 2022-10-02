@@ -18,9 +18,14 @@ void cube_io_pwm_exec(const cube_io_pwm_inputs_t *i, cube_io_pwm_outputs_t *o)
     // TODO use state, replace scale to spec
     static int init = 0;
     if(!init) {
-        for(int i = 0; i < 8; i++) {
-            CubeIO_SetRange(CubeIO_PWM, i, 700, 700, 2200);
-        }
+        CubeIO_SetRange(CubeIO_PWM, 0, CubeIO_ChannelUnipolar, 700, 2200);
+        CubeIO_SetRange(CubeIO_PWM, 1, CubeIO_ChannelUnipolar, 700, 2200);
+        CubeIO_SetRange(CubeIO_PWM, 2, CubeIO_ChannelUnipolar, 700, 2200);
+        CubeIO_SetRange(CubeIO_PWM, 3, CubeIO_ChannelUnipolar, 700, 2200);
+        CubeIO_SetRange(CubeIO_PWM, 4, CubeIO_ChannelUnipolar, 700, 2200);
+        CubeIO_SetRange(CubeIO_PWM, 5, CubeIO_ChannelUnipolar, 700, 2200);
+        CubeIO_SetRange(CubeIO_PWM, 6, CubeIO_ChannelUnipolar, 700, 2200);
+        CubeIO_SetRange(CubeIO_PWM, 7, CubeIO_ChannelUnipolar, 700, 2200);
         init = 1;
     }
 

@@ -7,7 +7,7 @@ typedef struct {
 } cubeio_cfg_t;
 
 typedef struct {
-    uint16_t zero;
+    uint16_t type;
     uint16_t min;
     uint16_t max;
 } cubeio_range_cfg_t;
@@ -40,13 +40,18 @@ enum cubeio_type_t {
     CubeIO_PWM,
 };
 
+enum cubeio_channel_type_t {
+    CubeIO_ChannelUnipolar = 0,
+    CubeIO_ChannelBipolar,
+};
+
 typedef uint32_t cubeio_eventmask_t;
 
 int CubeIO_Init(usart_cfg_t *usart);
 int CubeIO_Operation(void);
 void CubeIO_Run(void);
 void CubeIO_SetRange(int type, uint8_t channel, 
-                     uint16_t zero, uint16_t min, uint16_t max);
+                     uint16_t channel_type, uint16_t min, uint16_t max);
 
 void CubeIO_SetPWM(uint8_t channels, double *pwm);
 void CubeIO_SetFailsafePWM(double pwm);

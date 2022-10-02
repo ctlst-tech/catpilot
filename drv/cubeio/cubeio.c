@@ -243,7 +243,7 @@ int CubeIO_Ready(void) {
 }
 
 void CubeIO_SetRange(int type, uint8_t channel,
-                     uint16_t zero, uint16_t min, uint16_t max) {
+                     uint16_t channel_type, uint16_t min, uint16_t max) {
     cubeio_range_cfg_t *range_cfg;
 
     if(type == CubeIO_RC) {
@@ -256,7 +256,7 @@ void CubeIO_SetRange(int type, uint8_t channel,
 
     if(channel > MAX_CHANNELS) return;
 
-    range_cfg[channel].zero = zero;
+    range_cfg[channel].type = channel_type;
     range_cfg[channel].min = min;
     range_cfg[channel].max = max;
 }
@@ -493,9 +493,20 @@ void CubeIO_UpdateSafetyOptions(void) {
 }
 
 uint16_t CubeIO_ScaleOutput(double out, cubeio_range_cfg_t *cfg) {
-    return (uint16_t)(out * (cfg->max - cfg->min) + cfg->zero);
+    if(cfg->type == CubeIO_ChannelUnipolar) {
+        return (uint16_t)(out * (cfg->max - cfg->min) + cfg->min);
+    } else if(cfg->type == CubeIO_ChannelBipolar) {
+        return (uint16_t)((out + 1.0) * (cfg->max - cfg->min) / 2 + cfg->min);
+    }
+    return 0;
 }
 
 double CubeIO_ScaleInput(uint16_t in, cubeio_range_cfg_t *cfg) {
-    return ((in - cfg->zero) / (double)(cfg->max - cfg->min));
+    if((cfg->max - cfg->min) == 0) return 0;
+    if(cfg->type == CubeIO_ChannelUnipolar) {
+        return ((in - cfg->min) / (double)(cfg->max - cfg->min));
+    } else if(cfg->type == CubeIO_ChannelBipolar) {
+        return (2 * (in - cfg->min) / (double)(cfg->max - cfg->min) - 1.0);
+    }
+    return 0;
 }
