@@ -15,10 +15,11 @@ void cube_io_pwm_exec(const cube_io_pwm_inputs_t *i, cube_io_pwm_outputs_t *o)
         CubeIO_ForceSafetyOn();
     }
 
+    // TODO use state, replace scale to spec
     static int init = 0;
     if(!init) {
         for(int i = 0; i < 8; i++) {
-            CubeIO_SetRange(CubeIO_PWM, i, 1000, 1000, 3000);
+            CubeIO_SetRange(CubeIO_PWM, i, 700, 700, 2200);
         }
         init = 1;
     }

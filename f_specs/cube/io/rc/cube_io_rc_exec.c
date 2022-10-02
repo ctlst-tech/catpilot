@@ -9,6 +9,7 @@ void cube_io_rc_exec(cube_io_rc_outputs_t *o)
 
     GPIO_Set(&gpio_fmu_pwm_3);
 
+    // TODO use state, replace scale to spec
     static int init = 0;
     if(!init) {
         for(int i = 0; i < 16; i++) {
