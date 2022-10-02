@@ -15,42 +15,50 @@ Function(
         Input(
             name='pwm_channel1',
             title='pwm_channel1',
-            value_type='core.type.f64'
+            value_type='core.type.f64',
+            mandatory=False
         ),
         Input(
             name='pwm_channel2',
             title='pwm_channel2',
-            value_type='core.type.f64'
+            value_type='core.type.f64',
+            mandatory=False
         ),
         Input(
             name='pwm_channel3',
             title='pwm_channel3',
-            value_type='core.type.f64'
+            value_type='core.type.f64',
+            mandatory=False
         ),
         Input(
             name='pwm_channel4',
             title='pwm_channel4',
-            value_type='core.type.f64'
+            value_type='core.type.f64',
+            mandatory=False
         ),
         Input(
             name='pwm_channel5',
             title='pwm_channel5',
-            value_type='core.type.f64'
+            value_type='core.type.f64',
+            mandatory=False
         ),
         Input(
             name='pwm_channel6',
             title='pwm_channel6',
-            value_type='core.type.f64'
+            value_type='core.type.f64',
+            mandatory=False
         ),
         Input(
             name='pwm_channel7',
             title='pwm_channel7',
-            value_type='core.type.f64'
+            value_type='core.type.f64',
+            mandatory=False
         ),
         Input(
             name='pwm_channel8',
             title='pwm_channel8',
-            value_type='core.type.f64'
+            value_type='core.type.f64',
+            mandatory=False
         ),
     ],
     outputs=[
