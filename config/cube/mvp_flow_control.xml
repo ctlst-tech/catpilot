@@ -117,8 +117,8 @@
         <!--TODO create a limitation for att correction -->
 
         <f name="quat_correction" by_spec="core.quat.euler_correction">
-            <in alias="q">integrate_att/output</in>
-            <in alias="roll">wy_biased/output</in>
+            <in alias="q">integrate_att/q</in>
+            <in alias="roll">to_euler/roll</in>
             <in alias="roll_err">roll_err/output</in>
             <in alias="pitch_err">pitch_err/output</in>
             <in alias="yaw_err">zero/output</in>
@@ -153,44 +153,44 @@
         <and_rate_PIDs_dummy></and_rate_PIDs_dummy>
 
         <f name="input_angrate_x" by_spec="core.math.gain">
-            <in alias="input">cont_manc_signals/x</in>
+            <in alias="input">cont_manc_signals/v/x</in>
             <param alias="gain">0.7</param> <!-- 40 deg / sec -->
         </f>
         <f name="input_angrate_y" by_spec="core.math.gain">
-            <in alias="input">cont_manc_signals/x</in>
+            <in alias="input">cont_manc_signals/v/y</in>
             <param alias="gain">0.7</param> <!-- 40 deg / sec -->
         </f>
         <f name="input_angrate_z" by_spec="core.math.gain">
-            <in alias="input">cont_manc_signals/x</in>
+            <in alias="input">cont_manc_signals/v/z</in>
             <param alias="gain">0.7</param> <!-- 40 deg / sec -->
         </f>
 
         <f name="pid_angrate_x" by_spec="core.cont.pid">
-            <in alias="input">cont_manc_signals/x</in>
-            <in alias="feddback">wx_biased/output</in>
+            <in alias="input">input_angrate_x/output</in>
+            <in alias="feedback">wx_biased/output</in>
             <param alias="Kp">0.2</param> <!-- TODO -->
             <param alias="Ki">0.2</param>
-            <param alias="integral_min">0.3</param>
+            <param alias="integral_min">-0.3</param>
             <param alias="integral_max">0.3</param>
             <param alias="output_min">-1.0</param>
             <param alias="output_max">+1.0</param>
         </f>
         <f name="pid_angrate_y" by_spec="core.cont.pid">
-            <in alias="input">cont_manc_signals/y</in>
-            <in alias="feddback">wy_biased/output</in>
+            <in alias="input">input_angrate_y/output</in>
+            <in alias="feedback">wy_biased/output</in>
             <param alias="Kp">0.2</param> <!-- TODO -->
             <param alias="Ki">0.2</param>
-            <param alias="integral_min">0.3</param>
+            <param alias="integral_min">-0.3</param>
             <param alias="integral_max">0.3</param>
             <param alias="output_min">-1.0</param>
             <param alias="output_max">+1.0</param>
         </f>
         <f name="pid_angrate_z" by_spec="core.cont.pid">
-            <in alias="input">cont_manc_signals/z</in>
-            <in alias="feddback">wz_biased/output</in>
+            <in alias="input">input_angrate_z/output</in>
+            <in alias="feedback">wz_biased/output</in>
             <param alias="Kp">0.2</param> <!-- TODO -->
             <param alias="Ki">0.2</param>
-            <param alias="integral_min">0.3</param>
+            <param alias="integral_min">-0.3</param>
             <param alias="integral_max">0.3</param>
             <param alias="output_min">-1.0</param>
             <param alias="output_max">+1.0</param>
@@ -219,20 +219,20 @@
         <f name="att_arm_mux" by_spec="core.cont.mux3f64">
             <in alias="input0">cont_idle/v</in>
             <in alias="input1">cont_manc_signals/v</in>
-            <in alias="source">arm_comp/output</in>
+            <in alias="select">arm_comp/output</in>
         </f>
 
         <f name="collective_arm_mux" by_spec="core.cont.mux">
             <in alias="input0">cont_idle_collective/output</in>
-            <in alias="input1">cont_manc/v</in>
-            <in alias="source">arm_comp/output</in>
+            <in alias="input1">rc/rc_channel3</in>
+            <in alias="select">arm_comp/output</in>
         </f>
 
         <f name="mixer" by_spec="core.cont.quadrotor_mix">
-            <in alias="transv">att_arm_mux/x</in>
-            <in alias="longit">att_arm_mux/y</in>
+            <in alias="transv">att_arm_mux/output/x</in>
+            <in alias="longit">att_arm_mux/output/y</in>
             <in alias="collective">collective_arm_mux/output</in>
-            <in alias="rudder">att_arm_mux/z</in>
+            <in alias="rudder">att_arm_mux/output/z</in>
             <param alias="Kt_m1">0.1</param>
             <param alias="Kl_m1">0.1</param>
             <param alias="Kr_m1">0.2</param>
