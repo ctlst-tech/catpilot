@@ -497,5 +497,5 @@ uint16_t CubeIO_ScaleOutput(double out, cubeio_range_cfg_t *cfg) {
 }
 
 double CubeIO_ScaleInput(uint16_t in, cubeio_range_cfg_t *cfg) {
-    return (double)((in - cfg->zero) / (cfg->max - cfg->min));
+    return ((in - cfg->zero) / (double)(cfg->max - cfg->min));
 }

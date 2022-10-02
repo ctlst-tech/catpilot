@@ -86,27 +86,27 @@
             <in alias="input">wz</in>
         </f>
 
-        <f name="manc_lat" by_spec="core.math.gain">
+        <f name="manc_lat_gain" by_spec="core.math.gain">
             <param alias="gain">1.0</param>
             <in alias="input">manc_lat</in>
         </f>
 
-        <f name="manc_lon" by_spec="core.math.gain">
+        <f name="manc_lon_gain" by_spec="core.math.gain">
             <param alias="gain">1.0</param>
             <in alias="input">manc_lon</in>
         </f>
 
-        <f name="manc_thr" by_spec="core.math.gain">
+        <f name="manc_thr_gain" by_spec="core.math.gain">
             <param alias="gain">1.0</param>
             <in alias="input">manc_thr</in>
         </f>
 
-        <f name="manc_rud" by_spec="core.math.gain">
+        <f name="manc_rud_gain" by_spec="core.math.gain">
             <param alias="gain">1.0</param>
             <in alias="input">manc_rud</in>
         </f>
 
-        <f name="manc_arm" by_spec="core.math.gain">
+        <f name="manc_arm_gain" by_spec="core.math.gain">
             <param alias="gain">1.0</param>
             <in alias="input">manc_arm</in>
         </f>
@@ -141,11 +141,11 @@
         <link alias="pitch" annotation="pitch">pitch/output</link>
         <link alias="yaw" annotation="yaw">yaw/output</link>
 
-        <link alias="manc_lat">manc_lat/output</link>
-        <link alias="manc_lon">manc_lon/output</link>
-        <link alias="manc_thr">manc_thr/output</link>
-        <link alias="manc_rud">manc_rud/output</link>
-        <link alias="manc_arm">manc_arm/output</link>
+        <link alias="manc_lat">manc_lat_gain/output</link>
+        <link alias="manc_lon">manc_lon_gain/output</link>
+        <link alias="manc_thr">manc_thr_gain/output</link>
+        <link alias="manc_rud">manc_rud_gain/output</link>
+        <link alias="manc_arm">manc_arm_gain/output</link>
 
         <link alias="sine">sine/out</link>
     </link_outputs>
