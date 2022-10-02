@@ -37,6 +37,7 @@ int ADC12_Init() {
     adc12_dma.DMA_InitStruct.Init.Mode = DMA_CIRCULAR;
     adc12_dma.DMA_InitStruct.Init.Priority = DMA_PRIORITY_LOW;
     adc12_dma.DMA_InitStruct.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+    adc12_dma.priority = 10;
 
     adc12.ch[0].status = ENABLE;
     adc12.ch[0].cfg.Channel = ADC_CHANNEL_14;
