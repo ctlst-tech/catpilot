@@ -81,12 +81,13 @@
   - [x] IMU
   - [x] IO
   - [x] BAR
+- [x] Blocking and non-blocking function for sensors and periph
+- [x] Rename specs function
+- [x] Use structure for getting measurement
+- [x] Add pin toggle function to specs for flow analysis
+- [x] Add CPU load statistics
+- [ ] Use read/write mutex for sens and io drivers
 - [ ] Add non-DMA USART transfer driver
-- [ ] Blocking and non-blocking function for sensors and periph
-- [ ] Rename specs function
-- [ ] Use structure for getting measurement
-- [ ] Add pin toggle function to specs for flow analysis
-- [ ] Add CPU load statistics
 - [ ] Add USB COM/Strorage driver
 - [ ] Add CAN driver
 - [ ] Merge px4 and cube periph drivers
