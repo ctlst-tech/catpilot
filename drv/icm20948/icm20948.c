@@ -88,82 +88,83 @@ static void _debug(void) {
 void ICM20948_Run(void) {
     switch(icm20948_state) {
 
-    case ICM20948_RESET:
-        timer_status = Timer_Start(timer_id, 2000);
+        default:
+        case ICM20948_RESET:
+            timer_status = Timer_Start(timer_id, 2000);
 
-        if(timer_status == TIMER_STARTED) {
-            ICM20948_WriteReg(BANK_0, PWR_MGMT_1, DEVICE_RESET);
-        } else if(timer_status == TIMER_COUNTING) {
-        } else if(timer_status == TIMER_FINISHED) {
-            icm20948_state = ICM20948_RESET_WAIT;
-        }
+            if(timer_status == TIMER_STARTED) {
+                ICM20948_WriteReg(BANK_0, PWR_MGMT_1, DEVICE_RESET);
+            } else if(timer_status == TIMER_COUNTING) {
+            } else if(timer_status == TIMER_FINISHED) {
+                icm20948_state = ICM20948_RESET_WAIT;
+            }
 
-        break;
+            break;
 
-    case ICM20948_RESET_WAIT:
-        timer_status = Timer_Start(timer_id, 100);
-    
-        if(timer_status == TIMER_STARTED) {
-            if((ICM20948_ReadReg(BANK_0, WHO_AM_I) == WHOAMI) && 
-               (ICM20948_ReadReg(BANK_0, PWR_MGMT_1) == 0x41)) {
-                ICM20948_WriteReg(BANK_0, PWR_MGMT_1, CLKSEL_0);
-                ICM20948_WriteReg(BANK_0, USER_CTRL, I2C_IF_DIS | SRAM_RST);
+        case ICM20948_RESET_WAIT:
+            timer_status = Timer_Start(timer_id, 100);
+
+            if(timer_status == TIMER_STARTED) {
+                if((ICM20948_ReadReg(BANK_0, WHO_AM_I) == WHOAMI) &&
+                   (ICM20948_ReadReg(BANK_0, PWR_MGMT_1) == 0x41)) {
+                    ICM20948_WriteReg(BANK_0, PWR_MGMT_1, CLKSEL_0);
+                    ICM20948_WriteReg(BANK_0, USER_CTRL, I2C_IF_DIS | SRAM_RST);
+                } else {
+                    Timer_Stop(timer_id);
+                    LOG_ERROR(device, "Wrong default registers values after reset");
+                    icm20948_state = ICM20948_RESET;
+                    attempt++;
+                    if(attempt > 5) {
+                        icm20948_state = ICM20948_FAIL;
+                        LOG_ERROR(device, "Fatal error");
+                        attempt = 0;
+                    }
+                }
+            } else if(timer_status == TIMER_COUNTING) {
+            } else if(timer_status == TIMER_FINISHED) {
+                icm20948_state = ICM20948_CONF;
+                LOG_DEBUG(device, "Device available");
+            }
+
+            break;
+
+        case ICM20948_CONF:
+            if(ICM20948_Configure()) {
+                ICM20948_FIFOReset();
+                icm20948_last_sample = xTaskGetTickCount();
+                // ICM20948_FIFOCount();
+                // ICM20948_FIFORead();
+                LOG_DEBUG(device, "Device configured");
+                icm20948_state = ICM20948_FIFO_READ;
             } else {
-                Timer_Stop(timer_id);
-                LOG_ERROR(device, "Wrong default registers values after reset");
-                icm20948_state = ICM20948_RESET;
+                LOG_ERROR(device, "Failed configuration, retrying...");
                 attempt++;
                 if(attempt > 5) {
-                    icm20948_state = ICM20948_FAIL;
-                    LOG_ERROR(device, "Fatal error");
+                    icm20948_state = ICM20948_RESET;
+                    LOG_ERROR(device, "Failed configuration, reset...");
                     attempt = 0;
                 }
             }
-        } else if(timer_status == TIMER_COUNTING) {
-        } else if(timer_status == TIMER_FINISHED) {
-            icm20948_state = ICM20948_CONF;
-            LOG_DEBUG(device, "Device available");
-        }
 
-        break;
+            break;
 
-    case ICM20948_CONF:
-        if(ICM20948_Configure()) {
-            ICM20948_FIFOReset();
-            icm20948_last_sample = xTaskGetTickCount();
+        case ICM20948_FIFO_READ:
+            if(icm20948_cfg.enable_drdy) {
+                xSemaphoreTake(drdy_semaphore, portMAX_DELAY);
+            }
             // ICM20948_FIFOCount();
             // ICM20948_FIFORead();
-            LOG_DEBUG(device, "Device configured");
-            icm20948_state = ICM20948_FIFO_READ;
-        } else {
-            LOG_ERROR(device, "Failed configuration, retrying...");
-            attempt++;
-            if(attempt > 5) {
-                icm20948_state = ICM20948_RESET;
-                LOG_ERROR(device, "Failed configuration, reset...");
-                attempt = 0;
-            }
-        }
+            ICM20948_SampleRead();
+            icm20948_fifo.imu_dt = xTaskGetTickCount() - icm20948_last_sample;
+            icm20948_fifo.samples = icm20948_FIFOParam.samples;
+            icm20948_last_sample = xTaskGetTickCount();
+            xSemaphoreGive(measrdy_semaphore);
+            _debug();
+            break;
 
-        break;
-
-    case ICM20948_FIFO_READ:
-        if(icm20948_cfg.enable_drdy) {
-            xSemaphoreTake(drdy_semaphore, portMAX_DELAY);
-        }
-        // ICM20948_FIFOCount();
-        // ICM20948_FIFORead();
-        ICM20948_SampleRead();
-        icm20948_fifo.imu_dt = xTaskGetTickCount() - icm20948_last_sample;
-        icm20948_fifo.samples = icm20948_FIFOParam.samples;
-        icm20948_last_sample = xTaskGetTickCount();
-        xSemaphoreGive(measrdy_semaphore);
-        _debug();
-        break;
-
-    case ICM20948_FAIL:
-        vTaskDelay(0);
-        break;
+        case ICM20948_FAIL:
+            vTaskDelay(0);
+            break;
     }
 }
 

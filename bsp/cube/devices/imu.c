@@ -45,7 +45,7 @@ int IMU_EXT_Init(void) {
     vTaskDelay(1);
 
     while(ICM20602_Operation() && ICM20948_Operation()) {
-        ICM20602_Run();
+//        ICM20602_Run();
         ICM20948_Run();
         vTaskDelay(2);
     }
@@ -54,6 +54,6 @@ int IMU_EXT_Init(void) {
 }
 
 void IMU_EXT_Update(void) {
-    ICM20602_Run();
+//    ICM20602_Run();
     ICM20948_Run();
 }

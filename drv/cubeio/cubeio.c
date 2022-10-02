@@ -84,148 +84,148 @@ int CubeIO_Init(usart_cfg_t *usart) {
 void CubeIO_Run(void) {
     switch(cubeio_state) {
 
-    case CubeIO_RESET:
-        vTaskDelay(100);
-        cubeio_state = CubeIO_CONF;
+        case CubeIO_RESET:
+            vTaskDelay(100);
+            cubeio_state = CubeIO_CONF;
 
-        // Check protocol version
-        CubeIO_ReadRegs(PAGE_CONFIG, 
-                        0, 
-                        sizeof(cubeio_config) / 2, 
-                        (uint16_t *)&cubeio_config);
+            // Check protocol version
+            CubeIO_ReadRegs(PAGE_CONFIG,
+                            0,
+                            sizeof(cubeio_config) / 2,
+                            (uint16_t *)&cubeio_config);
 
-        if(cubeio_config.protocol_version != PROTOCOL_VERSION ||
-           cubeio_config.protocol_version2 != PROTOCOL_VERSION2) {
-            LOG_ERROR(device, "Wrong protocols versions: %lu, %lu", 
-                              cubeio_config.protocol_version, 
-                              cubeio_config.protocol_version2);
-            attempt++;
-            if(attempt > 5) {
-                LOG_ERROR(device, "Fatal error");
+            if(cubeio_config.protocol_version != PROTOCOL_VERSION ||
+               cubeio_config.protocol_version2 != PROTOCOL_VERSION2) {
+                LOG_ERROR(device, "Wrong protocols versions: %lu, %lu",
+                                  cubeio_config.protocol_version,
+                                  cubeio_config.protocol_version2);
+                attempt++;
+                if(attempt > 5) {
+                    LOG_ERROR(device, "Fatal error");
+                    cubeio_state = CubeIO_FAIL;
+                }
+            }
+            attempt = 0;
+
+            // Set ARM
+            if(CubeIO_SetClearReg(PAGE_SETUP, PAGE_REG_SETUP_ARMING,
+                                  P_SETUP_ARMING_IO_ARM_OK |
+                                  P_SETUP_ARMING_FMU_ARMED |
+                                  P_SETUP_ARMING_RC_HANDLING_DISABLED, 0)) {
+                LOG_ERROR(device, "Arming setup error");
                 cubeio_state = CubeIO_FAIL;
             }
-        }
-        attempt = 0;
 
-        // Set ARM
-        if(CubeIO_SetClearReg(PAGE_SETUP, PAGE_REG_SETUP_ARMING, 
-                              P_SETUP_ARMING_IO_ARM_OK |
-                              P_SETUP_ARMING_FMU_ARMED |
-                              P_SETUP_ARMING_RC_HANDLING_DISABLED, 0)) {
-            LOG_ERROR(device, "Arming setup error");
-            cubeio_state = CubeIO_FAIL;
-        }
+            break;
 
-        break;
+        case CubeIO_CONF:
+            // TODO: There will be a default configuration
+            cubeio_state = CubeIO_OPERATION;
+            break;
 
-    case CubeIO_CONF:
-        // TODO: There will be a default configuration
-        cubeio_state = CubeIO_OPERATION;
-        break;
+        case CubeIO_OPERATION:
+            now = xTaskGetTickCount() * portTICK_PERIOD_MS;
 
-    case CubeIO_OPERATION:
-        now = xTaskGetTickCount() * portTICK_PERIOD_MS;
-
-        // Event handling
-        if(CubeIO_PopEvent(&cubeio_eventmask, CubeIO_SET_PWM)) {
-            for(int i = 0; i < cubeio_pwm_out.num_channels; i++) {
-                cubeio_pwm_out.pwm[i] = 
-                    CubeIO_ScaleOutput(cubeio_pwm[i], 
-                                        &cubeio_pwm_range_cfg[i]);
+            // Event handling
+            if(CubeIO_PopEvent(&cubeio_eventmask, CubeIO_SET_PWM)) {
+                for(int i = 0; i < cubeio_pwm_out.num_channels; i++) {
+                    cubeio_pwm_out.pwm[i] =
+                        CubeIO_ScaleOutput(cubeio_pwm[i],
+                                            &cubeio_pwm_range_cfg[i]);
+                }
+                CubeIO_WriteRegs(PAGE_DIRECT_PWM, 0, cubeio_pwm_out.num_channels,
+                                 cubeio_pwm_out.pwm);
+                // DEBUG
+                GPIO_Reset(&gpio_fmu_pwm[1]);
             }
-            CubeIO_WriteRegs(PAGE_DIRECT_PWM, 0, cubeio_pwm_out.num_channels, 
-                             cubeio_pwm_out.pwm);
-            // DEBUG
-            GPIO_Reset(&gpio_fmu_pwm[1]);
-        }
-        if(CubeIO_PopEvent(&cubeio_eventmask, CubeIO_SET_FAILSAFE_PWM)) {
-            for(int i = 0; i < MAX_CHANNELS; i++) {
-                cubeio_pwm_out.failsafe_pwm[i] = 
-                    CubeIO_ScaleOutput(cubeio_failsafe_pwm, 
-                                        &cubeio_pwm_range_cfg[i]);
+            if(CubeIO_PopEvent(&cubeio_eventmask, CubeIO_SET_FAILSAFE_PWM)) {
+                for(int i = 0; i < MAX_CHANNELS; i++) {
+                    cubeio_pwm_out.failsafe_pwm[i] =
+                        CubeIO_ScaleOutput(cubeio_failsafe_pwm,
+                                            &cubeio_pwm_range_cfg[i]);
+                }
+                CubeIO_WriteRegs(PAGE_FAILSAFE_PWM, 0, MAX_CHANNELS,
+                                 cubeio_pwm_out.failsafe_pwm);
             }
-            CubeIO_WriteRegs(PAGE_FAILSAFE_PWM, 0, MAX_CHANNELS, 
-                             cubeio_pwm_out.failsafe_pwm);
-        }
-        if(CubeIO_PopEvent(&cubeio_eventmask, CubeIO_FORCE_SAFETY_OFF)) {
-            CubeIO_WriteReg(PAGE_SETUP, PAGE_REG_SETUP_FORCE_SAFETY_OFF, 
-                            FORCE_SAFETY_MAGIC);
-        }
-        if(CubeIO_PopEvent(&cubeio_eventmask, CubeIO_FORCE_SAFETY_ON)) {
-            CubeIO_WriteReg(PAGE_SETUP, PAGE_REG_SETUP_FORCE_SAFETY_ON, 
-                FORCE_SAFETY_MAGIC);
-        }
-        if(CubeIO_PopEvent(&cubeio_eventmask, CubeIO_ENABLE_SBUS_OUT)) {
-            CubeIO_WriteReg(PAGE_SETUP, PAGE_REG_SETUP_SBUS_RATE, 
-                            cubeio_rate.sbus_rate_hz);
-            CubeIO_SetClearReg(PAGE_SETUP, PAGE_REG_SETUP_FEATURES, 
-                               P_SETUP_FEATURES_SBUS1_OUT, 0);
-        }
-        if(CubeIO_PopEvent(&cubeio_eventmask, CubeIO_SET_RATES)) {
-            CubeIO_WriteReg(PAGE_SETUP, PAGE_REG_SETUP_ALTRATE, 
-                            cubeio_rate.freq);
-            CubeIO_WriteReg(PAGE_SETUP, PAGE_REG_SETUP_PWM_RATE_MASK, 
-                            cubeio_rate.chmask);
-        }
-        if(CubeIO_PopEvent(&cubeio_eventmask, CubeIO_SET_IMU_HEATER_DUTY)) {
-            CubeIO_WriteReg(PAGE_SETUP, PAGE_REG_SETUP_HEATER_DUTY_CYCLE, 
-                            cubeio_pwm_out.heater_duty);
-        }
-        if(CubeIO_PopEvent(&cubeio_eventmask, CubeIO_SET_DEFAULT_RATE)) {
-            CubeIO_WriteReg(PAGE_SETUP, PAGE_REG_SETUP_DEFAULTRATE, 
-                            cubeio_rate.default_freq);
-        }
-        if(CubeIO_PopEvent(&cubeio_eventmask, CubeIO_BRUSHED_ON)) {
-            CubeIO_SetClearReg(PAGE_SETUP, PAGE_REG_SETUP_FEATURES, 
-                               P_SETUP_FEATURES_BRUSHED, 0);
-        }
-        if(CubeIO_PopEvent(&cubeio_eventmask, CubeIO_ONESHOT_ON)) {
-            CubeIO_SetClearReg(PAGE_SETUP, PAGE_REG_SETUP_FEATURES, 
-                               P_SETUP_FEATURES_ONESHOT, 0);
-        }
-        if(CubeIO_PopEvent(&cubeio_eventmask, CubeIO_SET_SAFETY_MASK)) {
-            CubeIO_WriteReg(PAGE_SETUP, PAGE_REG_SETUP_IGNORE_SAFETY, 
-                            cubeio_pwm_out.safety_mask);
-        }
-        // TODO: Add MIXING event for FMU dying case
-
-        // Routine
-        if(now - last_rc_read_ms > 20) {
-            CubeIO_ReadRegs(PAGE_RAW_RCIN, 0, sizeof(cubeio_page_rc_input) / 2,
-                            (uint16_t *)&cubeio_page_rc_input);
-            for(int i = 0; i < MAX_CHANNELS; i++) {
-                cubeio_rc[i] = 
-                    CubeIO_ScaleInput(cubeio_page_rc_input.channel[i], 
-                                        &cubeio_rc_range_cfg[i]);
+            if(CubeIO_PopEvent(&cubeio_eventmask, CubeIO_FORCE_SAFETY_OFF)) {
+                CubeIO_WriteReg(PAGE_SETUP, PAGE_REG_SETUP_FORCE_SAFETY_OFF,
+                                FORCE_SAFETY_MAGIC);
             }
-            last_rc_read_ms = xTaskGetTickCount() * portTICK_PERIOD_MS;
-            // DEBUG
-            GPIO_Reset(&gpio_fmu_pwm[2]);
-        }
-        if(now - last_status_read_ms > 50) {
-            CubeIO_ReadRegs(PAGE_STATUS, 0, sizeof(cubeio_page_reg_status) / 2, 
-                                (uint16_t *)&cubeio_page_reg_status);
-            last_status_read_ms = xTaskGetTickCount() * portTICK_PERIOD_MS;
-        }
-        if(now - last_servo_read_ms > 50) {
-            CubeIO_ReadRegs(PAGE_SERVOS, 0, cubeio_pwm_out.num_channels, 
-                            (uint16_t *)&cubeio_pwm_in);
-            last_servo_read_ms = xTaskGetTickCount() * portTICK_PERIOD_MS;
-        }
-        if(now - last_safety_ms > 1000) {
-            CubeIO_UpdateSafetyOptions();
-            last_safety_ms = xTaskGetTickCount() * portTICK_PERIOD_MS;
-        }
+            if(CubeIO_PopEvent(&cubeio_eventmask, CubeIO_FORCE_SAFETY_ON)) {
+                CubeIO_WriteReg(PAGE_SETUP, PAGE_REG_SETUP_FORCE_SAFETY_ON,
+                    FORCE_SAFETY_MAGIC);
+            }
+            if(CubeIO_PopEvent(&cubeio_eventmask, CubeIO_ENABLE_SBUS_OUT)) {
+                CubeIO_WriteReg(PAGE_SETUP, PAGE_REG_SETUP_SBUS_RATE,
+                                cubeio_rate.sbus_rate_hz);
+                CubeIO_SetClearReg(PAGE_SETUP, PAGE_REG_SETUP_FEATURES,
+                                   P_SETUP_FEATURES_SBUS1_OUT, 0);
+            }
+            if(CubeIO_PopEvent(&cubeio_eventmask, CubeIO_SET_RATES)) {
+                CubeIO_WriteReg(PAGE_SETUP, PAGE_REG_SETUP_ALTRATE,
+                                cubeio_rate.freq);
+                CubeIO_WriteReg(PAGE_SETUP, PAGE_REG_SETUP_PWM_RATE_MASK,
+                                cubeio_rate.chmask);
+            }
+            if(CubeIO_PopEvent(&cubeio_eventmask, CubeIO_SET_IMU_HEATER_DUTY)) {
+                CubeIO_WriteReg(PAGE_SETUP, PAGE_REG_SETUP_HEATER_DUTY_CYCLE,
+                                cubeio_pwm_out.heater_duty);
+            }
+            if(CubeIO_PopEvent(&cubeio_eventmask, CubeIO_SET_DEFAULT_RATE)) {
+                CubeIO_WriteReg(PAGE_SETUP, PAGE_REG_SETUP_DEFAULTRATE,
+                                cubeio_rate.default_freq);
+            }
+            if(CubeIO_PopEvent(&cubeio_eventmask, CubeIO_BRUSHED_ON)) {
+                CubeIO_SetClearReg(PAGE_SETUP, PAGE_REG_SETUP_FEATURES,
+                                   P_SETUP_FEATURES_BRUSHED, 0);
+            }
+            if(CubeIO_PopEvent(&cubeio_eventmask, CubeIO_ONESHOT_ON)) {
+                CubeIO_SetClearReg(PAGE_SETUP, PAGE_REG_SETUP_FEATURES,
+                                   P_SETUP_FEATURES_ONESHOT, 0);
+            }
+            if(CubeIO_PopEvent(&cubeio_eventmask, CubeIO_SET_SAFETY_MASK)) {
+                CubeIO_WriteReg(PAGE_SETUP, PAGE_REG_SETUP_IGNORE_SAFETY,
+                                cubeio_pwm_out.safety_mask);
+            }
+            // TODO: Add MIXING event for FMU dying case
 
-        uint32_t rc_protocol = 1;
-        CubeIO_WriteRegs(PAGE_SETUP, PAGE_REG_SETUP_RC_PROTOCOLS, 2, (uint16_t *)&rc_protocol);
+            // Routine
+            if(now - last_rc_read_ms > 20) {
+                CubeIO_ReadRegs(PAGE_RAW_RCIN, 0, sizeof(cubeio_page_rc_input) / 2,
+                                (uint16_t *)&cubeio_page_rc_input);
+                for(int i = 0; i < MAX_CHANNELS; i++) {
+                    cubeio_rc[i] =
+                        CubeIO_ScaleInput(cubeio_page_rc_input.channel[i],
+                                            &cubeio_rc_range_cfg[i]);
+                }
+                last_rc_read_ms = xTaskGetTickCount() * portTICK_PERIOD_MS;
+                // DEBUG
+                GPIO_Reset(&gpio_fmu_pwm[2]);
+            }
+            if(now - last_status_read_ms > 50) {
+                CubeIO_ReadRegs(PAGE_STATUS, 0, sizeof(cubeio_page_reg_status) / 2,
+                                    (uint16_t *)&cubeio_page_reg_status);
+                last_status_read_ms = xTaskGetTickCount() * portTICK_PERIOD_MS;
+            }
+            if(now - last_servo_read_ms > 50) {
+                CubeIO_ReadRegs(PAGE_SERVOS, 0, cubeio_pwm_out.num_channels,
+                                (uint16_t *)&cubeio_pwm_in);
+                last_servo_read_ms = xTaskGetTickCount() * portTICK_PERIOD_MS;
+            }
+            if(now - last_safety_ms > 1000) {
+                CubeIO_UpdateSafetyOptions();
+                last_safety_ms = xTaskGetTickCount() * portTICK_PERIOD_MS;
+            }
 
-        xSemaphoreGive(iordy_semaphore);
-        break;
+            uint32_t rc_protocol = 1;
+            CubeIO_WriteRegs(PAGE_SETUP, PAGE_REG_SETUP_RC_PROTOCOLS, 2, (uint16_t *)&rc_protocol);
 
-    case CubeIO_FAIL:
-        vTaskDelay(1000);
-        break;
+            xSemaphoreGive(iordy_semaphore);
+            break;
+
+        case CubeIO_FAIL:
+            vTaskDelay(1000);
+            break;
     }
 }
 
