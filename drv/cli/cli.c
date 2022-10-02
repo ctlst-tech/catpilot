@@ -80,9 +80,6 @@ int _write(int fd, char* ptr, int len)
     int i = 0;
     while (ptr[i] && (i < len)) {
         write(cli_cfg.fd, (uint8_t *)&ptr[i], 1);
-        if (ptr[i] == '\n') {
-            write(cli_cfg.fd, (uint8_t *)&ptr[i], 1);;
-        }
         i++;
     }
     return len;

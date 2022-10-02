@@ -5,9 +5,32 @@
 
 void cube_io_rc_exec(cube_io_rc_outputs_t *o)
 {
-    uint16_t rc[16];
+    double rc[16];
 
     GPIO_Set(&gpio_fmu_pwm_3);
+
+    // TODO use state, replace scale to spec
+    static int init = 0;
+    if(!init) {
+        CubeIO_SetRange(CubeIO_RC, 0, CubeIO_ChannelBipolar, 982, 2006);
+        CubeIO_SetRange(CubeIO_RC, 1, CubeIO_ChannelBipolar, 982, 2006);
+        CubeIO_SetRange(CubeIO_RC, 2, CubeIO_ChannelUnipolar, 982, 2006);
+        CubeIO_SetRange(CubeIO_RC, 3, CubeIO_ChannelBipolar, 982, 2006);
+        CubeIO_SetRange(CubeIO_RC, 4, CubeIO_ChannelUnipolar, 982, 2006);
+        CubeIO_SetRange(CubeIO_RC, 5, CubeIO_ChannelUnipolar, 982, 2006);
+        CubeIO_SetRange(CubeIO_RC, 6, CubeIO_ChannelUnipolar, 982, 2006);
+        CubeIO_SetRange(CubeIO_RC, 7, CubeIO_ChannelUnipolar, 982, 2006);
+        CubeIO_SetRange(CubeIO_RC, 8, CubeIO_ChannelUnipolar, 982, 2006);
+        CubeIO_SetRange(CubeIO_RC, 9, CubeIO_ChannelUnipolar, 982, 2006);
+        CubeIO_SetRange(CubeIO_RC, 9, CubeIO_ChannelUnipolar, 982, 2006);
+        CubeIO_SetRange(CubeIO_RC, 10, CubeIO_ChannelUnipolar, 982, 2006);
+        CubeIO_SetRange(CubeIO_RC, 11, CubeIO_ChannelUnipolar, 982, 2006);
+        CubeIO_SetRange(CubeIO_RC, 12, CubeIO_ChannelUnipolar, 982, 2006);
+        CubeIO_SetRange(CubeIO_RC, 13, CubeIO_ChannelUnipolar, 982, 2006);
+        CubeIO_SetRange(CubeIO_RC, 14, CubeIO_ChannelUnipolar, 982, 2006);
+        CubeIO_SetRange(CubeIO_RC, 15, CubeIO_ChannelUnipolar, 982, 2006);
+        init = 1;
+    }
 
     CubeIO_GetRC(rc);
     o->rc_channel1 = rc[0];

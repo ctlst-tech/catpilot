@@ -4484,7 +4484,8 @@ static void prvResetNextTaskUnblockTime( void )
         size_t x;
 
         /* Start by copying the entire string. */
-        strcpy( pcBuffer, pcTaskName );
+        strncpy( pcBuffer, pcTaskName, (size_t)(configMAX_TASK_NAME_LEN - 1));
+        pcBuffer[configMAX_TASK_NAME_LEN - 1] = '\0';
 
         /* Pad the end of the string with spaces to ensure columns line up when
          * printed out. */
@@ -4609,9 +4610,10 @@ static void prvResetNextTaskUnblockTime( void )
 
 #if ( ( configGENERATE_RUN_TIME_STATS == 1 ) && ( configUSE_STATS_FORMATTING_FUNCTIONS > 0 ) && ( configSUPPORT_DYNAMIC_ALLOCATION == 1 ) )
 
+TaskStatus_t pxTaskStatusArray[30];
+
     void vTaskGetRunTimeStats( char * pcWriteBuffer )
     {
-        TaskStatus_t * pxTaskStatusArray;
         UBaseType_t uxArraySize, x;
         uint32_t ulTotalTime, ulStatsAsPercentage;
 
@@ -4656,7 +4658,7 @@ static void prvResetNextTaskUnblockTime( void )
         /* Allocate an array index for each task.  NOTE!  If
          * configSUPPORT_DYNAMIC_ALLOCATION is set to 0 then pvPortMalloc() will
          * equate to NULL. */
-        pxTaskStatusArray = pvPortMalloc( uxCurrentNumberOfTasks * sizeof( TaskStatus_t ) ); /*lint !e9079 All values returned by pvPortMalloc() have at least the alignment required by the MCU's stack and this allocation allocates a struct that has the alignment requirements of a pointer. */
+        // pxTaskStatusArray = pvPortMalloc( uxCurrentNumberOfTasks * sizeof( TaskStatus_t ) ); /*lint !e9079 All values returned by pvPortMalloc() have at least the alignment required by the MCU's stack and this allocation allocates a struct that has the alignment requirements of a pointer. */
 
         if( pxTaskStatusArray != NULL )
         {
@@ -4665,6 +4667,10 @@ static void prvResetNextTaskUnblockTime( void )
 
             /* For percentage calculations. */
             ulTotalTime /= 100UL;
+
+            pcWriteBuffer = prvWriteNameToBuffer( pcWriteBuffer, "Thread name" );
+            sprintf(pcWriteBuffer, "\tTime, ms\tLoad\tPriority\r\n");
+            pcWriteBuffer += strlen( pcWriteBuffer );
 
             /* Avoid divide by zero errors. */
             if( ulTotalTime > 0UL )
@@ -4692,10 +4698,10 @@ static void prvResetNextTaskUnblockTime( void )
                             {
                                 /* sizeof( int ) == sizeof( long ) so a smaller
                                  * printf() library can be used. */
-                                sprintf( pcWriteBuffer, "\t%u\t\t%u%%\t%d\r\n", 
-                                        ( unsigned int ) pxTaskStatusArray[ x ].ulRunTimeCounter, 
+                                sprintf( pcWriteBuffer, "\t%010.3f\t%u%%\t%u\r\n", 
+                                        ( float ) pxTaskStatusArray[ x ].ulRunTimeCounter / 1000.f, 
                                         ( unsigned int ) ulStatsAsPercentage, 
-                                        ( int ) pxTaskStatusArray->uxCurrentPriority); /*lint !e586 sprintf() allowed as this is compiled with many compilers and this is a utility function only - not part of the core kernel implementation. */
+                                        ( unsigned int ) pxTaskStatusArray[ x ].uxCurrentPriority ); /*lint !e586 sprintf() allowed as this is compiled with many compilers and this is a utility function only - not part of the core kernel implementation. */
                             }
                         #endif
                     }
@@ -4711,7 +4717,9 @@ static void prvResetNextTaskUnblockTime( void )
                             {
                                 /* sizeof( int ) == sizeof( long ) so a smaller
                                  * printf() library can be used. */
-                                sprintf( pcWriteBuffer, "\t%u\t\t<1%%\r\n", ( unsigned int ) pxTaskStatusArray[ x ].ulRunTimeCounter ); /*lint !e586 sprintf() allowed as this is compiled with many compilers and this is a utility function only - not part of the core kernel implementation. */
+                                sprintf( pcWriteBuffer, "\t%010.3f\t<1%%\t%u\r\n", 
+                                        ( float ) pxTaskStatusArray[ x ].ulRunTimeCounter / 1000.f,
+                                        ( unsigned int ) pxTaskStatusArray[ x ].uxCurrentPriority ); /*lint !e586 sprintf() allowed as this is compiled with many compilers and this is a utility function only - not part of the core kernel implementation. */
                             }
                         #endif
                     }
@@ -4726,7 +4734,7 @@ static void prvResetNextTaskUnblockTime( void )
 
             /* Free the array again.  NOTE!  If configSUPPORT_DYNAMIC_ALLOCATION
              * is 0 then vPortFree() will be #defined to nothing. */
-            vPortFree( pxTaskStatusArray );
+            // vPortFree( pxTaskStatusArray );
         }
         else
         {

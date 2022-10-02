@@ -47,6 +47,11 @@
             <out alias="ay">control/pitch</out>
             <out alias="az">control/yaw</out>
             <out alias="arm">control/arm</out>
+
+            <out alias="manc_lat">control/manc_lat</out>
+            <out alias="manc_lon">control/manc_lon</out>
+            <out alias="manc_thr">control/manc_thr</out>
+            <out alias="manc_rud">control/manc_rud</out>
         </connect>
     </task>
 
@@ -62,6 +67,11 @@
             <in alias="roll">control/roll</in>
             <in alias="pitch">control/pitch</in>
             <in alias="yaw">control/yaw</in>
+
+            <in alias="manc_lat">control/manc_lat</in>
+            <in alias="manc_lon">control/manc_lon</in>
+            <in alias="manc_thr">control/manc_thr</in>
+            <in alias="manc_rud">control/manc_rud</in>
 
             <in alias="manc_arm">control/arm</in>
 
