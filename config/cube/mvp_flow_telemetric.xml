@@ -26,12 +26,6 @@
             <i alias="manc_arm"/>
         </inputs>
 
-        <functions>
-        <f name="fmu_pwm" by_spec="cube.io.gpio">
-            <param alias="channel">4</param>
-        </f>
-        </functions>
-
         <outputs>
             <o alias="wx" annotation="wx"/>
             <o alias="wy" annotation="wy"/>
@@ -132,6 +126,9 @@
             <in alias="input">yaw</in>
         </f>
 
+        <f name="fmu_pwm" by_spec="cube.io.gpio">
+            <param alias="channel">4</param>
+        </f>
 
     </functions>
 
