@@ -139,7 +139,7 @@ void *ctlst(void *param) {
     }
 
     while(1) {
-        vTaskDelay(10000);
+        vTaskDelay(2000);
+        LOG_INFO("SYSTEM", "Failed to start");
     }
 }
-
