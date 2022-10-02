@@ -1,0 +1,35 @@
+from ctlst import *
+
+Function(
+    name='cube.io.gpio',
+    title=LocalizedString(
+        en='gpio'
+    ),
+    parameters=[
+        Parameter(
+            name='channel',
+            title='channel',
+            value_type='core.type.u8',
+            tunable=True,
+            default=0,
+            constraints=[]
+        )
+    ],
+    inputs=[
+        Input(
+            name='input',
+            title='input',
+            value_type='core.type.bool',
+            mandatory=False
+        ),
+    ],
+    outputs=[
+        Output(
+            name='out',
+            title='out',
+            value_type='core.type.bool'
+        ),
+    ],
+    state=[],
+    parameter_constraints=[],
+)

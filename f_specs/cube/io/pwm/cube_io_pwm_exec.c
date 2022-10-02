@@ -7,7 +7,7 @@ void cube_io_pwm_exec(const cube_io_pwm_inputs_t *i, cube_io_pwm_outputs_t *o)
 {
     double pwm[16];
 
-    GPIO_Set(&gpio_fmu_pwm_2);
+    GPIO_Set(&gpio_fmu_pwm[1]);
 
     if(i->arm) {
         CubeIO_ForceSafetyOff();
@@ -41,7 +41,7 @@ void cube_io_pwm_exec(const cube_io_pwm_inputs_t *i, cube_io_pwm_outputs_t *o)
     CubeIO_SetPWM(8, pwm);
 
     // For debug reset pin in CubeIO thread
-    // GPIO_Reset(&gpio_fmu_pwm_2);
+    // GPIO_Reset(&gpio_fmu_pwm[1]);
 
     o->stub = i->arm;
 }

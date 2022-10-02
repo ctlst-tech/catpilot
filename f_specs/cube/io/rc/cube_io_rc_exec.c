@@ -7,7 +7,7 @@ void cube_io_rc_exec(cube_io_rc_outputs_t *o)
 {
     double rc[16];
 
-    GPIO_Set(&gpio_fmu_pwm_3);
+    GPIO_Set(&gpio_fmu_pwm[2]);
 
     // TODO use state, replace scale to spec
     static int init = 0;
@@ -51,6 +51,6 @@ void cube_io_rc_exec(cube_io_rc_outputs_t *o)
     o->rc_channel16 = rc[15];
 
     // For debug reset pin in CubeIO thread
-    // GPIO_Reset(&gpio_fmu_pwm_3);
+    // GPIO_Reset(&gpio_fmu_pwm[2]);
 }
 
