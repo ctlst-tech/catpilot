@@ -45,21 +45,15 @@
             <param alias="value">0.0</param>
         </f>
 
-        <f name="roll0" by_spec="core.source.constant">
-            <param alias="value">0.0</param>
-        </f>
-        <f name="pitch0" by_spec="core.source.constant">
-            <param alias="value">0.0</param>
-        </f>
-        <f name="yaw0" by_spec="core.source.constant">
-            <param alias="value">0.0</param>
-        </f>
-
-        <f name="initial_euler" by_spec="core.quat.from_euler">
-            <in alias="roll">roll0/output</in>
-            <in alias="pitch">pitch0/output</in>
-            <in alias="yaw">yaw0/output</in>
-        </f>
+<!--        <f name="roll0" by_spec="core.source.constant">-->
+<!--            <param alias="value">0.0</param>-->
+<!--        </f>-->
+<!--        <f name="pitch0" by_spec="core.source.constant">-->
+<!--            <param alias="value">0.0</param>-->
+<!--        </f>-->
+<!--        <f name="yaw0" by_spec="core.source.constant">-->
+<!--            <param alias="value">0.0</param>-->
+<!--        </f>-->
 
         <f name="bias_calib_proto" by_spec="core.filter.mvng_av">
             <in alias="i1">imu1/wx</in>
@@ -82,20 +76,56 @@
             <in alias="input1">bias_calib_proto/a3</in>
         </f>
 
+        <f name="contact_accels" by_spec="core.math.vector3">
+            <in alias="x">imu1/ax</in>
+            <in alias="y">imu1/ay</in>
+            <in alias="z">imu1/az</in>
+        </f>
+
+        <f name="accel_horizon" by_spec="core.nav.att_from_accel">
+            <in alias="a">contact_accels/v</in>
+        </f>
+
+        <f name="initial_euler" by_spec="core.quat.from_euler">
+            <in alias="roll">accel_horizon/roll</in>
+            <in alias="pitch">accel_horizon/pitch</in>
+            <in alias="yaw">zero/output</in>
+        </f>
+
         <f name="integrate_att" by_spec="core.quat.prop">
             <in alias="wx">wx_biased/output</in>
             <in alias="wy">wy_biased/output</in>
             <in alias="wz">wz_biased/output</in>
             <in alias="q0">initial_euler/q</in>
-            <in alias="qN">norm_att_quat/q</in>
-        </f>
-
-        <f name="norm_att_quat" by_spec="core.quat.norm">
-            <in alias="q">integrate_att/q</in>
+            <in alias="q">norm_att_quat/q</in>
         </f>
 
         <f name="to_euler" by_spec="core.quat.to_euler">
             <in alias="q">integrate_att/q</in>
+        </f>
+
+        <f name="roll_err" by_spec="core.math.sub">
+            <in alias="input0">to_euler/roll</in>
+            <in alias="input1">accel_horizon/roll</in>
+        </f>
+
+        <f name="pitch_err" by_spec="core.math.sub">
+            <in alias="input0">to_euler/pitch</in>
+            <in alias="input1">accel_horizon/pitch</in>
+        </f>
+
+        <!--TODO create a limitation for att correction -->
+
+        <f name="quat_correction" by_spec="core.quat.euler_correction">
+            <in alias="q">integrate_att/output</in>
+            <in alias="roll">wy_biased/output</in>
+            <in alias="roll_err">roll_err/output</in>
+            <in alias="pitch_err">pitch_err/output</in>
+            <in alias="yaw_err">zero/output</in>
+        </f>
+
+        <f name="norm_att_quat" by_spec="core.quat.norm">
+            <in alias="q">quat_correction/q</in>
         </f>
 
         <!-- control -->
@@ -114,15 +144,118 @@
             <in alias="input1">rc/rc_channel5</in>
         </f>
 
+        <f name="cont_manc_signals" by_spec="core.math.vector3">
+            <in alias="x">rc/rc_channel1</in>
+            <in alias="y">rc/rc_channel2</in>
+            <in alias="z">rc/rc_channel4</in>
+        </f>
+
+        <and_rate_PIDs_dummy></and_rate_PIDs_dummy>
+
+        <f name="input_angrate_x" by_spec="core.math.gain">
+            <in alias="input">cont_manc_signals/x</in>
+            <param alias="gain">0.7</param> <!-- 40 deg / sec -->
+        </f>
+        <f name="input_angrate_y" by_spec="core.math.gain">
+            <in alias="input">cont_manc_signals/x</in>
+            <param alias="gain">0.7</param> <!-- 40 deg / sec -->
+        </f>
+        <f name="input_angrate_z" by_spec="core.math.gain">
+            <in alias="input">cont_manc_signals/x</in>
+            <param alias="gain">0.7</param> <!-- 40 deg / sec -->
+        </f>
+
+        <f name="pid_angrate_x" by_spec="core.cont.pid">
+            <in alias="input">cont_manc_signals/x</in>
+            <in alias="feddback">wx_biased/output</in>
+            <param alias="Kp">0.2</param> <!-- TODO -->
+            <param alias="Ki">0.2</param>
+            <param alias="integral_min">0.3</param>
+            <param alias="integral_max">0.3</param>
+            <param alias="output_min">-1.0</param>
+            <param alias="output_max">+1.0</param>
+        </f>
+        <f name="pid_angrate_y" by_spec="core.cont.pid">
+            <in alias="input">cont_manc_signals/y</in>
+            <in alias="feddback">wy_biased/output</in>
+            <param alias="Kp">0.2</param> <!-- TODO -->
+            <param alias="Ki">0.2</param>
+            <param alias="integral_min">0.3</param>
+            <param alias="integral_max">0.3</param>
+            <param alias="output_min">-1.0</param>
+            <param alias="output_max">+1.0</param>
+        </f>
+        <f name="pid_angrate_z" by_spec="core.cont.pid">
+            <in alias="input">cont_manc_signals/z</in>
+            <in alias="feddback">wz_biased/output</in>
+            <param alias="Kp">0.2</param> <!-- TODO -->
+            <param alias="Ki">0.2</param>
+            <param alias="integral_min">0.3</param>
+            <param alias="integral_max">0.3</param>
+            <param alias="output_min">-1.0</param>
+            <param alias="output_max">+1.0</param>
+        </f>
+
+        <final_muxes_and_mixers_dummy></final_muxes_and_mixers_dummy>
+
+
+        <f name="cont_idle" by_spec="core.math.vector3">
+            <in alias="x">zero/output</in>
+            <in alias="y">zero/output</in>
+            <in alias="z">zero/output</in>
+        </f>
+
+        <f name="cont_idle_collective" by_spec="core.source.constant">
+            <param alias="value">0.0</param>
+        </f>
+
+
+        <f name="att_cont_auto" by_spec="core.math.vector3">
+            <in alias="x">pid_angrate_x/output</in>
+            <in alias="y">pid_angrate_y/output</in>
+            <in alias="z">pid_angrate_z/output</in>
+        </f>
+
+        <f name="att_arm_mux" by_spec="core.cont.mux3f64">
+            <in alias="input0">cont_idle/v</in>
+            <in alias="input1">cont_manc_signals/v</in>
+            <in alias="source">arm_comp/output</in>
+        </f>
+
+        <f name="collective_arm_mux" by_spec="core.cont.mux">
+            <in alias="input0">cont_idle_collective/output</in>
+            <in alias="input1">cont_manc/v</in>
+            <in alias="source">arm_comp/output</in>
+        </f>
+
+        <f name="mixer" by_spec="core.cont.quadrotor_mix">
+            <in alias="transv">att_arm_mux/x</in>
+            <in alias="longit">att_arm_mux/y</in>
+            <in alias="collective">collective_arm_mux/output</in>
+            <in alias="rudder">att_arm_mux/z</in>
+            <param alias="Kt_m1">0.1</param>
+            <param alias="Kl_m1">0.1</param>
+            <param alias="Kr_m1">0.2</param>
+
+            <param alias="Kt_m2">0.1</param>
+            <param alias="Kl_m2">0.1</param>
+            <param alias="Kr_m2">0.2</param>
+
+            <param alias="Kt_m3">0.1</param>
+            <param alias="Kl_m3">0.1</param>
+            <param alias="Kr_m3">0.2</param>
+
+            <param alias="Kt_m4">0.1</param>
+            <param alias="Kl_m4">0.1</param>
+            <param alias="Kr_m4">0.2</param>
+            <param alias="Kc">0.6</param>
+        </f>
+
         <f name="io" by_spec="cube.io.pwm">
-            <in alias="pwm_channel1">rc/rc_channel1</in>
-            <in alias="pwm_channel2">rc/rc_channel2</in>
-            <in alias="pwm_channel3">rc/rc_channel3</in>
-            <in alias="pwm_channel4">rc/rc_channel4</in>
-            <in alias="pwm_channel5">rc/rc_channel5</in>
-            <in alias="pwm_channel6">rc/rc_channel6</in>
-            <in alias="pwm_channel7">rc/rc_channel7</in>
-            <in alias="pwm_channel8">rc/rc_channel8</in>
+            <in alias="pwm_channel1">mixer/m1</in>
+            <in alias="pwm_channel2">mixer/m2</in>
+            <in alias="pwm_channel3">mixer/m3</in>
+            <in alias="pwm_channel4">mixer/m4</in>
             <in alias="arm">arm_comp/output</in>
         </f>
     </functions>
