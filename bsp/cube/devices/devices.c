@@ -16,6 +16,14 @@ int Monitor(void) {
     return 0;
 }
 
+int Uptime_Init(void) {
+    return 0;
+}
+
+void Uptime_Update(void) {
+    LOG_INFO("Uptime", "");
+}
+
 int Devices_Init(void) {
     int rv;
 
@@ -51,6 +59,12 @@ int Devices_Init(void) {
                  IO_Update,
                  2,
                  9);
+
+    Module_Start("Uptime",
+                 Uptime_Init,
+                 Uptime_Update,
+                 60000,
+                 1);
 
 //    Module_Start("Monitor",
 //                 Monitor,
