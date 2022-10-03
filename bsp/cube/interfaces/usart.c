@@ -65,7 +65,7 @@ int USART6_Init() {
     usart6_dma_tx.DMA_InitStruct.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
     usart6_dma_tx.DMA_InitStruct.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
     usart6_dma_tx.DMA_InitStruct.Init.Mode = DMA_NORMAL;
-    usart6_dma_tx.DMA_InitStruct.Init.Priority = DMA_PRIORITY_LOW;
+    usart6_dma_tx.DMA_InitStruct.Init.Priority = DMA_PRIORITY_VERY_HIGH;
     usart6_dma_tx.DMA_InitStruct.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
     usart6_dma_tx.priority = usart6_priority;
 
@@ -77,7 +77,7 @@ int USART6_Init() {
     usart6_dma_rx.DMA_InitStruct.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
     usart6_dma_rx.DMA_InitStruct.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
     usart6_dma_rx.DMA_InitStruct.Init.Mode = DMA_NORMAL;
-    usart6_dma_rx.DMA_InitStruct.Init.Priority = DMA_PRIORITY_LOW;
+    usart6_dma_rx.DMA_InitStruct.Init.Priority = DMA_PRIORITY_VERY_HIGH;
     usart6_dma_rx.DMA_InitStruct.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
     usart6_dma_rx.priority = usart6_priority;
 
