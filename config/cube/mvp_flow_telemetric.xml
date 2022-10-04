@@ -22,6 +22,7 @@
             <i alias="manc_lon"/>
             <i alias="manc_thr"/>
             <i alias="manc_rud"/>
+            <i alias="manc_pids_tune"/>
 
             <i alias="manc_arm"/>
         </inputs>
@@ -42,6 +43,7 @@
             <o alias="manc_lon"/>
             <o alias="manc_thr"/>
             <o alias="manc_rud"/>
+            <o alias="manc_pids_tune"/>
             <o alias="manc_arm"/>
 
             <o alias="sine" annotation="sine"/>
@@ -106,6 +108,11 @@
             <in alias="input">manc_rud</in>
         </f>
 
+        <f name="manc_pids_tune_gain" by_spec="core.math.gain">
+            <param alias="gain">1.0</param>
+            <in alias="input">manc_pids_tune</in>
+        </f>
+
         <f name="manc_arm_gain" by_spec="core.math.gain">
             <param alias="gain">1.0</param>
             <in alias="input">manc_arm</in>
@@ -148,6 +155,7 @@
         <link alias="manc_lon">manc_lon_gain/output</link>
         <link alias="manc_thr">manc_thr_gain/output</link>
         <link alias="manc_rud">manc_rud_gain/output</link>
+        <link alias="manc_pids_tune">manc_pids_tune_gain/output</link>
         <link alias="manc_arm">manc_arm_gain/output</link>
 
         <link alias="sine">sine/out</link>

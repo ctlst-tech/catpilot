@@ -11,6 +11,7 @@
         <dir name="nav" eq_channel="16"/>
         <dir name="cont" eq_channel="16"/>
 
+<!--        <event_queue size="128" buffer_size="4000"/>-->
         <event_queue size="16" buffer_size="4000"/>
     </bus>
 
@@ -52,6 +53,7 @@
             <out alias="manc_lon">control/manc_lon</out>
             <out alias="manc_thr">control/manc_thr</out>
             <out alias="manc_rud">control/manc_rud</out>
+            <out alias="manc_pids_tune">control/manc_pids_tune</out>
         </connect>
     </task>
 
@@ -72,6 +74,7 @@
             <in alias="manc_lon">control/manc_lon</in>
             <in alias="manc_thr">control/manc_thr</in>
             <in alias="manc_rud">control/manc_rud</in>
+            <in alias="manc_pids_tune">control/manc_pids_tune</in>
 
             <in alias="manc_arm">control/arm</in>
 
@@ -85,6 +88,7 @@
             <out alias="manc_thr">gcu/cont/manc_thr</out>
             <out alias="manc_rud">gcu/cont/manc_rud</out>
             <out alias="manc_arm">gcu/cont/manc_arm</out>
+            <out alias="manc_pids_tune">gcu/cont/manc_pids_tune</out>
 
             <out alias="ax">gcu/nav/ax</out>
             <out alias="ay">gcu/nav/ay</out>

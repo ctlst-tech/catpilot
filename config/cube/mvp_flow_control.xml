@@ -24,6 +24,7 @@
             <o alias="manc_lon"/>
             <o alias="manc_thr"/>
             <o alias="manc_rud"/>
+            <o alias="manc_pids_tune"/>
 
             <o alias="arm" annotation="arm"/>
         </outputs>
@@ -159,9 +160,13 @@
             <in alias="input">rc/rc_channel6</in>
         </f>
 
+        <f name="rc_channel2_inv" by_spec="core.math.neg">
+            <in alias="input">rc/rc_channel2</in>
+        </f>
+
         <f name="cont_manc_signals" by_spec="core.math.vector3">
             <in alias="x">rc/rc_channel1</in>
-            <in alias="y">rc/rc_channel2</in>
+            <in alias="y">rc_channel2_inv/output</in>
             <in alias="z">rc/rc_channel4</in>
         </f>
 
@@ -231,11 +236,30 @@
             <param alias="value">0.0</param>
         </f>
 
+        <f name="pids_gain_multiplier" by_spec="core.math.gain">
+            <in alias="input">rc/rc_channel7</in>
+            <param alias="gain">4.0</param>
+        </f>
+
+        <f name="pid_multed_x" by_spec="core.math.mul">
+            <in alias="input0">pid_angrate_x/output</in>
+            <in alias="input1">pids_gain_multiplier/output</in>
+        </f>
+
+        <f name="pid_multed_y" by_spec="core.math.mul">
+            <in alias="input0">pid_angrate_y/output</in>
+            <in alias="input1">pids_gain_multiplier/output</in>
+        </f>
+
+        <f name="pid_multed_z" by_spec="core.math.mul">
+            <in alias="input0">pid_angrate_z/output</in>
+            <in alias="input1">pids_gain_multiplier/output</in>
+        </f>
 
         <f name="att_cont_auto" by_spec="core.math.vector3">
-            <in alias="x">pid_angrate_x/output</in>
-            <in alias="y">pid_angrate_y/output</in>
-            <in alias="z">pid_angrate_z/output</in>
+            <in alias="x">pid_multed_x/output</in>
+            <in alias="y">pid_multed_y/output</in>
+            <in alias="z">pid_multed_z/output</in>
         </f>
 
         <f name="att_cont_mode_mux" by_spec="core.cont.mux3f64">
@@ -251,12 +275,12 @@
         </f>
 
         <f name="collective_min" by_spec="core.source.constant">
-            <param alias="value">0.25</param>
+            <param alias="value">0.15</param>
         </f>
 
         <f name="collective_in" by_spec="core.math.gain">
             <in alias="input">rc/rc_channel3</in>
-            <param alias="gain">0.75</param>
+            <param alias="gain">0.85</param>
         </f>
 
         <f name="collective_sol" by_spec="core.math.add">
@@ -275,23 +299,23 @@
             <in alias="longit">att_arm_mux/output/y</in>
             <in alias="collective">collective_arm_mux/output</in>
             <in alias="rudder">att_arm_mux/output/z</in>
-            <param alias="Kt_m1">0.1</param>
-            <param alias="Kl_m1">0.1</param>
-            <param alias="Kr_m1">0.2</param>
+            <param alias="Kt_m1">-0.1</param>
+            <param alias="Kl_m1">+0.1</param>
+            <param alias="Kr_m1">+0.2</param>
 
-            <param alias="Kt_m2">0.1</param>
-            <param alias="Kl_m2">0.1</param>
-            <param alias="Kr_m2">0.2</param>
+            <param alias="Kt_m2">+0.1</param>
+            <param alias="Kl_m2">-0.1</param>
+            <param alias="Kr_m2">+0.2</param>
 
-            <param alias="Kt_m3">0.1</param>
-            <param alias="Kl_m3">0.1</param>
-            <param alias="Kr_m3">0.2</param>
+            <param alias="Kt_m3"> 0.1</param>
+            <param alias="Kl_m3"> 0.1</param>
+            <param alias="Kr_m3">-0.2</param>
 
-            <param alias="Kt_m4">0.1</param>
-            <param alias="Kl_m4">0.1</param>
-            <param alias="Kr_m4">0.2</param>
-<!--            <param alias="Kc">0.6</param>-->
-            <param alias="Kc">1.0</param>
+            <param alias="Kt_m4">-0.1</param>
+            <param alias="Kl_m4">-0.1</param>
+            <param alias="Kr_m4">-0.2</param>
+            <param alias="Kc">0.6</param>
+<!--            <param alias="Kc">1.0</param>-->
         </f>
 
         <f name="io" by_spec="cube.io.pwm">
@@ -325,10 +349,11 @@
         <link alias="pitch">to_euler/pitch</link>
         <link alias="yaw">to_euler/yaw</link>
 
-        <link alias="manc_lat">rc/rc_channel1</link>
-        <link alias="manc_lon">rc/rc_channel2</link>
+        <link alias="manc_lat">cont_manc_signals/v/x</link>
+        <link alias="manc_lon">cont_manc_signals/v/y</link>
         <link alias="manc_thr">rc/rc_channel3</link>
-        <link alias="manc_rud">rc/rc_channel4</link>
+        <link alias="manc_rud">cont_manc_signals/v/z</link>
+        <link alias="manc_pids_tune">pids_gain_multiplier/output</link>
     </link_outputs>
 
 </flow>
