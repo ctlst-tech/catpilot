@@ -14,12 +14,13 @@ void cube_sensors_icm20948_exec(cube_sensors_icm20948_outputs_t *o)
     GPIO_Set(&gpio_fmu_pwm[0]);
 
     ICM20948_GetMeasBlock(&meas);
-    o->ax = meas.accel_x;
-    o->ay = meas.accel_y;
-    o->az = meas.accel_z;
-    o->wx = deg2rad(meas.gyro_x);
-    o->wy = deg2rad(meas.gyro_y);
-    o->wz = deg2rad(meas.gyro_z);
+    o->wx =  deg2rad(meas.gyro_y);
+    o->wy =  deg2rad(meas.gyro_x);
+    o->wz = -deg2rad(meas.gyro_z);
+
+    o->ax = -meas.accel_y;
+    o->ay = -meas.accel_x;
+    o->az =  meas.accel_z;
 
     GPIO_Reset(&gpio_fmu_pwm[0]);
 }
