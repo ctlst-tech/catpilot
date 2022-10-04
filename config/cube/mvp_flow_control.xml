@@ -170,16 +170,81 @@
             <in alias="z">rc/rc_channel4</in>
         </f>
 
-        <and_rate_PIDs_dummy></and_rate_PIDs_dummy>
+        <attitude_PIDs_dummy></attitude_PIDs_dummy>
 
-        <f name="input_angrate_x" by_spec="core.math.gain">
+        <f name="input_roll" by_spec="core.math.gain">
+            <in alias="input">cont_manc_signals/v/x</in>
+            <param alias="gain">0.4</param>
+        </f>
+        <f name="input_pitch" by_spec="core.math.gain">
+            <in alias="input">cont_manc_signals/v/y</in>
+            <param alias="gain">0.4</param>
+        </f>
+
+        <f name="pid_roll" by_spec="core.cont.pid">
+            <in alias="input">input_roll/output</in>
+            <in alias="feedback">to_euler/roll</in>
+            <in alias="preset">zero/output</in>
+            <in alias="enable">mode_switch/mode2</in>
+            <param alias="Kp">4</param>
+            <param alias="integral_min">-0.1</param>
+            <param alias="integral_max">0.1</param>
+            <param alias="output_min">-0.4</param>
+            <param alias="output_max">+0.4</param>
+        </f>
+
+        <f name="pid_pitch" by_spec="core.cont.pid">
+            <in alias="input">input_pitch/output</in>
+            <in alias="feedback">to_euler/pitch</in>
+            <in alias="preset">zero/output</in>
+            <in alias="enable">mode_switch/mode2</in>
+            <param alias="Kp">4</param>
+            <param alias="integral_min">-0.1</param>
+            <param alias="integral_max">0.1</param>
+            <param alias="output_min">-0.4</param>
+            <param alias="output_max">+0.4</param>
+        </f>
+
+        <f name="pids_att_gain_multiplier" by_spec="core.math.gain">
+            <in alias="input">rc/rc_channel8</in>
+            <param alias="gain">1.0</param>
+        </f>
+
+
+        <f name="pid_multed_roll" by_spec="core.math.mul">
+            <in alias="input0">pid_roll/output</in>
+            <in alias="input1">pids_att_gain_multiplier/output</in>
+        </f>
+
+        <f name="pid_multed_pitch" by_spec="core.math.mul">
+            <in alias="input0">pid_pitch/output</in>
+            <in alias="input1">pids_att_gain_multiplier/output</in>
+        </f>
+
+
+        <ang_rate_PIDs_dummy></ang_rate_PIDs_dummy>
+
+        <f name="input_manc_angrate_x" by_spec="core.math.gain">
             <in alias="input">cont_manc_signals/v/x</in>
             <param alias="gain">0.7</param> <!-- 40 deg / sec -->
         </f>
-        <f name="input_angrate_y" by_spec="core.math.gain">
+        <f name="input_manc_angrate_y" by_spec="core.math.gain">
             <in alias="input">cont_manc_signals/v/y</in>
             <param alias="gain">0.7</param> <!-- 40 deg / sec -->
         </f>
+
+        <f name="input_angrate_x" by_spec="core.cont.mux">
+            <in alias="input0">input_manc_angrate_x/output</in>
+            <in alias="input1">pid_multed_roll/output</in>
+            <in alias="select">mode_switch/mode2</in>
+        </f>
+
+        <f name="input_angrate_y" by_spec="core.cont.mux">
+            <in alias="input0">input_manc_angrate_y/output</in>
+            <in alias="input1">pid_multed_pitch/output</in>
+            <in alias="select">mode_switch/mode2</in>
+        </f>
+
         <f name="input_angrate_z" by_spec="core.math.gain">
             <in alias="input">cont_manc_signals/v/z</in>
             <param alias="gain">0.7</param> <!-- 40 deg / sec -->
@@ -190,8 +255,9 @@
             <in alias="feedback">wx_biased/output</in>
             <in alias="preset">zero/output</in>
             <in alias="enable">mode_switch/mode1</in>
-            <param alias="Kp">0.15</param>
-            <param alias="Ki">0.2</param>
+            <param alias="Kp">0.5</param>
+            <param alias="Ki">0.15</param>
+            <param alias="Kd">0.00</param>
             <param alias="integral_min">-0.3</param>
             <param alias="integral_max">0.3</param>
             <param alias="output_min">-1.0</param>
@@ -202,8 +268,9 @@
             <in alias="feedback">wy_biased/output</in>
             <in alias="preset">zero/output</in>
             <in alias="enable">mode_switch/mode1</in>
-            <param alias="Kp">0.15</param>
-            <param alias="Ki">0.2</param>
+            <param alias="Kp">0.5</param>
+            <param alias="Ki">0.15</param>
+            <param alias="Kd">0.00</param>
             <param alias="integral_min">-0.3</param>
             <param alias="integral_max">0.3</param>
             <param alias="output_min">-1.0</param>
@@ -215,8 +282,9 @@
             <in alias="feedback">wz_biased/output</in>
             <in alias="preset">zero/output</in>
             <in alias="enable">mode_switch/mode1</in>
-            <param alias="Kp">0.2</param>
-            <param alias="Ki">0.1</param>
+            <param alias="Kp">0.8</param>
+            <param alias="Ki">0.15</param>
+            <param alias="Kd">0.00</param>
             <param alias="integral_min">-0.3</param>
             <param alias="integral_max">0.3</param>
             <param alias="output_min">-1.0</param>
@@ -299,20 +367,20 @@
             <in alias="longit">att_arm_mux/output/y</in>
             <in alias="collective">collective_arm_mux/output</in>
             <in alias="rudder">att_arm_mux/output/z</in>
-            <param alias="Kt_m1">-0.1</param>
-            <param alias="Kl_m1">+0.1</param>
+            <param alias="Kt_m1">-0.15</param>
+            <param alias="Kl_m1">+0.15</param>
             <param alias="Kr_m1">+0.2</param>
 
-            <param alias="Kt_m2">+0.1</param>
-            <param alias="Kl_m2">-0.1</param>
+            <param alias="Kt_m2">+0.15</param>
+            <param alias="Kl_m2">-0.15</param>
             <param alias="Kr_m2">+0.2</param>
 
-            <param alias="Kt_m3"> 0.1</param>
-            <param alias="Kl_m3"> 0.1</param>
+            <param alias="Kt_m3"> 0.15</param>
+            <param alias="Kl_m3"> 0.15</param>
             <param alias="Kr_m3">-0.2</param>
 
-            <param alias="Kt_m4">-0.1</param>
-            <param alias="Kl_m4">-0.1</param>
+            <param alias="Kt_m4">-0.15</param>
+            <param alias="Kl_m4">-0.15</param>
             <param alias="Kr_m4">-0.2</param>
             <param alias="Kc">0.6</param>
 <!--            <param alias="Kc">1.0</param>-->
@@ -353,7 +421,7 @@
         <link alias="manc_lon">cont_manc_signals/v/y</link>
         <link alias="manc_thr">rc/rc_channel3</link>
         <link alias="manc_rud">cont_manc_signals/v/z</link>
-        <link alias="manc_pids_tune">pids_gain_multiplier/output</link>
+        <link alias="manc_pids_tune">pid_multed_roll/output</link>
     </link_outputs>
 
 </flow>
