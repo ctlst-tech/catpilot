@@ -206,13 +206,28 @@ Function(
             mandatory=False
         ),
     ],
-    outputs=[
-        Output(
-            name='stub',
-            title='stub',
-            value_type='core.type.f64'
+    outputs=[],
+    state=[
+        Variable(
+            name='decimation_counter',
+            title='Decimation counter',
+            value_type='core.type.u32'
+        ),
+        Variable(
+            name='inited',
+            title='FIXME',
+            value_type='core.type.bool'
+        ),
+        Variable(
+            name='arm_passed',
+            title='Arm passed event',
+            value_type='core.type.bool'
+        ),
+        Variable(
+            name='disarm_passed',
+            title='Disarm passed event',
+            value_type='core.type.bool'
         ),
     ],
-    state=[],
     parameter_constraints=[],
 )
