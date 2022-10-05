@@ -5,7 +5,7 @@ void CLI_write_stream_string(const char *str);
 
 void cube_misc_cli_logger_exec(const cube_misc_cli_logger_inputs_t *i){
     static char str2post[256];
-#define VAR_FMT "%+.3lf "
+#define VAR_FMT "%+08.3f "
     snprintf(str2post, 255,
              VAR_FMT
              VAR_FMT VAR_FMT VAR_FMT " || " VAR_FMT VAR_FMT VAR_FMT " || " \
