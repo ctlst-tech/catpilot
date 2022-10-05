@@ -74,17 +74,17 @@
         </f>
 
         <f name="wx_gain" by_spec="core.math.gain">
-            <param alias="gain">1.0</param>
+            <param alias="gain">57.3</param>
             <in alias="input">wx</in>
         </f>
 
         <f name="wy_gain" by_spec="core.math.gain">
-            <param alias="gain">1.0</param>
+            <param alias="gain">57.3</param>
             <in alias="input">wy</in>
         </f>
 
         <f name="wz_gain" by_spec="core.math.gain">
-            <param alias="gain">1.0</param>
+            <param alias="gain">57.3</param>
             <in alias="input">wz</in>
         </f>
 
@@ -135,6 +135,24 @@
 
         <f name="fmu_pwm" by_spec="cube.io.gpio">
             <param alias="channel">4</param>
+        </f>
+
+        <f name="logger" by_spec="cube.misc.cli_logger">
+            <in alias="v1">wx_gain/output</in>
+            <in alias="v2">wy_gain/output</in>
+            <in alias="v3">wz_gain/output</in>
+
+            <in alias="v4">ax_gain/output</in>
+            <in alias="v5">ay_gain/output</in>
+            <in alias="v6">az_gain/output</in>
+
+            <in alias="v7">roll_gain/output</in>
+            <in alias="v8">pitch_gain/output</in>
+            <in alias="v9">yaw_gain/output</in>
+
+            <in alias="v7">manc_lat_gain/output</in>
+            <in alias="v8">manc_lon_gain/output</in>
+            <in alias="v9">manc_rud_gain/output</in>
         </f>
 
     </functions>
