@@ -133,9 +133,9 @@
             <in alias="input">yaw</in>
         </f>
 
-        <f name="fmu_pwm" by_spec="cube.io.gpio">
-            <param alias="channel">4</param>
-        </f>
+<!--        <f name="fmu_pwm" by_spec="cube.io.gpio">-->
+<!--            <param alias="channel">4</param>-->
+<!--        </f>-->
 
         <f name="logger" by_spec="cube.misc.cli_logger">
             <in alias="v1">wx_gain/output</in>
@@ -150,9 +150,9 @@
             <in alias="v8">pitch_gain/output</in>
             <in alias="v9">yaw_gain/output</in>
 
-            <in alias="v7">manc_lat_gain/output</in>
-            <in alias="v8">manc_lon_gain/output</in>
-            <in alias="v9">manc_rud_gain/output</in>
+            <in alias="v10">manc_lat_gain/output</in>
+            <in alias="v11">manc_lon_gain/output</in>
+            <in alias="v12">manc_rud_gain/output</in>
         </f>
 
     </functions>

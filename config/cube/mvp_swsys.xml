@@ -3,7 +3,7 @@
 <swsys>
 
     <bus name="control" max_topics="256" eq_channel="1">
-<!--        <event_queue size="20" buffer_size="2000"/>-->
+
     </bus>
 
     <bus name="gcu" max_topics="256">
