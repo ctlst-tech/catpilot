@@ -82,7 +82,7 @@ type_t BANK_3               = BIT5 | BIT4;
 
 // BANK 2 Registers
 // 5:3 GYRO_DLPFCFG[2:0]
-type_t GYRO_DLPFCFG         = BIT5 | BIT4 | BIT3;
+type_t GYRO_DLPFCFG         = BIT5 | BIT4;
 
 // 5:3 ACCEL_DLPFCFG[2:0]
 type_t ACCEL_DLPFCFG        = BIT5 | BIT4 | BIT3;
@@ -148,11 +148,11 @@ static const reg_cfg_t bank_0_reg_cfg[BANK_0_SIZE_REG_CFG] = {
     {FIFO_MODE,    SNAPSHOT, 0},
 };
 
-// ACCEL 473 Hz -3dB BW, 1.125 kHz ODR rate
-// GYRO 361.4 Hz -3dB BW, 1.125 kHz ODR rate
+// ACCEL 111.4 Hz -3dB BW, 1.125 kHz ODR rate
+// GYRO 119.5 Hz -3dB BW, 1.125 kHz ODR rate
 static const reg_cfg_t bank_2_reg_cfg[BANK_2_SIZE_REG_CFG] = {
-    {GYRO_CONFIG_1,      GYRO_FS_SEL_4000_DPS | ACCEL_DLPFCFG | GYRO_FCHOICE, 0},
-    {ACCEL_CONFIG,       ACCEL_FS_SEL_30G | ACCEL_DLPFCFG | ACCEL_FCHOICE, 0},
+    {GYRO_CONFIG_1,      GYRO_DLPFCFG | GYRO_FCHOICE, BIT3 | BIT1 | GYRO_FS_SEL_4000_DPS},
+    {ACCEL_CONFIG,       ACCEL_FS_SEL_16G | ACCEL_DLPFCFG | ACCEL_FCHOICE, BIT1},
     {ACCEL_SMPLRT_DIV_1, 0, 0xFF},
     {ACCEL_SMPLRT_DIV_2, 0, 0xFF},
     {GYRO_SMPLRT_DIV,    0, 0xFF},

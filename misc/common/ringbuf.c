@@ -55,7 +55,7 @@ int RingBuf_Write(ringbuf_t *ringbuf, uint8_t *buf, uint16_t length) {
         } else {
             memcpy(ringbuf->write_ptr, buf, size_to_end_of_buf);
             ringbuf->write_ptr = ringbuf->start_ptr;
-            memcpy(ringbuf->write_ptr, buf, length - size_to_end_of_buf);
+            memcpy(ringbuf->write_ptr, buf + size_to_end_of_buf, length - size_to_end_of_buf);
             ringbuf->write_ptr += length - size_to_end_of_buf;
         }
         ringbuf->count += length;

@@ -14,7 +14,7 @@ ctslt-fmuv5 is open sourcing project with c-atom library hardware integration
 
 #### Hardware requirement
 1. Linux (Ubuntu, Arch) / MacOS
-2. px4 fmuv5
+2. Pixhawk 4 / Cube Orange
 3. ST-LINK V2
 
 ## Getting started
@@ -24,40 +24,50 @@ ctslt-fmuv5 is open sourcing project with c-atom library hardware integration
 ### 1. Clone repository
 
 ```bash
-git clone ssh://git@git.jetbrains.space/ctlst/flight-embed-open-sourcing/ctlst-fmuv5.git
-cd ctlst-fmuv5
-git submodule update --init --recursive
+$ git clone ssh://git@git.jetbrains.space/ctlst/flight-embed-open-sourcing/ctlst-fmuv5.git
+$ cd ctlst-fmuv5
+$ git submodule update --init --recursive
 ```
 
 ---
 
-### 2. Build
+### 2. Build and flash
 
-To build a project, you must specify cmake build target (Release-target/Debug-target) and platform type (PX4/Linux).
+To build a project, you must specify cmake build target (Release/Debug) and platform type (PX4/Cube/Linux). Also you need to generate configuration files.
 
-You can use following build methods:
+```bash
+$ make prebuild
+$ make build
+$ make flash
+```
 
-**Shell**
-  ```bash
-  mkdir build && cd build && cmake .. -DTYPE=PX4 -DCMAKE_BUILD_TYPE=Debug-target
-  make all
-  ```
-**Script**
-  ```bash
-  ./build.sh
-  ```
+---
 
-**IDE**
+### 3. IDE
 
 You need to specify the build target, platform type, path to the compiler and other parameters that are required for your IDE.
 
-**vscode**
+### vscode
 
 To build in vscode you need *.json configuration files. All required files are located in the .vscode project directory.
 
+Mandatory extensions:
+
+- CMake
+- CMake Tools
+- Cortex-Debug
+
+Recommend extensions:
+
+- C/C++
+- C/C++ Extension Pack
+- C/C++ Themes
+- XML Format
+- Output Colorizer
+
 *Note: You may need to change the paths to bin*
 
-**clion**
+### clion
 
 In the settings, you need to specify the build target, platform type, and also select the toolchain.
 
@@ -67,6 +77,8 @@ In the settings, you need to specify the build target, platform type, and also s
 
 **vscode**
 
-To build in vscode you need the **Cortex-Debug** extension and configured **settings.json** and **launch.json**.
+To build in vscode you need the **Cortex-Debug** extension and configured **settings.json**, **task.json** and **launch.json**.
 
 **clion**
+
+---

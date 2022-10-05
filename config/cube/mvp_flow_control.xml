@@ -39,8 +39,8 @@
         </f>
 
         <!-- navigation -->
-        <f name="imu1" by_spec="cube.sensors.icm20948"/>
-
+        <!-- <f name="imu1" by_spec="cube.sensors.icm20948"/> -->
+        <f name="imu1" by_spec="cube.sensors.icm20649"/>
 
         <f name="zero" by_spec="core.source.constant">
             <param alias="value">0.0</param>

@@ -125,6 +125,14 @@ int USART7_Init() {
     usart7_dma_rx.DMA_InitStruct.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
     usart7_dma_rx.priority = usart7_priority;
 
+    int nd = nodereg("/dev/ttyS0");
+    noderegopen(nd, usart_posix_open);
+    noderegwrite(nd, usart_posix_write);
+    noderegread(nd, usart_posix_read);
+    noderegclose(nd, usart_posix_close);
+    noderegfilealloc(nd, NULL);
+    noderegdevcfg(nd, &usart7);
+
     rv = USART_Init(&usart7);
 
     return rv;
