@@ -5,69 +5,229 @@ Function(
     title=LocalizedString(
         en='io'
     ),
-    parameters=[],
+    parameters=[
+        Parameter(
+            name='ch1_min',
+            title='channel',
+            value_type='core.type.u32',
+            default=700,
+        ),
+        Parameter(
+            name='ch2_min',
+            title='channel',
+            value_type='core.type.u32',
+            default=700,
+        ),
+        Parameter(
+            name='ch3_min',
+            title='channel',
+            value_type='core.type.u32',
+            default=700,
+        ),
+        Parameter(
+            name='ch4_min',
+            title='channel',
+            value_type='core.type.u32',
+            default=700,
+        ),
+        Parameter(
+            name='ch5_min',
+            title='channel',
+            value_type='core.type.u32',
+            default=700,
+        ),
+        Parameter(
+            name='ch6_min',
+            title='channel',
+            value_type='core.type.u32',
+            default=700,
+        ),
+        Parameter(
+            name='ch7_min',
+            title='channel',
+            value_type='core.type.u32',
+            default=700,
+        ),
+        Parameter(
+            name='ch8_min',
+            title='channel',
+            value_type='core.type.u32',
+            default=700,
+        ),
+        Parameter(
+            name='ch1_max',
+            title='channel',
+            value_type='core.type.u32',
+            default=2200,
+        ),
+        Parameter(
+            name='ch2_max',
+            title='channel',
+            value_type='core.type.u32',
+            default=2200,
+        ),
+        Parameter(
+            name='ch3_max',
+            title='channel',
+            value_type='core.type.u32',
+            default=2200,
+        ),
+        Parameter(
+            name='ch4_max',
+            title='channel',
+            value_type='core.type.u32',
+            default=2200,
+        ),
+        Parameter(
+            name='ch5_max',
+            title='channel',
+            value_type='core.type.u32',
+            default=2200,
+        ),
+        Parameter(
+            name='ch6_max',
+            title='channel',
+            value_type='core.type.u32',
+            default=2200,
+        ),
+        Parameter(
+            name='ch7_max',
+            title='channel',
+            value_type='core.type.u32',
+            default=2200,
+        ),
+        Parameter(
+            name='ch8_max',
+            title='channel',
+            value_type='core.type.u32',
+            default=2200,
+        ),
+        Parameter(
+            name='ch1_bipolar',
+            title='channel',
+            value_type='core.type.bool',
+            default='FALSE',
+        ),
+        Parameter(
+            name='ch2_bipolar',
+            title='channel',
+            value_type='core.type.bool',
+            default='FALSE',
+        ),
+        Parameter(
+            name='ch3_bipolar',
+            title='channel',
+            value_type='core.type.bool',
+            default='FALSE',
+        ),
+        Parameter(
+            name='ch4_bipolar',
+            title='channel',
+            value_type='core.type.bool',
+            default='FALSE',
+        ),
+        Parameter(
+            name='ch5_bipolar',
+            title='channel',
+            value_type='core.type.bool',
+            default='FALSE',
+        ),
+        Parameter(
+            name='ch6_bipolar',
+            title='channel',
+            value_type='core.type.bool',
+            default='FALSE',
+        ),
+        Parameter(
+            name='ch7_bipolar',
+            title='channel',
+            value_type='core.type.bool',
+            default='FALSE',
+        ),
+        Parameter(
+            name='ch8_bipolar',
+            title='channel',
+            value_type='core.type.bool',
+            default='FALSE',
+        ),
+    ],
     inputs=[
         Input(
             name='arm',
-            title='arm',
+            title='CUBE IO PWM output arming signal',
             value_type='core.type.bool'
         ),
         Input(
-            name='pwm_channel1',
-            title='pwm_channel1',
+            name='ch1',
+            title='Channel 1 input',
             value_type='core.type.f64',
             mandatory=False
         ),
         Input(
-            name='pwm_channel2',
-            title='pwm_channel2',
+            name='ch2',
+            title='Channel 2 input',
             value_type='core.type.f64',
             mandatory=False
         ),
         Input(
-            name='pwm_channel3',
-            title='pwm_channel3',
+            name='ch3',
+            title='Channel 3 input',
             value_type='core.type.f64',
             mandatory=False
         ),
         Input(
-            name='pwm_channel4',
-            title='pwm_channel4',
+            name='ch4',
+            title='Channel 4 input',
             value_type='core.type.f64',
             mandatory=False
         ),
         Input(
-            name='pwm_channel5',
-            title='pwm_channel5',
+            name='ch5',
+            title='Channel 5 input',
             value_type='core.type.f64',
             mandatory=False
         ),
         Input(
-            name='pwm_channel6',
-            title='pwm_channel6',
+            name='ch6',
+            title='Channel 6 input',
             value_type='core.type.f64',
             mandatory=False
         ),
         Input(
-            name='pwm_channel7',
-            title='pwm_channel7',
+            name='ch7',
+            title='Channel 7 input',
             value_type='core.type.f64',
             mandatory=False
         ),
         Input(
-            name='pwm_channel8',
-            title='pwm_channel8',
+            name='ch8',
+            title='Channel 8 input',
             value_type='core.type.f64',
             mandatory=False
         ),
     ],
-    outputs=[
-        Output(
-            name='stub',
-            title='stub',
-            value_type='core.type.f64'
+    outputs=[],
+    state=[
+        Variable(
+            name='decimation_counter',
+            title='Decimation counter',
+            value_type='core.type.u32'
+        ),
+        Variable(
+            name='inited',
+            title='FIXME',
+            value_type='core.type.bool'
+        ),
+        Variable(
+            name='arm_passed',
+            title='Arm passed event',
+            value_type='core.type.bool'
+        ),
+        Variable(
+            name='disarm_passed',
+            title='Disarm passed event',
+            value_type='core.type.bool'
         ),
     ],
-    state=[],
     parameter_constraints=[],
 )

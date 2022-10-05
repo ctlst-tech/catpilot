@@ -24,6 +24,7 @@
             <o alias="manc_lon"/>
             <o alias="manc_thr"/>
             <o alias="manc_rud"/>
+            <o alias="manc_pids_tune"/>
 
             <o alias="arm" annotation="arm"/>
         </outputs>
@@ -38,8 +39,8 @@
         </f>
 
         <!-- navigation -->
-        <f name="imu1" by_spec="cube.sensors.icm20948"/>
-
+        <!-- <f name="imu1" by_spec="cube.sensors.icm20948"/> -->
+        <f name="imu1" by_spec="cube.sensors.icm20649"/>
 
         <f name="zero" by_spec="core.source.constant">
             <param alias="value">0.0</param>
@@ -117,12 +118,12 @@
 
         <f name="roll_adjustment" by_spec="core.math.gain">
             <in alias="input">roll_err/output</in>
-            <param alias="gain">0.001</param>
+            <param alias="gain">0.0005</param>
         </f>
 
         <f name="pitch_adjustment" by_spec="core.math.gain">
             <in alias="input">pitch_err/output</in>
-            <param alias="gain">0.001</param>
+            <param alias="gain">0.0005</param>
         </f>
 
         <!--TODO create a limitation for att correction -->
@@ -159,22 +160,91 @@
             <in alias="input">rc/rc_channel6</in>
         </f>
 
+        <f name="rc_channel2_inv" by_spec="core.math.neg">
+            <in alias="input">rc/rc_channel2</in>
+        </f>
+
         <f name="cont_manc_signals" by_spec="core.math.vector3">
             <in alias="x">rc/rc_channel1</in>
-            <in alias="y">rc/rc_channel2</in>
+            <in alias="y">rc_channel2_inv/output</in>
             <in alias="z">rc/rc_channel4</in>
         </f>
 
-        <and_rate_PIDs_dummy></and_rate_PIDs_dummy>
+        <attitude_PIDs_dummy></attitude_PIDs_dummy>
 
-        <f name="input_angrate_x" by_spec="core.math.gain">
+        <f name="input_roll" by_spec="core.math.gain">
+            <in alias="input">cont_manc_signals/v/x</in>
+            <param alias="gain">0.8</param>
+        </f>
+        <f name="input_pitch" by_spec="core.math.gain">
+            <in alias="input">cont_manc_signals/v/y</in>
+            <param alias="gain">0.8</param>
+        </f>
+
+        <f name="pid_roll" by_spec="core.cont.pid">
+            <in alias="input">input_roll/output</in>
+            <in alias="feedback">to_euler/roll</in>
+            <in alias="preset">zero/output</in>
+            <in alias="enable">mode_switch/mode2</in>
+            <param alias="Kp">4</param>
+            <param alias="integral_min">-0.1</param>
+            <param alias="integral_max">+0.1</param>
+            <param alias="output_min">-0.8</param>
+            <param alias="output_max">+0.8</param>
+        </f>
+
+        <f name="pid_pitch" by_spec="core.cont.pid">
+            <in alias="input">input_pitch/output</in>
+            <in alias="feedback">to_euler/pitch</in>
+            <in alias="preset">zero/output</in>
+            <in alias="enable">mode_switch/mode2</in>
+            <param alias="Kp">4</param>
+            <param alias="integral_min">-0.1</param>
+            <param alias="integral_max">+0.1</param>
+            <param alias="output_min">-0.8</param>
+            <param alias="output_max">+0.8</param>
+        </f>
+
+        <f name="pids_att_gain_multiplier" by_spec="core.math.gain">
+            <in alias="input">rc/rc_channel8</in>
+            <param alias="gain">1.0</param>
+        </f>
+
+
+        <f name="pid_multed_roll" by_spec="core.math.mul">
+            <in alias="input0">pid_roll/output</in>
+            <in alias="input1">pids_att_gain_multiplier/output</in>
+        </f>
+
+        <f name="pid_multed_pitch" by_spec="core.math.mul">
+            <in alias="input0">pid_pitch/output</in>
+            <in alias="input1">pids_att_gain_multiplier/output</in>
+        </f>
+
+
+        <ang_rate_PIDs_dummy></ang_rate_PIDs_dummy>
+
+        <f name="input_manc_angrate_x" by_spec="core.math.gain">
             <in alias="input">cont_manc_signals/v/x</in>
             <param alias="gain">0.7</param> <!-- 40 deg / sec -->
         </f>
-        <f name="input_angrate_y" by_spec="core.math.gain">
+        <f name="input_manc_angrate_y" by_spec="core.math.gain">
             <in alias="input">cont_manc_signals/v/y</in>
             <param alias="gain">0.7</param> <!-- 40 deg / sec -->
         </f>
+
+        <f name="input_angrate_x" by_spec="core.cont.mux">
+            <in alias="input0">input_manc_angrate_x/output</in>
+            <in alias="input1">pid_multed_roll/output</in>
+            <in alias="select">mode_switch/mode2</in>
+        </f>
+
+        <f name="input_angrate_y" by_spec="core.cont.mux">
+            <in alias="input0">input_manc_angrate_y/output</in>
+            <in alias="input1">pid_multed_pitch/output</in>
+            <in alias="select">mode_switch/mode2</in>
+        </f>
+
         <f name="input_angrate_z" by_spec="core.math.gain">
             <in alias="input">cont_manc_signals/v/z</in>
             <param alias="gain">0.7</param> <!-- 40 deg / sec -->
@@ -185,20 +255,23 @@
             <in alias="feedback">wx_biased/output</in>
             <in alias="preset">zero/output</in>
             <in alias="enable">mode_switch/mode1</in>
-            <param alias="Kp">0.2</param> <!-- TODO -->
-            <param alias="Ki">0.2</param>
+            <param alias="Kp">0.6</param>
+            <param alias="Ki">0.00</param>
+            <param alias="Kd">0.00</param>
             <param alias="integral_min">-0.3</param>
             <param alias="integral_max">0.3</param>
             <param alias="output_min">-1.0</param>
             <param alias="output_max">+1.0</param>
         </f>
+
         <f name="pid_angrate_y" by_spec="core.cont.pid">
             <in alias="input">input_angrate_y/output</in>
             <in alias="feedback">wy_biased/output</in>
             <in alias="preset">zero/output</in>
             <in alias="enable">mode_switch/mode1</in>
-            <param alias="Kp">0.2</param> <!-- TODO -->
-            <param alias="Ki">0.2</param>
+            <param alias="Kp">0.6</param>
+            <param alias="Ki">0.00</param>
+            <param alias="Kd">0.00</param>
             <param alias="integral_min">-0.3</param>
             <param alias="integral_max">0.3</param>
             <param alias="output_min">-1.0</param>
@@ -210,8 +283,9 @@
             <in alias="feedback">wz_biased/output</in>
             <in alias="preset">zero/output</in>
             <in alias="enable">mode_switch/mode1</in>
-            <param alias="Kp">0.2</param> <!-- TODO -->
-            <param alias="Ki">0.2</param>
+            <param alias="Kp">0.8</param>
+            <param alias="Ki">0.0</param>
+            <param alias="Kd">0.00</param>
             <param alias="integral_min">-0.3</param>
             <param alias="integral_max">0.3</param>
             <param alias="output_min">-1.0</param>
@@ -231,11 +305,30 @@
             <param alias="value">0.0</param>
         </f>
 
+        <f name="pids_gain_multiplier" by_spec="core.math.gain">
+            <in alias="input">rc/rc_channel7</in>
+            <param alias="gain">4.0</param>
+        </f>
+
+        <f name="pid_multed_x" by_spec="core.math.mul">
+            <in alias="input0">pid_angrate_x/output</in>
+            <in alias="input1">pids_gain_multiplier/output</in>
+        </f>
+
+        <f name="pid_multed_y" by_spec="core.math.mul">
+            <in alias="input0">pid_angrate_y/output</in>
+            <in alias="input1">pids_gain_multiplier/output</in>
+        </f>
+
+        <f name="pid_multed_z" by_spec="core.math.mul">
+            <in alias="input0">pid_angrate_z/output</in>
+            <in alias="input1">pids_gain_multiplier/output</in>
+        </f>
 
         <f name="att_cont_auto" by_spec="core.math.vector3">
-            <in alias="x">pid_angrate_x/output</in>
-            <in alias="y">pid_angrate_y/output</in>
-            <in alias="z">pid_angrate_z/output</in>
+            <in alias="x">pid_multed_x/output</in>
+            <in alias="y">pid_multed_y/output</in>
+            <in alias="z">pid_multed_z/output</in>
         </f>
 
         <f name="att_cont_mode_mux" by_spec="core.cont.mux3f64">
@@ -250,10 +343,24 @@
             <in alias="select">arm_signal/output</in>
         </f>
 
+        <f name="collective_min" by_spec="core.source.constant">
+            <param alias="value">0.15</param>
+        </f>
+
+        <f name="collective_in" by_spec="core.math.gain">
+            <in alias="input">rc/rc_channel3</in>
+            <param alias="gain">0.85</param>
+        </f>
+
+        <f name="collective_sol" by_spec="core.math.add">
+            <in alias="input0">collective_min/output</in>
+            <in alias="input1">collective_in/output</in>
+        </f>
+
         <f name="collective_arm_mux" by_spec="core.cont.mux">
             <in alias="input0">cont_idle_collective/output</in>
-            <in alias="input1">rc/rc_channel3</in>
-            <in alias="select">arm_signal/output</in>
+            <in alias="input1">collective_sol/output</in>
+            <in alias="select">mode_switch/mode1</in>
         </f>
 
         <f name="mixer" by_spec="core.cont.quadrotor_mix">
@@ -261,30 +368,40 @@
             <in alias="longit">att_arm_mux/output/y</in>
             <in alias="collective">collective_arm_mux/output</in>
             <in alias="rudder">att_arm_mux/output/z</in>
-            <param alias="Kt_m1">0.1</param>
-            <param alias="Kl_m1">0.1</param>
-            <param alias="Kr_m1">0.2</param>
+            <param alias="Kt_m1">-0.15</param>
+            <param alias="Kl_m1">+0.15</param>
+            <param alias="Kr_m1">+0.2</param>
 
-            <param alias="Kt_m2">0.1</param>
-            <param alias="Kl_m2">0.1</param>
-            <param alias="Kr_m2">0.2</param>
+            <param alias="Kt_m2">+0.15</param>
+            <param alias="Kl_m2">-0.15</param>
+            <param alias="Kr_m2">+0.2</param>
 
-            <param alias="Kt_m3">0.1</param>
-            <param alias="Kl_m3">0.1</param>
-            <param alias="Kr_m3">0.2</param>
+            <param alias="Kt_m3"> 0.15</param>
+            <param alias="Kl_m3"> 0.15</param>
+            <param alias="Kr_m3">-0.2</param>
 
-            <param alias="Kt_m4">0.1</param>
-            <param alias="Kl_m4">0.1</param>
-            <param alias="Kr_m4">0.2</param>
+            <param alias="Kt_m4">-0.15</param>
+            <param alias="Kl_m4">-0.15</param>
+            <param alias="Kr_m4">-0.2</param>
             <param alias="Kc">0.6</param>
+<!--            <param alias="Kc">1.0</param>-->
         </f>
 
         <f name="io" by_spec="cube.io.pwm">
-            <in alias="pwm_channel1">mixer/m1</in>
-            <in alias="pwm_channel2">mixer/m2</in>
-            <in alias="pwm_channel3">mixer/m3</in>
-            <in alias="pwm_channel4">mixer/m4</in>
+            <in alias="ch1">mixer/m1</in>
+            <in alias="ch2">mixer/m2</in>
+            <in alias="ch3">mixer/m3</in>
+            <in alias="ch4">mixer/m4</in>
             <in alias="arm">arm_signal/output</in>
+
+            <param alias="ch1_min">1000</param>
+            <param alias="ch1_max">2000</param>
+            <param alias="ch2_min">1000</param>
+            <param alias="ch2_max">2000</param>
+            <param alias="ch3_min">1000</param>
+            <param alias="ch3_max">2000</param>
+            <param alias="ch4_min">1000</param>
+            <param alias="ch4_max">2000</param>
         </f>
     </functions>
 
@@ -301,10 +418,11 @@
         <link alias="pitch">to_euler/pitch</link>
         <link alias="yaw">to_euler/yaw</link>
 
-        <link alias="manc_lat">rc/rc_channel1</link>
-        <link alias="manc_lon">rc/rc_channel2</link>
+        <link alias="manc_lat">cont_manc_signals/v/x</link>
+        <link alias="manc_lon">cont_manc_signals/v/y</link>
         <link alias="manc_thr">rc/rc_channel3</link>
-        <link alias="manc_rud">rc/rc_channel4</link>
+        <link alias="manc_rud">cont_manc_signals/v/z</link>
+        <link alias="manc_pids_tune">pid_multed_roll/output</link>
     </link_outputs>
 
 </flow>

@@ -22,6 +22,7 @@
             <i alias="manc_lon"/>
             <i alias="manc_thr"/>
             <i alias="manc_rud"/>
+            <i alias="manc_pids_tune"/>
 
             <i alias="manc_arm"/>
         </inputs>
@@ -42,6 +43,7 @@
             <o alias="manc_lon"/>
             <o alias="manc_thr"/>
             <o alias="manc_rud"/>
+            <o alias="manc_pids_tune"/>
             <o alias="manc_arm"/>
 
             <o alias="sine" annotation="sine"/>
@@ -72,17 +74,17 @@
         </f>
 
         <f name="wx_gain" by_spec="core.math.gain">
-            <param alias="gain">1.0</param>
+            <param alias="gain">57.3</param>
             <in alias="input">wx</in>
         </f>
 
         <f name="wy_gain" by_spec="core.math.gain">
-            <param alias="gain">1.0</param>
+            <param alias="gain">57.3</param>
             <in alias="input">wy</in>
         </f>
 
         <f name="wz_gain" by_spec="core.math.gain">
-            <param alias="gain">1.0</param>
+            <param alias="gain">57.3</param>
             <in alias="input">wz</in>
         </f>
 
@@ -104,6 +106,11 @@
         <f name="manc_rud_gain" by_spec="core.math.gain">
             <param alias="gain">1.0</param>
             <in alias="input">manc_rud</in>
+        </f>
+
+        <f name="manc_pids_tune_gain" by_spec="core.math.gain">
+            <param alias="gain">1.0</param>
+            <in alias="input">manc_pids_tune</in>
         </f>
 
         <f name="manc_arm_gain" by_spec="core.math.gain">
@@ -130,6 +137,24 @@
             <param alias="channel">4</param>
         </f>
 
+        <f name="logger" by_spec="cube.misc.cli_logger">
+            <in alias="v1">wx_gain/output</in>
+            <in alias="v2">wy_gain/output</in>
+            <in alias="v3">wz_gain/output</in>
+
+            <in alias="v4">ax_gain/output</in>
+            <in alias="v5">ay_gain/output</in>
+            <in alias="v6">az_gain/output</in>
+
+            <in alias="v7">roll_gain/output</in>
+            <in alias="v8">pitch_gain/output</in>
+            <in alias="v9">yaw_gain/output</in>
+
+            <in alias="v7">manc_lat_gain/output</in>
+            <in alias="v8">manc_lon_gain/output</in>
+            <in alias="v9">manc_rud_gain/output</in>
+        </f>
+
     </functions>
 
     <link_outputs>
@@ -148,6 +173,7 @@
         <link alias="manc_lon">manc_lon_gain/output</link>
         <link alias="manc_thr">manc_thr_gain/output</link>
         <link alias="manc_rud">manc_rud_gain/output</link>
+        <link alias="manc_pids_tune">manc_pids_tune_gain/output</link>
         <link alias="manc_arm">manc_arm_gain/output</link>
 
         <link alias="sine">sine/out</link>

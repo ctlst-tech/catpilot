@@ -12,7 +12,6 @@ Function(
             value_type='core.type.u8',
             tunable=True,
             default=0,
-            constraints=[]
         )
     ],
     inputs=[

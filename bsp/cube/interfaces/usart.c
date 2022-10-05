@@ -20,7 +20,7 @@ gpio_cfg_t usart3_tx = GPIO_USART3_TX;
 gpio_cfg_t usart3_rx = GPIO_USART3_RX;
 const int usart3_bitrate = 115200;
 const int usart3_timeout = portMAX_DELAY;
-const int usart3_priority = 7;
+const int usart3_priority = 8;
 const int usart3_task_priority = 1;
 
 // IO
@@ -124,6 +124,14 @@ int USART7_Init() {
     usart7_dma_rx.DMA_InitStruct.Init.Priority = DMA_PRIORITY_LOW;
     usart7_dma_rx.DMA_InitStruct.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
     usart7_dma_rx.priority = usart7_priority;
+
+    int nd = nodereg("/dev/ttyS0");
+    noderegopen(nd, usart_posix_open);
+    noderegwrite(nd, usart_posix_write);
+    noderegread(nd, usart_posix_read);
+    noderegclose(nd, usart_posix_close);
+    noderegfilealloc(nd, NULL);
+    noderegdevcfg(nd, &usart7);
 
     rv = USART_Init(&usart7);
 

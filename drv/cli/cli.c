@@ -40,8 +40,10 @@ int CLI_Init(usart_cfg_t *usart) {
     struct termios termios_p = {};
 
     tcgetattr(cli_cfg.fd, &termios_p);
-    cfsetispeed(&termios_p, 115200U);
-    cfsetospeed(&termios_p, 115200U);
+//    cfsetispeed(&termios_p, 115200U);
+//    cfsetospeed(&termios_p, 115200U);
+    cfsetispeed(&termios_p, 57600U);
+    cfsetospeed(&termios_p, 57600U);
     tcsetattr(cli_cfg.fd, TCSANOW, &termios_p);
     tcflush(cli_cfg.fd, TCIOFLUSH);
 
@@ -119,6 +121,47 @@ static void CLI_StreamInit(void) {
     stderr->flags = __SWR | __SRD;
 }
 
+int allow_stream = 0;
+
+#define CMD_STR_LEN 120
+char cmd_str [CMD_STR_LEN + 1];
+int cmd_str_offset = 0;
+
+const char *core_swsys_set_params(const char *task_name, const char *cmd);
+
+static void process_command(const char *cmd) {
+    const char *s;
+    if (strstr(cmd, "stop") == cmd) {
+        allow_stream = 0;
+    } else if (strstr(cmd, "start") == cmd) {
+        allow_stream = -1;
+    } else if (strstr(cmd, "param") == cmd) {
+        char task_name[32]; // FIXME check max len
+        char cmd_str[64]; // FIXME check max len
+        // FIXME need proper shifting
+        /*
+         * param control_flow func_name=pid_angrate_x Kp=0.65
+         * param control_flow func_name=pid_angrate_x Ki=0.65
+         * param control_flow func_name=pid_angrate_x fake_param=0.65
+         * param fake_task func_name=pid_angrate_x Kp=0.65
+         * param control_flow func_name=fake_func Kp=0.65
+         */
+        if (sscanf(cmd + strlen("param"), " %[A-Za-z0-9_] %[^\n]", task_name, cmd_str) < 2){
+            CLI_write_string("\n\rInvalid \"param\" command format: task_name param_alias=value\n\r");
+            return;
+        }
+
+        // FIXME process parameters after task execution, now it is not thread safe
+        const char *rv = core_swsys_set_params(task_name, cmd_str);
+        CLI_write_string("\n\r");
+        CLI_write_string(rv);
+        CLI_write_string("\n\r");
+    } else {
+        CLI_write_string("\n\rInvalid command\n\r");
+    }
+}
+
+
 void CLI_EchoThread(void *ptr) {
     int rd_len, wr_len;
     char new_line[4] = "\r\n# ";
@@ -130,11 +173,36 @@ void CLI_EchoThread(void *ptr) {
             if(buf_read[i] == '\r') {
                 memcpy(buf_write + wr_len, new_line, sizeof(new_line));
                 wr_len += sizeof(new_line);
+
+                if (cmd_str_offset > 0) {
+                    process_command(cmd_str);
+                    cmd_str_offset = 0;
+                }
             } else {
                 buf_write[wr_len] = buf_read[i];
                 wr_len++;
+
+                cmd_str[cmd_str_offset] = buf_read[i];
+                if (cmd_str_offset < CMD_STR_LEN) {
+                    cmd_str_offset++;
+                }
             }
         }
         wr_len = write(cli_cfg.fd, buf_write, wr_len);
+    }
+}
+
+void CLI_write_string(const char *str) {
+
+    int bw = write(cli_cfg.fd, str, strlen(str));
+    if (bw < 0) {
+        write(cli_cfg.fd, str, 0);
+        return;
+    }
+}
+
+void CLI_write_stream_string(const char *str) {
+    if (allow_stream) {
+        CLI_write_string(str);
     }
 }
