@@ -387,8 +387,13 @@
 <!--            <param alias="Kc">1.0</param>-->
         </f>
 
+        <f name="pwm_meander" by_spec="core.source.meander">
+            <param alias="period">10</param>
+            <param alias="duty">0.5</param>
+        </f>
+
         <f name="io" by_spec="cube.io.pwm">
-            <in alias="ch1">mixer/m1</in>
+            <in alias="ch1">pwm_meander/out</in>
             <in alias="ch2">mixer/m2</in>
             <in alias="ch3">mixer/m3</in>
             <in alias="ch4">mixer/m4</in>
