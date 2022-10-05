@@ -11,3 +11,4 @@ int CLI_Init(usart_cfg_t *usart);
 int CLI_Put(char c, struct __file * file);
 int CLI_Get(struct __file * file);
 int CLI_EchoStart(void);
+void CLI_write_string(const char *str);

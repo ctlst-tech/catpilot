@@ -4,8 +4,10 @@
 #include "log.h"
 
 int CLI(void) {
-    if(USART7_Init()) return -1;
-    CLI_Init(&usart7);
+//    if(USART7_Init()) return -1;
+//    CLI_Init(&usart7);
+    if(USART3_Init()) return -1;
+    CLI_Init(&usart3);
     WELCOME();
     return 0;
 }
@@ -57,7 +59,7 @@ int Devices_Init(void) {
     Module_Start("IO",
                  IO_Init,
                  IO_Update,
-                 2,
+                 4,
                  9);
 
     Module_Start("Uptime",

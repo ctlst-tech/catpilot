@@ -71,9 +71,15 @@ static void uart_testing() {
     }
 }
 
+swsys_t core_sys;
+
+const char *core_swsys_set_params(const char *task_name, const char *cmd) {
+     swsys_rv_t rv = swsys_set_params(&core_sys, task_name, cmd);
+     return swsys_strerror(rv);
+}
+
 void *ctlst(void *param) {
     static FRESULT res;
-    swsys_t sys;
     int rv = 0;
     int fd;
 
@@ -125,10 +131,10 @@ void *ctlst(void *param) {
     // while(1) vTaskDelay(100);
 
     if (res == FR_OK) {
-        swsys_rv_t swsys_rv = swsys_load("/cfg/mvp_swsys.xml", "/cfg/", &sys);
+        swsys_rv_t swsys_rv = swsys_load("/cfg/mvp_swsys.xml", "/cfg/", &core_sys);
         if (swsys_rv == swsys_e_ok) {
             LOG_INFO("SYSTEM", "System starts")
-            swsys_rv = swsys_top_module_start(&sys);
+            swsys_rv = swsys_top_module_start(&core_sys);
             if (swsys_rv != swsys_e_ok) {
                 LOG_ERROR("SYSTEM", "SWSYS start error")
             }
