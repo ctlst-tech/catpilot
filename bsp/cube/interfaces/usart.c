@@ -20,7 +20,7 @@ gpio_cfg_t usart3_tx = GPIO_USART3_TX;
 gpio_cfg_t usart3_rx = GPIO_USART3_RX;
 const int usart3_bitrate = 115200;
 const int usart3_timeout = portMAX_DELAY;
-const int usart3_priority = 7;
+const int usart3_priority = 8;
 const int usart3_task_priority = 1;
 
 // IO
