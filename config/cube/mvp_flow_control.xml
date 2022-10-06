@@ -251,9 +251,9 @@
             <in alias="feedback">wx_biased/output</in>
             <in alias="preset">zero/output</in>
             <in alias="enable">mode_switch/mode1</in>
-            <param alias="Kp">0.6</param>
-            <param alias="Ki">0.00</param>
-            <param alias="Kd">0.00</param>
+            <param alias="Kp">1.0</param>
+            <param alias="Ki">0.03</param>
+            <param alias="Kd">0.035</param>
             <param alias="integral_min">-0.3</param>
             <param alias="integral_max">0.3</param>
             <param alias="output_min">-1.0</param>
@@ -265,9 +265,9 @@
             <in alias="feedback">wy_biased/output</in>
             <in alias="preset">zero/output</in>
             <in alias="enable">mode_switch/mode1</in>
-            <param alias="Kp">0.6</param>
-            <param alias="Ki">0.00</param>
-            <param alias="Kd">0.00</param>
+            <param alias="Kp">1.0</param>
+            <param alias="Ki">0.03</param>
+            <param alias="Kd">0.035</param>
             <param alias="integral_min">-0.3</param>
             <param alias="integral_max">0.3</param>
             <param alias="output_min">-1.0</param>
@@ -280,8 +280,8 @@
             <in alias="preset">zero/output</in>
             <in alias="enable">mode_switch/mode1</in>
             <param alias="Kp">0.8</param>
-            <param alias="Ki">0.0</param>
-            <param alias="Kd">0.00</param>
+            <param alias="Ki">0.1</param>
+            <param alias="Kd">0.001</param>
             <param alias="integral_min">-0.3</param>
             <param alias="integral_max">0.3</param>
             <param alias="output_min">-1.0</param>
@@ -301,24 +301,24 @@
             <param alias="value">0.0</param>
         </f>
 
-        <f name="pids_gain_multiplier" by_spec="core.math.gain">
+        <f name="pids_rage_gain_multiplier" by_spec="core.math.gain">
             <in alias="input">rc/rc_channel7</in>
-            <param alias="gain">4.0</param>
+            <param alias="gain">2.0</param>
         </f>
 
         <f name="pid_multed_x" by_spec="core.math.mul">
             <in alias="input0">pid_angrate_x/output</in>
-            <in alias="input1">pids_gain_multiplier/output</in>
+            <in alias="input1">pids_rage_gain_multiplier/output</in>
         </f>
 
         <f name="pid_multed_y" by_spec="core.math.mul">
             <in alias="input0">pid_angrate_y/output</in>
-            <in alias="input1">pids_gain_multiplier/output</in>
+            <in alias="input1">pids_rage_gain_multiplier/output</in>
         </f>
 
         <f name="pid_multed_z" by_spec="core.math.mul">
             <in alias="input0">pid_angrate_z/output</in>
-            <in alias="input1">pids_gain_multiplier/output</in>
+            <in alias="input1">pids_rage_gain_multiplier/output</in>
         </f>
 
         <f name="att_cont_auto" by_spec="core.math.vector3">
@@ -422,10 +422,10 @@
         <link alias="pitch">to_euler/pitch</link>
         <link alias="yaw">to_euler/yaw</link>
 
-        <link alias="manc_lat">cont_manc_signals/v/x</link>
-        <link alias="manc_lon">cont_manc_signals/v/y</link>
+        <link alias="manc_lat">input_angrate_x/output</link>
+        <link alias="manc_lon">input_angrate_y/output</link>
         <link alias="manc_thr">rc/rc_channel3</link>
-        <link alias="manc_rud">cont_manc_signals/v/z</link>
+        <link alias="manc_rud">input_angrate_z/output</link>
         <link alias="manc_pids_tune">pid_multed_roll/output</link>
     </link_outputs>
 
