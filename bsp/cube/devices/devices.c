@@ -59,7 +59,7 @@ int Devices_Init(void) {
     Module_Start("IO",
                  IO_Init,
                  IO_Update,
-                 4,
+                 2,
                  9);
 
     Module_Start("Uptime",
