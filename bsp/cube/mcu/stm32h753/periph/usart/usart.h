@@ -2,7 +2,7 @@
 #include "stm32_base.h"
 #include "gpio.h"
 #include "dma.h"
-#include "ringbuf.h"
+#include "ring_buf.h"
 
 #define USART_MAX 8
 
@@ -34,8 +34,8 @@ struct usart_inst_t {
     enum usart_state_t rx_state;
     int rx_count;
     int tx_count;
-    ringbuf_t *write_buf;
-    ringbuf_t *read_buf;
+    ring_buf_t *write_buf;
+    ring_buf_t *read_buf;
     SemaphoreHandle_t read_semaphore;
     SemaphoreHandle_t write_semaphore;
     int error;

@@ -323,7 +323,7 @@ void USART_ReadTask(void *cfg_ptr) {
         } else {
             cfg->inst.error = SUCCESS;
         }
-        RingBuf_Write(cfg->inst.read_buf, buf, cfg->inst.rx_count);
+        ring_buf_write(cfg->inst.read_buf, buf, cfg->inst.rx_count);
         xSemaphoreGive(cfg->inst.read_semaphore);
     }
 }
@@ -334,8 +334,8 @@ void USART_WriteTask(void *cfg_ptr) {
     uint16_t length;
     while (1) {
         xSemaphoreTake(cfg->inst.write_semaphore, portMAX_DELAY);
-        length = RingBuf_GetDataSize(cfg->inst.write_buf);
-        length = RingBuf_Read(cfg->inst.write_buf, buf, length);
+        length = ring_buf_get_data_size(cfg->inst.write_buf);
+        length = ring_buf_read(cfg->inst.write_buf, buf, length);
         if (USART_Transmit(cfg, buf, length)) {
             cfg->inst.error = ERROR;
         } else {
@@ -358,8 +358,8 @@ int usart_posix_open(void *devcfg, void *file, const char *pathname, int flags) 
         return -1;
     }
 
-    cfg->inst.read_buf = RingBuf_Init(cfg->buf_size);
-    cfg->inst.write_buf = RingBuf_Init(cfg->buf_size);
+    cfg->inst.read_buf = ring_buf_init(cfg->buf_size);
+    cfg->inst.write_buf = ring_buf_init(cfg->buf_size);
 
     if (cfg->inst.read_buf == NULL ||
         cfg->inst.write_buf == NULL) {
@@ -402,7 +402,7 @@ ssize_t usart_posix_write(void *devcfg, void *file, const void *buf, size_t coun
     usart_cfg_t *cfg = (usart_cfg_t *)devcfg;
 
     errno = 0;
-    rv = RingBuf_Write(cfg->inst.write_buf,
+    rv = ring_buf_write(cfg->inst.write_buf,
         (uint8_t *)buf,
         count);
     xSemaphoreGive(cfg->inst.write_semaphore);
@@ -420,7 +420,7 @@ ssize_t usart_posix_read(void *devcfg, void *file, void *buf, size_t count) {
     usart_cfg_t *cfg = (usart_cfg_t *)devcfg;
 
     xSemaphoreTake(cfg->inst.read_semaphore, portMAX_DELAY);
-    rv = RingBuf_Read(cfg->inst.read_buf,
+    rv = ring_buf_read(cfg->inst.read_buf,
         (uint8_t *)buf,
         count);
     if (cfg->inst.error) {
