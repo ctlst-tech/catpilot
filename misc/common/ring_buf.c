@@ -1,5 +1,3 @@
-#include <stdlib.h>
-#include <string.h>
 #include "ring_buf.h"
 
 ring_buf_t *ring_buf_init(uint16_t size) {
