@@ -7,6 +7,8 @@ int TIM_Init(tim_cfg_t *cfg) {
     int rv = 0;
     if((rv = TIM_ClockEnable(cfg)) != 0) return rv;
 
+    cfg->TIM_InitStruct.Instance = cfg->TIM;
+
     if(HAL_TIM_Base_Init(&cfg->TIM_InitStruct) != HAL_OK) return EINVAL;
     TIM_DisableIRQ(cfg);
 
@@ -16,11 +18,16 @@ int TIM_Init(tim_cfg_t *cfg) {
 }
 
 void TIM_Start(tim_cfg_t *cfg) {
+    cfg->counter = 0;
     HAL_TIM_Base_Start_IT(&cfg->TIM_InitStruct);
 }
 
 void TIM_Stop(tim_cfg_t *cfg) {
     HAL_TIM_Base_Stop_IT(&cfg->TIM_InitStruct);
+}
+
+uint32_t TIM_GetTick(tim_cfg_t *cfg)  {
+    return (cfg->counter) * (cfg->counter_scaler_us);
 }
 
 int TIM_EnableIRQ(tim_cfg_t *cfg) {
@@ -31,6 +38,11 @@ int TIM_EnableIRQ(tim_cfg_t *cfg) {
 
 int TIM_DisableIRQ(tim_cfg_t *cfg)  {
     HAL_NVIC_DisableIRQ(cfg->inst.IRQ);
+    return 0;
+}
+
+int TIM_Handler(tim_cfg_t *cfg)  {
+    HAL_TIM_IRQHandler(&cfg->TIM_InitStruct);
     return 0;
 }
 
