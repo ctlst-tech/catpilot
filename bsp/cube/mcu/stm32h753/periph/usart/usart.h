@@ -3,6 +3,7 @@
 #include "gpio.h"
 #include "dma.h"
 #include "ringbuf.h"
+#include "fifo.h"
 
 #define USART_MAX 8
 
@@ -34,10 +35,8 @@ struct usart_inst_t {
     enum usart_state_t rx_state;
     int rx_count;
     int tx_count;
-    ringbuf_t *write_buf;
-    ringbuf_t *read_buf;
-    SemaphoreHandle_t read_semaphore;
-    SemaphoreHandle_t write_semaphore;
+    fifo_t *write_buf;
+    fifo_t *read_buf;
     int error;
     bool periph_init;
     bool tasks_init;
