@@ -314,97 +314,96 @@ int USART_ClockEnable(usart_cfg_t *cfg) {
 
 #ifdef USART_POSIX_OSA
 
-    void USART_ReadTask(void *cfg_ptr) {
-        usart_cfg_t *cfg = (usart_cfg_t *)cfg_ptr;
-        uint8_t *buf = calloc(cfg->buf_size, sizeof(uint8_t));
-        while(1) {
-            if(USART_Receive(cfg, buf, cfg->buf_size)) {
-                cfg->inst.error = ERROR;
-            } else {
-                cfg->inst.error = SUCCESS;
-            }
-            fifo_write(cfg->inst.read_buf, buf, cfg->inst.rx_count);
+void USART_ReadTask(void *cfg_ptr) {
+    usart_cfg_t *cfg = (usart_cfg_t *)cfg_ptr;
+    uint8_t *buf = calloc(cfg->buf_size, sizeof(uint8_t));
+    while (1) {
+        if (USART_Receive(cfg, buf, cfg->buf_size)) {
+            cfg->inst.error = ERROR;
+        } else {
+            cfg->inst.error = SUCCESS;
+        }
+        fifo_write(cfg->inst.read_buf, buf, cfg->inst.rx_count);
+    }
+}
+
+void USART_WriteTask(void *cfg_ptr) {
+    usart_cfg_t *cfg = (usart_cfg_t *)cfg_ptr;
+    uint8_t *buf = calloc(cfg->buf_size, sizeof(uint8_t));
+    uint16_t length;
+    while (1) {
+        length = fifo_get_data_size(cfg->inst.write_buf);
+        length = fifo_read(cfg->inst.write_buf, buf, length);
+        if (USART_Transmit(cfg, buf, length)) {
+            cfg->inst.error = ERROR;
+        } else {
+            cfg->inst.error = SUCCESS;
         }
     }
 }
 
-    void USART_WriteTask(void *cfg_ptr) {
-        usart_cfg_t *cfg = (usart_cfg_t *)cfg_ptr;
-        uint8_t *buf = calloc(cfg->buf_size, sizeof(uint8_t));
-        uint16_t length;
-        while(1) {
-            length = fifo_get_data_size(cfg->inst.write_buf);
-            length = fifo_read(cfg->inst.write_buf, buf, length);
-            if(USART_Transmit(cfg, buf, length)) {
-                cfg->inst.error = ERROR;
-            } else {
-                cfg->inst.error = SUCCESS;
-            }
-        }
+int usart_posix_open(void *devcfg, void *file, const char *pathname, int flags) {
+    (void)flags;
+    (void)file;
+    usart_cfg_t *cfg = (usart_cfg_t *)devcfg;
+
+    errno = 0;
+
+    if (cfg->inst.tasks_init) return 0;
+
+    if (cfg->buf_size <= 0) {
+        errno = ENXIO;
+        return -1;
     }
 
-    cfg->inst.read_buf = ring_buf_init(cfg->buf_size);
-    cfg->inst.write_buf = ring_buf_init(cfg->buf_size);
+    cfg->inst.read_buf = fifo_init(cfg->buf_size);
+    cfg->inst.write_buf = fifo_init(cfg->buf_size);
 
-        errno = 0;
-
-        if(cfg->inst.tasks_init) return 0;
-
-        if(cfg->buf_size <= 0) {
-            errno = ENXIO;
-            return -1;
-        }
-
-        cfg->inst.read_buf = fifo_init(cfg->buf_size);
-        cfg->inst.write_buf = fifo_init(cfg->buf_size);
-        
-        if(cfg->inst.read_buf == NULL ||
-            cfg->inst.write_buf == NULL) {
-                errno = ENXIO;
-                return -1;
-        }
-
-        char read_task_name[configMAX_TASK_NAME_LEN];
-        char write_task_name[configMAX_TASK_NAME_LEN];
-        strcpy(read_task_name, pathname);
-        strcpy(write_task_name, pathname);
-        strcat(read_task_name, "_read");
-        strcat(write_task_name, "_write");
-
-        xTaskCreate(USART_ReadTask,
-                    read_task_name,
-                    512,
-                    cfg,
-                    cfg->task_priority,
-                    NULL);
-        xTaskCreate(USART_WriteTask,
-                    write_task_name,
-                    512,
-                    cfg,
-                    cfg->task_priority,
-                    NULL);
-
-        cfg->inst.tasks_init = true;
-        return 0;
+    if (cfg->inst.read_buf == NULL ||
+        cfg->inst.write_buf == NULL) {
+        errno = ENXIO;
+        return -1;
     }
 
-    cfg->inst.read_semaphore = xSemaphoreCreateBinary();
-    cfg->inst.write_semaphore = xSemaphoreCreateBinary();
-    if (cfg->inst.read_semaphore == NULL) return -1;
-    if (cfg->inst.write_semaphore == NULL) return -1;
+    char read_task_name[configMAX_TASK_NAME_LEN];
+    char write_task_name[configMAX_TASK_NAME_LEN];
+    strcpy(read_task_name, pathname);
+    strcpy(write_task_name, pathname);
+    strcat(read_task_name, "_read");
+    strcat(write_task_name, "_write");
 
-        errno = 0;
-        rv = fifo_write(cfg->inst.write_buf,
-                        (uint8_t *)buf,
-                        count);
+    xTaskCreate(USART_ReadTask,
+        read_task_name,
+        512,
+        cfg,
+        cfg->task_priority,
+        NULL);
+    xTaskCreate(USART_WriteTask,
+        write_task_name,
+        512,
+        cfg,
+        cfg->task_priority,
+        NULL);
 
-        if(cfg->inst.error) {
-            errno = EPROTO;
-            return -1;
-        }
+    cfg->inst.tasks_init = true;
+    return 0;
+}
 
-        return rv;
+ssize_t usart_posix_write(void *devcfg, void *file, const void *buf, size_t count) {
+    ssize_t rv;
+    (void)file;
+    usart_cfg_t *cfg = (usart_cfg_t *)devcfg;
+
+    errno = 0;
+    rv = fifo_write(cfg->inst.write_buf,
+        (uint8_t *)buf,
+        count);
+
+    if (cfg->inst.error) {
+        errno = EPROTO;
+        return -1;
     }
+
     return rv;
 }
 
@@ -414,17 +413,15 @@ ssize_t usart_posix_read(void *devcfg, void *file, void *buf, size_t count) {
     (void)file;
     usart_cfg_t *cfg = (usart_cfg_t *)devcfg;
 
-        rv = fifo_read(cfg->inst.read_buf,
-                       (uint8_t *)buf,
-                       count);
+    rv = fifo_read(cfg->inst.read_buf,
+        (uint8_t *)buf,
+        count);
 
-        if(cfg->inst.error) {
-            errno = EPROTO;
-            return -1;
-        }
-
-        return rv;
+    if (cfg->inst.error) {
+        errno = EPROTO;
+        return -1;
     }
+
     return rv;
 }
 
