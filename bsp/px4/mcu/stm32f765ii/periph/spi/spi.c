@@ -32,6 +32,7 @@ int SPI_Init(spi_cfg_t *cfg) {
     SPI_EnableIRQ(cfg);
 
     if(cfg->inst.mutex == NULL) cfg->inst.mutex = xSemaphoreCreateMutex();
+    if(cfg->inst.cs_mutex == NULL) cfg->inst.cs_mutex = xSemaphoreCreateMutex();
     if(cfg->inst.semaphore == NULL) cfg->inst.semaphore = xSemaphoreCreateBinary();
 
     portEXIT_CRITICAL();
@@ -42,6 +43,18 @@ int SPI_Init(spi_cfg_t *cfg) {
 int SPI_ReInit(spi_cfg_t *cfg) {
     if(HAL_SPI_DeInit(&cfg->SPI_InitStruct) != HAL_OK) return EINVAL;
     if(HAL_SPI_Init(&cfg->SPI_InitStruct) != HAL_OK) return EINVAL;
+    return 0;
+}
+
+int SPI_ChipSelect(spi_cfg_t *cfg, gpio_cfg_t *cs) {
+    xSemaphoreTake(cfg->inst.cs_mutex, portMAX_DELAY);
+    GPIO_Reset(cs);
+    return 0;
+}
+
+int SPI_ChipDeselect(spi_cfg_t *cfg, gpio_cfg_t *cs) {
+    GPIO_Set(cs);
+    xSemaphoreGive(cfg->inst.cs_mutex);
     return 0;
 }
 

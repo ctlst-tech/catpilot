@@ -10,7 +10,7 @@
 #define USART_POSIX_OSA
 
 #ifdef USART_POSIX_OSA
-    #include <node.h>
+#include <node.h>
 #endif
 
 enum usart_state_t {
@@ -73,8 +73,8 @@ int USART_DMA_TX_Handler(usart_cfg_t *cfg);
 int USART_DMA_RX_Handler(usart_cfg_t *cfg);
 
 #ifdef USART_POSIX_OSA
-    int usart_posix_open(void *devcfg, void *file, const char* pathname, int flags);
-    ssize_t usart_posix_write(void *devcfg, void *file, const void *buf, size_t count);
-    ssize_t usart_posix_read(void *devcfg, void *file, void *buf, size_t count);
-    int usart_posix_close(void *devcfg, void *file);
+int usart_posix_open(void *devcfg, void *file, const char *pathname, int flags);
+ssize_t usart_posix_write(void *devcfg, void *file, const void *buf, size_t count);
+ssize_t usart_posix_read(void *devcfg, void *file, void *buf, size_t count);
+int usart_posix_close(void *devcfg, void *file);
 #endif

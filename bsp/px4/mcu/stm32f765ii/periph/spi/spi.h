@@ -13,6 +13,7 @@ enum spi_state_t {
 struct spi_inst_t {
     SemaphoreHandle_t semaphore;
     SemaphoreHandle_t mutex;
+    SemaphoreHandle_t cs_mutex;
     IRQn_Type IRQ;
     enum spi_state_t state;
 };
@@ -32,6 +33,8 @@ typedef struct {
 
 int SPI_Init(spi_cfg_t *cfg);
 int SPI_ClockEnable(spi_cfg_t *cfg);
+int SPI_ChipSelect(spi_cfg_t *cfg, gpio_cfg_t *cs);
+int SPI_ChipDeselect(spi_cfg_t *cfg, gpio_cfg_t *cs);
 int SPI_Transmit(spi_cfg_t *cfg, uint8_t *pdata, uint16_t length);
 int SPI_Receive(spi_cfg_t *cfg, uint8_t *pdata, uint16_t length);
 int SPI_TransmitReceive(spi_cfg_t *cfg, 
