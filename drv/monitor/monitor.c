@@ -37,12 +37,7 @@ uint32_t Monitor_GetCounter(void) {
 static char stat_buffer[1024];
 
 void Monitor_Update(void) {
-    static int first_delay = 1;
-    if(first_delay) vTaskDelay(15000);
-    first_delay = 0;
     vTaskGetRunTimeStats(stat_buffer);
-    printf("------------------------ Monitor ------------------------\n");
-    // printf("%s", stat_buffer);
+    printf("\n\n");
     write(fd, stat_buffer, strlen(stat_buffer));
-    printf("---------------------------------------------------------\n\n");
 }

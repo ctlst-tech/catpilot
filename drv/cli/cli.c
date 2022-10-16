@@ -1,6 +1,7 @@
 #include "cli.h"
 #include <node.h>
 #include <sys/termios.h>
+#include "monitor.h"
 
 static char *device = "CLI";
 
@@ -54,6 +55,24 @@ int CLI_Init(usart_cfg_t *usart) {
     return 0;
 }
 
+void _putchar(char character) {
+    char crlf[2] = {'\r', '\n'};
+    char data;
+    char *ptr;
+    int length;
+
+    data = character;
+    if(data == '\n') {
+        ptr = crlf;
+        length = 2;
+    } else {
+        ptr = &data;
+        length = 1;
+    }
+
+    write(cli_cfg.fd, (uint8_t *)ptr, length);
+}
+
 // TODO add check transmit/receive status
 int CLI_Put(char c, struct __file * file) {
     xSemaphoreTake(cli_put_mutex, portMAX_DELAY);
@@ -74,17 +93,6 @@ int CLI_Get(struct __file * file) {
     read(cli_cfg.fd, ptr, 1);
     file->len++;
     return file->buf[0];
-}
-
-int _write(int fd, char* ptr, int len)
-{
-    (void)fd;
-    int i = 0;
-    while (ptr[i] && (i < len)) {
-        write(cli_cfg.fd, (uint8_t *)&ptr[i], 1);
-        i++;
-    }
-    return len;
 }
 
 int CLI_EchoStart(void) {
@@ -156,6 +164,8 @@ static void process_command(const char *cmd) {
         CLI_write_string("\n\r");
         CLI_write_string(rv);
         CLI_write_string("\n\r");
+    } else if (strstr(cmd, "monitor") == cmd) {
+        Monitor_Update();
     } else {
         CLI_write_string("\n\rInvalid command\n\r");
     }
