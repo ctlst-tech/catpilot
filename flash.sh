@@ -1,6 +1,6 @@
 #!/bin/bash
 
-BINARY_PATH="build/firmware/ctlst-fmuv5.bin"
+BINARY_PATH="./build/firmware/ctlst-fmuv5.elf"
 
 if [ -n "$1" ]
 then
@@ -8,4 +8,4 @@ then
     echo $BINARY_PATH
 fi
 
-st-flash write $BINARY_PATH 0x08000000
+openocd -f interface/stlink.cfg -f ./stm32h7.cfg -c "init" -c "program $BINARY_PATH verify reset exit"
