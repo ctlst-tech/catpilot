@@ -4,10 +4,10 @@
 #include "log.h"
 
 int CLI(void) {
-   if(USART7_Init()) return -1;
-   CLI_Init(&usart7);
-    // if(USART3_Init()) return -1;
-    // CLI_Init(&usart3);
+//    if(USART7_Init()) return -1;
+//    CLI_Init(&usart7);
+    if(USART3_Init()) return -1;
+    CLI_Init(&usart3);
     WELCOME();
     return 0;
 }
@@ -50,11 +50,11 @@ int Devices_Init(void) {
                  11,
                  10);
 
-    // Module_Start("IMU_EXT",
-    //              IMU_EXT_Init,
-    //              IMU_EXT_Update,
-    //              2,
-    //              10);
+    Module_Start("IMU_EXT",
+                 IMU_EXT_Init,
+                 IMU_EXT_Update,
+                 2,
+                 10);
 
     Module_Start("IO",
                  IO_Init,
@@ -62,17 +62,19 @@ int Devices_Init(void) {
                  2,
                  9);
 
-    Module_Start("Uptime",
-                 Uptime_Init,
-                 Uptime_Update,
-                 60000,
-                 1);
+    // Module_Start("Uptime",
+    //              Uptime_Init,
+    //              Uptime_Update,
+    //              60000,
+    //              1);
 
-//    Module_Start("Monitor",
-//                 Monitor,
-//                 Monitor_Update,
-//                 3000,
-//                 1);
+    Monitor();
+
+    // Module_Start("Monitor",
+    //             Monitor,
+    //             Monitor_Update,
+    //             3000,
+    //             1);
 
     return 0;
 }
