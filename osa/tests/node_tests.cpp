@@ -8,23 +8,21 @@ TEST_CASE("Create root") {
     REQUIRE(root == node_init());
 }
 
-void node_check_correct_path(const char *name,
-                             struct node *node,
+void node_check_correct_path(const char *name, struct node *node, 
                              struct node *root) {
     file_operations f_op = {};
     struct node *node_;
 
     node = node_reg(name, &f_op);
     REQUIRE(node != NULL);
-    REQUIRE(!strstr(node->name, name));
+    REQUIRE(strstr(name, node->name) != NULL);
 
     node_ = node_find(name);
     REQUIRE(node_ != NULL);
-    REQUIRE(!strcmp(node_->name, node->name));
+    REQUIRE(strcmp(node_->name, node->name) == 0);
 }
 
-void node_check_incorrect_path(const char *name, 
-                               struct node *node, 
+void node_check_incorrect_path(const char *name, struct node *node, 
                                struct node *root) {
     file_operations f_op = {};
     node = node_reg(name, &f_op);
@@ -78,6 +76,20 @@ TEST_CASE("Create nodes with correct paths") {
         REQUIRE(!strcmp("directories", root->child->child->sibling->sibling->child->child->name));
     }
 
+    strcpy(name, "//tmp");
+    sprintf(section_name, "Path: %s", name);
+    SECTION(section_name, name) {
+        node_check_correct_path(name, node, root);
+        REQUIRE(strstr(name, root->child->sibling->sibling->name) != NULL);
+    }
+
+    strcpy(name, "proc");
+    sprintf(section_name, "Path: %s", name);
+    SECTION(section_name, name) {
+        node_check_correct_path(name, node, root);
+        REQUIRE(strstr(name, root->child->sibling->sibling->sibling->name) != NULL);
+    }
+
 }
 
 TEST_CASE("Create nodes with incorrect paths") {
@@ -93,7 +105,7 @@ TEST_CASE("Create nodes with incorrect paths") {
     sprintf(section_name, "Path: %s", name);
     SECTION(section_name, name) {
         node_check_incorrect_path(NULL, node, root);
-        REQUIRE(errno == ENOENT);
+        REQUIRE(errno == EINVAL);
     }
 
     strcpy(name, "NULL f_op");
@@ -101,26 +113,12 @@ TEST_CASE("Create nodes with incorrect paths") {
     SECTION(section_name, name) {
         node = node_reg(name, NULL);
         REQUIRE(node == NULL);
-        REQUIRE(errno == ENOENT);
+        REQUIRE(errno == EINVAL);
     }
 
     strcpy(name, "/");
     sprintf(section_name, "Path: %s", name);
     SECTION(section_name) {
-        node_check_incorrect_path(name, node, root);
-        REQUIRE(errno == EINVAL);
-    }
-
-    strcpy(name, "//dev");
-    sprintf(section_name, "Path: %s", name);
-    SECTION(section_name, name) {
-        node_check_incorrect_path(name, node, root);
-        REQUIRE(errno == EINVAL);
-    }
-
-    strcpy(name, "dev");
-    sprintf(section_name, "Path: %s", name);
-    SECTION(section_name, name) {
         node_check_incorrect_path(name, node, root);
         REQUIRE(errno == EINVAL);
     }
