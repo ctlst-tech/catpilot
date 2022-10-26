@@ -10,11 +10,7 @@ extern "C" {
 #include <stdlib.h>
 #include <errno.h>
 
-#define NODE_MAX_NAME_LENGTH 32
-#define NODE_MIN_NAME_LENGTH 1
-
-#define NODE_REG  0
-#define NODE_FIND 1
+#define NODE_MAX_NAME_LENGTH 64
 
 struct file {
     unsigned int f_flags;
@@ -42,7 +38,8 @@ struct node {
 };
 
 struct node *node_init(void);
-struct node *node_reg(const char *path, struct file_operations *f_op);
+struct node *node_mount(const char *mounting_point, 
+                        struct file_operations *f_op);
 struct node *node_find(const char *path);
 
 #ifdef __cplusplus

@@ -8,12 +8,12 @@ TEST_CASE("Create root") {
     REQUIRE(root == node_init());
 }
 
-void node_check_correct_path(const char *name, struct node *node, 
-                             struct node *root) {
+void node_check_correct_path(const char *name, struct node *node,
+    struct node *root) {
     file_operations f_op = {};
     struct node *node_;
 
-    node = node_reg(name, &f_op);
+    node = node_mount(name, &f_op);
     REQUIRE(node != NULL);
     REQUIRE(strstr(name, node->name) != NULL);
 
@@ -22,10 +22,10 @@ void node_check_correct_path(const char *name, struct node *node,
     REQUIRE(strcmp(node_->name, node->name) == 0);
 }
 
-void node_check_incorrect_path(const char *name, struct node *node, 
-                               struct node *root) {
+void node_check_incorrect_path(const char *name, struct node *node,
+    struct node *root) {
     file_operations f_op = {};
-    node = node_reg(name, &f_op);
+    node = node_mount(name, &f_op);
     REQUIRE(node == NULL);
 }
 
@@ -111,7 +111,7 @@ TEST_CASE("Create nodes with incorrect paths") {
     strcpy(name, "NULL f_op");
     sprintf(section_name, "Path: %s", name);
     SECTION(section_name, name) {
-        node = node_reg(name, NULL);
+        node = node_mount(name, NULL);
         REQUIRE(node == NULL);
         REQUIRE(errno == EINVAL);
     }
@@ -128,12 +128,5 @@ TEST_CASE("Create nodes with incorrect paths") {
     SECTION(section_name, name) {
         node_check_incorrect_path(name, node, root);
         REQUIRE(errno == EEXIST);
-    }
-
-    strcpy(name, "/longlongname/longlongname/longlongname");
-    sprintf(section_name, "Path: %s", name);
-    SECTION(section_name, name) {
-        node_check_incorrect_path(name, node, root);
-        REQUIRE(errno == EINVAL);
     }
 }
