@@ -2,15 +2,14 @@
 
 static struct node *__node;
 
-static struct node *node_create(const char *name, struct node *parent,
-                                struct node *sibling, struct node *child);
+static struct node *node_create(const char *name, struct node *parent);
 static struct node *node_create_dir(const char *name, struct node *node);
 static struct node *node_get_sibling(const char *name, struct node *node);
 static int node_transform_path(char *dest, const char *src);
 
 struct node *node_init(void) {
     if (__node == NULL) {
-        __node = node_create("", NULL, NULL, NULL);
+        __node = node_create("", NULL);
         if (__node == NULL) {
             errno = ENOMEM;
         }
@@ -104,14 +103,11 @@ struct node *node_find(const char *path) {
     return node;
 }
 
-static struct node *node_create(const char *name, struct node *parent,
-                                struct node *sibling, struct node *child) {
+static struct node *node_create(const char *name, struct node *parent) {
     struct node *node = calloc(1, sizeof(struct node));
     if (node != NULL) {
         strncpy(node->name, name, NODE_MAX_NAME_LENGTH);
         node->parent = parent;
-        node->sibling = sibling;
-        node->child = child;
     }
     return node;
 }
@@ -153,11 +149,11 @@ static struct node *node_create_dir(const char *name, struct node *node) {
     for (n = node; n != NULL; n = n->sibling) {
         if (!strcmp(n->name, name)) {
             if (n->child == NULL && not_last) {
-                n->child = node_create(next_name, n, NULL, NULL);
+                n->child = node_create(next_name, n);
             }
             break;
         } else if (n->sibling == NULL) {
-            n->sibling = node_create(name, n->parent, NULL, NULL);
+            n->sibling = node_create(name, n->parent);
         }
     }
     return n;
