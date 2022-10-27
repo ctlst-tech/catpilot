@@ -1,5 +1,6 @@
-#include <catch2/catch.hpp>
 #include <node.h>
+
+#include <catch2/catch.hpp>
 
 TEST_CASE("Create root") {
     struct node *root;
@@ -9,8 +10,8 @@ TEST_CASE("Create root") {
 }
 
 void node_check_correct_path(const char *name, struct node *node,
-    struct node *root) {
-    file_operations f_op = {};
+                             struct node *root) {
+    file_operations f_op = {0};
     struct node *node_;
 
     node = node_mount(name, &f_op);
@@ -23,8 +24,8 @@ void node_check_correct_path(const char *name, struct node *node,
 }
 
 void node_check_incorrect_path(const char *name, struct node *node,
-    struct node *root) {
-    file_operations f_op = {};
+                               struct node *root) {
+    file_operations f_op = {0};
     node = node_mount(name, &f_op);
     REQUIRE(node == NULL);
 }
@@ -72,8 +73,11 @@ TEST_CASE("Create nodes with correct paths") {
         node_check_correct_path(name, node, root);
         REQUIRE(!strcmp("dev", root->child->name));
         REQUIRE(!strcmp("too", root->child->child->sibling->sibling->name));
-        REQUIRE(!strcmp("much", root->child->child->sibling->sibling->child->name));
-        REQUIRE(!strcmp("directories", root->child->child->sibling->sibling->child->child->name));
+        REQUIRE(
+            !strcmp("much", root->child->child->sibling->sibling->child->name));
+        REQUIRE(
+            !strcmp("directories",
+                    root->child->child->sibling->sibling->child->child->name));
     }
 
     strcpy(name, "//tmp");
@@ -87,9 +91,9 @@ TEST_CASE("Create nodes with correct paths") {
     sprintf(section_name, "Path: %s", name);
     SECTION(section_name, name) {
         node_check_correct_path(name, node, root);
-        REQUIRE(strstr(name, root->child->sibling->sibling->sibling->name) != NULL);
+        REQUIRE(strstr(name, root->child->sibling->sibling->sibling->name) !=
+                NULL);
     }
-
 }
 
 TEST_CASE("Create nodes with incorrect paths") {
@@ -120,7 +124,7 @@ TEST_CASE("Create nodes with incorrect paths") {
     sprintf(section_name, "Path: %s", name);
     SECTION(section_name) {
         node_check_incorrect_path(name, node, root);
-        REQUIRE(errno == EINVAL);
+        REQUIRE(errno == EEXIST);
     }
 
     strcpy(name, "/dev/ttyUSB0");

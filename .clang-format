@@ -1,0 +1,9 @@
+BasedOnStyle: Google
+IndentWidth: 4
+ColumnLimit: 80
+# AllowShortIfStatementsOnASingleLine: false
+# AlignTrailingComments: true
+# SpacesBeforeTrailingComments: 3
+# AlwaysBreakAfterReturnType: TopLevelDefinitions
+# AlignConsecutiveMacros: Consecutive
+# UseCRLF: false

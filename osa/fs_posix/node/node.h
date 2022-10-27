@@ -5,10 +5,10 @@
 extern "C" {
 #endif
 
-#include <string.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
+#include <string.h>
 
 #define NODE_MAX_NAME_LENGTH 64
 
@@ -20,13 +20,13 @@ struct file {
 };
 
 struct file_operations {
-    ssize_t(*read) (struct file *file, char *buf, size_t count);
-    ssize_t(*write) (struct file *file, const char *buf, size_t count);
-    int (*ioctl) (struct file *file, unsigned int data);
-    int (*open) (struct file *file);
-    int (*flush) (struct file *file);
-    int (*release) (struct file *file);
-    int (*fsync) (struct file *file);
+    ssize_t (*read)(struct file *file, char *buf, size_t count);
+    ssize_t (*write)(struct file *file, const char *buf, size_t count);
+    int (*ioctl)(struct file *file, unsigned int data);
+    int (*open)(struct file *file);
+    int (*flush)(struct file *file);
+    int (*release)(struct file *file);
+    int (*fsync)(struct file *file);
 };
 
 struct node {
@@ -38,7 +38,7 @@ struct node {
 };
 
 struct node *node_init(void);
-struct node *node_mount(const char *mounting_point, 
+struct node *node_mount(const char *mounting_point,
                         struct file_operations *f_op);
 struct node *node_find(const char *path);
 
@@ -46,4 +46,4 @@ struct node *node_find(const char *path);
 }
 #endif
 
-#endif // _NODE_H_
+#endif  // _NODE_H_
