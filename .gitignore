@@ -14,4 +14,3 @@ fspecs.cmake
 __pycache__
 .DS_Store
 .vscode/settings.json
-stm32h7.cfg
