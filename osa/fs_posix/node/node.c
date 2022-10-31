@@ -1,70 +1,58 @@
 #include <node.h>
 
-static struct node *__node;
+static struct node root_node = {
+    .name = "",
+    .f_op = NULL,
+    .child = NULL,
+};
 
-static struct node *node_create(const char *name, size_t length);
-static struct node *node_create_dir(struct node *first_sibling_node,
-                                    const char *dir_name, size_t length);
+struct node *node_get_root() {
+    return &root_node;
+}
+
+static struct node *node_create(const char *name, size_t name_length);
+
 static struct node *node_find_sibling(struct node *first_sibling_node,
                                       const char *dir_name, size_t length);
 static struct node *node_add_sibling(struct node *first_sibling_node,
                                      struct node *new_node);
 static struct node *node_add_child(struct node *parent_node,
                                    struct node *child_node);
-static int node_get_token(const char **path, size_t *length,
-                          const char **context);
-
-struct node *node_init(void) {
-    if (__node == NULL) {
-        __node = node_create("", 0);
-        if (__node == NULL) {
-            errno = ENOMEM;
-        }
-    }
-    return __node;
-}
+static const char* node_get_token(const char *full_path, size_t *rv_length,
+                                  const char **parse_context);
 
 struct node *node_mount(const char *mounting_point,
-                        struct file_operations *f_op) {
-    struct node *node = __node, *next_node = NULL;
-    const char *dir_name = mounting_point, *dir_context = NULL;
-    size_t length;
-
-    if (mounting_point == NULL || f_op == NULL || node == NULL) {
+                        const struct file_operations *f_op) {
+    if (mounting_point == NULL || f_op == NULL) {
         errno = EINVAL;
         return NULL;
     }
 
-    node = node_find(mounting_point);
-
-    if (node == NULL) {
-        node = __node;
-        next_node = node;
-    } else {
+    if (node_find(mounting_point) != NULL) {
         errno = EEXIST;
         return NULL;
     }
 
-    for (node_get_token(&dir_name, &length, &dir_context);
-         length != 0 && dir_name != NULL && node != NULL;
-         node_get_token(&dir_name, &length, &dir_context)) {
-        if (next_node->child == NULL) {
-            next_node = node_create(dir_name, length);
-            node_add_child(node, next_node);
-            node = node->child;
-            continue;
+    struct node *rnode = &root_node;
+    const char *dir_context = NULL;
+    size_t dir_name_length;
+    const char *dir_name;
+    struct node *node;
+
+    while((dir_name = node_get_token(mounting_point, &dir_name_length, &dir_context)) != NULL) {
+        node = node_find_sibling(rnode->child, dir_name, dir_name_length);
+        if (node == NULL) {
+            node = node_create(dir_name, dir_name_length);
+            if (node == NULL) {
+                break;
+            }
+            node_add_child(rnode, node);
         }
-        node = node->child;
-        next_node = node_find_sibling(node, dir_name, length);
-        if (next_node == NULL) {
-            next_node = node_create(dir_name, length);
-            node_add_sibling(node, next_node);
-        }
-        node = next_node;
+        rnode = node;
     }
 
     if (node != NULL) {
-        memcpy(&node->f_op, f_op, sizeof(struct file_operations));
+        node->f_op = f_op;
         errno = 0;
     }
 
@@ -72,23 +60,22 @@ struct node *node_mount(const char *mounting_point,
 }
 
 struct node *node_find(const char *path) {
-    struct node *node = __node;
-    const char *dir_name = path, *dir_context = NULL;
-    size_t length;
 
-    if (path == NULL || node == NULL) {
+    if (path == NULL) {
         errno = EINVAL;
         return NULL;
     }
 
-    for (node_get_token(&dir_name, &length, &dir_context);
-         length != 0 && dir_name != NULL && node != NULL;
-         node_get_token(&dir_name, &length, &dir_context)) {
-        node = node->child;
+    struct node *node = &root_node;
+    const char *dir_context = NULL;
+    size_t dir_name_length;
+    const char *dir_name;
+
+    while((dir_name = node_get_token(path, &dir_name_length, &dir_context)) != NULL) {
+        node = node_find_sibling(node->child, dir_name, dir_name_length);
         if (node == NULL) {
             break;
         }
-        node = node_find_sibling(node, dir_name, length);
     }
 
     if (node == NULL) {
@@ -100,70 +87,67 @@ struct node *node_find(const char *path) {
     return node;
 }
 
-static struct node *node_create(const char *name, size_t length) {
+static struct node *node_create(const char *name, size_t name_length) {
     struct node *node = calloc(1, sizeof(struct node));
     if (node != NULL) {
-        strncpy(node->name, name, length);
+        strncpy(node->name, name, name_length);
     }
     return node;
 }
 
-static int node_get_token(const char **path, size_t *length,
-                          const char **context) {
+static const char* node_get_token(const char *full_path, size_t *rv_length,
+                                  const char **parse_context) {
     int l = 0;
-    const char *ptr_start;
-    const char *ptr_end;
+    const char *token_start;
 
-    if (*(context) == NULL) {
-        ptr_start = *(path);
+    if (*parse_context == NULL) {
+        token_start = full_path;
     } else {
-        ptr_start = *(context);
+        token_start = *(parse_context);
     }
 
-    for (; (*(ptr_start) == '/'); ptr_start++, l++) {
-        if (l > NODE_MAX_NAME_LENGTH) {
+    // any path must start from '/'
+    if (token_start[0] != '/') {
+        if (token_start[0] != 0) {
             errno = EINVAL;
-            *(path) = NULL;
-            *(length) = 0;
-            *(context) = NULL;
-            return -1;
+        } else {
+            errno = 0; // end of string to parse
         }
+        return NULL;
     }
 
-    for (ptr_end = ptr_start, l = 0;
-         (*(ptr_end) != '/') && (*(ptr_end) != '\0'); ptr_end++, l++) {
-        if (l > NODE_MAX_NAME_LENGTH) {
-            errno = EINVAL;
-            *(path) = NULL;
-            *(length) = 0;
-            *(context) = NULL;
-            return -1;
-        }
+    // handle repetitive slashes
+    while(*token_start == '/') {
+        token_start++;
+    }
+
+    const char *token_end;
+    token_end = strstr(token_start, "/");
+    if (token_end == NULL) {
+        token_end = token_start + strlen(token_start); // last token, token end points to '\0'
     }
 
     errno = 0;
-    *(path) = ptr_start;
-    *(length) = l;
-    *(context) = ptr_end;
-    return 0;
+    *(rv_length) = token_end - token_start;
+    *(parse_context) = token_end;
+    return token_start;
 }
 
 static struct node *node_find_sibling(struct node *first_sibling_node,
                                       const char *dir_name, size_t length) {
-    struct node *n;
-    for (n = first_sibling_node; n != NULL; n = n->sibling) {
-        if (!strncmp(n->name, dir_name, length)) {
-            break;
+    for (struct node *n = first_sibling_node; n != NULL; n = n->sibling) {
+        if (strncmp(n->name, dir_name, length) == 0) {
+            return n;
         }
     }
-    return n;
+    return NULL;
 }
 
 static struct node *node_add_sibling(struct node *first_sibling_node,
                                      struct node *new_node) {
     struct node *n;
-    for (n = first_sibling_node; n->sibling != NULL; n = n->sibling)
-        ;
+    for (n = first_sibling_node; n->sibling != NULL; n = n->sibling);
+
     n->sibling = new_node;
     new_node->parent = n->parent;
     return new_node;
@@ -172,7 +156,10 @@ static struct node *node_add_sibling(struct node *first_sibling_node,
 static struct node *node_add_child(struct node *parent_node,
                                    struct node *child_node) {
     struct node *n;
-    parent_node->child = child_node;
-    child_node->parent = parent_node;
+    if (parent_node->child == NULL) {
+        parent_node->child = child_node;
+    } else {
+        node_add_sibling(parent_node->child, child_node);
+    }
     return child_node;
 }

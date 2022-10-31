@@ -31,15 +31,14 @@ struct file_operations {
 
 struct node {
     char name[NODE_MAX_NAME_LENGTH];
-    struct file_operations f_op;
+    const struct file_operations *f_op;
     struct node *parent;
     struct node *sibling;
     struct node *child;
 };
 
-struct node *node_init(void);
 struct node *node_mount(const char *mounting_point,
-                        struct file_operations *f_op);
+                        const struct file_operations *f_op);
 struct node *node_find(const char *path);
 
 #ifdef __cplusplus
