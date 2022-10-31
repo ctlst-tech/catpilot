@@ -1,16 +1,20 @@
-#pragma once
-#include "stm32_base.h"
-#include "dma.h"
+#ifndef SDIO_H
+#define SDIO_H
 
-enum sdio_ex_state_t {
-    SDIO_FREE,
-    SDIO_WRITE,
-    SDIO_READ
+#include "core.h"
+#include "dma.h"
+#include "gpio.h"
+#include "hal.h"
+
+enum sdio_ex_state_t { 
+    SDIO_FREE, 
+    SDIO_WRITE, 
+    SDIO_READ 
 };
 
-enum sdio_cd_state_t {
-    SDIO_CONNECTED,
-    SDIO_NOT_CONNECTED
+enum sdio_cd_state_t { 
+    SDIO_CONNECTED, 
+    SDIO_NOT_CONNECTED 
 };
 
 struct sdio_inst_t {
@@ -43,8 +47,10 @@ int SDIO_ClockEnable(sdio_cfg_t *cfg);
 int SDIO_EnableIRQ(sdio_cfg_t *cfg);
 int SDIO_DisableIRQ(sdio_cfg_t *cfg);
 
-int SDIO_ReadBlocks(sdio_cfg_t *cfg, uint8_t *pdata, uint32_t address, uint32_t num);
-int SDIO_WriteBlocks(sdio_cfg_t *cfg, uint8_t *pdata, uint32_t address, uint32_t num);
+int SDIO_ReadBlocks(sdio_cfg_t *cfg, uint8_t *pdata, uint32_t address,
+                    uint32_t num);
+int SDIO_WriteBlocks(sdio_cfg_t *cfg, uint8_t *pdata, uint32_t address,
+                     uint32_t num);
 int SDIO_CheckStatusWithTimeout(sdio_cfg_t *cfg, uint32_t timeout);
 int SDIO_Detect(sdio_cfg_t *cfg);
 int SDIO_GetInfo(sdio_cfg_t *cfg, HAL_SD_CardInfoTypeDef *info);
@@ -54,3 +60,5 @@ int SDIO_GetStatus(sdio_cfg_t *cfg);
 int SDIO_IT_Handler(sdio_cfg_t *cfg);
 int SDIO_TX_Complete(sdio_cfg_t *cfg);
 int SDIO_RX_Complete(sdio_cfg_t *cfg);
+
+#endif  // SDIO_H

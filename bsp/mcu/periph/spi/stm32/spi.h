@@ -1,7 +1,9 @@
-#pragma once
-#include "stm32_base.h"
+#ifndef SPI_H
+#define SPI_H
+
+#include "core.h"
 #include "gpio.h"
-#include "dma.h"
+#include "hal.h"
 
 enum spi_state_t {
     SPI_FREE,
@@ -37,12 +39,12 @@ int SPI_ChipSelect(spi_cfg_t *cfg, gpio_cfg_t *cs);
 int SPI_ChipDeselect(spi_cfg_t *cfg, gpio_cfg_t *cs);
 int SPI_Transmit(spi_cfg_t *cfg, uint8_t *pdata, uint16_t length);
 int SPI_Receive(spi_cfg_t *cfg, uint8_t *pdata, uint16_t length);
-int SPI_TransmitReceive(spi_cfg_t *cfg, 
-                        uint8_t *tdata, 
-                        uint8_t *rdata, 
+int SPI_TransmitReceive(spi_cfg_t *cfg, uint8_t *tdata, uint8_t *rdata,
                         uint16_t length);
 int SPI_EnableIRQ(spi_cfg_t *cfg);
 int SPI_DisableIRQ(spi_cfg_t *cfg);
 int SPI_IT_Handler(spi_cfg_t *cfg);
 int SPI_DMA_MOSI_Handler(spi_cfg_t *cfg);
 int SPI_DMA_MISO_Handler(spi_cfg_t *cfg);
+
+#endif  // SPI_H

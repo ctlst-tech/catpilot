@@ -1,8 +1,9 @@
-#pragma once
-#include "stm32_base.h"
+#ifndef USART_H
+#define USART_H
+
+#include "core.h"
 #include "gpio.h"
-#include "dma.h"
-#include "ringbuf.h"
+#include "hal.h"
 
 #define USART_MAX 8
 
@@ -79,3 +80,5 @@ int USART_DMA_RX_Handler(usart_cfg_t *cfg);
     ssize_t usart_posix_read(void *devcfg, void *file, void *buf, size_t count);
     int usart_posix_close(void *devcfg, void *file);
 #endif
+
+#endif  // USART_H

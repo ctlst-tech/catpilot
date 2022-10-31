@@ -1,6 +1,9 @@
-#pragma once
-#include "stm32_base.h"
+#ifndef EXTI_H
+#define EXTI_H
+
+#include "core.h"
 #include "gpio.h"
+#include "hal.h"
 
 typedef struct {
     gpio_cfg_t gpio;
@@ -13,3 +16,5 @@ typedef struct {
 int EXTI_Init(exti_cfg_t *cfg);
 void EXTI_EnableIRQ(exti_cfg_t *cfg);
 void EXTI_DisableIRQ(exti_cfg_t *cfg);
+
+#endif  // EXTI_H

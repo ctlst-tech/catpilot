@@ -1,12 +1,15 @@
-#pragma once
-#include "stm32_base.h"
-#include "gpio.h"
-#include "dma.h"
+#ifndef I2C_H
+#define I2C_H
 
-enum i2c_state_t {
-    I2C_FREE,
-    I2C_TRANSMIT,
-    I2C_RECEIVE
+#include "core.h"
+#include "dma.h"
+#include "gpio.h"
+#include "hal.h"
+
+enum i2c_state_t { 
+    I2C_FREE, 
+    I2C_TRANSMIT, 
+    I2C_RECEIVE 
 };
 
 struct i2c_inst_t {
@@ -31,11 +34,15 @@ typedef struct {
 
 int I2C_Init(i2c_cfg_t *cfg);
 int I2C_ClockEnable(i2c_cfg_t *cfg);
-int I2C_Transmit(i2c_cfg_t *cfg, uint8_t address, uint8_t *pdata, uint16_t length);
-int I2C_Receive(i2c_cfg_t *cfg, uint8_t address, uint8_t *pdata, uint16_t length);
+int I2C_Transmit(i2c_cfg_t *cfg, uint8_t address, uint8_t *pdata,
+                 uint16_t length);
+int I2C_Receive(i2c_cfg_t *cfg, uint8_t address, uint8_t *pdata,
+                uint16_t length);
 int I2C_EnableIRQ(i2c_cfg_t *cfg);
 int I2C_DisableIRQ(i2c_cfg_t *cfg);
 int I2C_EV_Handler(i2c_cfg_t *cfg);
 int I2C_ER_Handler(i2c_cfg_t *cfg);
 int I2C_DMA_TX_Handler(i2c_cfg_t *cfg);
 int I2C_DMA_RX_Handler(i2c_cfg_t *cfg);
+
+#endif  // I2C_H

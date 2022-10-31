@@ -1,6 +1,9 @@
-#pragma once
-#include "stm32_base.h"
+#ifndef ADC_H
+#define ADC_H
+
+#include "core.h"
 #include "dma.h"
+#include "hal.h"
 
 #define ADC_MAX_CHANNELS 16
 
@@ -29,3 +32,5 @@ int ADC_DMA_Handler(adc_cfg_t *cfg);
 
 uint16_t ADC_GetRAW(adc_cfg_t *cfg, int ch);
 double ADC_GetVolt(adc_cfg_t *cfg, int ch);
+
+#endif  // ADC_H

@@ -1,6 +1,9 @@
-#pragma once
-#include "stm32_base.h"
+#ifndef TIM_H
+#define TIM_H
+
+#include "core.h"
 #include "gpio.h"
+#include "hal.h"
 
 enum tim_state_t {
     TIM_ACTIVE,
@@ -30,3 +33,5 @@ int TIM_Handler(tim_cfg_t *cfg);
 void TIM_Start(tim_cfg_t *cfg);
 void TIM_Stop(tim_cfg_t *cfg);
 uint32_t TIM_GetTick(tim_cfg_t *cfg);
+
+#endif  // TIM_H
