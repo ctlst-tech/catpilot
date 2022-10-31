@@ -80,14 +80,6 @@ TEST_CASE("Create nodes with correct paths") {
         node_check_correct_path(name);
         REQUIRE(strstr(name, root->child->sibling->sibling->name) != NULL);
     }
-
-    strcpy(name, "proc");
-    sprintf(section_name, "Path: %s", name);
-    SECTION(section_name, name) {
-        node_check_correct_path(name);
-        REQUIRE(strstr(name, root->child->sibling->sibling->sibling->name) !=
-                NULL);
-    }
 }
 
 TEST_CASE("Create nodes with incorrect paths") {
@@ -124,5 +116,17 @@ TEST_CASE("Create nodes with incorrect paths") {
     SECTION(section_name, name) {
         node_check_incorrect_path(name, node);
         REQUIRE(errno == EEXIST);
+    }
+
+    strcpy(name, "proc");
+    sprintf(section_name, "Path: %s", name);
+    SECTION(section_name, name) {
+        node_check_incorrect_path(name, node);
+    }
+
+    strcpy(name, "/dev/");
+    sprintf(section_name, "Path: %s", name);
+    SECTION(section_name, name) {
+        node_check_incorrect_path(name, node);
     }
 }

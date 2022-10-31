@@ -31,7 +31,7 @@ struct file_operations {
 
 struct node {
     char name[NODE_MAX_NAME_LENGTH];
-    const struct file_operations *f_op;
+    struct file_operations f_op;
     struct node *parent;
     struct node *sibling;
     struct node *child;

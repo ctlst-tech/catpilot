@@ -52,7 +52,7 @@ struct node *node_mount(const char *mounting_point,
     }
 
     if (node != NULL) {
-        node->f_op = f_op;
+        node->f_op = *f_op;
         errno = 0;
     }
 
@@ -88,6 +88,9 @@ struct node *node_find(const char *path) {
 }
 
 static struct node *node_create(const char *name, size_t name_length) {
+    if (name == NULL) {
+        return NULL;
+    }
     struct node *node = calloc(1, sizeof(struct node));
     if (node != NULL) {
         strncpy(node->name, name, name_length);
@@ -130,7 +133,7 @@ static const char* node_get_token(const char *full_path, size_t *rv_length,
     errno = 0;
     *(rv_length) = token_end - token_start;
     *(parse_context) = token_end;
-    return token_start;
+    return (*rv_length == 0 ? NULL : token_start);
 }
 
 static struct node *node_find_sibling(struct node *first_sibling_node,
