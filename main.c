@@ -30,6 +30,11 @@ int xml_inline_mount(const char *mount_to);
 
 static FATFS fs;
 
+#ifndef GIT_HASH
+#define GIT_HASH "N/A"
+#define GIT_STATE "N/A"
+#endif
+
 int main(void) {
     HAL_Init();
     RCC_Init();
@@ -87,6 +92,8 @@ void *ctlst(void *param) {
 
     CLI();
 
+
+
     #if(LOG_STDOUT_ENABLE)
         log_enable(true);
     #else
@@ -103,6 +110,8 @@ void *ctlst(void *param) {
             vTaskDelay(1000);
         }
     }
+
+    LOG_INFO("SYSTEM", "Version " GIT_HASH " State " GIT_STATE);
 
     res = f_mount(&fs, "/", 1);
     mkdir("/fs", S_IRWXU);
@@ -123,7 +132,6 @@ void *ctlst(void *param) {
     } else {
         LOG_ERROR("SDMMC", "Mount error");
     }
-
 
 
     xml_inline_mount("/cfg");

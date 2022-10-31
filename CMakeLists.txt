@@ -44,6 +44,18 @@ endif ()
 
 project(${PROJ_NAME} C ASM)
 
+execute_process (
+        COMMAND bash -c "git show --quiet | grep 'commit ' | sed 's/commit //' | awk '{print substr(toupper($0),1,8)}' | tr '\n' ' '"
+        OUTPUT_VARIABLE GIT_HASH
+)
+execute_process (
+        COMMAND bash -c "if [ -z \"$(git status -s)\" ]; then echo CLEAN; else echo DIRTY; fi | tr '\n' ' '"
+        OUTPUT_VARIABLE GIT_STATE
+)
+
+#MESSAGE(${GIT_HASH})
+#MESSAGE(${GIT_STATE})
+
 if (TYPE STREQUAL "PX4" OR TYPE STREQUAL "Cube")
     set(ARCH cortex_m7)
     set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/firmware)
@@ -159,6 +171,9 @@ if (TYPE STREQUAL "PX4" OR TYPE STREQUAL "Cube")
         ${DIR_C_ATOM}/function/error.c # FIXME
         ${DIR_C_ATOM}/function/conv.c # FIXME
     )
+
+    target_compile_definitions(${PROJECT_NAME}.elf PRIVATE GIT_HASH=\"${GIT_HASH}\")
+    target_compile_definitions(${PROJECT_NAME}.elf PRIVATE GIT_STATE=\"${GIT_STATE}\")
 
     target_link_libraries(${PROJECT_NAME}.elf PRIVATE
         c-atom-static
