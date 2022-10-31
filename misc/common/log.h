@@ -16,7 +16,7 @@
 void log_module(uint8_t msg_type, char *module, char *s, ...);
 void log_enable(bool enable);
 
-#define WELCOME() printf("\n\n\n \t\tCATALYST AUTOPILOT DEMO PROJECT\n");
+#define WELCOME() printf("\n\n\n \t\t\t\tCATPILOT GO\n\n");
 
 #define _LOG(type, module, s, ...) {    \
     log_module(type, module, s, ##__VA_ARGS__);\

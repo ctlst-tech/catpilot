@@ -4,10 +4,10 @@
 #include "log.h"
 
 int CLI(void) {
-   if(USART7_Init()) return -1;
-   CLI_Init(&usart7);
-    // if(USART3_Init()) return -1;
-    // CLI_Init(&usart3);
+//   if(USART7_Init()) return -1;
+//   CLI_Init(&usart7);
+     if(USART3_Init()) return -1;
+     CLI_Init(&usart3);
     WELCOME();
     return 0;
 }
