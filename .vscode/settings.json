@@ -1,7 +1,7 @@
 {
     "cmake.setBuildTypeOnMultiConfig": true,
     "cmake.configureSettings": {
-        "TYPE": "Cube"
+        "BOARD": "cube"
     },
     "cortex-debug.armToolchainPath": "/usr/bin",
     "cortex-debug.openocdPath": "/usr/local/bin/openocd",

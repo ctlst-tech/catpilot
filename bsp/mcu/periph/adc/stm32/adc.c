@@ -1,44 +1,41 @@
 #include "adc.h"
 
-int ADC_Init(adc_cfg_t *cfg) {
+int adc_init(adc_t *cfg) {
     int rv = 0;
 
     if (cfg == NULL) {
         return -1;
     }
 
-    cfg->ADC_InitStruct.Instance = cfg->ADC;
-
-    if ((rv = ADC_ClockEnable(cfg)) != 0) {
+    if ((rv = adc_clock_enable(cfg)) != 0) {
         return rv;
     }
-    if ((rv = ADC_EnableIRQ(cfg)) != 0) {
+    if ((rv = adc_enable_irq(cfg)) != 0) {
         return rv
     }
 
-    if ((rv = HAL_ADC_Init(&cfg->ADC_InitStruct)) != 0) {
+    if ((rv = HAL_ADC_Init(&cfg->init)) != 0) {
         return rv;
     }
 
     if (cfg->dma_cfg != NULL) {
-        cfg->dma_cfg->DMA_InitStruct.Parent = &cfg->ADC_InitStruct;
-        cfg->ADC_InitStruct.DMA_Handle = &cfg->dma_cfg->DMA_InitStruct;
-        if ((rv = DMA_Init(cfg->dma_cfg)) != 0) {
+        cfg->dma_cfg->DMA_InitStruct.Parent = &cfg->init;
+        cfg->init.DMA_Handle = &cfg->dma_cfg->DMA_InitStruct;
+        if ((rv = dma_init(cfg->dma_cfg)) != 0) {
             return rv;
         }
     }
 
     for (int i = 0; i < ADC_MAX_CHANNELS; i++) {
-        if (cfg->ch[i].status == ENABLE) {
-            rv = HAL_ADC_ConfigChannel(&cfg->ADC_InitStruct, &cfg->ch[i].cfg);
+        if (cfg->channel[i].status == ENABLE) {
+            rv = HAL_ADC_ConfigChannel(&cfg->init, &cfg->ch[i].cfg);
             if (rv) {
                 return rv;
             }
         }
     }
 
-    rv = HAL_ADC_Start_DMA(&cfg->ADC_InitStruct, (uint32_t *)cfg->buf,
-                           cfg->ch_num);
+    rv = HAL_ADC_Start_DMA(&cfg->init, (uint32_t *)cfg->buf, cfg->ch_num);
 
     return rv;
 }
@@ -69,7 +66,7 @@ int ADC_DisableIRQ(adc_cfg_t *cfg) {
 }
 
 int ADC_Handler(adc_cfg_t *cfg) {
-    HAL_ADC_IRQHandler(&cfg->ADC_InitStruct);
+    HAL_ADC_IRQHandler(&cfg->init);
     return 0;
 }
 

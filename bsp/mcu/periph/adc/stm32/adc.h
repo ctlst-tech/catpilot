@@ -13,24 +13,22 @@ typedef struct {
 } adc_channel_t;
 
 typedef struct {
-    ADC_TypeDef *ADC;
-    ADC_HandleTypeDef ADC_InitStruct;
-    dma_cfg_t *dma_cfg;
-    adc_channel_t ch[ADC_MAX_CHANNELS];
-    int priority;
-    int ch_num;
-    uint16_t buf[ADC_MAX_CHANNELS];
-    IRQn_Type IRQ;
-} adc_cfg_t;
+    ADC_HandleTypeDef init;
+    dma_t *dma;
+    IRQn_Type irq;
+    int irq_priority;
+    adc_channel_t channel[ADC_MAX_CHANNELS];
+    uint16_t raw[ADC_MAX_CHANNELS];
+} adc_t;
 
-int ADC_Init(adc_cfg_t *cfg);
-int ADC_ClockEnable(adc_cfg_t *cfg);
-int ADC_EnableIRQ(adc_cfg_t *cfg);
-int ADC_DisableIRQ(adc_cfg_t *cfg);
-int ADC_Handler(adc_cfg_t *cfg);
-int ADC_DMA_Handler(adc_cfg_t *cfg);
+int adc_init(adc_t *cfg);
+int adc_clock_enable(adc_t *cfg);
+int adc_enable_irq(adc_t *cfg);
+int adc_disable_irq(adc_t *cfg);
+int adc_handler(adc_t *cfg);
+int adc_dma_handler(adc_t *cfg);
 
-uint16_t ADC_GetRAW(adc_cfg_t *cfg, int ch);
-double ADC_GetVolt(adc_cfg_t *cfg, int ch);
+uint16_t adc_get_raw(adc_t *cfg, int ch);
+double adc_get_volt(adc_t *cfg, int ch);
 
 #endif  // ADC_H
