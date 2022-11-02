@@ -10,28 +10,23 @@ enum tim_state_t {
     TIM_INACTIVE,
 };
 
-struct tim_inst_t {
-    IRQn_Type IRQ;
-    enum tim_state_t state;
-};
-
 typedef struct {
-    TIM_TypeDef *TIM;
-    TIM_HandleTypeDef TIM_InitStruct;
-    struct tim_inst_t inst;
-    int priority;
+    TIM_HandleTypeDef init;
     uint32_t counter;
     uint32_t counter_scaler_us;
-} tim_cfg_t;
+    enum tim_state_t state;
+    IRQn_Type irq;
+    int irq_priority;
+} tim_t;
 
-int TIM_Init(tim_cfg_t *cfg);
-int TIM_ClockEnable(tim_cfg_t *cfg);
-int TIM_EnableIRQ(tim_cfg_t *cfg);
-int TIM_DisableIRQ(tim_cfg_t *cfg);
-int TIM_Handler(tim_cfg_t *cfg);
+int tim_init(tim_t *cfg);
+int tim_clock_enable(tim_t *cfg);
+int tim_enable_irq(tim_t *cfg);
+int tim_disable_irq(tim_t *cfg);
+int tim_handler(tim_t *cfg);
 
-void TIM_Start(tim_cfg_t *cfg);
-void TIM_Stop(tim_cfg_t *cfg);
-uint32_t TIM_GetTick(tim_cfg_t *cfg);
+void tim_start(tim_t *cfg);
+void tim_stop(tim_t *cfg);
+uint32_t tim_get_tick(tim_t *cfg);
 
 #endif  // TIM_H

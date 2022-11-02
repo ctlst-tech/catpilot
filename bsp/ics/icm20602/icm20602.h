@@ -36,9 +36,9 @@ typedef struct {
 } icm20602_param_t;
 
 typedef struct {
-    spi_cfg_t *spi;
-    gpio_cfg_t *cs;
-    exti_cfg_t *drdy;
+    spi_t *spi;
+    gpio_t *cs;
+    exti_t *drdy;
     icm20602_param_t param;
 } icm20602_cfg_t;
 
@@ -50,7 +50,7 @@ enum icm20602_state_t {
     ICM20602_FAIL
 };
 
-int ICM20602_Init(spi_cfg_t *spi, gpio_cfg_t *cs, exti_cfg_t *drdy);
+int ICM20602_Init(spi_t *spi, gpio_t *cs, exti_t *drdy);
 int ICM20602_Operation(void);
 void ICM20602_Run(void);
 void ICM20602_DataReadyHandler(void);

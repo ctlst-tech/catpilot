@@ -41,7 +41,7 @@ static uint32_t attempt = 0;
 static TickType_t icm20602_last_sample = 0;
 
 // Public functions
-int ICM20602_Init(spi_cfg_t *spi, gpio_cfg_t *cs, exti_cfg_t *drdy) {
+int ICM20602_Init(spi_t *spi, gpio_t *cs, exti_t *drdy) {
     if(spi == NULL || cs == NULL) return -1;
 
     icm20602_cfg.spi = spi;
@@ -196,11 +196,11 @@ void ICM20602_GetMeasNonBlock(void *ptr) {
 
 // Private functions
 static void ICM20602_ChipSelection(void) {
-    SPI_ChipSelect(icm20602_cfg.spi, icm20602_cfg.cs);
+    spi_chip_select(icm20602_cfg.spi, icm20602_cfg.cs);
 }
 
 static void ICM20602_ChipDeselection(void) {
-    SPI_ChipDeselect(icm20602_cfg.spi, icm20602_cfg.cs);
+    spi_chip_deselect(icm20602_cfg.spi, icm20602_cfg.cs);
 }
 
 static uint8_t ICM20602_ReadReg(uint8_t reg) {
@@ -208,8 +208,8 @@ static uint8_t ICM20602_ReadReg(uint8_t reg) {
     uint8_t data;
 
     ICM20602_ChipSelection();
-    SPI_Transmit(icm20602_cfg.spi, &cmd, 1);
-    SPI_Receive(icm20602_cfg.spi, &data, 1);
+    spi_transmit(icm20602_cfg.spi, &cmd, 1);
+    spi_receive(icm20602_cfg.spi, &data, 1);
     ICM20602_ChipDeselection();
 
     return data;
@@ -221,7 +221,7 @@ static void ICM20602_WriteReg(uint8_t reg, uint8_t value) {
     data[1] = value;
 
     ICM20602_ChipSelection();
-    SPI_Transmit(icm20602_cfg.spi, data, 2);
+    spi_transmit(icm20602_cfg.spi, data, 2);
     ICM20602_ChipDeselection();
 }
 
@@ -309,7 +309,7 @@ static void ICM20602_FIFOCount(void) {
     icm20602_FIFOBuffer.CMD = FIFO_COUNTH | READ;
 
     ICM20602_ChipSelection();
-    SPI_TransmitReceive(icm20602_cfg.spi, 
+    spi_transmit_receive(icm20602_cfg.spi, 
                         (uint8_t *)&icm20602_FIFOBuffer, 
                         (uint8_t *)&icm20602_FIFOBuffer,
                         3);
@@ -323,7 +323,7 @@ static int ICM20602_FIFORead(void) {
     icm20602_FIFOBuffer.CMD = FIFO_COUNTH | READ;
 
     ICM20602_ChipSelection();
-    SPI_TransmitReceive(icm20602_cfg.spi, 
+    spi_transmit_receive(icm20602_cfg.spi, 
                         (uint8_t *)&icm20602_FIFOBuffer, 
                         (uint8_t *)&icm20602_FIFOBuffer,
                         icm20602_FIFOParam.bytes + 3);

@@ -24,7 +24,7 @@ void CLI_EchoThread(void *ptr);
 static SemaphoreHandle_t cli_put_mutex;
 
 // Public functions
-int CLI_Init(usart_cfg_t *usart) {
+int CLI_Init(usart_t *usart) {
     if(usart == NULL) return -1;
     cli_cfg.usart = usart;
 

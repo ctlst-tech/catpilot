@@ -1,32 +1,32 @@
 #include "gpio.h"
 
-int GPIO_Init(gpio_cfg_t *cfg) {
+int gpio_init(gpio_t *cfg) {
     int rv = 0;
 
     if (cfg == NULL) {
         return EINVAL;
     }
-    if ((rv = GPIO_ClockEnable(cfg)) != 0) {
+    if ((rv = gpio_clock_enable(cfg)) != 0) {
         return rv;
     }
 
-    rv = HAL_GPIO_Init(cfg->GPIO, (GPIO_InitTypeDef *)&cfg->GPIO_InitStruct);
+    rv = HAL_GPIO_Init(cfg->port, (GPIO_InitTypeDef *)&cfg->init);
     return rv;
 }
 
-void GPIO_Set(gpio_cfg_t *cfg) {
-    HAL_GPIO_WritePin(cfg->GPIO, cfg->GPIO_InitStruct.Pin, GPIO_PIN_SET);
+void gpio_set(gpio_t *cfg) {
+    HAL_GPIO_WritePin(cfg->port, cfg->init.Pin, GPIO_PIN_SET);
 }
 
-void GPIO_Reset(gpio_cfg_t *cfg) {
-    HAL_GPIO_WritePin(cfg->GPIO, cfg->GPIO_InitStruct.Pin, GPIO_PIN_RESET);
+void gpio_reset(gpio_t *cfg) {
+    HAL_GPIO_WritePin(cfg->port, cfg->init.Pin, GPIO_PIN_RESET);
 }
 
-void GPIO_Toggle(gpio_cfg_t *cfg) {
-    HAL_GPIO_TogglePin(cfg->GPIO, cfg->GPIO_InitStruct.Pin);
+void gpio_toggle(gpio_t *cfg) {
+    HAL_GPIO_TogglePin(cfg->port, cfg->init.Pin);
 }
 
-void GPIO_SetState(gpio_cfg_t *cfg, uint8_t state) {
+void gpio_set_state(gpio_t *cfg, uint8_t state) {
     if (state) {
         GPIO_Set(cfg);
     } else {
@@ -34,14 +34,14 @@ void GPIO_SetState(gpio_cfg_t *cfg, uint8_t state) {
     }
 }
 
-int GPIO_Read(gpio_cfg_t *cfg) {
+int gpio_read(gpio_t *cfg) {
     int rv;
-    rv = HAL_GPIO_ReadPin(cfg->GPIO, cfg->GPIO_InitStruct.Pin);
+    rv = HAL_GPIO_ReadPin(cfg->port, cfg->init.Pin);
     return rv;
 }
 
-int GPIO_ClockEnable(gpio_cfg_t *cfg) {
-    switch ((uint32_t)(cfg->GPIO)) {
+int gpio_clock_enable(gpio_t *cfg) {
+    switch ((uint32_t)(cfg->port)) {
 #ifdef GPIOA
         case GPIOA_BASE:
             __HAL_RCC_GPIOA_CLK_ENABLE();

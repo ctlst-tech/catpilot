@@ -30,7 +30,7 @@ struct usart_inst_t {
     SemaphoreHandle_t rx_semaphore;
     SemaphoreHandle_t tx_mutex;
     SemaphoreHandle_t rx_mutex;
-    IRQn_Type IRQ;
+    IRQn_Type irq;
     enum usart_state_t tx_state;
     enum usart_state_t rx_state;
     int rx_count;
@@ -46,33 +46,33 @@ struct usart_inst_t {
 
 typedef struct {
     USART_TypeDef *USART;
-    gpio_cfg_t *gpio_tx_cfg;
-    gpio_cfg_t *gpio_rx_cfg;
-    dma_cfg_t *dma_tx_cfg;
-    dma_cfg_t *dma_rx_cfg;
+    gpio_t *gpio_tx_cfg;
+    gpio_t *gpio_rx_cfg;
+    dma_t *dma_tx_cfg;
+    dma_t *dma_rx_cfg;
     int speed;
     int timeout;
-    int priority;
+    int irq_priority;
     int buf_size;
     enum usart_receive_mode_t mode;
     struct usart_inst_t inst;
     int task_priority;
-} usart_cfg_t;
+} usart_t;
 
-int USART_Init(usart_cfg_t *cfg);
-int USART_ClockEnable(usart_cfg_t *cfg);
-int USART_Transmit(usart_cfg_t *cfg, uint8_t *pdata, uint16_t length);
-int USART_Receive(usart_cfg_t *cfg, uint8_t *pdata, uint16_t length);
-int USART_TransmitReceive(usart_cfg_t *cfg, uint8_t *tx_pdata, uint8_t *rx_pdata, uint16_t tx_length, uint16_t rx_length);
+int USART_Init(usart_t *cfg);
+int USART_ClockEnable(usart_t *cfg);
+int USART_Transmit(usart_t *cfg, uint8_t *pdata, uint16_t length);
+int USART_Receive(usart_t *cfg, uint8_t *pdata, uint16_t length);
+int USART_TransmitReceive(usart_t *cfg, uint8_t *tx_pdata, uint8_t *rx_pdata, uint16_t tx_length, uint16_t rx_length);
 
-int USART_SetSpeed(usart_cfg_t *cfg, uint32_t speed);
-uint32_t USART_GetSpeed(usart_cfg_t *cfg);
+int USART_SetSpeed(usart_t *cfg, uint32_t speed);
+uint32_t USART_GetSpeed(usart_t *cfg);
 
-int USART_EnableIRQ(usart_cfg_t *cfg);
-int USART_DisableIRQ(usart_cfg_t *cfg);
-int USART_Handler(usart_cfg_t *cfg);
-int USART_DMA_TX_Handler(usart_cfg_t *cfg);
-int USART_DMA_RX_Handler(usart_cfg_t *cfg);
+int USART_EnableIRQ(usart_t *cfg);
+int USART_DisableIRQ(usart_t *cfg);
+int USART_Handler(usart_t *cfg);
+int USART_DMA_TX_Handler(usart_t *cfg);
+int USART_DMA_RX_Handler(usart_t *cfg);
 
 #ifdef USART_POSIX_OSA
     int usart_posix_open(void *devcfg, void *file, const char* pathname, int flags);

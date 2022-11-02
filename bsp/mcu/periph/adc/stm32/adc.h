@@ -4,6 +4,7 @@
 #include "core.h"
 #include "dma.h"
 #include "hal.h"
+#include "os.h"
 
 #define ADC_MAX_CHANNELS 16
 
@@ -15,10 +16,10 @@ typedef struct {
 typedef struct {
     ADC_HandleTypeDef init;
     dma_t *dma;
-    IRQn_Type irq;
-    int irq_priority;
     adc_channel_t channel[ADC_MAX_CHANNELS];
     uint16_t raw[ADC_MAX_CHANNELS];
+    IRQn_Type irq;
+    int irq_priority;
 } adc_t;
 
 int adc_init(adc_t *cfg);

@@ -39,7 +39,7 @@ static uint32_t t0;
 static TickType_t icm20689_last_sample = 0;
 
 // Public functions
-int ICM20689_Init(spi_cfg_t *spi, gpio_cfg_t *cs, exti_cfg_t *drdy) {
+int ICM20689_Init(spi_t *spi, gpio_t *cs, exti_t *drdy) {
     if(spi == NULL || cs == NULL) return -1;
 
     icm20689_cfg.spi = spi;
@@ -197,11 +197,11 @@ int ICM20689_MeasReady(void) {
 
 // Private functions
 static void ICM20689_ChipSelection(void) {
-    SPI_ChipSelect(icm20689_cfg.spi, icm20689_cfg.cs);
+    spi_chip_select(icm20689_cfg.spi, icm20689_cfg.cs);
 }
 
 static void ICM20689_ChipDeselection(void) {
-    SPI_ChipDeselect(icm20689_cfg.spi, icm20689_cfg.cs);
+    spi_chip_deselect(icm20689_cfg.spi, icm20689_cfg.cs);
 }
 
 static uint8_t ICM20689_ReadReg(uint8_t reg) {
@@ -209,8 +209,8 @@ static uint8_t ICM20689_ReadReg(uint8_t reg) {
     uint8_t data;
 
     ICM20689_ChipSelection();
-    SPI_Transmit(icm20689_cfg.spi, &cmd, 1);
-    SPI_Receive(icm20689_cfg.spi, &data, 1);
+    spi_transmit(icm20689_cfg.spi, &cmd, 1);
+    spi_receive(icm20689_cfg.spi, &data, 1);
     ICM20689_ChipDeselection();
 
     return data;
@@ -222,7 +222,7 @@ static void ICM20689_WriteReg(uint8_t reg, uint8_t value) {
     data[1] = value;
 
     ICM20689_ChipSelection();
-    SPI_Transmit(icm20689_cfg.spi, data, 2);
+    spi_transmit(icm20689_cfg.spi, data, 2);
     ICM20689_ChipDeselection();
 }
 
@@ -311,8 +311,8 @@ static void ICM20689_FIFOCount(void) {
     uint8_t data[2];
 
     ICM20689_ChipSelection();
-    SPI_Transmit(icm20689_cfg.spi, &cmd, 1);
-    SPI_Receive(icm20689_cfg.spi, data, 2);
+    spi_transmit(icm20689_cfg.spi, &cmd, 1);
+    spi_receive(icm20689_cfg.spi, data, 2);
     ICM20689_ChipDeselection();
 
     icm20689_FIFOParam.bytes = msblsb16(data[0], data[1]);
@@ -323,8 +323,8 @@ static int ICM20689_FIFORead(void) {
     uint8_t cmd = FIFO_COUNTH | READ;
 
     ICM20689_ChipSelection();
-    SPI_Transmit(icm20689_cfg.spi, &cmd, 1);
-    SPI_Receive(icm20689_cfg.spi, (uint8_t *)&icm20689_FIFOBuffer,
+    spi_transmit(icm20689_cfg.spi, &cmd, 1);
+    spi_receive(icm20689_cfg.spi, (uint8_t *)&icm20689_FIFOBuffer,
                 icm20689_FIFOParam.bytes);
     ICM20689_ChipDeselection();
 

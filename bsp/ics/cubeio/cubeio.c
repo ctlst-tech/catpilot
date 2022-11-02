@@ -68,7 +68,7 @@ static TickType_t last_servo_read_ms;
 static TickType_t last_safety_ms;
 
 // Public functions
-int CubeIO_Init(usart_cfg_t *usart) {
+int CubeIO_Init(usart_t *usart) {
     if(usart == NULL) return -1;
 
     cubeio_cfg.usart = usart;

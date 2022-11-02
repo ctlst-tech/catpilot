@@ -3,19 +3,20 @@
 
 #include "core.h"
 #include "hal.h"
+#include "os.h"
 
-typedef struct gpio_cfg_t {
-    GPIO_TypeDef *GPIO;
-    GPIO_InitTypeDef GPIO_InitStruct;
-} gpio_cfg_t;
+typedef struct gpio_t {
+    GPIO_TypeDef *port;
+    GPIO_InitTypeDef init;
+} gpio_t;
 
-int GPIO_Init(gpio_cfg_t *cfg);
-int GPIO_ClockEnable(gpio_cfg_t *cfg);
+int gpio_init(gpio_t *cfg);
+int gpio_clock_enable(gpio_t *cfg);
 
-void GPIO_Set(gpio_cfg_t *cfg);
-void GPIO_Reset(gpio_cfg_t *cfg);
-void GPIO_Toggle(gpio_cfg_t *cfg);
-void GPIO_SetState(gpio_cfg_t *cfg, uint8_t state);
-int GPIO_Read(gpio_cfg_t *cfg);
+void gpio_set(gpio_t *cfg);
+void gpio_reset(gpio_t *cfg);
+void gpio_toggle(gpio_t *cfg);
+void gpio_set_state(gpio_t *cfg, uint8_t state);
+int gpio_read(gpio_t *cfg);
 
 #endif  // GPIO_H

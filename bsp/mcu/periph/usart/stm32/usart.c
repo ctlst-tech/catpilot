@@ -1,6 +1,6 @@
 #include "usart.h"
 
-int USART_Init(usart_cfg_t *cfg) {
+int USART_Init(usart_t *cfg) {
 
     if(cfg->inst.periph_init) return 0;
 
@@ -50,7 +50,7 @@ int USART_Init(usart_cfg_t *cfg) {
     return rv;
 }
 
-int USART_ReInit(usart_cfg_t *cfg) {
+int USART_ReInit(usart_t *cfg) {
     xSemaphoreGive(cfg->inst.rx_semaphore);
     xSemaphoreGive(cfg->inst.tx_semaphore);
     if(HAL_UART_DeInit(&cfg->inst.USART_InitStruct) != HAL_OK) return EINVAL;
@@ -60,7 +60,7 @@ int USART_ReInit(usart_cfg_t *cfg) {
     return 0;
 }
 
-int USART_Transmit(usart_cfg_t *cfg, uint8_t *pdata, uint16_t length) {
+int USART_Transmit(usart_t *cfg, uint8_t *pdata, uint16_t length) {
     int rv = 0;
 
     if(length == 0) return EINVAL;
@@ -88,7 +88,7 @@ int USART_Transmit(usart_cfg_t *cfg, uint8_t *pdata, uint16_t length) {
     return rv;
 }
 
-int USART_Receive(usart_cfg_t *cfg, uint8_t *pdata, uint16_t length) {
+int USART_Receive(usart_t *cfg, uint8_t *pdata, uint16_t length) {
     int rv = 0;
 
     if(length == 0) return EINVAL;
@@ -120,7 +120,7 @@ int USART_Receive(usart_cfg_t *cfg, uint8_t *pdata, uint16_t length) {
     return rv;
 }
 
-int USART_TransmitReceive(usart_cfg_t *cfg, uint8_t *tx_pdata, uint8_t *rx_pdata,
+int USART_TransmitReceive(usart_t *cfg, uint8_t *tx_pdata, uint8_t *rx_pdata,
                          uint16_t tx_length, uint16_t rx_length) {
     int rv = 0;
 
@@ -158,7 +158,7 @@ int USART_TransmitReceive(usart_cfg_t *cfg, uint8_t *tx_pdata, uint8_t *rx_pdata
     return rv;
 }
 
-int USART_SetSpeed(usart_cfg_t *cfg, uint32_t speed) {
+int USART_SetSpeed(usart_t *cfg, uint32_t speed) {
     cfg->speed = speed;
     cfg->inst.USART_InitStruct.Init.BaudRate = cfg->speed;
     cfg->USART->BRR = (uint16_t)(UART_DIV_SAMPLING16(HAL_RCC_GetPCLK1Freq(),
@@ -167,11 +167,11 @@ int USART_SetSpeed(usart_cfg_t *cfg, uint32_t speed) {
     return 0;
 }
 
-uint32_t USART_GetSpeed(usart_cfg_t *cfg) {
+uint32_t USART_GetSpeed(usart_t *cfg) {
     return (cfg->speed);
 }
 
-int USART_Handler(usart_cfg_t *cfg) {
+int USART_Handler(usart_t *cfg) {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
     DMA_Stream_TypeDef *dma_inst = 
@@ -215,13 +215,13 @@ int USART_Handler(usart_cfg_t *cfg) {
     return 0;
 }
 
-int USART_DMA_TX_Handler(usart_cfg_t *cfg) {
+int USART_DMA_TX_Handler(usart_t *cfg) {
     int rv = 0;
     rv = DMA_IRQHandler(cfg->dma_tx_cfg);
     return rv;
 }
 
-int USART_DMA_RX_Handler(usart_cfg_t *cfg) {
+int USART_DMA_RX_Handler(usart_t *cfg) {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     int rv = 0;
     rv = DMA_IRQHandler(cfg->dma_rx_cfg);
@@ -235,18 +235,18 @@ int USART_DMA_RX_Handler(usart_cfg_t *cfg) {
     return rv;
 }
 
-int USART_EnableIRQ(usart_cfg_t *cfg) {
-    HAL_NVIC_SetPriority(cfg->inst.IRQ, cfg->priority, 0);
+int USART_EnableIRQ(usart_t *cfg) {
+    HAL_NVIC_SetPriority(cfg->inst.IRQ, cfg->irq_priority, 0);
     HAL_NVIC_EnableIRQ(cfg->inst.IRQ);
     return 0;
 }
 
-int USART_DisableIRQ(usart_cfg_t *cfg)  {
+int USART_DisableIRQ(usart_t *cfg)  {
     HAL_NVIC_DisableIRQ(cfg->inst.IRQ);
     return 0;
 }
 
-int USART_ClockEnable(usart_cfg_t *cfg) {
+int USART_ClockEnable(usart_t *cfg) {
     switch((uint32_t)(cfg->USART)) {
 
 #ifdef USART1
@@ -315,7 +315,7 @@ int USART_ClockEnable(usart_cfg_t *cfg) {
 #ifdef USART_POSIX_OSA
 
     void USART_ReadTask(void *cfg_ptr) {
-        usart_cfg_t *cfg = (usart_cfg_t *)cfg_ptr;
+        usart_t *cfg = (usart_t *)cfg_ptr;
         uint8_t *buf = calloc(cfg->buf_size, sizeof(uint8_t));
         while(1) {
             if(USART_Receive(cfg, buf, cfg->buf_size)) {
@@ -329,7 +329,7 @@ int USART_ClockEnable(usart_cfg_t *cfg) {
     }
 
     void USART_WriteTask(void *cfg_ptr) {
-        usart_cfg_t *cfg = (usart_cfg_t *)cfg_ptr;
+        usart_t *cfg = (usart_t *)cfg_ptr;
         uint8_t *buf = calloc(cfg->buf_size, sizeof(uint8_t));
         uint16_t length;
         while(1) {
@@ -347,7 +347,7 @@ int USART_ClockEnable(usart_cfg_t *cfg) {
     int usart_posix_open(void *devcfg, void *file, const char* pathname, int flags) {
         (void)flags;
         (void)file;
-        usart_cfg_t *cfg = (usart_cfg_t *)devcfg;
+        usart_t *cfg = (usart_t *)devcfg;
 
         errno = 0;
 
@@ -399,7 +399,7 @@ int USART_ClockEnable(usart_cfg_t *cfg) {
     ssize_t usart_posix_write(void *devcfg, void *file, const void *buf, size_t count) {
         ssize_t rv;
         (void)file;
-        usart_cfg_t *cfg = (usart_cfg_t *)devcfg;
+        usart_t *cfg = (usart_t *)devcfg;
 
         errno = 0;
         rv = RingBuf_Write(cfg->inst.write_buf,
@@ -417,7 +417,7 @@ int USART_ClockEnable(usart_cfg_t *cfg) {
         ssize_t rv;
         errno = 0;
         (void)file;
-        usart_cfg_t *cfg = (usart_cfg_t *)devcfg;
+        usart_t *cfg = (usart_t *)devcfg;
 
         xSemaphoreTake(cfg->inst.read_semaphore, portMAX_DELAY);
         rv = RingBuf_Read(cfg->inst.read_buf,
@@ -433,7 +433,7 @@ int USART_ClockEnable(usart_cfg_t *cfg) {
     int usart_posix_close(void *devcfg, void *file) {
         errno = 0;
         (void)file;
-        usart_cfg_t *cfg = (usart_cfg_t *)devcfg;
+        usart_t *cfg = (usart_t *)devcfg;
         (void)cfg;
         return 0;
     }

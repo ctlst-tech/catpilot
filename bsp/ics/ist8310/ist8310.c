@@ -26,7 +26,7 @@ static uint32_t attempt = 0;
 static uint32_t t0;
 
 // Public functions
-int IST8310_Init(i2c_cfg_t *i2c) {
+int IST8310_Init(i2c_t *i2c) {
     if(i2c == NULL) return -1;
 
     ist8310_cfg.i2c = i2c;

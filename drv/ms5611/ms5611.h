@@ -4,8 +4,8 @@
 #include "const.h"
 
 typedef struct {
-    spi_cfg_t *spi;
-    gpio_cfg_t *cs;
+    spi_t *spi;
+    gpio_t *cs;
 } ms5611_cfg_t;
 
 enum ms5611_state_t {
@@ -15,7 +15,7 @@ enum ms5611_state_t {
     MS5611_FAIL
 };
 
-int MS5611_Init(spi_cfg_t *spi, gpio_cfg_t *cs);
+int MS5611_Init(spi_t *spi, gpio_t *cs);
 int MS5611_Operation(void);
 void MS5611_Run(void);
 

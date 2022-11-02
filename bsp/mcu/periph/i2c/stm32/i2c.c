@@ -1,141 +1,136 @@
 #include "i2c.h"
 
-int I2C_Init(i2c_cfg_t *cfg) {
+int i2c_init(i2c_t *cfg) {
     int rv = 0;
 
-    if ((rv = I2C_ClockEnable(cfg)) != 0) {
+    if ((rv = i2c_clock_enable(cfg)) != 0) {
         return rv;
     }
 
-    if ((rv = GPIO_Init(cfg->sda_cfg)) != 0) {
+    if ((rv = gpio_init(cfg->sda)) != 0) {
         return rv;
     }
-    if ((rv = GPIO_Init(cfg->scl_cfg)) != 0) {
+    if ((rv = gpio_init(cfg->scl)) != 0) {
         return rv;
     }
 
-    GPIO_Set(cfg->scl_cfg);
-    GPIO_Set(cfg->sda_cfg);
+    gpio_set(cfg->scl);
+    gpio_set(cfg->sda);
 
-    if (cfg->dma_tx_cfg != NULL) {
-        cfg->dma_tx_cfg->DMA_InitStruct.Parent = &cfg->inst.I2C_InitStruct;
-        if ((rv = DMA_Init(cfg->dma_tx_cfg)) != 0) {
+    if (cfg->dma_tx != NULL) {
+        cfg->dma_tx->init.Parent = &cfg->init;
+        if ((rv = dma_init(cfg->dma_tx)) != 0) {
             return rv;
         }
     }
 
-    if (cfg->dma_rx_cfg != NULL) {
-        cfg->dma_rx_cfg->DMA_InitStruct.Parent = &cfg->inst.I2C_InitStruct;
-        if ((rv = DMA_Init(cfg->dma_rx_cfg)) != 0) {
+    if (cfg->dma_rx != NULL) {
+        cfg->dma_rx->init.Parent = &cfg->init;
+        if ((rv = dma_init(cfg->dma_rx)) != 0) {
             return rv;
         }
     }
 
-    cfg->inst.I2C_InitStruct.Instance = cfg->I2C;
-    cfg->inst.I2C_InitStruct.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
-    cfg->inst.I2C_InitStruct.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
-    cfg->inst.I2C_InitStruct.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
-    cfg->inst.I2C_InitStruct.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+    cfg->init.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+    cfg->init.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+    cfg->init.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+    cfg->init.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
     // From CubeMX configuration tool for FAST MODE
-    cfg->inst.I2C_InitStruct.Init.Timing = 0x6000030D;
+    cfg->init.Init.Timing = 0x6000030D;
 
-    cfg->inst.I2C_InitStruct.hdmatx = &cfg->dma_tx_cfg->DMA_InitStruct;
-    cfg->inst.I2C_InitStruct.hdmarx = &cfg->dma_rx_cfg->DMA_InitStruct;
+    cfg->init.hdmatx = &cfg->dma_tx->init;
+    cfg->init.hdmarx = &cfg->dma_rx->init;
 
-    if (HAL_I2C_Init(&cfg->inst.I2C_InitStruct) != HAL_OK) {
+    if (HAL_I2C_Init(&cfg->init) != HAL_OK) {
         return EINVAL;
     }
-    I2C_EnableIRQ(cfg);
+    i2c_enable_irq(cfg);
 
-    if (cfg->inst.mutex == NULL) {
-        cfg->inst.mutex = xSemaphoreCreateMutex();
+    if (cfg->mutex == NULL) {
+        cfg->mutex = xSemaphoreCreateMutex();
     }
-    if (cfg->inst.semaphore == NULL) {
-        cfg->inst.semaphore = xSemaphoreCreateBinary();
+    if (cfg->semaphore == NULL) {
+        cfg->semaphore = xSemaphoreCreateBinary();
     }
 
     return rv;
 }
 
-int I2C_ReInit(i2c_cfg_t *cfg) {
-    if (HAL_I2C_DeInit(&cfg->inst.I2C_InitStruct) != HAL_OK) return EINVAL;
-    if (HAL_I2C_Init(&cfg->inst.I2C_InitStruct) != HAL_OK) return EINVAL;
+int i2c_reinit(i2c_t *cfg) {
+    if (HAL_I2C_DeInit(&cfg->init) != HAL_OK) {
+        return EINVAL;
+    }
+    if (HAL_I2C_Init(&cfg->init) != HAL_OK) {
+        return EINVAL;
+    }
     return 0;
 }
 
-int I2C_Transmit(i2c_cfg_t *cfg, uint8_t address, uint8_t *pdata,
-                 uint16_t length) {
+int i2c_transmit(i2c_t *cfg, uint8_t address, uint8_t *pdata, uint16_t length) {
     int rv = 0;
 
     if (length == 0 || pdata == NULL) {
         return EINVAL;
     }
 
-    if (xSemaphoreTake(cfg->inst.mutex, pdMS_TO_TICKS(cfg->timeout)) ==
-        pdFALSE) {
+    if (xSemaphoreTake(cfg->mutex, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
         return ETIMEDOUT;
     }
 
-    xSemaphoreTake(cfg->inst.semaphore, 0);
+    xSemaphoreTake(cfg->semaphore, 0);
 
-    cfg->inst.state = I2C_TRANSMIT;
+    cfg->state = I2C_TRANSMIT;
 
-    HAL_I2C_Master_Transmit_DMA(&cfg->inst.I2C_InitStruct, address, pdata,
-                                length);
+    HAL_I2C_Master_Transmit_DMA(&cfg->init, address, pdata, length);
 
-    if (xSemaphoreTake(cfg->inst.semaphore, pdMS_TO_TICKS(cfg->timeout)) ==
-        pdFALSE) {
+    if (!xSemaphoreTake(cfg->semaphore, pdMS_TO_TICKS(cfg->timeout))) {
         rv = ETIMEDOUT;
     } else {
         rv = 0;
     }
 
-    cfg->inst.state = I2C_FREE;
-    xSemaphoreGive(cfg->inst.mutex);
+    cfg->state = I2C_FREE;
+    xSemaphoreGive(cfg->mutex);
 
     return rv;
 }
 
-int I2C_Receive(i2c_cfg_t *cfg, uint8_t address, uint8_t *pdata,
-                uint16_t length) {
+int i2c_receive(i2c_t *cfg, uint8_t address, uint8_t *pdata, uint16_t length) {
     int rv = 0;
 
     if (length == 0 || pdata == NULL) {
         return EINVAL;
     }
 
-    if (xSemaphoreTake(cfg->inst.mutex, pdMS_TO_TICKS(cfg->timeout)) ==
-        pdFALSE) {
+    if (xSemaphoreTake(cfg->mutex, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
         return ETIMEDOUT;
     }
 
-    xSemaphoreTake(cfg->inst.semaphore, 0);
+    xSemaphoreTake(cfg->semaphore, 0);
 
-    cfg->inst.state = I2C_RECEIVE;
+    cfg->state = I2C_RECEIVE;
 
-    HAL_I2C_Master_Receive_DMA(&cfg->inst.I2C_InitStruct, address, pdata,
-                               length);
+    HAL_I2C_Master_Receive_DMA(&cfg->init, address, pdata, length);
 
-    if (xSemaphoreTake(cfg->inst.semaphore, pdMS_TO_TICKS(cfg->timeout)) ==
-        pdFALSE) {
+    if (!xSemaphoreTake(cfg->semaphore, pdMS_TO_TICKS(cfg->timeout))) {
         rv = ETIMEDOUT;
     } else {
         rv = 0;
     }
 
-    cfg->inst.state = I2C_FREE;
-    xSemaphoreGive(cfg->inst.mutex);
+    cfg->state = I2C_FREE;
+    xSemaphoreGive(cfg->mutex);
 
     return rv;
 }
 
-int I2C_EV_Handler(i2c_cfg_t *cfg) {
+int i2c_ev_handler(i2c_t *cfg) {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
-    HAL_I2C_EV_IRQHandler(&cfg->inst.I2C_InitStruct);
+    HAL_I2C_EV_IRQHandler(&cfg->init);
 
-    if (cfg->inst.I2C_InitStruct.State == HAL_I2C_STATE_READY) {
-        xSemaphoreGiveFromISR(cfg->inst.semaphore, &xHigherPriorityTaskWoken);
+    if (cfg->init.State == HAL_I2C_STATE_READY) {
+        xSemaphoreGiveFromISR(cfg->semaphore, &xHigherPriorityTaskWoken);
         if (xHigherPriorityTaskWoken == pdTRUE) {
             portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
         }
@@ -144,18 +139,18 @@ int I2C_EV_Handler(i2c_cfg_t *cfg) {
     return 0;
 }
 
-int I2C_ER_Handler(i2c_cfg_t *cfg) {
-    HAL_I2C_ER_IRQHandler(&cfg->inst.I2C_InitStruct);
+int i2c_er_handler(i2c_t *cfg) {
+    HAL_I2C_ER_IRQHandler(&cfg->init);
     return 0;
 }
 
-int I2C_DMA_TX_Handler(i2c_cfg_t *cfg) {
+int i2c_dma_tx_handler(i2c_t *cfg) {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
-    HAL_DMA_IRQHandler(&cfg->dma_tx_cfg->DMA_InitStruct);
+    HAL_DMA_IRQHandler(&cfg->dma_tx->init);
 
-    if (cfg->dma_tx_cfg->DMA_InitStruct.State == HAL_DMA_STATE_READY) {
-        xSemaphoreGiveFromISR(cfg->inst.semaphore, &xHigherPriorityTaskWoken);
+    if (cfg->dma_tx->init.State == HAL_DMA_STATE_READY) {
+        xSemaphoreGiveFromISR(cfg->semaphore, &xHigherPriorityTaskWoken);
         if (xHigherPriorityTaskWoken == pdTRUE) {
             portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
         }
@@ -164,13 +159,13 @@ int I2C_DMA_TX_Handler(i2c_cfg_t *cfg) {
     return 0;
 }
 
-int I2C_DMA_RX_Handler(i2c_cfg_t *cfg) {
+int i2c_dma_rx_handler(i2c_t *cfg) {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
-    HAL_DMA_IRQHandler(&cfg->dma_rx_cfg->DMA_InitStruct);
+    HAL_DMA_IRQHandler(&cfg->dma_rx->init);
 
-    if (cfg->dma_rx_cfg->DMA_InitStruct.State == HAL_DMA_STATE_READY) {
-        xSemaphoreGiveFromISR(cfg->inst.semaphore, &xHigherPriorityTaskWoken);
+    if (cfg->dma_rx->init.State == HAL_DMA_STATE_READY) {
+        xSemaphoreGiveFromISR(cfg->semaphore, &xHigherPriorityTaskWoken);
         if (xHigherPriorityTaskWoken == pdTRUE) {
             portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
         }
@@ -179,51 +174,51 @@ int I2C_DMA_RX_Handler(i2c_cfg_t *cfg) {
     return 0;
 }
 
-int I2C_EnableIRQ(i2c_cfg_t *cfg) {
-    HAL_NVIC_SetPriority(cfg->inst.EV_IRQ, cfg->priority, 0);
-    HAL_NVIC_SetPriority(cfg->inst.ER_IRQ, cfg->priority, 0);
-    HAL_NVIC_EnableIRQ(cfg->inst.EV_IRQ);
-    HAL_NVIC_EnableIRQ(cfg->inst.ER_IRQ);
+int i2c_enable_irq(i2c_t *cfg) {
+    HAL_NVIC_SetPriority(cfg->ev_irq, cfg->irq_priority, 0);
+    HAL_NVIC_SetPriority(cfg->er_irq, cfg->irq_priority, 0);
+    HAL_NVIC_EnableIRQ(cfg->ev_irq);
+    HAL_NVIC_EnableIRQ(cfg->er_irq);
     return 0;
 }
 
-int I2C_DisableIRQ(i2c_cfg_t *cfg) {
-    HAL_NVIC_DisableIRQ(cfg->inst.EV_IRQ);
-    HAL_NVIC_DisableIRQ(cfg->inst.ER_IRQ);
+int i2c_disable_irq(i2c_t *cfg) {
+    HAL_NVIC_DisableIRQ(cfg->ev_irq);
+    HAL_NVIC_DisableIRQ(cfg->er_irq);
     return 0;
 }
 
-int I2C_ClockEnable(i2c_cfg_t *cfg) {
-    switch ((uint32_t)(cfg->I2C)) {
+int i2c_clock_enable(i2c_t *cfg) {
+    switch ((uint32_t)(cfg->i2c)) {
 #ifdef I2C1
         case I2C1_BASE:
             __HAL_RCC_I2C1_CLK_ENABLE();
-            cfg->inst.EV_IRQ = I2C1_EV_IRQn;
-            cfg->inst.ER_IRQ = I2C1_ER_IRQn;
+            cfg->ev_irq = I2C1_EV_IRQn;
+            cfg->er_irq = I2C1_ER_IRQn;
             break;
 #endif
 
 #ifdef I2C2
         case I2C2_BASE:
             __HAL_RCC_I2C2_CLK_ENABLE();
-            cfg->inst.EV_IRQ = I2C2_EV_IRQn;
-            cfg->inst.ER_IRQ = I2C2_ER_IRQn;
+            cfg->ev_irq = I2C2_EV_IRQn;
+            cfg->er_irq = I2C2_ER_IRQn;
             break;
 #endif
 
 #ifdef I2C3
         case I2C3_BASE:
             __HAL_RCC_I2C3_CLK_ENABLE();
-            cfg->inst.EV_IRQ = I2C3_EV_IRQn;
-            cfg->inst.ER_IRQ = I2C3_ER_IRQn;
+            cfg->ev_irq = I2C3_EV_IRQn;
+            cfg->er_irq = I2C3_ER_IRQn;
             break;
 #endif
 
 #ifdef I2C4
         case I2C4_BASE:
             __HAL_RCC_I2C4_CLK_ENABLE();
-            cfg->inst.EV_IRQ = I2C4_EV_IRQn;
-            cfg->inst.ER_IRQ = I2C4_ER_IRQn;
+            cfg->ev_irq = I2C4_EV_IRQn;
+            cfg->er_irq = I2C4_ER_IRQn;
             break;
 #endif
 

@@ -26,9 +26,9 @@ typedef struct {
 } icm20689_fifo_t;
 
 typedef struct {
-    spi_cfg_t *spi;
-    gpio_cfg_t *cs;
-    exti_cfg_t *drdy;
+    spi_t *spi;
+    gpio_t *cs;
+    exti_t *drdy;
     icm20689_param_t param;
 } icm20689_cfg_t;
 
@@ -40,7 +40,7 @@ enum icm20689_state_t {
     ICM20689_FAIL
 };
 
-int ICM20689_Init(spi_cfg_t *spi, gpio_cfg_t *cs, exti_cfg_t *drdy);
+int ICM20689_Init(spi_t *spi, gpio_t *cs, exti_t *drdy);
 int ICM20689_Operation(void);
 void ICM20689_Run(void);
 void ICM20689_DataReadyHandler(void);

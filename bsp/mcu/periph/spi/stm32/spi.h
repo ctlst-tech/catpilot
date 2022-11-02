@@ -12,39 +12,34 @@ enum spi_state_t {
     SPI_TRANSMIT_RECEIVE,
 };
 
-struct spi_inst_t {
+typedef struct {
+    SPI_HandleTypeDef init;
+    gpio_t *mosi;
+    gpio_t *miso;
+    gpio_t *sck;
+    dma_t *dma_mosi;
+    dma_t *dma_miso;
     SemaphoreHandle_t semaphore;
     SemaphoreHandle_t mutex;
     SemaphoreHandle_t cs_mutex;
-    IRQn_Type IRQ;
     enum spi_state_t state;
-};
-
-typedef struct {
-    SPI_TypeDef *SPI;
-    SPI_HandleTypeDef SPI_InitStruct;
-    gpio_cfg_t *mosi_cfg;
-    gpio_cfg_t *miso_cfg;
-    gpio_cfg_t *sck_cfg;
-    dma_cfg_t *dma_mosi_cfg;
-    dma_cfg_t *dma_miso_cfg;
     int timeout;
-    int priority;
-    struct spi_inst_t inst;
-} spi_cfg_t;
+    IRQn_Type irq;
+    int irq_priority;
+} spi_t;
 
-int SPI_Init(spi_cfg_t *cfg);
-int SPI_ClockEnable(spi_cfg_t *cfg);
-int SPI_ChipSelect(spi_cfg_t *cfg, gpio_cfg_t *cs);
-int SPI_ChipDeselect(spi_cfg_t *cfg, gpio_cfg_t *cs);
-int SPI_Transmit(spi_cfg_t *cfg, uint8_t *pdata, uint16_t length);
-int SPI_Receive(spi_cfg_t *cfg, uint8_t *pdata, uint16_t length);
-int SPI_TransmitReceive(spi_cfg_t *cfg, uint8_t *tdata, uint8_t *rdata,
+int spi_init(spi_t *cfg);
+int spi_clock_enable(spi_t *cfg);
+int spi_chip_select(spi_t *cfg, gpio_t *cs);
+int spi_chip_deselect(spi_t *cfg, gpio_t *cs);
+int spi_transmit(spi_t *cfg, uint8_t *pdata, uint16_t length);
+int spi_receive(spi_t *cfg, uint8_t *pdata, uint16_t length);
+int spi_transmit_receive(spi_t *cfg, uint8_t *tdata, uint8_t *rdata,
                         uint16_t length);
-int SPI_EnableIRQ(spi_cfg_t *cfg);
-int SPI_DisableIRQ(spi_cfg_t *cfg);
-int SPI_IT_Handler(spi_cfg_t *cfg);
-int SPI_DMA_MOSI_Handler(spi_cfg_t *cfg);
-int SPI_DMA_MISO_Handler(spi_cfg_t *cfg);
+int spi_enable_irq(spi_t *cfg);
+int spi_disable_irq(spi_t *cfg);
+int spi_it_handler(spi_t *cfg);
+int spi_dma_mosi_handler(spi_t *cfg);
+int spi_dma_miso_handler(spi_t *cfg);
 
 #endif  // SPI_H

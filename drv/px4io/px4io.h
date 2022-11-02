@@ -27,7 +27,7 @@ typedef struct {
 #pragma pack(pop)
 
 typedef struct {
-    usart_cfg_t *usart;
+    usart_t *usart;
 } px4io_cfg_t;
 
 enum px4io_state_t {
@@ -37,7 +37,7 @@ enum px4io_state_t {
     PX4IO_FAIL,
 };
 
-int PX4IO_Init(usart_cfg_t *usart);
+int PX4IO_Init(usart_t *usart);
 int PX4IO_Operation(void);
 void PX4IO_Run(void);
 

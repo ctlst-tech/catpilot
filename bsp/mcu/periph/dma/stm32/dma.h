@@ -3,18 +3,19 @@
 
 #include "core.h"
 #include "hal.h"
+#include "os.h"
 
 typedef struct {
-    DMA_HandleTypeDef DMA_InitStruct;
-    int priority;
-    IRQn_Type IRQ;
-} dma_cfg_t;
+    DMA_HandleTypeDef init;
+    IRQn_Type irq;
+    int irq_priority;
+} dma_t;
 
-int DMA_Init(dma_cfg_t *cfg);
-int DMA_ReInit(dma_cfg_t *cfg);
-int DMA_ClockEnable(dma_cfg_t *cfg);
-int DMA_EnableIRQ(dma_cfg_t *cfg);
-int DMA_DisableIRQ(dma_cfg_t *cfg);
-int DMA_IRQHandler(dma_cfg_t *cfg);
+int dma_init(dma_t *cfg);
+int dma_reinit(dma_t *cfg);
+int dma_clock_enable(dma_t *cfg);
+int dma_enable_irq(dma_t *cfg);
+int dma_disable_irq(dma_t *cfg);
+int dma_irq_handler(dma_t *cfg);
 
 #endif  // DMA_H

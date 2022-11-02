@@ -18,10 +18,10 @@ int adc_init(adc_t *cfg) {
         return rv;
     }
 
-    if (cfg->dma_cfg != NULL) {
-        cfg->dma_cfg->DMA_InitStruct.Parent = &cfg->init;
-        cfg->init.DMA_Handle = &cfg->dma_cfg->DMA_InitStruct;
-        if ((rv = dma_init(cfg->dma_cfg)) != 0) {
+    if (cfg->dma != NULL) {
+        cfg->dma->init.Parent = &cfg->init;
+        cfg->init.DMA_Handle = &cfg->dma->init;
+        if ((rv = dma_init(cfg->dma)) != 0) {
             return rv;
         }
     }
@@ -40,42 +40,42 @@ int adc_init(adc_t *cfg) {
     return rv;
 }
 
-uint16_t ADC_GetRAW(adc_cfg_t *cfg, int ch) {
+uint16_t adc_get_raw(adc_t *cfg, int ch) {
     if (ch > ADC_MAX_CHANNELS) {
         return (__UINT16_MAX__);
     }
     return (cfg->buf[ch]);
 }
 
-double ADC_GetVolt(adc_cfg_t *cfg, int ch) {
+double adc_get_volt(adc_t *cfg, int ch) {
     if (ch > ADC_MAX_CHANNELS) {
         return (__UINT16_MAX__);
     }
     return ((double)cfg->buf[ch] / 0xFFFF * 3.3);
 }
 
-int ADC_EnableIRQ(adc_cfg_t *cfg) {
-    HAL_NVIC_SetPriority(cfg->IRQ, cfg->priority, 0);
+int adc_enable_irq(adc_t *cfg) {
+    HAL_NVIC_SetPriority(cfg->IRQ, cfg->irq_priority, 0);
     HAL_NVIC_EnableIRQ(cfg->IRQ);
     return 0;
 }
 
-int ADC_DisableIRQ(adc_cfg_t *cfg) {
+int adc_disable_irq(adc_t *cfg) {
     HAL_NVIC_DisableIRQ(cfg->IRQ);
     return 0;
 }
 
-int ADC_Handler(adc_cfg_t *cfg) {
+int adc_handler(adc_t *cfg) {
     HAL_ADC_IRQHandler(&cfg->init);
     return 0;
 }
 
-int ADC_DMA_Handler(adc_cfg_t *cfg) {
-    HAL_DMA_IRQHandler(&cfg->dma_cfg->DMA_InitStruct);
+int adc_dma_handler(adc_t *cfg) {
+    HAL_DMA_IRQHandler(&cfg->dma->init);
     return 0;
 }
 
-int ADC_ClockEnable(adc_cfg_t *cfg) {
+int adc_clock_enable(adc_t *cfg) {
     switch ((uint32_t)(cfg->ADC)) {
 #ifdef ADC1
         case ADC1_BASE:

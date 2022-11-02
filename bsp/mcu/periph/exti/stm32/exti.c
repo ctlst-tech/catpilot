@@ -1,17 +1,17 @@
 #include "exti.h"
 
-int EXTI_Init(exti_cfg_t *cfg) {
+int exti_init(exti_t *cfg) {
     int rv = 0;
 
     if (cfg == NULL) {
         return EINVAL;
     }
-    if ((rv = GPIO_Init(&cfg->gpio)) != 0) {
+    if ((rv = gpio_init(&cfg->gpio)) != 0) {
         return rv;
     }
 
-    rv = HAL_EXTI_SetConfigLine((EXTI_HandleTypeDef *)&cfg->EXTI_Handle,
-                                (EXTI_ConfigTypeDef *)&cfg->EXTI_ConfigStruct);
+    rv = HAL_EXTI_SetConfigLine((EXTI_HandleTypeDef *)&cfg->handle,
+                                (EXTI_ConfigTypeDef *)&cfg->cfg);
 
     if (rv != 0) {
         return rv;
@@ -40,12 +40,12 @@ int EXTI_Init(exti_cfg_t *cfg) {
     return rv;
 }
 
-void EXTI_EnableIRQ(exti_cfg_t *cfg) {
-    HAL_NVIC_SetPriority(cfg->IRQ, cfg->priority, 0);
+void EXTI_EnableIRQ(exti_t *cfg) {
+    HAL_NVIC_SetPriority(cfg->IRQ, cfg->irq_priority, 0);
     HAL_NVIC_EnableIRQ(cfg->IRQ);
 }
 
-void EXTI_DisableIRQ(exti_cfg_t *cfg) {
-    HAL_NVIC_SetPriority(cfg->IRQ, cfg->priority, 0);
+void EXTI_DisableIRQ(exti_t *cfg) {
+    HAL_NVIC_SetPriority(cfg->IRQ, cfg->irq_priority, 0);
     HAL_NVIC_DisableIRQ(cfg->IRQ);
 }

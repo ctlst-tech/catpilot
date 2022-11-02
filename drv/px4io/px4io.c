@@ -41,7 +41,7 @@ static uint32_t attempt;
 static uint32_t t0;
 
 // Public functions
-int PX4IO_Init(usart_cfg_t *usart) {
+int PX4IO_Init(usart_t *usart) {
     if(usart == NULL) return -1;
 
     px4io_cfg.usart = usart;

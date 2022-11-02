@@ -16,7 +16,7 @@ typedef struct {
 } ist8310_data_t;
 
 typedef struct {
-    i2c_cfg_t *i2c;
+    i2c_t *i2c;
     ist8310_param_t param;
 } ist8310_cfg_t;
 
@@ -29,7 +29,7 @@ enum ist8310_state_t {
     IST8310_FAIL
 };
 
-int IST8310_Init(i2c_cfg_t *i2c);
+int IST8310_Init(i2c_t *i2c);
 int IST8310_Operation(void);
 void IST8310_Run(void);
 

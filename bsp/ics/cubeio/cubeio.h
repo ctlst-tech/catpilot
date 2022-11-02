@@ -3,7 +3,7 @@
 #include "stm32_periph.h"
 
 typedef struct {
-    usart_cfg_t *usart;
+    usart_t *usart;
 } cubeio_cfg_t;
 
 typedef struct {
@@ -47,7 +47,7 @@ enum cubeio_channel_type_t {
 
 typedef uint32_t cubeio_eventmask_t;
 
-int CubeIO_Init(usart_cfg_t *usart);
+int CubeIO_Init(usart_t *usart);
 int CubeIO_Operation(void);
 void CubeIO_Run(void);
 void CubeIO_SetRange(int type, uint8_t channel, 

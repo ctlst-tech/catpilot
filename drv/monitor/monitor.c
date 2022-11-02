@@ -3,7 +3,7 @@
 static char *device = "Monitor";
 
 // Data strucutres
-static tim_cfg_t *tim_monitor;
+static tim_t *tim_monitor;
 
 // Private functions
 
@@ -13,7 +13,7 @@ static int monitor_init = 0;
 static int fd;
 
 // Public functions
-int Monitor_Init(tim_cfg_t *tim) {
+int Monitor_Init(tim_t *tim) {
     if(tim == NULL) return -1;
     tim_monitor = tim;
     TIM_Stop(tim_monitor);

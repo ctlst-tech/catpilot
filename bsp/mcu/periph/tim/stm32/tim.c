@@ -1,149 +1,148 @@
 #include "tim.h"
 
-int TIM_Init(tim_cfg_t *cfg) {
-
-    portENTER_CRITICAL();
-
+int tim_init(tim_t *cfg) {
     int rv = 0;
-    if((rv = TIM_ClockEnable(cfg)) != 0) return rv;
 
-    cfg->TIM_InitStruct.Instance = cfg->TIM;
+    if((rv = tim_clock_enable(cfg)) != 0) {
+        return rv;
+    }
 
-    if(HAL_TIM_Base_Init(&cfg->TIM_InitStruct) != HAL_OK) return EINVAL;
-    TIM_DisableIRQ(cfg);
+    if(HAL_TIM_Base_Init(&cfg->init) != HAL_OK) {
+        return EINVAL;
+    }
 
-    portEXIT_CRITICAL();
+    tim_disable_irq(cfg);
 
     return rv;
 }
 
-void TIM_Start(tim_cfg_t *cfg) {
+void tim_start(tim_t *cfg) {
     cfg->counter = 0;
-    HAL_TIM_Base_Start_IT(&cfg->TIM_InitStruct);
+    HAL_TIM_Base_Start_IT(&cfg->init);
 }
 
-void TIM_Stop(tim_cfg_t *cfg) {
-    HAL_TIM_Base_Stop_IT(&cfg->TIM_InitStruct);
+void tim_stop(tim_t *cfg) {
+    HAL_TIM_Base_Stop_IT(&cfg->init);
 }
 
-uint32_t TIM_GetTick(tim_cfg_t *cfg)  {
+uint32_t tim_get_tick(tim_t *cfg)  {
     return (cfg->counter) * (cfg->counter_scaler_us);
 }
 
-int TIM_EnableIRQ(tim_cfg_t *cfg) {
-    HAL_NVIC_SetPriority(cfg->inst.IRQ, cfg->priority, 0);
-    HAL_NVIC_EnableIRQ(cfg->inst.IRQ);
+int tim_enable_irq(tim_t *cfg) {
+    HAL_NVIC_SetPriority(cfg->IRQ, cfg->irq_priority, 0);
+    HAL_NVIC_EnableIRQ(cfg->IRQ);
     return 0;
 }
 
-int TIM_DisableIRQ(tim_cfg_t *cfg)  {
-    HAL_NVIC_DisableIRQ(cfg->inst.IRQ);
+int tim_disable_irq(tim_t *cfg)  {
+    HAL_NVIC_DisableIRQ(cfg->IRQ);
     return 0;
 }
 
-int TIM_Handler(tim_cfg_t *cfg)  {
-    HAL_TIM_IRQHandler(&cfg->TIM_InitStruct);
+int tim_handler(tim_t *cfg)  {
+    HAL_TIM_IRQHandler(&cfg->init);
     return 0;
 }
 
-int TIM_ClockEnable(tim_cfg_t *cfg) {
+int tim_clock_enable(tim_t *cfg) {
     switch((uint32_t)(cfg->TIM)) {
 
 #ifdef TIM1
     case TIM1_BASE:
         __HAL_RCC_TIM1_CLK_ENABLE();
-        cfg->inst.IRQ = TIM1_CC_IRQn;
+        cfg->IRQ = TIM1_CC_IRQn;
         break;
 #endif
 
 #ifdef TIM2
     case TIM2_BASE:
         __HAL_RCC_TIM2_CLK_ENABLE();
-        cfg->inst.IRQ = TIM2_IRQn;
+        cfg->IRQ = TIM2_IRQn;
         break;
 #endif
 
 #ifdef TIM3
     case TIM3_BASE:
         __HAL_RCC_TIM3_CLK_ENABLE();
-        cfg->inst.IRQ = TIM3_IRQn;
+        cfg->IRQ = TIM3_IRQn;
         break;
 #endif
 
 #ifdef TIM4
     case TIM4_BASE:
         __HAL_RCC_TIM4_CLK_ENABLE();
-        cfg->inst.IRQ = TIM4_IRQn;
+        cfg->IRQ = TIM4_IRQn;
         break;
 #endif
 
 #ifdef TIM5
     case TIM5_BASE:
         __HAL_RCC_TIM5_CLK_ENABLE();
-        cfg->inst.IRQ = TIM5_IRQn;
+        cfg->IRQ = TIM5_IRQn;
         break;
 #endif
 
 #ifdef TIM6
     case TIM6_BASE:
         __HAL_RCC_TIM6_CLK_ENABLE();
-        cfg->inst.IRQ = TIM6_DAC_IRQn;
+        cfg->IRQ = TIM6_DAC_IRQn;
         break;
 #endif
 
 #ifdef TIM7
     case TIM7_BASE:
         __HAL_RCC_TIM7_CLK_ENABLE();
-        cfg->inst.IRQ = TIM7_IRQn;
+        cfg->IRQ = TIM7_IRQn;
         break;
 #endif
 
 #ifdef TIM8
     case TIM8_BASE:
         __HAL_RCC_TIM8_CLK_ENABLE();
-        cfg->inst.IRQ = TIM8_CC_IRQn;
+        cfg->IRQ = TIM8_CC_IRQn;
         break;
 #endif
 
 #ifdef TIM9
     case TIM9_BASE:
         __HAL_RCC_TIM9_CLK_ENABLE();
-        cfg->inst.IRQ = TIM1_BRK_TIM9_IRQn;
+        cfg->IRQ = TIM1_BRK_TIM9_IRQn;
         break;
 #endif
 
 #ifdef TIM10
     case TIM10_BASE:
         __HAL_RCC_TIM10_CLK_ENABLE();
-        cfg->inst.IRQ = TIM1_UP_TIM10_IRQn;
+        cfg->IRQ = TIM1_UP_TIM10_IRQn;
         break;
 #endif
 
 #ifdef TIM11
     case TIM11_BASE:
         __HAL_RCC_TIM11_CLK_ENABLE();
-        cfg->inst.IRQ = TIM1_TRG_COM_TIM11_IRQn;
+        cfg->IRQ = TIM1_TRG_COM_TIM11_IRQn;
         break;
 #endif
 
 #ifdef TIM12
     case TIM12_BASE:
         __HAL_RCC_TIM12_CLK_ENABLE();
-        cfg->inst.IRQ = TIM8_BRK_TIM12_IRQn;
+        cfg->IRQ = TIM8_BRK_TIM12_IRQn;
         break;
 #endif
 
 #ifdef TIM13
     case TIM13_BASE:
         __HAL_RCC_TIM13_CLK_ENABLE();
-        cfg->inst.IRQ = TIM8_UP_TIM13_IRQn;
+        cfg->IRQ = TIM8_UP_TIM13_IRQn;
         break;
 #endif
 
 #ifdef TIM14
     case TIM14_BASE:
         __HAL_RCC_TIM14_CLK_ENABLE();
-        cfg->inst.IRQ = TIM8_TRG_COM_TIM14_IRQn;
+        cfg->IRQ = TIM8_TRG_COM_TIM14_IRQn;
         break;
 #endif
 

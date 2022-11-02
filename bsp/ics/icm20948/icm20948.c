@@ -42,10 +42,10 @@ static uint32_t attempt = 0;
 static TickType_t icm20948_last_sample = 0;
 
 // Public functions
-int ICM20948_Init(spi_cfg_t *spi, 
-                  gpio_cfg_t *cs, 
-                  exti_cfg_t *drdy, 
-                  i2c_cfg_t *i2c,
+int ICM20948_Init(spi_t *spi, 
+                  gpio_t *cs, 
+                  exti_t *drdy, 
+                  i2c_t *i2c,
                   int enable_mag,
                   int enable_drdy) {
     if(spi == NULL || cs == NULL) return -1;
@@ -201,11 +201,11 @@ void ICM20948_GetMeasNonBlock(void *ptr) {
 
 // Private functions
 static void ICM20948_ChipSelection(void) {
-    SPI_ChipSelect(icm20948_cfg.spi, icm20948_cfg.cs);
+    spi_chip_select(icm20948_cfg.spi, icm20948_cfg.cs);
 }
 
 static void ICM20948_ChipDeselection(void) {
-    SPI_ChipDeselect(icm20948_cfg.spi, icm20948_cfg.cs);
+    spi_chip_deselect(icm20948_cfg.spi, icm20948_cfg.cs);
 }
 
 static void ICM20948_SetBank(uint8_t bank) {
@@ -214,7 +214,7 @@ static void ICM20948_SetBank(uint8_t bank) {
     data[0] = REG_BANK_SEL;
     data[1] = bank;
     if(bank != prev_bank) {
-        SPI_TransmitReceive(icm20948_cfg.spi, data, data, sizeof(data));
+        spi_transmit_receive(icm20948_cfg.spi, data, data, sizeof(data));
     }
     prev_bank = bank;
 }
@@ -224,7 +224,7 @@ static uint8_t ICM20948_ReadReg(uint8_t bank, uint8_t reg) {
     data[0] = reg | READ;
     ICM20948_ChipSelection();
     ICM20948_SetBank(bank);
-    SPI_TransmitReceive(icm20948_cfg.spi, data, data, sizeof(data));
+    spi_transmit_receive(icm20948_cfg.spi, data, data, sizeof(data));
     ICM20948_ChipDeselection();
     return data[1];
 }
@@ -235,7 +235,7 @@ static void ICM20948_WriteReg(uint8_t bank, uint8_t reg, uint8_t value) {
     data[1] = value;
     ICM20948_ChipSelection();
     ICM20948_SetBank(bank);
-    SPI_Transmit(icm20948_cfg.spi, data, sizeof(data));
+    spi_transmit(icm20948_cfg.spi, data, sizeof(data));
     ICM20948_ChipDeselection();
 }
 
@@ -395,7 +395,7 @@ static int ICM20948_SampleRead(void) {
 
     ICM20948_ChipSelection();
     ICM20948_SetBank(BANK_0);
-    SPI_TransmitReceive(icm20948_cfg.spi, 
+    spi_transmit_receive(icm20948_cfg.spi, 
                 (uint8_t *)&icm20948_FIFOBuffer.COUNTL, 
                 (uint8_t *)&icm20948_FIFOBuffer.COUNTL,
                 icm20948_FIFOParam.bytes);
@@ -425,7 +425,7 @@ static void ICM20948_FIFOCount(void) {
 
     ICM20948_ChipSelection();
     ICM20948_SetBank(BANK_0);
-    SPI_TransmitReceive(icm20948_cfg.spi, 
+    spi_transmit_receive(icm20948_cfg.spi, 
                         (uint8_t *)&icm20948_FIFOBuffer, 
                         (uint8_t *)&icm20948_FIFOBuffer,
                         3);
@@ -440,7 +440,7 @@ static int ICM20948_FIFORead(void) {
 
     ICM20948_ChipSelection();
     ICM20948_SetBank(BANK_0);
-    SPI_TransmitReceive(icm20948_cfg.spi, 
+    spi_transmit_receive(icm20948_cfg.spi, 
                         (uint8_t *)&icm20948_FIFOBuffer, 
                         (uint8_t *)&icm20948_FIFOBuffer,
                         icm20948_FIFOParam.bytes + 3);
@@ -510,7 +510,7 @@ static void ICM20948_TempProcess(void) {
 
     ICM20948_ChipSelection();
     ICM20948_SetBank(BANK_0);
-    SPI_TransmitReceive(icm20948_cfg.spi, &data[0], &data[1], sizeof(data));
+    spi_transmit_receive(icm20948_cfg.spi, &data[0], &data[1], sizeof(data));
     ICM20948_ChipDeselection();
 
     int16_t temp_raw = msblsb16(data[1], data[2]);

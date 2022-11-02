@@ -37,9 +37,9 @@ typedef struct {
 } icm20649_param_t;
 
 typedef struct {
-    spi_cfg_t *spi;
-    gpio_cfg_t *cs;
-    exti_cfg_t *drdy;
+    spi_t *spi;
+    gpio_t *cs;
+    exti_t *drdy;
     icm20649_param_t param;
     int enable_drdy;
 } icm20649_cfg_t;
@@ -52,9 +52,9 @@ enum icm20649_state_t {
     ICM20649_FAIL
 };
 
-int ICM20649_Init(spi_cfg_t *spi, 
-                  gpio_cfg_t *cs, 
-                  exti_cfg_t *drdy, 
+int ICM20649_Init(spi_t *spi, 
+                  gpio_t *cs, 
+                  exti_t *drdy, 
                   int enable_drdy);
 int ICM20649_Operation(void);
 void ICM20649_Run(void);

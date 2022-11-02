@@ -28,7 +28,7 @@ static SemaphoreHandle_t measrdy_semaphore;
 static int attempt;
 
 // Public functions
-int MS5611_Init(spi_cfg_t *spi, gpio_cfg_t *cs) {
+int MS5611_Init(spi_t *spi, gpio_t *cs) {
     if(spi == NULL || cs == NULL) return -1;
 
     ms5611_cfg.spi = spi;
@@ -59,7 +59,7 @@ void MS5611_Run(void) {
         } else {
             vTaskDelay(10);
             MS5611_ChipSelection();
-            SPI_Transmit(ms5611_cfg.spi, 
+            spi_transmit(ms5611_cfg.spi, 
                          (uint8_t *)&CMD_MS5611_CONVERT_D1_OSR1024, 1);
             MS5611_ChipDeselection();
             ms5611_state = MS5611_READ_MEAS;
@@ -105,18 +105,18 @@ int MS5611_MeasReady(void) {
 
 // Private functions
 static void MS5611_ChipSelection(void) {
-    SPI_ChipSelect(ms5611_cfg.spi, ms5611_cfg.cs);
+    spi_chip_select(ms5611_cfg.spi, ms5611_cfg.cs);
 }
 
 static void MS5611_ChipDeselection(void) {
-    SPI_ChipDeselect(ms5611_cfg.spi, ms5611_cfg.cs);
+    spi_chip_deselect(ms5611_cfg.spi, ms5611_cfg.cs);
 }
 
 static void MS5611_Reset(void) {
     uint8_t reg = CMD_MS5611_RESET;
 
     MS5611_ChipSelection();
-    SPI_Transmit(ms5611_cfg.spi, &reg, 1);
+    spi_transmit(ms5611_cfg.spi, &reg, 1);
     MS5611_ChipDeselection();
 }
 
@@ -125,7 +125,7 @@ uint16_t MS5611_ReadPROM(uint8_t word) {
     data[0] = CMD_MS5611_PROM_ADDR + (word << 1);
 
     MS5611_ChipSelection();
-    SPI_TransmitReceive(ms5611_cfg.spi, data, data, sizeof(data));
+    spi_transmit_receive(ms5611_cfg.spi, data, data, sizeof(data));
     MS5611_ChipDeselection();
 
     return (data[1] << 8 | data[2]);
@@ -163,7 +163,7 @@ static uint32_t MS5611_ReadADC(void) {
     data[0] = CMD_MS5611_READ_ADC;
 
     MS5611_ChipSelection();
-    SPI_TransmitReceive(ms5611_cfg.spi, data, data, sizeof(data));
+    spi_transmit_receive(ms5611_cfg.spi, data, data, sizeof(data));
     MS5611_ChipDeselection();
 
     uint32_t reg = (data[1] << 16) | (data[2] << 8) | data[3];
@@ -202,7 +202,7 @@ static int MS5611_ReadMeas(void) {
     }
 
     MS5611_ChipSelection();
-    SPI_Transmit(ms5611_cfg.spi, &cmd, 1);
+    spi_transmit(ms5611_cfg.spi, &cmd, 1);
     MS5611_ChipDeselection();
 
     if(reg == 0 || reg == 0xFFFFFF) {
