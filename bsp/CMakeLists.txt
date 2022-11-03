@@ -19,6 +19,7 @@ list(APPEND BSP_INC
     mcu/core/${MCU_FAMILY}/common
     mcu/core/${MCU_FAMILY}/${MCU_MODEL}
     mcu/core/${MCU_FAMILY}/${MCU_MODEL}/common
+    mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal
     mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/inc
 )
 
@@ -39,6 +40,20 @@ list(APPEND BSP_SRC
     mcu/periph/tim/${MCU_FAMILY}/tim.c
     mcu/periph/usart/${MCU_FAMILY}/usart.c
     mcu/periph/usb/${MCU_FAMILY}/usb.c
+)
+
+list(APPEND BSP_INC
+    mcu/periph
+    mcu/periph/adc/${MCU_FAMILY}
+    mcu/periph/dma/${MCU_FAMILY}
+    mcu/periph/exti/${MCU_FAMILY}
+    mcu/periph/gpio/${MCU_FAMILY}
+    mcu/periph/i2c/${MCU_FAMILY}
+    mcu/periph/sdio/${MCU_FAMILY}
+    mcu/periph/spi/${MCU_FAMILY}
+    mcu/periph/tim/${MCU_FAMILY}
+    mcu/periph/usart/${MCU_FAMILY}
+    mcu/periph/usb/${MCU_FAMILY}
 )
 
 if (IC_CUBEIO STREQUAL "ON")
@@ -86,8 +101,15 @@ if (IC_SD STREQUAL "ON")
     list(APPEND BSP_INC ics/sd)
 endif ()
 
-list(APPEND BSP_INC boards/${BOARD})
-file(GLOB_RECURSE BSP_SRC boards/${BOARD}/cfg/*.c)
+list(APPEND BSP_INC 
+    boards/${BOARD}
+    boards/${BOARD}/cfg
+    boards/${BOARD}/startup
+)
+file(GLOB_RECURSE BSP_SRC 
+    boards/${BOARD}/cfg/*.c
+    boards/${BOARD}/startup/*.c
+)
 
 add_library(bsp-static STATIC ${BSP_SRC})
 target_include_directories(bsp-static PUBLIC ${BSP_INC})
