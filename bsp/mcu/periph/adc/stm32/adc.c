@@ -1,106 +1,102 @@
 #include "adc.h"
 
+int adc_id_init(adc_t *cfg);
+int adc_clock_init(adc_t *cfg);
+void adc_handler(void *area);
+void adc_dma_handler(void *area);
+
 int adc_init(adc_t *cfg) {
     int rv = 0;
 
     if (cfg == NULL) {
-        return -1;
+        return EINVAL;
     }
-
-    if ((rv = adc_clock_enable(cfg)) != 0) {
+    if ((rv = adc_id_init(cfg))) {
         return rv;
     }
-    if ((rv = adc_enable_irq(cfg)) != 0) {
-        return rv
+    if ((rv = adc_clock_init(cfg))) {
+        return rv;
     }
-
-    if ((rv = HAL_ADC_Init(&cfg->init)) != 0) {
+    if ((rv = irq_enable(cfg->p.id, cfg->irq_priority, adc_handler, cfg))) {
+        return rv;
+    }
+    if ((rv = dma_init(&cfg->dma, adc_dma_handler, cfg))) {
+        return rv;
+    }
+    if ((rv = HAL_ADC_Init(&cfg->init))) {
         return rv;
     }
 
-    if (cfg->dma != NULL) {
-        cfg->dma->init.Parent = &cfg->init;
-        cfg->init.DMA_Handle = &cfg->dma->init;
-        if ((rv = dma_init(cfg->dma)) != 0) {
-            return rv;
-        }
-    }
+    cfg->dma.init.Parent = &cfg->init;
+    cfg->init.DMA_Handle = &cfg->dma.init;
 
+    uint32_t length = 0;
     for (int i = 0; i < ADC_MAX_CHANNELS; i++) {
         if (cfg->channel[i].status == ENABLE) {
-            rv = HAL_ADC_ConfigChannel(&cfg->init, &cfg->ch[i].cfg);
+            rv = HAL_ADC_ConfigChannel(&cfg->init, &cfg->channel[i].cfg);
+            length++;
             if (rv) {
                 return rv;
             }
         }
     }
 
-    rv = HAL_ADC_Start_DMA(&cfg->init, (uint32_t *)cfg->buf, cfg->ch_num);
+    rv = HAL_ADC_Start_DMA(&cfg->init, (uint32_t *)cfg->p.raw, length);
 
     return rv;
 }
 
-uint16_t adc_get_raw(adc_t *cfg, int ch) {
-    if (ch > ADC_MAX_CHANNELS) {
-        return (__UINT16_MAX__);
+uint32_t adc_get_raw(adc_t *cfg, uint8_t channel) {
+    if (channel > ADC_MAX_CHANNELS) {
+        return (__UINT32_MAX__);
     }
-    return (cfg->buf[ch]);
+    return (cfg->p.raw[channel]);
 }
 
-double adc_get_volt(adc_t *cfg, int ch) {
-    if (ch > ADC_MAX_CHANNELS) {
-        return (__UINT16_MAX__);
+double adc_get_volt(adc_t *cfg, uint8_t channel) {
+    if (channel > ADC_MAX_CHANNELS) {
+        return (__UINT32_MAX__);
     }
-    return ((double)cfg->buf[ch] / 0xFFFF * 3.3);
+    return ((double)cfg->p.raw[channel] / 0xFFFF * 3.3);
 }
 
-int adc_enable_irq(adc_t *cfg) {
-    HAL_NVIC_SetPriority(cfg->IRQ, cfg->irq_priority, 0);
-    HAL_NVIC_EnableIRQ(cfg->IRQ);
-    return 0;
-}
-
-int adc_disable_irq(adc_t *cfg) {
-    HAL_NVIC_DisableIRQ(cfg->IRQ);
-    return 0;
-}
-
-int adc_handler(adc_t *cfg) {
+void adc_handler(void *area) {
+    adc_t *cfg = (adc_t *)area;
     HAL_ADC_IRQHandler(&cfg->init);
-    return 0;
 }
 
-int adc_dma_handler(adc_t *cfg) {
-    HAL_DMA_IRQHandler(&cfg->dma->init);
-    return 0;
+void adc_dma_handler(void *area) {
+    adc_t *cfg = (adc_t *)area;
+    HAL_DMA_IRQHandler(&cfg->dma.init);
 }
 
-int adc_clock_enable(adc_t *cfg) {
-    switch ((uint32_t)(cfg->ADC)) {
-#ifdef ADC1
+int adc_id_init(adc_t *cfg) {
+    switch ((uint32_t)(cfg->init.Instance)) {
         case ADC1_BASE:
-            __HAL_RCC_ADC12_CLK_ENABLE();
-            cfg->IRQ = ADC_IRQn;
+            cfg->p.id = ADC_IRQn;
             break;
-#endif
-
-#ifdef ADC2
         case ADC2_BASE:
-            __HAL_RCC_ADC12_CLK_ENABLE();
-            cfg->IRQ = ADC_IRQn;
+            cfg->p.id = ADC_IRQn;
             break;
-#endif
-
-#ifdef ADC3
         case ADC3_BASE:
-            __HAL_RCC_ADC3_CLK_ENABLE();
-            cfg->IRQ = ADC3_IRQn;
+            cfg->p.id = ADC3_IRQn;
             break;
-#endif
-
         default:
             return EINVAL;
     }
+    return 0;
+}
 
+int adc_clock_init(adc_t *cfg) {
+    switch (cfg->p.id) {
+        case ADC_IRQn:
+            __HAL_RCC_ADC12_CLK_ENABLE();
+            break;
+        case ADC3_IRQn:
+            __HAL_RCC_ADC3_CLK_ENABLE();
+            break;
+        default:
+            return EINVAL;
+    }
     return 0;
 }

@@ -58,4 +58,6 @@ extern gpio_t gpio_usart3_tx;
 extern gpio_t gpio_usart3_rx;
 extern gpio_t gpio_fmu_pwm[6];
 
+extern usart_t usart6;
+
 #endif  // BOARD_H

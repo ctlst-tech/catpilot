@@ -2,20 +2,21 @@
 #define DMA_H
 
 #include "core.h"
+#include "dma.h"
 #include "hal.h"
+#include "irq.h"
 #include "os.h"
 
 typedef struct {
+    IRQn_Type id;
+} dma_private_t;
+
+typedef struct {
     DMA_HandleTypeDef init;
-    IRQn_Type irq;
     int irq_priority;
+    dma_private_t p;
 } dma_t;
 
-int dma_init(dma_t *cfg);
-int dma_reinit(dma_t *cfg);
-int dma_clock_enable(dma_t *cfg);
-int dma_enable_irq(dma_t *cfg);
-int dma_disable_irq(dma_t *cfg);
-int dma_irq_handler(dma_t *cfg);
+int dma_init(dma_t *cfg, void (*dma_handler)(void *area), void *area);
 
 #endif  // DMA_H

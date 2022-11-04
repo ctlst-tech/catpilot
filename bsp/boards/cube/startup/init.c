@@ -112,10 +112,14 @@ int board_periph_init(void) {
         LOG_ERROR("GPIO", "Initialization failed");
         return -1;
     }
+    if (usart_init(&usart6)) {
+        LOG_ERROR("USART6", "Initialization failed");
+        return -1;
+    }
 
     return 0;
 }
 
 int board_services_start(void) {
-    
+    return 0;
 }

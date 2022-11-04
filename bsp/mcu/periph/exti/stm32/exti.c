@@ -1,51 +1,67 @@
 #include "exti.h"
 
+int exti_get_id(exti_t *cfg);
+
 int exti_init(exti_t *cfg) {
     int rv = 0;
 
     if (cfg == NULL) {
         return EINVAL;
     }
+
     if ((rv = gpio_init(&cfg->gpio)) != 0) {
         return rv;
     }
 
     rv = HAL_EXTI_SetConfigLine((EXTI_HandleTypeDef *)&cfg->handle,
                                 (EXTI_ConfigTypeDef *)&cfg->cfg);
-
-    if (rv != 0) {
+    if(rv != HAL_OK) {
         return rv;
     }
 
-    if (cfg->gpio.GPIO_InitStruct.Pin == GPIO_PIN_0) {
-        cfg->IRQ = EXTI0_IRQn;
-    } else if (cfg->gpio.GPIO_InitStruct.Pin == GPIO_PIN_1) {
-        cfg->IRQ = EXTI1_IRQn;
-    } else if (cfg->gpio.GPIO_InitStruct.Pin == GPIO_PIN_2) {
-        cfg->IRQ = EXTI2_IRQn;
-    } else if (cfg->gpio.GPIO_InitStruct.Pin == GPIO_PIN_3) {
-        cfg->IRQ = EXTI3_IRQn;
-    } else if (cfg->gpio.GPIO_InitStruct.Pin == GPIO_PIN_4) {
-        cfg->IRQ = EXTI4_IRQn;
-    } else if (cfg->gpio.GPIO_InitStruct.Pin >= GPIO_PIN_5 &&
-               cfg->gpio.GPIO_InitStruct.Pin <= GPIO_PIN_9) {
-        cfg->IRQ = EXTI9_5_IRQn;
-    } else if (cfg->gpio.GPIO_InitStruct.Pin >= GPIO_PIN_10 &&
-               cfg->gpio.GPIO_InitStruct.Pin <= GPIO_PIN_15) {
-        cfg->IRQ = EXTI15_10_IRQn;
-    } else {
-        rv = EINVAL;
+    if ((rv = exti_get_id(cfg)) != 0) {
+        return rv;
     }
+
+    // irq_enable(cfg->p.id);
 
     return rv;
 }
 
-void EXTI_EnableIRQ(exti_t *cfg) {
-    HAL_NVIC_SetPriority(cfg->IRQ, cfg->irq_priority, 0);
-    HAL_NVIC_EnableIRQ(cfg->IRQ);
-}
-
-void EXTI_DisableIRQ(exti_t *cfg) {
-    HAL_NVIC_SetPriority(cfg->IRQ, cfg->irq_priority, 0);
-    HAL_NVIC_DisableIRQ(cfg->IRQ);
+int exti_get_id(exti_t *cfg) {
+    switch (cfg->gpio.init.Pin) {
+        case GPIO_PIN_0:
+            cfg->p.id = EXTI0_IRQn;
+            break;
+        case GPIO_PIN_1:
+            cfg->p.id = EXTI1_IRQn;
+            break;
+        case GPIO_PIN_2:
+            cfg->p.id = EXTI2_IRQn;
+            break;
+        case GPIO_PIN_3:
+            cfg->p.id = EXTI3_IRQn;
+            break;
+        case GPIO_PIN_4:
+            cfg->p.id = EXTI4_IRQn;
+            break;
+        case GPIO_PIN_5:
+        case GPIO_PIN_6:
+        case GPIO_PIN_7:
+        case GPIO_PIN_8:
+        case GPIO_PIN_9:
+            cfg->p.id = EXTI9_5_IRQn;
+            break;
+        case GPIO_PIN_10:
+        case GPIO_PIN_11:
+        case GPIO_PIN_12:
+        case GPIO_PIN_13:
+        case GPIO_PIN_14:
+        case GPIO_PIN_15:
+            cfg->p.id = EXTI15_10_IRQn;
+            break;
+        default:
+            return EINVAL;
+    }
+    return 0;
 }

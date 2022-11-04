@@ -1,16 +1,19 @@
 #include "gpio.h"
 
+int gpio_clock_init(gpio_t *cfg);
+
 int gpio_init(gpio_t *cfg) {
     int rv = 0;
 
     if (cfg == NULL) {
         return EINVAL;
     }
-    if ((rv = gpio_clock_enable(cfg)) != 0) {
+    if ((rv = gpio_clock_init(cfg)) != 0) {
         return rv;
     }
 
-    rv = HAL_GPIO_Init(cfg->port, (GPIO_InitTypeDef *)&cfg->init);
+    HAL_GPIO_Init(cfg->port, (GPIO_InitTypeDef *)&cfg->init);
+
     return rv;
 }
 
@@ -28,9 +31,9 @@ void gpio_toggle(gpio_t *cfg) {
 
 void gpio_set_state(gpio_t *cfg, uint8_t state) {
     if (state) {
-        GPIO_Set(cfg);
+        gpio_set(cfg);
     } else {
-        GPIO_Reset(cfg);
+        gpio_reset(cfg);
     }
 }
 
@@ -40,7 +43,7 @@ int gpio_read(gpio_t *cfg) {
     return rv;
 }
 
-int gpio_clock_enable(gpio_t *cfg) {
+int gpio_clock_init(gpio_t *cfg) {
     switch ((uint32_t)(cfg->port)) {
 #ifdef GPIOA
         case GPIOA_BASE:

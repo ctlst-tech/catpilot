@@ -11,8 +11,6 @@ typedef struct gpio_t {
 } gpio_t;
 
 int gpio_init(gpio_t *cfg);
-int gpio_clock_enable(gpio_t *cfg);
-
 void gpio_set(gpio_t *cfg);
 void gpio_reset(gpio_t *cfg);
 void gpio_toggle(gpio_t *cfg);
