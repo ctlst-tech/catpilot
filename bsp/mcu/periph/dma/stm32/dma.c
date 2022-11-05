@@ -3,7 +3,7 @@
 int dma_id_init(dma_t *cfg);
 int dma_clock_init(dma_t *cfg);
 
-int dma_init(dma_t *cfg, void(*dma_handler)(void *area), void *area) {
+int dma_init(dma_t *cfg, void (*dma_handler)(void *area), void *area) {
     int rv = 0;
 
     if (cfg == NULL) {

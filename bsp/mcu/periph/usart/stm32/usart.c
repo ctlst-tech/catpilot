@@ -25,15 +25,25 @@ int usart_init(usart_t *cfg) {
     if ((rv = gpio_init(cfg->gpio_tx))) {
         return rv;
     }
-    if ((rv = dma_init(&cfg->dma_tx, usart_dma_tx_handler, cfg))) {
+    if (cfg->dma_rx.init.Instance != NULL &&
+        cfg->dma_tx.init.Instance != NULL) {
+        if ((rv = dma_init(&cfg->dma_tx, usart_dma_tx_handler, cfg))) {
+            return rv;
+        }
+        if ((rv = dma_init(&cfg->dma_rx, usart_dma_rx_handler, cfg))) {
+            return rv;
+        }
+        cfg->dma_tx.init.Parent = &cfg->init;
+        cfg->dma_rx.init.Parent = &cfg->init;
+        cfg->init.hdmatx = &cfg->dma_tx.init;
+        cfg->init.hdmarx = &cfg->dma_rx.init;
+        cfg->p.use_dma = true;
+    } else {
+        cfg->p.use_dma = false;
+    }
+    if ((rv = irq_enable(cfg->p.id, cfg->irq_priority, usart_handler, cfg))) {
         return rv;
     }
-    if ((rv = dma_init(&cfg->dma_rx, usart_dma_tx_handler, cfg))) {
-        return rv;
-    }
-    cfg->init.hdmatx = &cfg->dma_tx.init;
-    cfg->init.hdmarx = &cfg->dma_rx.init;
-
     if ((rv = HAL_UART_Init(&cfg->init)) != HAL_OK) {
         return rv;
     }
@@ -51,13 +61,11 @@ int usart_init(usart_t *cfg) {
         cfg->p.rx_sem = xSemaphoreCreateBinary();
     }
 
-    // irq_enable(cfg->p.id, );
-
-    cfg->p.periph_init = 1;
+    cfg->p.periph_init = true;
     return rv;
 }
 
-int USART_Transmit(usart_t *cfg, uint8_t *pdata, uint16_t length) {
+int usart_transmit(usart_t *cfg, uint8_t *pdata, uint16_t length) {
     int rv = 0;
     if (length == 0 || pdata == NULL) {
         return EINVAL;
@@ -70,8 +78,13 @@ int USART_Transmit(usart_t *cfg, uint8_t *pdata, uint16_t length) {
     xSemaphoreTake(cfg->p.tx_sem, 0);
 
     cfg->p.tx_state = USART_TRANSMIT;
+    cfg->p.tx_count = 0;
 
-    HAL_UART_Transmit_DMA(&cfg->init, pdata, length);
+    if (cfg->p.use_dma) {
+        HAL_UART_Transmit_DMA(&cfg->init, pdata, length);
+    } else {
+        HAL_UART_Transmit_IT(&cfg->init, pdata, length);
+    }
 
     if (xSemaphoreTake(cfg->p.tx_sem, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
         rv = ETIMEDOUT;
@@ -85,7 +98,7 @@ int USART_Transmit(usart_t *cfg, uint8_t *pdata, uint16_t length) {
     return rv;
 }
 
-int USART_Receive(usart_t *cfg, uint8_t *pdata, uint16_t length) {
+int usart_receive(usart_t *cfg, uint8_t *pdata, uint16_t length) {
     int rv = 0;
 
     if (length == 0 || pdata == NULL) {
@@ -99,13 +112,17 @@ int USART_Receive(usart_t *cfg, uint8_t *pdata, uint16_t length) {
     xSemaphoreTake(cfg->p.rx_sem, 0);
 
     cfg->p.rx_state = USART_RECEIVE;
+    cfg->p.rx_count = 0;
 
     if (cfg->mode == USART_IDLE) {
         SET_BIT(cfg->init.Instance->ICR, USART_ICR_IDLECF);
         SET_BIT(cfg->init.Instance->CR1, USART_CR1_IDLEIE);
     }
-
-    HAL_UART_Receive_DMA(&cfg->init, pdata, length);
+    if (cfg->p.use_dma) {
+        HAL_UART_Receive_DMA(&cfg->init, pdata, length);
+    } else {
+        HAL_UART_Receive_IT(&cfg->init, pdata, length);
+    }
 
     if (xSemaphoreTake(cfg->p.rx_sem, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
         rv = ETIMEDOUT;
@@ -119,8 +136,8 @@ int USART_Receive(usart_t *cfg, uint8_t *pdata, uint16_t length) {
     return rv;
 }
 
-int USART_TransmitReceive(usart_t *cfg, uint8_t *tx_pdata, uint8_t *rx_pdata,
-                          uint16_t tx_length, uint16_t rx_length) {
+int usart_transmit_receive(usart_t *cfg, uint8_t *tx_pdata, uint8_t *rx_pdata,
+                           uint16_t tx_length, uint16_t rx_length) {
     int rv = 0;
 
     if (tx_length == 0 || rx_length == 0 || tx_pdata == NULL ||
@@ -137,11 +154,19 @@ int USART_TransmitReceive(usart_t *cfg, uint8_t *tx_pdata, uint8_t *rx_pdata,
 
     cfg->p.tx_state = USART_TRANSMIT;
     cfg->p.rx_state = USART_RECEIVE;
+    cfg->p.tx_count = 0;
+    cfg->p.rx_count = 0;
 
     SET_BIT(cfg->init.Instance->ICR, USART_ICR_IDLECF);
     SET_BIT(cfg->init.Instance->CR1, USART_CR1_IDLEIE);
-    HAL_UART_Receive_DMA(&cfg->init, rx_pdata, rx_length);
-    HAL_UART_Transmit_DMA(&cfg->init, tx_pdata, tx_length);
+
+    if (cfg->p.use_dma) {
+        HAL_UART_Receive_DMA(&cfg->init, rx_pdata, rx_length);
+        HAL_UART_Transmit_DMA(&cfg->init, tx_pdata, tx_length);
+    } else {
+        HAL_UART_Receive_IT(&cfg->init, rx_pdata, rx_length);
+        HAL_UART_Transmit_IT(&cfg->init, tx_pdata, tx_length);
+    }
 
     if (xSemaphoreTake(cfg->p.rx_sem, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
         rv = ETIMEDOUT;
@@ -157,7 +182,7 @@ int USART_TransmitReceive(usart_t *cfg, uint8_t *tx_pdata, uint8_t *rx_pdata,
     return rv;
 }
 
-int USART_SetSpeed(usart_t *cfg, uint32_t speed) {
+int usart_set_speed(usart_t *cfg, uint32_t speed) {
     cfg->init.Init.BaudRate = speed;
     cfg->init.Instance->BRR = (uint16_t)(UART_DIV_SAMPLING16(
         HAL_RCC_GetPCLK1Freq(), cfg->init.Init.BaudRate,
@@ -165,7 +190,7 @@ int USART_SetSpeed(usart_t *cfg, uint32_t speed) {
     return 0;
 }
 
-uint32_t USART_GetSpeed(usart_t *cfg) { return (cfg->init.Init.BaudRate); }
+uint32_t usart_get_speed(usart_t *cfg) { return (cfg->init.Init.BaudRate); }
 
 void usart_handler(void *area) {
     usart_t *cfg = (usart_t *)area;
@@ -178,8 +203,12 @@ void usart_handler(void *area) {
 
     if (cfg->init.gState == HAL_UART_STATE_READY &&
         cfg->p.tx_state == USART_TRANSMIT) {
+        if (cfg->p.use_dma) {
+            cfg->p.tx_count = dma->NDTR;
+        } else {
+            cfg->p.tx_count = cfg->init.TxXferSize;
+        }
         xSemaphoreGiveFromISR(cfg->p.tx_sem, &xHigherPriorityTaskWoken);
-        cfg->p.tx_count = dma->NDTR;
         if (xHigherPriorityTaskWoken == pdTRUE) {
             portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
         }
@@ -187,8 +216,12 @@ void usart_handler(void *area) {
 
     if (cfg->init.RxState == HAL_UART_STATE_READY &&
         cfg->p.rx_state == USART_RECEIVE && cfg->mode == USART_TIMEOUT) {
+        if (cfg->p.use_dma) {
+            cfg->p.rx_count = dma->NDTR;
+        } else {
+            cfg->p.rx_count = cfg->init.RxXferSize;
+        }
         xSemaphoreGiveFromISR(cfg->p.rx_sem, &xHigherPriorityTaskWoken);
-        cfg->p.rx_count = dma->NDTR;
         if (xHigherPriorityTaskWoken == pdTRUE) {
             portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
         }
@@ -197,7 +230,11 @@ void usart_handler(void *area) {
     if (cfg->init.Instance->ISR & USART_ISR_IDLE &&
         cfg->p.rx_state == USART_RECEIVE && cfg->mode == USART_IDLE) {
         SET_BIT(cfg->init.Instance->ICR, USART_ICR_IDLECF);
-        cfg->p.rx_count = cfg->init.RxXferSize - dma->NDTR;
+        if (cfg->p.use_dma) {
+            cfg->p.rx_count = cfg->init.RxXferSize - dma->NDTR;
+        } else {
+            cfg->p.rx_count = cfg->init.RxXferSize - cfg->init.RxXferCount;
+        }
         HAL_UART_AbortReceive(&cfg->init);
         CLEAR_BIT(cfg->init.Instance->ICR, USART_ICR_IDLECF);
         CLEAR_BIT(cfg->init.Instance->CR1, USART_CR1_IDLEIE);

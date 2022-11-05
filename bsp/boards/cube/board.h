@@ -7,6 +7,8 @@ int board_clock_init(void);
 int board_periph_init(void);
 int board_services_start(void);
 
+extern uint32_t rcc_system_clock;
+
 extern gpio_t gpio_brick1_valid;
 extern gpio_t gpio_brick2_valid;
 extern gpio_t gpio_usb_valid;
@@ -58,6 +60,11 @@ extern gpio_t gpio_usart3_tx;
 extern gpio_t gpio_usart3_rx;
 extern gpio_t gpio_fmu_pwm[6];
 
+extern usart_t usart2;
+extern usart_t usart3;
+extern usart_t usart4;
 extern usart_t usart6;
+extern usart_t usart7;
+extern usart_t usart8;
 
 #endif  // BOARD_H

@@ -1,29 +1,28 @@
 #include "exti.h"
 
 int exti_get_id(exti_t *cfg);
+int exti_get_id(exti_t *cfg);
 
-int exti_init(exti_t *cfg) {
+int exti_init(exti_t *cfg, void (*handler)(void *area)) {
     int rv = 0;
 
     if (cfg == NULL) {
         return EINVAL;
     }
-
-    if ((rv = gpio_init(&cfg->gpio)) != 0) {
-        return rv;
-    }
-
-    rv = HAL_EXTI_SetConfigLine((EXTI_HandleTypeDef *)&cfg->handle,
-                                (EXTI_ConfigTypeDef *)&cfg->cfg);
-    if(rv != HAL_OK) {
-        return rv;
-    }
-
     if ((rv = exti_get_id(cfg)) != 0) {
         return rv;
     }
-
-    // irq_enable(cfg->p.id);
+    if ((rv = gpio_init(&cfg->gpio)) != 0) {
+        return rv;
+    }
+    rv = HAL_EXTI_SetConfigLine((EXTI_HandleTypeDef *)&cfg->handle,
+                                (EXTI_ConfigTypeDef *)&cfg->cfg);
+    if (rv != HAL_OK) {
+        return rv;
+    }
+    if ((rv = irq_enable(cfg->p.id, cfg->irq_priority, handler, cfg))) {
+        return rv;
+    }
 
     return rv;
 }

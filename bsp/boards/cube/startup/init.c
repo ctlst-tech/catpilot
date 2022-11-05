@@ -4,6 +4,8 @@
 #include "periph.h"
 #include "log.h"
 
+uint32_t rcc_system_clock = 400000000;
+
 int board_clock_init(void) {
     RCC_OscInitTypeDef RCC_OscInitStruct = {0};
     RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
@@ -112,8 +114,28 @@ int board_periph_init(void) {
         LOG_ERROR("GPIO", "Initialization failed");
         return -1;
     }
+    if (usart_init(&usart2)) {
+        LOG_ERROR("USART2", "Initialization failed");
+        return -1;
+    }
+    if (usart_init(&usart3)) {
+        LOG_ERROR("USART3", "Initialization failed");
+        return -1;
+    }
+    if (usart_init(&usart4)) {
+        LOG_ERROR("USART4", "Initialization failed");
+        return -1;
+    }
     if (usart_init(&usart6)) {
         LOG_ERROR("USART6", "Initialization failed");
+        return -1;
+    }
+    if (usart_init(&usart7)) {
+        LOG_ERROR("USART7", "Initialization failed");
+        return -1;
+    }
+    if (usart_init(&usart8)) {
+        LOG_ERROR("USART8", "Initialization failed");
         return -1;
     }
 
