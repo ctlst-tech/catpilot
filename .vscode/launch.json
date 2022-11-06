@@ -41,12 +41,12 @@
             "type": "cortex-debug",
             "cwd": "${workspaceRoot}",
             "servertype": "openocd",
-            "executable": "build/firmware/ctlst-fmuv5.elf",
-            "svdFile": "bsp/cube/mcu/stm32h753/core/STM32H753.svd",
+            "executable": "build/firmware/catpilot.elf",
+            "svdFile": "bsp/mcu/core/stm32/h753/STM32H753.svd",
             "searchDir": [
                 "/usr/local/share/openocd/scripts",],
             "configFiles": [
-                "bsp/cube/mcu/stm32h753/core/stm32h7.cfg"
+                "bsp/mcu/core/stm32/h753/stm32h753.cfg"
             ],
         },
     ]

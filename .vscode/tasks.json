@@ -4,7 +4,7 @@
         {
             "label": "Flash_PX4",
             "type": "shell",
-            "command": "openocd -f interface/stlink-v2.cfg -f target/stm32f7x.cfg -c \"init\" -c \"program ./build/firmware/ctlst-fmuv5.elf verify reset exit\"",
+            "command": "openocd -f interface/stlink-v2.cfg -f target/stm32f7x.cfg -c \"init\" -c \"program ./build/firmware/catpilot.elf verify reset exit\"",
             "problemMatcher": [],
             "group": {
                 "kind": "build",
@@ -14,7 +14,7 @@
         {
             "label": "Flash_Cube",
             "type": "shell",
-            "command": "openocd -f interface/stlink.cfg -f ./bsp/cube/mcu/stm32h753/core/stm32h7.cfg -c \"init\" -c \"program ./build/firmware/ctlst-fmuv5.elf verify reset exit\"",
+            "command": "openocd -f interface/stlink.cfg -f ./bsp/mcu/core/stm32/h753/stm32h753.cfg -c \"init\" -c \"program ./build/firmware/catpilot.elf verify reset exit\"",
             "problemMatcher": [],
             "group": {
                 "kind": "build",
