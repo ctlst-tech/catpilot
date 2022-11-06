@@ -56,10 +56,10 @@ int usart_transmit_receive(usart_t *cfg, uint8_t *tx_pdata, uint8_t *rx_pdata,
                            uint16_t tx_length, uint16_t rx_length);
 int usart_set_speed(usart_t *cfg, uint32_t speed);
 uint32_t usart_get_speed(usart_t *cfg);
-// int usart_open(void *devcfg, void *file, const char *pathname, int flags);
-// ssize_t usart_write(void *devcfg, void *file, const void *buf,
-//                           size_t count);
-// ssize_t usart_read(void *devcfg, void *file, void *buf, size_t count);
-// int usart_close(void *devcfg, void *file);
+int usart_open(void *devcfg, void *file, const char *pathname, int flags);
+ssize_t usart_write(void *devcfg, void *file, const void *buf,
+                          size_t count);
+ssize_t usart_read(void *devcfg, void *file, void *buf, size_t count);
+int usart_close(void *devcfg, void *file);
 
 #endif  // USART_H
