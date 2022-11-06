@@ -366,11 +366,8 @@ void usart_write_task(void *cfg_ptr) {
     }
 }
 
-int usart_open(void *devcfg, void *file, const char *pathname,
-                     int flags) {
-    (void)flags;
-    (void)file;
-    usart_t *cfg = (usart_t *)devcfg;
+int usart_open(FILE *file, const char *path) {
+    usart_t *cfg = (usart_t *)file->node->f_op.hw;
 
     errno = 0;
 
@@ -399,13 +396,10 @@ int usart_open(void *devcfg, void *file, const char *pathname,
         return -1;
     }
 
-    // TODO: use device file name for task
-    static int usartnum = 0;
     char read_task_name[configMAX_TASK_NAME_LEN];
     char write_task_name[configMAX_TASK_NAME_LEN];
-    sprintf(read_task_name, "ttyS%d_read_task", usartnum);
-    sprintf(write_task_name, "ttyS%d_write_task", usartnum);
-    usartnum++;
+    sprintf(read_task_name, "%d_read_task", file->node->name);
+    sprintf(write_task_name, "%d_write_task", file->node->name);
 
     xTaskCreate(usart_read_task, read_task_name, 512, cfg, cfg->task_priority,
                 NULL);
@@ -417,13 +411,11 @@ int usart_open(void *devcfg, void *file, const char *pathname,
     return 0;
 }
 
-ssize_t usart_write(void *devcfg, void *file, const void *buf,
-                          size_t count) {
+ssize_t usart_write(FILE *file, const char *buf, size_t count) {
     ssize_t rv;
-    (void)file;
-    usart_t *cfg = (usart_t *)devcfg;
-
     errno = 0;
+    usart_t *cfg = (usart_t *)file->node->f_op.hw;
+
     rv = ring_buf_write(cfg->p.write_buf, (uint8_t *)buf, count);
     xSemaphoreGive(cfg->p.write_sem);
     if (cfg->p.error) {
@@ -433,11 +425,10 @@ ssize_t usart_write(void *devcfg, void *file, const void *buf,
     return rv;
 }
 
-ssize_t usart_read(void *devcfg, void *file, void *buf, size_t count) {
+ssize_t usart_read(FILE *file, char *buf, size_t count) {
     ssize_t rv;
     errno = 0;
-    (void)file;
-    usart_t *cfg = (usart_t *)devcfg;
+    usart_t *cfg = (usart_t *)file->node->f_op.hw;
 
     xSemaphoreTake(cfg->p.read_sem, portMAX_DELAY);
     rv = ring_buf_read(cfg->p.read_buf, (uint8_t *)buf, count);
@@ -448,10 +439,8 @@ ssize_t usart_read(void *devcfg, void *file, void *buf, size_t count) {
     return rv;
 }
 
-int usart_close(void *devcfg, void *file) {
-    errno = 0;
+int usart_close(FILE *file) {
     (void)file;
-    usart_t *cfg = (usart_t *)devcfg;
-    (void)cfg;
+    errno = 0;
     return 0;
 }

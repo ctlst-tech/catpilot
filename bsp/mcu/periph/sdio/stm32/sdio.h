@@ -2,6 +2,7 @@
 #define SDIO_H
 
 #include "core.h"
+#include "errno.h"
 #include "gpio.h"
 #include "hal.h"
 #include "irq.h"

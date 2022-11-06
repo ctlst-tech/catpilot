@@ -6,9 +6,9 @@ find_package(Catch2 REQUIRED)
 
 include_directories(../fs_posix/node)
 
-file(GLOB NODE_SRC
-    "node_tests.cpp"
-    "../fs_posix/node/node.c"
+set(NODE_SRC
+    node_tests.cpp
+    ../fs_posix/node/node.c
 )
 
 add_executable(node_tests ${NODE_SRC})

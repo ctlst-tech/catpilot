@@ -4,7 +4,8 @@
 #include <fcntl.h>
 #include <stdarg.h>
 #include <sys/types.h>
-#include <fs.h>
+
+#include "node.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -22,7 +23,7 @@ extern int errno;
 
 typedef off_t fpos_t;
 
-extern FILE *__iob[MAX_FILES];
+extern FILE *file[MAX_FILES];
 
 #define __SRD   0x0001      /* OK to read */
 #define __SWR   0x0002      /* OK to write */
@@ -39,9 +40,9 @@ extern FILE *__iob[MAX_FILES];
 #undef stdout
 #undef stderr
 
-#define stdin (__iob[0])
-#define stdout (__iob[1])
-#define stderr (__iob[2])
+#define stdin (file[0])
+#define stdout (file[1])
+#define stderr (file[2])
 
 // Compiler functions
 int scanf(const char *fmt, ...);

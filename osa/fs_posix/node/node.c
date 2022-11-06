@@ -1,4 +1,4 @@
-#include <node.h>
+#include "node.h"
 
 static struct node root_node = {
     .name = "",
@@ -18,7 +18,7 @@ static struct node *node_add_sibling(struct node *first_sibling_node,
                                      struct node *new_node);
 static struct node *node_add_child(struct node *parent_node,
                                    struct node *child_node);
-static const char* node_get_token(const char *full_path, size_t *rv_length,
+static const char *node_get_token(const char *full_path, size_t *rv_length,
                                   const char **parse_context);
 
 struct node *node_mount(const char *mounting_point,
@@ -28,7 +28,7 @@ struct node *node_mount(const char *mounting_point,
         return NULL;
     }
 
-    if (node_find(mounting_point) != NULL) {
+    if (node_find(mounting_point, NODE_MODE_FULL_PATH) != NULL) {
         errno = EEXIST;
         return NULL;
     }
@@ -39,7 +39,8 @@ struct node *node_mount(const char *mounting_point,
     const char *dir_name;
     struct node *node;
 
-    while((dir_name = node_get_token(mounting_point, &dir_name_length, &dir_context)) != NULL) {
+    while ((dir_name = node_get_token(mounting_point, &dir_name_length,
+                                      &dir_context)) != NULL) {
         node = node_find_sibling(rnode->child, dir_name, dir_name_length);
         if (node == NULL) {
             node = node_create(dir_name, dir_name_length);
@@ -59,23 +60,27 @@ struct node *node_mount(const char *mounting_point,
     return node;
 }
 
-struct node *node_find(const char *path) {
-
+struct node *node_find(const char *path, int mode) {
     if (path == NULL) {
         errno = EINVAL;
         return NULL;
     }
 
     struct node *node = &root_node;
+    struct node *prev_node = NULL;
     const char *dir_context = NULL;
     size_t dir_name_length;
     const char *dir_name;
 
-    while((dir_name = node_get_token(path, &dir_name_length, &dir_context)) != NULL) {
+    while ((dir_name = node_get_token(path, &dir_name_length, &dir_context)) != NULL) {
         node = node_find_sibling(node->child, dir_name, dir_name_length);
         if (node == NULL) {
+            if(mode == NODE_MODE_NEAREST_PATH) {
+                node = prev_node;
+            }
             break;
         }
+        prev_node = node;
     }
 
     if (node == NULL) {
@@ -98,7 +103,7 @@ static struct node *node_create(const char *name, size_t name_length) {
     return node;
 }
 
-static const char* node_get_token(const char *full_path, size_t *rv_length,
+static const char *node_get_token(const char *full_path, size_t *rv_length,
                                   const char **parse_context) {
     int l = 0;
     const char *token_start;
@@ -114,20 +119,22 @@ static const char* node_get_token(const char *full_path, size_t *rv_length,
         if (token_start[0] != 0) {
             errno = EINVAL;
         } else {
-            errno = 0; // end of string to parse
+            errno = 0;  // end of string to parse
         }
         return NULL;
     }
 
     // handle repetitive slashes
-    while(*token_start == '/') {
+    while (*token_start == '/') {
         token_start++;
     }
 
     const char *token_end;
     token_end = strstr(token_start, "/");
     if (token_end == NULL) {
-        token_end = token_start + strlen(token_start); // last token, token end points to '\0'
+        token_end =
+            token_start +
+            strlen(token_start);  // last token, token end points to '\0'
     }
 
     errno = 0;

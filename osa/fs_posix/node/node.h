@@ -1,5 +1,5 @@
-#ifndef _NODE_H_
-#define _NODE_H_
+#ifndef NODE_H_
+#define NODE_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -11,22 +11,24 @@ extern "C" {
 #include <string.h>
 
 #define NODE_MAX_NAME_LENGTH 64
+#define NODE_MODE_NEAREST_PATH 0
+#define NODE_MODE_FULL_PATH 1
 
 struct file {
     unsigned int f_flags;
-    struct file_operations *f_op;
     struct node *node;
     void *private_data;
 };
 
 struct file_operations {
-    ssize_t (*read)(struct file *file, char *buf, size_t count);
+    int (*open)(struct file *file, const char *path);
     ssize_t (*write)(struct file *file, const char *buf, size_t count);
+    ssize_t (*read)(struct file *file, char *buf, size_t count);
+    int (*close)(struct file *file);
     int (*ioctl)(struct file *file, unsigned int data);
-    int (*open)(struct file *file);
     int (*flush)(struct file *file);
-    int (*release)(struct file *file);
     int (*fsync)(struct file *file);
+    void *hw;
 };
 
 struct node {
@@ -39,10 +41,10 @@ struct node {
 
 struct node *node_mount(const char *mounting_point,
                         const struct file_operations *f_op);
-struct node *node_find(const char *path);
+struct node *node_find(const char *path, int mode);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  // _NODE_H_
+#endif  // NODE_H_

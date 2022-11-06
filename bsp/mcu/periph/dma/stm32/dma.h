@@ -3,6 +3,7 @@
 
 #include "core.h"
 #include "dma.h"
+#include "errno.h"
 #include "hal.h"
 #include "irq.h"
 #include "os.h"

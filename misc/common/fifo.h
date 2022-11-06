@@ -1,6 +1,8 @@
-#include "stm32_base.h"
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
+
+#include "core.h"
+#include "os.h"
 
 #define FIFO_MAX_SIZE 1024
 

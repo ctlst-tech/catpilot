@@ -2,7 +2,8 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-#include "stm32_base.h"
+#include "core.h"
+#include "os.h"
 #include "func.h"
 
 #define RINGBUFFER_MAX_SIZE 1024

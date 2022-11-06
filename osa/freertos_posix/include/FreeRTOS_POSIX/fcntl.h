@@ -33,11 +33,11 @@
 #ifndef _FREERTOS_POSIX_FCNTL_H_
 #define _FREERTOS_POSIX_FCNTL_H_
 
+#include <sys/types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#if (FREERTOS_POSIX_USE_FCNTL == 1)
 
 /**
  * @name File creation flags for use in the oflag value to open() and openat().
@@ -81,9 +81,52 @@ extern "C" {
 #define O_SEARCH    0x4000  /**< Open directory for search only. */
 #define O_WRONLY    0x8000  /**< Open for writing only. */
 /**@} */
-#else
-    #include <stdio.h>
-#endif
+
+/**
+ * @name Group and users
+ */
+/**@{ */
+#define S_IREAD    0400                         /*< Read by owner.  */
+#define S_IWRITE   0200                         /*< Write by owner.  */
+#define S_IEXEC    0100                         /*< Execute by owner.  */
+
+#define S_IRUSR S_IREAD                         /*< Read by owner.  */
+#define S_IWUSR S_IWRITE                        /*< Write by owner.  */
+#define S_IXUSR S_IEXEC                         /*< Execute by owner.  */
+#define S_IRWXU (S_IREAD|S_IWRITE|S_IEXEC)      /*< Read,Write,Execute by owner */
+
+#define FATFS_R (S_IRUSR | S_IRGRP | S_IROTH)   /*< FatFs Read perms */
+#define FATFS_W (S_IWUSR | S_IWGRP | S_IWOTH)   /*< FatFs Write perms */
+#define FATFS_X (S_IXUSR | S_IXGRP | S_IXOTH)   /*< FatFs Execute perms */
+
+#define S_IRGRP (S_IRUSR >> 3)  /*< Read by group.  */
+#define S_IWGRP (S_IWUSR >> 3)  /*< Write by group.  */
+#define S_IXGRP (S_IXUSR >> 3)  /*< Execute by group.  */
+#define S_IRWXG (S_IRWXU >> 3)  /*< Read,Write,Execute by user */
+#define S_IROTH (S_IRGRP >> 3)  /*< Read by others.  */
+#define S_IWOTH (S_IWGRP >> 3)  /*< Write by others.  */
+#define S_IXOTH (S_IXGRP >> 3)  /*< Execute by others.  */
+#define S_IRWXO (S_IRWXG >> 3)  /*< Read,Write,Execute by other */
+/**@} */
+
+/**
+ * @name Defines for lseek
+ */
+/**@{ */
+#define SEEK_SET 0
+#define SEEK_CUR 1
+#define SEEK_END 2
+/**@} */
+
+/**
+ * @name Default POSIX functions
+ */
+/**@{ */
+int open(const char *pathname, int flags);
+ssize_t write(int fd, const void *buf, size_t count);
+ssize_t read(int fd, void *buf, size_t count);
+int close(int fd);
+/**@} */
 
 #ifdef __cplusplus
 }

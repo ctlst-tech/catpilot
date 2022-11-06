@@ -1,7 +1,6 @@
-#include <catch2/catch_all.hpp>
+#include <catch2/catch.hpp>
 
 #include "node.h"
-
 
 extern "C" struct node *node_get_root();
 
@@ -14,9 +13,21 @@ void node_check_correct_path(const char *path) {
     REQUIRE(node != NULL);
     REQUIRE(strstr(path, node->name) != NULL);
 
-    node_ = node_find(path);
+    node_ = node_find(path, NODE_MODE_FULL_PATH);
     REQUIRE(node_ != NULL);
     REQUIRE(strcmp(node_->name, node->name) == 0);
+}
+
+void node_find_nearest_path(const char *path, const char *nearest_path) {
+    struct node *node;
+    struct node *node_nearest;
+
+    node_nearest = node_find(nearest_path, NODE_MODE_FULL_PATH);
+    REQUIRE(node_nearest != NULL);
+
+    node = node_find(path, NODE_MODE_NEAREST_PATH);
+    REQUIRE(node != NULL);
+    REQUIRE(strcmp(node->name, node_nearest->name) == 0);
 }
 
 void node_check_incorrect_path(const char *name, struct node *node) {
@@ -26,12 +37,12 @@ void node_check_incorrect_path(const char *name, struct node *node) {
 }
 
 TEST_CASE("Create nodes with correct paths") {
-
     struct node *root = node_get_root();
 
-    file_operations f_op = {};
+    file_operations f_op = {0};
     char name[32] = {};
-    char section_name[64] = {};
+    char nearest_name[32] = {};
+    char section_name[64] = {0};
 
     strcpy(name, "/dev");
     sprintf(section_name, "Path: %s", name);
@@ -54,11 +65,25 @@ TEST_CASE("Create nodes with correct paths") {
         REQUIRE(strstr(name, root->child->child->sibling->name) != NULL);
     }
 
+    strcpy(name, "/dev/ttyUSB2");
+    strcpy(nearest_name, "/dev");
+    sprintf(section_name, "Nearest path: %s", nearest_name);
+    SECTION(section_name, name) {
+        node_find_nearest_path(name, nearest_name);
+    }
+
     strcpy(name, "/fs");
     sprintf(section_name, "Path: %s", name);
     SECTION(section_name, name) {
         node_check_correct_path(name);
         REQUIRE(strstr(name, root->child->sibling->name) != NULL);
+    }
+
+    strcpy(name, "/fs/config/sys.xml");
+    strcpy(nearest_name, "/fs");
+    sprintf(section_name, "Nearest: %s", name);
+    SECTION(section_name, name) {
+        node_find_nearest_path(name, nearest_name);
     }
 
     strcpy(name, "/dev/too/much/directories");
