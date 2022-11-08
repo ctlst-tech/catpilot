@@ -1,7 +1,6 @@
 #include "exti.h"
 
-int exti_get_id(exti_t *cfg);
-int exti_get_id(exti_t *cfg);
+static int exti_get_id(exti_t *cfg);
 
 int exti_init(exti_t *cfg, void (*handler)(void *area)) {
     int rv = 0;
@@ -27,7 +26,7 @@ int exti_init(exti_t *cfg, void (*handler)(void *area)) {
     return rv;
 }
 
-int exti_get_id(exti_t *cfg) {
+static int exti_get_id(exti_t *cfg) {
     switch (cfg->gpio.init.Pin) {
         case GPIO_PIN_0:
             cfg->p.id = EXTI0_IRQn;

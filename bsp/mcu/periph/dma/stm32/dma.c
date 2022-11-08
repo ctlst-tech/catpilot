@@ -1,7 +1,7 @@
 #include "dma.h"
 
-int dma_id_init(dma_t *cfg);
-int dma_clock_init(dma_t *cfg);
+static int dma_id_init(dma_t *cfg);
+static int dma_clock_init(dma_t *cfg);
 
 int dma_init(dma_t *cfg, void (*dma_handler)(void *area), void *area) {
     int rv = 0;
@@ -24,7 +24,7 @@ int dma_init(dma_t *cfg, void (*dma_handler)(void *area), void *area) {
     return rv;
 }
 
-int dma_id_init(dma_t *cfg) {
+static int dma_id_init(dma_t *cfg) {
     switch ((uint32_t)(cfg->init.Instance)) {
         case DMA1_Stream0_BASE:
             cfg->p.id = DMA1_Stream0_IRQn;
@@ -80,7 +80,7 @@ int dma_id_init(dma_t *cfg) {
     return 0;
 }
 
-int dma_clock_init(dma_t *cfg) {
+static int dma_clock_init(dma_t *cfg) {
     switch (cfg->p.id) {
         case DMA1_Stream0_IRQn:
         case DMA1_Stream1_IRQn:

@@ -256,41 +256,32 @@ void usart_dma_rx_handler(void *area) {
 int usart_id_init(usart_t *cfg) {
     switch ((uint32_t)(cfg->init.Instance)) {
         case USART1_BASE:
-            __HAL_RCC_USART1_CLK_ENABLE();
             cfg->p.id = USART1_IRQn;
             break;
         case USART2_BASE:
-            __HAL_RCC_USART2_CLK_ENABLE();
             cfg->p.id = USART2_IRQn;
             break;
         case USART3_BASE:
-            __HAL_RCC_USART3_CLK_ENABLE();
             cfg->p.id = USART3_IRQn;
             break;
         case UART4_BASE:
-            __HAL_RCC_UART4_CLK_ENABLE();
             cfg->p.id = UART4_IRQn;
             break;
         case UART5_BASE:
-            __HAL_RCC_UART5_CLK_ENABLE();
             cfg->p.id = UART5_IRQn;
             break;
         case USART6_BASE:
-            __HAL_RCC_USART6_CLK_ENABLE();
             cfg->p.id = USART6_IRQn;
             break;
         case UART7_BASE:
-            __HAL_RCC_UART7_CLK_ENABLE();
             cfg->p.id = UART7_IRQn;
             break;
         case UART8_BASE:
-            __HAL_RCC_UART8_CLK_ENABLE();
             cfg->p.id = UART8_IRQn;
             break;
         default:
             return EINVAL;
     }
-
     return 0;
 }
 
@@ -396,14 +387,8 @@ int usart_open(FILE *file, const char *path) {
         return -1;
     }
 
-    char read_task_name[configMAX_TASK_NAME_LEN];
-    char write_task_name[configMAX_TASK_NAME_LEN];
-    sprintf(read_task_name, "%d_read_task", file->node->name);
-    sprintf(write_task_name, "%d_write_task", file->node->name);
-
-    xTaskCreate(usart_read_task, read_task_name, 512, cfg, cfg->task_priority,
-                NULL);
-    xTaskCreate(usart_write_task, write_task_name, 512, cfg, cfg->task_priority,
+    xTaskCreate(usart_read_task, cfg->name, 512, cfg, cfg->task_priority, NULL);
+    xTaskCreate(usart_write_task, cfg->name, 512, cfg, cfg->task_priority,
                 NULL);
 
     cfg->p.tasks_init = true;

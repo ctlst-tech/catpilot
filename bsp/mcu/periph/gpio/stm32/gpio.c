@@ -1,6 +1,6 @@
 #include "gpio.h"
 
-int gpio_clock_init(gpio_t *cfg);
+static int gpio_clock_init(gpio_t *cfg);
 
 int gpio_init(gpio_t *cfg) {
     int rv = 0;
@@ -43,59 +43,34 @@ int gpio_read(gpio_t *cfg) {
     return rv;
 }
 
-int gpio_clock_init(gpio_t *cfg) {
+static int gpio_clock_init(gpio_t *cfg) {
     switch ((uint32_t)(cfg->port)) {
-#ifdef GPIOA
         case GPIOA_BASE:
             __HAL_RCC_GPIOA_CLK_ENABLE();
             break;
-#endif
-
-#ifdef GPIOB
         case GPIOB_BASE:
             __HAL_RCC_GPIOB_CLK_ENABLE();
             break;
-#endif
-
-#ifdef GPIOC
         case GPIOC_BASE:
             __HAL_RCC_GPIOC_CLK_ENABLE();
             break;
-#endif
-
-#ifdef GPIOD
         case GPIOD_BASE:
             __HAL_RCC_GPIOD_CLK_ENABLE();
             break;
-#endif
-
-#ifdef GPIOE
         case GPIOE_BASE:
             __HAL_RCC_GPIOE_CLK_ENABLE();
             break;
-#endif
-
-#ifdef GPIOF
         case GPIOF_BASE:
             __HAL_RCC_GPIOF_CLK_ENABLE();
             break;
-#endif
-
-#ifdef GPIOG
         case GPIOG_BASE:
             __HAL_RCC_GPIOG_CLK_ENABLE();
             break;
-#endif
-
-#ifdef GPIOH
         case GPIOH_BASE:
             __HAL_RCC_GPIOH_CLK_ENABLE();
             break;
-#endif
-
         default:
             return EINVAL;
     }
-
     return 0;
 }

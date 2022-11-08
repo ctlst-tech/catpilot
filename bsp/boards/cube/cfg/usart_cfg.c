@@ -4,6 +4,7 @@
 
 // TELEM1
 usart_t usart2 = {
+    .name = "ttyS0",
     .init = {
         .Instance = USART2,
         .Init = {
@@ -30,6 +31,7 @@ usart_t usart2 = {
 
 // TELEM2
 usart_t usart3 = {
+    .name = "ttyS1",
     .init = {
         .Instance = USART3,
         .Init.BaudRate = 57600,
@@ -54,6 +56,7 @@ usart_t usart3 = {
 
 // GPS1
 usart_t usart4 = {
+    .name = "ttyS2",
     .init = {
         .Instance = UART4,
         .Init.BaudRate = 115200,
@@ -106,6 +109,7 @@ usart_t usart4 = {
 
 // IO
 usart_t usart6 = {
+    .name = "ttyS3",
     .init = {
         .Instance = USART6,
         .Init.BaudRate = 1500000,
@@ -156,6 +160,7 @@ usart_t usart6 = {
 
 // DBG
 usart_t usart7 = {
+    .name = "ttyS4",
     .init = {
         .Instance = UART7,
         .Init.BaudRate = 115200,
@@ -180,6 +185,7 @@ usart_t usart7 = {
 
 // GPS2
 usart_t usart8 = {
+    .name = "ttyS5",
     .init = {
         .Instance = UART8,
         .Init.BaudRate = 115200,

@@ -1,9 +1,9 @@
 #include "adc.h"
 
-int adc_id_init(adc_t *cfg);
-int adc_clock_init(adc_t *cfg);
-void adc_handler(void *area);
-void adc_dma_handler(void *area);
+static int adc_id_init(adc_t *cfg);
+static int adc_clock_init(adc_t *cfg);
+static void adc_handler(void *area);
+static void adc_dma_handler(void *area);
 
 int adc_init(adc_t *cfg) {
     int rv = 0;
@@ -60,17 +60,7 @@ double adc_get_volt(adc_t *cfg, uint8_t channel) {
     return ((double)cfg->p.raw[channel] / 0xFFFF * 3.3);
 }
 
-void adc_handler(void *area) {
-    adc_t *cfg = (adc_t *)area;
-    HAL_ADC_IRQHandler(&cfg->init);
-}
-
-void adc_dma_handler(void *area) {
-    adc_t *cfg = (adc_t *)area;
-    HAL_DMA_IRQHandler(&cfg->dma.init);
-}
-
-int adc_id_init(adc_t *cfg) {
+static int adc_id_init(adc_t *cfg) {
     switch ((uint32_t)(cfg->init.Instance)) {
         case ADC1_BASE:
             cfg->p.id = ADC_IRQn;
@@ -87,7 +77,7 @@ int adc_id_init(adc_t *cfg) {
     return 0;
 }
 
-int adc_clock_init(adc_t *cfg) {
+static int adc_clock_init(adc_t *cfg) {
     switch (cfg->p.id) {
         case ADC_IRQn:
             __HAL_RCC_ADC12_CLK_ENABLE();
@@ -99,4 +89,14 @@ int adc_clock_init(adc_t *cfg) {
             return EINVAL;
     }
     return 0;
+}
+
+static void adc_handler(void *area) {
+    adc_t *cfg = (adc_t *)area;
+    HAL_ADC_IRQHandler(&cfg->init);
+}
+
+static void adc_dma_handler(void *area) {
+    adc_t *cfg = (adc_t *)area;
+    HAL_DMA_IRQHandler(&cfg->dma.init);
 }

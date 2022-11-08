@@ -33,6 +33,8 @@ void irq_default_handler(void) {
     while(1);
 }
 
+// Handlers
+
 // ADC
 void ADC_IRQHandler(void) {
     IRQ_Handler(ADC_IRQn);
