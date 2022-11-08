@@ -1,7 +1,7 @@
 #include "sdio.h"
 
-int sdio_id_init(sdio_t *cfg);
-int sdio_clock_init(sdio_t *cfg);
+static int sdio_id_init(sdio_t *cfg);
+static int sdio_clock_init(sdio_t *cfg);
 void sdio_handler(void *area);
 
 int sdio_init(sdio_t *cfg) {
@@ -195,7 +195,7 @@ void HAL_SD_ErrorCallback(SD_HandleTypeDef *hsd) {
     while (1);
 }
 
-int sdio_id_init(sdio_t *cfg) {
+static int sdio_id_init(sdio_t *cfg) {
     switch ((uint32_t)(cfg->init.Instance)) {
         case SDMMC1_BASE:
             cfg->p.id = SDMMC1_IRQn;
@@ -209,7 +209,7 @@ int sdio_id_init(sdio_t *cfg) {
     return 0;
 }
 
-int sdio_clock_init(sdio_t *cfg) {
+static int sdio_clock_init(sdio_t *cfg) {
     switch (cfg->p.id) {
         case SDMMC1_IRQn:
             __HAL_RCC_SDMMC1_CLK_ENABLE();

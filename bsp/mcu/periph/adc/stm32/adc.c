@@ -2,8 +2,8 @@
 
 static int adc_id_init(adc_t *cfg);
 static int adc_clock_init(adc_t *cfg);
-static void adc_handler(void *area);
-static void adc_dma_handler(void *area);
+void adc_handler(void *area);
+void adc_dma_handler(void *area);
 
 int adc_init(adc_t *cfg) {
     int rv = 0;
@@ -91,12 +91,12 @@ static int adc_clock_init(adc_t *cfg) {
     return 0;
 }
 
-static void adc_handler(void *area) {
+void adc_handler(void *area) {
     adc_t *cfg = (adc_t *)area;
     HAL_ADC_IRQHandler(&cfg->init);
 }
 
-static void adc_dma_handler(void *area) {
+void adc_dma_handler(void *area) {
     adc_t *cfg = (adc_t *)area;
     HAL_DMA_IRQHandler(&cfg->dma.init);
 }

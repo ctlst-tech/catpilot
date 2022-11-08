@@ -1,7 +1,7 @@
 #include "usart.h"
 
-int usart_id_init(usart_t *cfg);
-int usart_clock_init(usart_t *cfg);
+static int usart_id_init(usart_t *cfg);
+static int usart_clock_init(usart_t *cfg);
 void usart_dma_tx_handler(void *area);
 void usart_dma_rx_handler(void *area);
 void usart_handler(void *area);
@@ -182,141 +182,6 @@ int usart_transmit_receive(usart_t *cfg, uint8_t *tx_pdata, uint8_t *rx_pdata,
     return rv;
 }
 
-void usart_handler(void *area) {
-    usart_t *cfg = (usart_t *)area;
-    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-
-    DMA_Stream_TypeDef *dma =
-        (DMA_Stream_TypeDef *)((cfg->dma_rx.init.Instance));
-
-    HAL_UART_IRQHandler(&cfg->init);
-
-    if (cfg->init.gState == HAL_UART_STATE_READY &&
-        cfg->p.tx_state == USART_TRANSMIT) {
-        if (cfg->p.use_dma) {
-            cfg->p.tx_count = dma->NDTR;
-        } else {
-            cfg->p.tx_count = cfg->init.TxXferSize;
-        }
-        xSemaphoreGiveFromISR(cfg->p.tx_sem, &xHigherPriorityTaskWoken);
-        if (xHigherPriorityTaskWoken == pdTRUE) {
-            portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-        }
-    }
-
-    if (cfg->init.RxState == HAL_UART_STATE_READY &&
-        cfg->p.rx_state == USART_RECEIVE && cfg->mode == USART_TIMEOUT) {
-        if (cfg->p.use_dma) {
-            cfg->p.rx_count = dma->NDTR;
-        } else {
-            cfg->p.rx_count = cfg->init.RxXferSize;
-        }
-        xSemaphoreGiveFromISR(cfg->p.rx_sem, &xHigherPriorityTaskWoken);
-        if (xHigherPriorityTaskWoken == pdTRUE) {
-            portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-        }
-    }
-
-    if (cfg->init.Instance->ISR & USART_ISR_IDLE &&
-        cfg->p.rx_state == USART_RECEIVE && cfg->mode == USART_IDLE) {
-        SET_BIT(cfg->init.Instance->ICR, USART_ICR_IDLECF);
-        if (cfg->p.use_dma) {
-            cfg->p.rx_count = cfg->init.RxXferSize - dma->NDTR;
-        } else {
-            cfg->p.rx_count = cfg->init.RxXferSize - cfg->init.RxXferCount;
-        }
-        HAL_UART_AbortReceive(&cfg->init);
-        CLEAR_BIT(cfg->init.Instance->ICR, USART_ICR_IDLECF);
-        CLEAR_BIT(cfg->init.Instance->CR1, USART_CR1_IDLEIE);
-        xSemaphoreGiveFromISR(cfg->p.rx_sem, &xHigherPriorityTaskWoken);
-        if (xHigherPriorityTaskWoken == pdTRUE) {
-            portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-        }
-    }
-}
-
-void usart_dma_tx_handler(void *area) {
-    usart_t *cfg = (usart_t *)area;
-    HAL_DMA_IRQHandler(&cfg->dma_tx.init);
-}
-
-void usart_dma_rx_handler(void *area) {
-    usart_t *cfg = (usart_t *)area;
-    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-    HAL_DMA_IRQHandler(&cfg->dma_tx.init);
-    if (cfg->dma_rx.init.State == HAL_DMA_STATE_READY &&
-        cfg->mode == USART_TIMEOUT) {
-        xSemaphoreGiveFromISR(cfg->p.rx_sem, &xHigherPriorityTaskWoken);
-        if (xHigherPriorityTaskWoken == pdTRUE) {
-            portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-        }
-    }
-}
-
-int usart_id_init(usart_t *cfg) {
-    switch ((uint32_t)(cfg->init.Instance)) {
-        case USART1_BASE:
-            cfg->p.id = USART1_IRQn;
-            break;
-        case USART2_BASE:
-            cfg->p.id = USART2_IRQn;
-            break;
-        case USART3_BASE:
-            cfg->p.id = USART3_IRQn;
-            break;
-        case UART4_BASE:
-            cfg->p.id = UART4_IRQn;
-            break;
-        case UART5_BASE:
-            cfg->p.id = UART5_IRQn;
-            break;
-        case USART6_BASE:
-            cfg->p.id = USART6_IRQn;
-            break;
-        case UART7_BASE:
-            cfg->p.id = UART7_IRQn;
-            break;
-        case UART8_BASE:
-            cfg->p.id = UART8_IRQn;
-            break;
-        default:
-            return EINVAL;
-    }
-    return 0;
-}
-
-int usart_clock_init(usart_t *cfg) {
-    switch (cfg->p.id) {
-        case USART1_IRQn:
-            __HAL_RCC_USART1_CLK_ENABLE();
-            break;
-        case USART2_IRQn:
-            __HAL_RCC_USART2_CLK_ENABLE();
-            break;
-        case USART3_IRQn:
-            __HAL_RCC_USART3_CLK_ENABLE();
-            break;
-        case UART4_IRQn:
-            __HAL_RCC_UART4_CLK_ENABLE();
-            break;
-        case UART5_IRQn:
-            __HAL_RCC_UART5_CLK_ENABLE();
-            break;
-        case USART6_IRQn:
-            __HAL_RCC_USART6_CLK_ENABLE();
-            break;
-        case UART7_IRQn:
-            __HAL_RCC_UART7_CLK_ENABLE();
-            break;
-        case UART8_IRQn:
-            __HAL_RCC_UART8_CLK_ENABLE();
-            break;
-        default:
-            return EINVAL;
-    }
-    return 0;
-}
-
 int usart_set_speed(usart_t *cfg, uint32_t speed) {
     cfg->init.Init.BaudRate = speed;
     cfg->init.Instance->BRR = (uint16_t)(UART_DIV_SAMPLING16(
@@ -427,5 +292,140 @@ ssize_t usart_read(FILE *file, char *buf, size_t count) {
 int usart_close(FILE *file) {
     (void)file;
     errno = 0;
+    return 0;
+}
+
+void usart_handler(void *area) {
+    usart_t *cfg = (usart_t *)area;
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+
+    DMA_Stream_TypeDef *dma =
+        (DMA_Stream_TypeDef *)((cfg->dma_rx.init.Instance));
+
+    HAL_UART_IRQHandler(&cfg->init);
+
+    if (cfg->init.gState == HAL_UART_STATE_READY &&
+        cfg->p.tx_state == USART_TRANSMIT) {
+        if (cfg->p.use_dma) {
+            cfg->p.tx_count = dma->NDTR;
+        } else {
+            cfg->p.tx_count = cfg->init.TxXferSize;
+        }
+        xSemaphoreGiveFromISR(cfg->p.tx_sem, &xHigherPriorityTaskWoken);
+        if (xHigherPriorityTaskWoken == pdTRUE) {
+            portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+        }
+    }
+
+    if (cfg->init.RxState == HAL_UART_STATE_READY &&
+        cfg->p.rx_state == USART_RECEIVE && cfg->mode == USART_TIMEOUT) {
+        if (cfg->p.use_dma) {
+            cfg->p.rx_count = dma->NDTR;
+        } else {
+            cfg->p.rx_count = cfg->init.RxXferSize;
+        }
+        xSemaphoreGiveFromISR(cfg->p.rx_sem, &xHigherPriorityTaskWoken);
+        if (xHigherPriorityTaskWoken == pdTRUE) {
+            portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+        }
+    }
+
+    if (cfg->init.Instance->ISR & USART_ISR_IDLE &&
+        cfg->p.rx_state == USART_RECEIVE && cfg->mode == USART_IDLE) {
+        SET_BIT(cfg->init.Instance->ICR, USART_ICR_IDLECF);
+        if (cfg->p.use_dma) {
+            cfg->p.rx_count = cfg->init.RxXferSize - dma->NDTR;
+        } else {
+            cfg->p.rx_count = cfg->init.RxXferSize - cfg->init.RxXferCount;
+        }
+        HAL_UART_AbortReceive(&cfg->init);
+        CLEAR_BIT(cfg->init.Instance->ICR, USART_ICR_IDLECF);
+        CLEAR_BIT(cfg->init.Instance->CR1, USART_CR1_IDLEIE);
+        xSemaphoreGiveFromISR(cfg->p.rx_sem, &xHigherPriorityTaskWoken);
+        if (xHigherPriorityTaskWoken == pdTRUE) {
+            portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+        }
+    }
+}
+
+void usart_dma_tx_handler(void *area) {
+    usart_t *cfg = (usart_t *)area;
+    HAL_DMA_IRQHandler(&cfg->dma_tx.init);
+}
+
+void usart_dma_rx_handler(void *area) {
+    usart_t *cfg = (usart_t *)area;
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    HAL_DMA_IRQHandler(&cfg->dma_tx.init);
+    if (cfg->dma_rx.init.State == HAL_DMA_STATE_READY &&
+        cfg->mode == USART_TIMEOUT) {
+        xSemaphoreGiveFromISR(cfg->p.rx_sem, &xHigherPriorityTaskWoken);
+        if (xHigherPriorityTaskWoken == pdTRUE) {
+            portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+        }
+    }
+}
+
+static int usart_id_init(usart_t *cfg) {
+    switch ((uint32_t)(cfg->init.Instance)) {
+        case USART1_BASE:
+            cfg->p.id = USART1_IRQn;
+            break;
+        case USART2_BASE:
+            cfg->p.id = USART2_IRQn;
+            break;
+        case USART3_BASE:
+            cfg->p.id = USART3_IRQn;
+            break;
+        case UART4_BASE:
+            cfg->p.id = UART4_IRQn;
+            break;
+        case UART5_BASE:
+            cfg->p.id = UART5_IRQn;
+            break;
+        case USART6_BASE:
+            cfg->p.id = USART6_IRQn;
+            break;
+        case UART7_BASE:
+            cfg->p.id = UART7_IRQn;
+            break;
+        case UART8_BASE:
+            cfg->p.id = UART8_IRQn;
+            break;
+        default:
+            return EINVAL;
+    }
+    return 0;
+}
+
+static int usart_clock_init(usart_t *cfg) {
+    switch (cfg->p.id) {
+        case USART1_IRQn:
+            __HAL_RCC_USART1_CLK_ENABLE();
+            break;
+        case USART2_IRQn:
+            __HAL_RCC_USART2_CLK_ENABLE();
+            break;
+        case USART3_IRQn:
+            __HAL_RCC_USART3_CLK_ENABLE();
+            break;
+        case UART4_IRQn:
+            __HAL_RCC_UART4_CLK_ENABLE();
+            break;
+        case UART5_IRQn:
+            __HAL_RCC_UART5_CLK_ENABLE();
+            break;
+        case USART6_IRQn:
+            __HAL_RCC_USART6_CLK_ENABLE();
+            break;
+        case UART7_IRQn:
+            __HAL_RCC_UART7_CLK_ENABLE();
+            break;
+        case UART8_IRQn:
+            __HAL_RCC_UART8_CLK_ENABLE();
+            break;
+        default:
+            return EINVAL;
+    }
     return 0;
 }

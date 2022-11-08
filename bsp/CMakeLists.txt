@@ -42,8 +42,8 @@ list(APPEND BSP_SRC
     # mcu/periph/i2c/${MCU_FAMILY}/i2c.c
     mcu/periph/irq/${MCU_FAMILY}/irq.c
     mcu/periph/sdio/${MCU_FAMILY}/sdio.c
-    # mcu/periph/spi/${MCU_FAMILY}/spi.c
-    # mcu/periph/tim/${MCU_FAMILY}/tim.c
+    mcu/periph/spi/${MCU_FAMILY}/spi.c
+    mcu/periph/tim/${MCU_FAMILY}/tim.c
     mcu/periph/usart/${MCU_FAMILY}/usart.c
 )
 
