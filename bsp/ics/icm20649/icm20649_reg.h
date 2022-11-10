@@ -1,7 +1,8 @@
-#include "stm32_base.h"
+#ifndef ICM20649_REG_H
+#define ICM20649_REG_H
+
 #include "bit.h"
 #include "icm20649.h"
-#pragma once
 
 #define type_t static const uint8_t
 
@@ -112,24 +113,6 @@ type_t WRITE = 0x00;
 static const float TEMP_SENS     = 333.87f;
 static const float TEMP_OFFSET   = 21.f;
 
-// FIFO layout
-#pragma pack(push,1)
-typedef struct {
-    uint8_t ACCEL_XOUT_H;
-    uint8_t ACCEL_XOUT_L;
-    uint8_t ACCEL_YOUT_H;
-    uint8_t ACCEL_YOUT_L;
-    uint8_t ACCEL_ZOUT_H;
-    uint8_t ACCEL_ZOUT_L;
-    uint8_t GYRO_XOUT_H;
-    uint8_t GYRO_XOUT_L;
-    uint8_t GYRO_YOUT_H;
-    uint8_t GYRO_YOUT_L;
-    uint8_t GYRO_ZOUT_H;
-    uint8_t GYRO_ZOUT_L;
-} FIFO_t;
-#pragma pack(pop)
-
 #define BANK_0_SIZE_REG_CFG 7
 #define BANK_2_SIZE_REG_CFG 5
 
@@ -158,14 +141,4 @@ static const reg_cfg_t bank_2_reg_cfg[BANK_2_SIZE_REG_CFG] = {
     {GYRO_SMPLRT_DIV,    0, 0xFF},
 };
 
-typedef struct {
-    uint8_t CMD;
-    uint8_t COUNTH;
-    uint8_t COUNTL;
-    FIFO_t buf[ICM20649_FIFO_SIZE / sizeof(FIFO_t) + 1];
-} FIFOBuffer_t;
-
-typedef struct {
-    uint16_t bytes;
-    uint16_t samples;
-} FIFOParam_t;
+#endif  // ICM20649_REG_H

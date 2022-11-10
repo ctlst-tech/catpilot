@@ -1,9 +1,10 @@
 #ifndef EXTI_H
 #define EXTI_H
 
+#include <errno.h>
+
 #include "core.h"
 #include "dma.h"
-#include "errno.h"
 #include "gpio.h"
 #include "hal.h"
 #include "irq.h"

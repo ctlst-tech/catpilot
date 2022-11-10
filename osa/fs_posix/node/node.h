@@ -28,7 +28,7 @@ struct file_operations {
     int (*ioctl)(struct file *file, unsigned int data);
     int (*flush)(struct file *file);
     int (*fsync)(struct file *file);
-    void *hw;
+    void *dev;
 };
 
 struct node {

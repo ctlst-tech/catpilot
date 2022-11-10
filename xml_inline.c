@@ -79,7 +79,7 @@ int xml_inline_mount(const char *mount_to) {
                                    .write = NULL,
                                    .read = xml_inline_read_callback,
                                    .close = xml_inline_close_callback,
-                                   .hw = NULL};
+                                   .dev = NULL};
     struct node *node = node_mount("mount_to", &f_op);
     return 0;
 }

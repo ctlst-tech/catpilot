@@ -13,7 +13,7 @@
 #define LOG_DEBUG_TYPE 3
 #define LOG_EMPTY_TYPE 4
 
-void log_module(uint8_t msg_type, char *module, char *s, ...);
+void log_module(uint8_t msg_type, const char *module, const char *s, ...);
 void log_enable(bool enable);
 
 #define WELCOME() printf("\n\n\n \t\tCATALYST AUTOPILOT DEMO PROJECT\n");

@@ -1,11 +1,13 @@
 #ifndef USART_H
 #define USART_H
 
+#include <errno.h>
+
 #include "core.h"
 #include "dma.h"
-#include "errno.h"
 #include "gpio.h"
 #include "irq.h"
+#include "node.h"
 #include "os.h"
 #include "ring_buf.h"
 

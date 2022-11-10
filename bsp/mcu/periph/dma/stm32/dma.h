@@ -1,9 +1,10 @@
 #ifndef DMA_H
 #define DMA_H
 
+#include <errno.h>
+
 #include "core.h"
 #include "dma.h"
-#include "errno.h"
 #include "hal.h"
 #include "irq.h"
 #include "os.h"

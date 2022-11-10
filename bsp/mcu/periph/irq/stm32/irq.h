@@ -2,7 +2,7 @@
 #define IRQ_H
 
 #include "core.h"
-#include "errno.h"
+#include <errno.h>
 #include "hal.h"
 #include "os.h"
 

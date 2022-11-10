@@ -48,6 +48,24 @@ int usart_init(usart_t *cfg) {
         return rv;
     }
 
+    struct file_operations f_op = {
+        .open = usart_open,
+        .write = usart_write,
+        .read = usart_read,
+        .close = usart_close,
+        .dev = cfg
+    };
+
+    char path[32]; 
+    sprintf(path, "/dev/%s", cfg->name);
+    if(node_mount(path, &f_op) == NULL) {
+        return -1;
+    }
+
+    if (cfg->p.rx_sem == NULL) {
+        cfg->p.rx_sem = xSemaphoreCreateBinary();
+    }
+
     if (cfg->p.tx_mutex == NULL) {
         cfg->p.tx_mutex = xSemaphoreCreateMutex();
     }
@@ -223,7 +241,7 @@ void usart_write_task(void *cfg_ptr) {
 }
 
 int usart_open(FILE *file, const char *path) {
-    usart_t *cfg = (usart_t *)file->node->f_op.hw;
+    usart_t *cfg = (usart_t *)file->node->f_op.dev;
 
     errno = 0;
 
@@ -258,13 +276,14 @@ int usart_open(FILE *file, const char *path) {
 
     cfg->p.tasks_init = true;
     errno = 0;
+    
     return 0;
 }
 
 ssize_t usart_write(FILE *file, const char *buf, size_t count) {
     ssize_t rv;
     errno = 0;
-    usart_t *cfg = (usart_t *)file->node->f_op.hw;
+    usart_t *cfg = (usart_t *)file->node->f_op.dev;
 
     rv = ring_buf_write(cfg->p.write_buf, (uint8_t *)buf, count);
     xSemaphoreGive(cfg->p.write_sem);
@@ -278,7 +297,7 @@ ssize_t usart_write(FILE *file, const char *buf, size_t count) {
 ssize_t usart_read(FILE *file, char *buf, size_t count) {
     ssize_t rv;
     errno = 0;
-    usart_t *cfg = (usart_t *)file->node->f_op.hw;
+    usart_t *cfg = (usart_t *)file->node->f_op.dev;
 
     xSemaphoreTake(cfg->p.read_sem, portMAX_DELAY);
     rv = ring_buf_read(cfg->p.read_buf, (uint8_t *)buf, count);

@@ -138,6 +138,14 @@ int board_periph_init(void) {
         LOG_ERROR("USART8", "Initialization failed");
         return -1;
     }
+    if (spi_init(&spi1)) {
+        LOG_ERROR("SPI1", "Initialization failed");
+        return -1;
+    }
+    if (spi_init(&spi4)) {
+        LOG_ERROR("SPI4", "Initialization failed");
+        return -1;
+    }
 
     return 0;
 }

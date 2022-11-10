@@ -1,8 +1,9 @@
 #ifndef GPIO_H
 #define GPIO_H
 
+#include <errno.h>
+
 #include "core.h"
-#include "errno.h"
 #include "hal.h"
 #include "os.h"
 

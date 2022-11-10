@@ -30,7 +30,7 @@ static char *msg_color[5] = {
 };
 static SemaphoreHandle_t log_mutex;
 
-void log_module(uint8_t msg_type, char *module, char *s, ...) {
+void log_module(uint8_t msg_type, const char *module, const char *s, ...) {
     if(log_mutex == NULL) {
         log_mutex = xSemaphoreCreateMutex();
     }
