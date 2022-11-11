@@ -60,77 +60,77 @@
 
         <f name="ax_gain" by_spec="core.math.gain">
             <param alias="gain">1.0</param>
-            <in alias="input">ax</in>
+            <in alias="input">inputs/ax</in>
         </f>
 
         <f name="ay_gain" by_spec="core.math.gain">
             <param alias="gain">1.0</param>
-            <in alias="input">ay</in>
+            <in alias="input">inputs/ay</in>
         </f>
 
         <f name="az_gain" by_spec="core.math.gain">
             <param alias="gain">1.0</param>
-            <in alias="input">az</in>
+            <in alias="input">inputs/az</in>
         </f>
 
         <f name="wx_gain" by_spec="core.math.gain">
             <param alias="gain">57.3</param>
-            <in alias="input">wx</in>
+            <in alias="input">inputs/wx</in>
         </f>
 
         <f name="wy_gain" by_spec="core.math.gain">
             <param alias="gain">57.3</param>
-            <in alias="input">wy</in>
+            <in alias="input">inputs/wy</in>
         </f>
 
         <f name="wz_gain" by_spec="core.math.gain">
             <param alias="gain">57.3</param>
-            <in alias="input">wz</in>
+            <in alias="input">inputs/wz</in>
         </f>
 
         <f name="manc_lat_gain" by_spec="core.math.gain">
             <param alias="gain">1.0</param>
-            <in alias="input">manc_lat</in>
+            <in alias="input">inputs/manc_lat</in>
         </f>
 
         <f name="manc_lon_gain" by_spec="core.math.gain">
             <param alias="gain">1.0</param>
-            <in alias="input">manc_lon</in>
+            <in alias="input">inputs/manc_lon</in>
         </f>
 
         <f name="manc_thr_gain" by_spec="core.math.gain">
             <param alias="gain">1.0</param>
-            <in alias="input">manc_thr</in>
+            <in alias="input">inputs/manc_thr</in>
         </f>
 
         <f name="manc_rud_gain" by_spec="core.math.gain">
             <param alias="gain">1.0</param>
-            <in alias="input">manc_rud</in>
+            <in alias="input">inputs/manc_rud</in>
         </f>
 
         <f name="manc_pids_tune_gain" by_spec="core.math.gain">
             <param alias="gain">1.0</param>
-            <in alias="input">manc_pids_tune</in>
+            <in alias="input">inputs/manc_pids_tune</in>
         </f>
 
         <f name="manc_arm_gain" by_spec="core.math.gain">
             <param alias="gain">1.0</param>
-            <in alias="input">manc_arm</in>
+            <in alias="input">inputs/manc_arm</in>
         </f>
 
         <f name="roll_gain" by_spec="core.math.gain">
             <param alias="gain">57.3</param>
-            <in alias="input">roll</in>
+            <in alias="input">inputs/roll</in>
         </f>
 
         <f name="pitch_gain" by_spec="core.math.gain">
             <param alias="gain">57.3</param>
-            <in alias="input">pitch</in>
+            <in alias="input">inputs/pitch</in>
         </f>
 
         <f name="yaw_gain" by_spec="core.math.gain">
             <param alias="gain">57.3</param>
-            <in alias="input">yaw</in>
+            <in alias="input">inputs/yaw</in>
         </f>
 
 <!--        <f name="fmu_pwm" by_spec="cube.io.gpio">-->
