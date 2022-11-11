@@ -3,6 +3,26 @@
 #include "gpio.h"
 #include "init.h"
 
+fspec_rv_t cube_io_pwm_pre_exec_init(
+        const cube_io_pwm_optional_inputs_flags_t *input_flags,
+        const cube_io_pwm_params_t *p,
+        cube_io_pwm_state_t *state
+) {
+
+    CubeIO_SetFreq(0xFFFF, 400);
+    CubeIO_SetRange(CubeIO_PWM, 0, p->ch1_bipolar ? CubeIO_ChannelBipolar : CubeIO_ChannelUnipolar, p->ch1_min, p->ch1_max);
+    CubeIO_SetRange(CubeIO_PWM, 1, p->ch2_bipolar ? CubeIO_ChannelBipolar : CubeIO_ChannelUnipolar, p->ch2_min, p->ch2_max);
+    CubeIO_SetRange(CubeIO_PWM, 2, p->ch3_bipolar ? CubeIO_ChannelBipolar : CubeIO_ChannelUnipolar, p->ch3_min, p->ch3_max);
+    CubeIO_SetRange(CubeIO_PWM, 3, p->ch4_bipolar ? CubeIO_ChannelBipolar : CubeIO_ChannelUnipolar, p->ch4_min, p->ch4_max);
+    CubeIO_SetRange(CubeIO_PWM, 4, p->ch5_bipolar ? CubeIO_ChannelBipolar : CubeIO_ChannelUnipolar, p->ch5_min, p->ch5_max);
+    CubeIO_SetRange(CubeIO_PWM, 5, p->ch6_bipolar ? CubeIO_ChannelBipolar : CubeIO_ChannelUnipolar, p->ch6_min, p->ch6_max);
+    CubeIO_SetRange(CubeIO_PWM, 6, p->ch7_bipolar ? CubeIO_ChannelBipolar : CubeIO_ChannelUnipolar, p->ch7_min, p->ch7_max);
+    CubeIO_SetRange(CubeIO_PWM, 7, p->ch8_bipolar ? CubeIO_ChannelBipolar : CubeIO_ChannelUnipolar, p->ch8_min, p->ch8_max);
+    state->inited = TRUE;
+
+    return fspec_rv_ok;
+}
+
 void cube_io_pwm_exec(const cube_io_pwm_inputs_t *i, const cube_io_pwm_params_t *p, cube_io_pwm_state_t *state){
     double pwm[16];
 
@@ -16,20 +36,6 @@ void cube_io_pwm_exec(const cube_io_pwm_inputs_t *i, const cube_io_pwm_params_t 
         CubeIO_ForceSafetyOn();
         state->arm_passed = FALSE;
         state->disarm_passed = TRUE;
-    }
-
-    if(!state->inited) {
-//        CubeIO_SetDefaultFreq(200);
-        CubeIO_SetFreq(0xFFFF, 400);
-        CubeIO_SetRange(CubeIO_PWM, 0, p->ch1_bipolar ? CubeIO_ChannelBipolar : CubeIO_ChannelUnipolar, p->ch1_min, p->ch1_max);
-        CubeIO_SetRange(CubeIO_PWM, 1, p->ch2_bipolar ? CubeIO_ChannelBipolar : CubeIO_ChannelUnipolar, p->ch2_min, p->ch2_max);
-        CubeIO_SetRange(CubeIO_PWM, 2, p->ch3_bipolar ? CubeIO_ChannelBipolar : CubeIO_ChannelUnipolar, p->ch3_min, p->ch3_max);
-        CubeIO_SetRange(CubeIO_PWM, 3, p->ch4_bipolar ? CubeIO_ChannelBipolar : CubeIO_ChannelUnipolar, p->ch4_min, p->ch4_max);
-        CubeIO_SetRange(CubeIO_PWM, 4, p->ch5_bipolar ? CubeIO_ChannelBipolar : CubeIO_ChannelUnipolar, p->ch5_min, p->ch5_max);
-        CubeIO_SetRange(CubeIO_PWM, 5, p->ch6_bipolar ? CubeIO_ChannelBipolar : CubeIO_ChannelUnipolar, p->ch6_min, p->ch6_max);
-        CubeIO_SetRange(CubeIO_PWM, 6, p->ch7_bipolar ? CubeIO_ChannelBipolar : CubeIO_ChannelUnipolar, p->ch7_min, p->ch7_max);
-        CubeIO_SetRange(CubeIO_PWM, 7, p->ch8_bipolar ? CubeIO_ChannelBipolar : CubeIO_ChannelUnipolar, p->ch8_min, p->ch8_max);
-        state->inited = TRUE;
     }
 
     pwm[0] = i->ch1;

@@ -5,9 +5,9 @@ void cube_io_gpio_exec(const cube_io_gpio_inputs_t *i, cube_io_gpio_outputs_t *o
 {
     if(p->channel < 1 || p->channel > 6) return;
 
-    if(i->optional_in_input_bool_connected) {
+    if(i->optional_inputs_flags.input_bool) {
         GPIO_SetState(&gpio_fmu_pwm[p->channel - 1], i->input_bool);
-    } if (i->optional_in_input_float_connected) {
+    } if (i->optional_inputs_flags.input_float) {
         GPIO_SetState(&gpio_fmu_pwm[p->channel - 1],
                       i->input_float > 0.5 ? 1 : 0);
     } else {
