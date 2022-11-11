@@ -4,6 +4,8 @@
 #include <errno.h>
 #include <string.h>
 
+#include "bit.h"
+#include "const.h"
 #include "core.h"
 #include "log.h"
 #include "os.h"
@@ -71,8 +73,8 @@ typedef struct {
 } icm20649_interface_t;
 
 typedef struct {
-    SemaphoreHandle_t drdy_semaphore;
-    SemaphoreHandle_t measrdy_semaphore;
+    SemaphoreHandle_t drdy_sem;
+    SemaphoreHandle_t measrdy_sem;
 } icm20649_sync_t;
 
 typedef struct {
@@ -93,6 +95,7 @@ typedef struct {
     icm20649_interface_t interface;
     icm20649_sync_t sync;
     icm20649_fifo_buffer_t fifo_buffer;
+    icm20649_fifo_param_t fifo_param;
     icm20649_meas_buffer_t meas_buffer;
     icm20649_meas_t meas;
     icm20649_meas_param_t meas_param;
@@ -103,7 +106,7 @@ typedef struct {
 
 int icm20649_start(spi_t *spi, gpio_t *cs, exti_t *drdy, uint32_t period,
                    uint32_t thread_priority);
-void icm20649_get_meas_block(void *ptr);
-void icm20649_get_meas_non_block(void *ptr);
+void icm20649_get_meas_block(icm20649_t *dev, void *ptr);
+void icm20649_get_meas_non_block(icm20649_t *dev, void *ptr);
 
 #endif  // ICM20649_H

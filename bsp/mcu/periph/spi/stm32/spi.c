@@ -30,6 +30,7 @@ int spi_init(spi_t *cfg) {
     if (cfg->dma_tx.init.Instance != NULL &&
         cfg->dma_rx.init.Instance != NULL) {
         cfg->dma_tx.init.Parent = &cfg->init;
+        cfg->dma_rx.init.Parent = &cfg->init;
         if ((rv = dma_init(&cfg->dma_tx, spi_dma_tx_handler, cfg)) != 0) {
             return rv;
         }
@@ -42,7 +43,10 @@ int spi_init(spi_t *cfg) {
     if ((rv = HAL_SPI_Init(&cfg->init))) {
         return rv;
     }
-    if ((rv = irq_enable(cfg->p.id, cfg->irq_priority, spi_it_handler, cfg))) {
+    if ((rv = irq_init(cfg->p.id, cfg->irq_priority, spi_it_handler, cfg))) {
+        return rv;
+    }
+    if ((rv = irq_enable(cfg->p.id))) {
         return rv;
     }
 
@@ -58,13 +62,13 @@ int spi_init(spi_t *cfg) {
     return rv;
 }
 
-static int spi_chip_select(spi_t *cfg, gpio_t *cs) {
+int spi_chip_select(spi_t *cfg, gpio_t *cs) {
     xSemaphoreTake(cfg->p.cs_mutex, portMAX_DELAY);
     gpio_reset(cs);
     return 0;
 }
 
-static int spi_chip_deselect(spi_t *cfg, gpio_t *cs) {
+int spi_chip_deselect(spi_t *cfg, gpio_t *cs) {
     gpio_set(cs);
     xSemaphoreGive(cfg->p.cs_mutex);
     return 0;
@@ -177,13 +181,6 @@ void spi_dma_tx_handler(void *area) {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
     HAL_DMA_IRQHandler(&cfg->dma_tx.init);
-
-    if (cfg->init.State == HAL_SPI_STATE_READY) {
-        xSemaphoreGiveFromISR(cfg->p.sem, &xHigherPriorityTaskWoken);
-        if (xHigherPriorityTaskWoken == pdTRUE) {
-            portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-        }
-    }
 }
 
 void spi_dma_rx_handler(void *area) {
@@ -191,13 +188,6 @@ void spi_dma_rx_handler(void *area) {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
     HAL_DMA_IRQHandler(&cfg->dma_rx.init);
-
-    if (cfg->init.State == HAL_SPI_STATE_READY) {
-        xSemaphoreGiveFromISR(cfg->p.sem, &xHigherPriorityTaskWoken);
-        if (xHigherPriorityTaskWoken == pdTRUE) {
-            portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-        }
-    }
 }
 
 static int spi_id_init(spi_t *cfg) {

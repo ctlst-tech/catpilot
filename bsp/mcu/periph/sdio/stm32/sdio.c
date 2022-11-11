@@ -40,7 +40,10 @@ int sdio_init(sdio_t *cfg) {
     if ((rv = HAL_SD_ConfigWideBusOperation(&cfg->init, SDMMC_BUS_WIDE_4B))) {
         return rv;
     }
-    if ((rv = irq_enable(cfg->p.id, cfg->irq_priority, sdio_handler, cfg))) {
+    if ((rv = irq_init(cfg->p.id, cfg->irq_priority, sdio_handler, cfg))) {
+        return rv;
+    }
+    if ((rv = irq_enable(cfg->p.id))) {
         return rv;
     }
     if (cfg->p.mutex == NULL) {

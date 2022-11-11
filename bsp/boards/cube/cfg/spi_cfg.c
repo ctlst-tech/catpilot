@@ -55,7 +55,7 @@ spi_t spi1 = {
     .mosi = &gpio_spi1_mosi,
     .miso = &gpio_spi1_miso,
     .sck = &gpio_spi1_sck,
-    .timeout = 10,
+    .timeout = 20,
     .irq_priority = 6,
     .p = {0}
 };

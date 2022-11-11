@@ -3,6 +3,7 @@
 #include "hal.h"
 #include "periph.h"
 #include "log.h"
+#include "icm20649.h"
 
 uint32_t rcc_system_clock = 400000000;
 
@@ -98,6 +99,14 @@ int board_gpio_init(void) {
     if (gpio_init(&gpio_fmu_pwm[5])) {
         return -1;
     }
+    if(gpio_init(&gpio_spi1_cs1)) {
+        return -1;
+    }
+    if(gpio_init(&gpio_spi1_cs2)) {
+        return -1;
+    }
+    gpio_set(&gpio_spi1_cs1);
+    gpio_set(&gpio_spi1_cs2);
 
     gpio_reset(&gpio_fmu_pwm[0]);
     gpio_reset(&gpio_fmu_pwm[1]);
@@ -142,14 +151,15 @@ int board_periph_init(void) {
         LOG_ERROR("SPI1", "Initialization failed");
         return -1;
     }
-    if (spi_init(&spi4)) {
-        LOG_ERROR("SPI4", "Initialization failed");
-        return -1;
-    }
+    // if (spi_init(&spi4)) {
+    //     LOG_ERROR("SPI4", "Initialization failed");
+    //     return -1;
+    // }
 
     return 0;
 }
 
 int board_services_start(void) {
+    icm20649_start(&spi1, &gpio_spi1_cs1, &exti_spi1_drdy1, 2, 10);
     return 0;
 }

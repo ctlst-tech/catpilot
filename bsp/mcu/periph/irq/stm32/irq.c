@@ -7,7 +7,7 @@
 
 static irq_t irq[MAX_IRQ];
 
-int irq_enable(IRQn_Type id, int priority, void (*handler)(void *),
+int irq_init(IRQn_Type id, int priority, void (*handler)(void *),
                void *area) {
     if (handler != NULL && area == NULL) {
         return EINVAL;
@@ -17,7 +17,15 @@ int irq_enable(IRQn_Type id, int priority, void (*handler)(void *),
     }
     irq[id].handler = handler;
     irq[id].area = area;
-    HAL_NVIC_SetPriority(id, priority, 0);
+    irq[id].priority = priority;
+    return 0;
+}
+
+int irq_enable(IRQn_Type id) {
+    if (irq[id].handler == NULL) {
+        return EINVAL;
+    }
+    HAL_NVIC_SetPriority(id, irq[id].priority, 0);
     HAL_NVIC_EnableIRQ(id);
     return 0;
 }

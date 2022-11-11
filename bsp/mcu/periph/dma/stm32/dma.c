@@ -15,7 +15,10 @@ int dma_init(dma_t *cfg, void (*dma_handler)(void *area), void *area) {
     if ((rv = dma_clock_init(cfg))) {
         return rv;
     }
-    if ((rv = irq_enable(cfg->p.id, cfg->irq_priority, dma_handler, area))) {
+    if ((rv = irq_init(cfg->p.id, cfg->irq_priority, dma_handler, area))) {
+        return rv;
+    }
+    if ((rv = irq_enable(cfg->p.id))) {
         return rv;
     }
 

@@ -36,6 +36,8 @@ typedef struct {
 } spi_t;
 
 int spi_init(spi_t *cfg);
+int spi_chip_select(spi_t *cfg, gpio_t *cs);
+int spi_chip_deselect(spi_t *cfg, gpio_t *cs);
 int spi_transmit(spi_t *cfg, uint8_t *pdata, uint16_t length);
 int spi_receive(spi_t *cfg, uint8_t *pdata, uint16_t length);
 int spi_transmit_receive(spi_t *cfg, uint8_t *tdata, uint8_t *rdata,

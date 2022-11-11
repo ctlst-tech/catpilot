@@ -41,7 +41,10 @@ int usart_init(usart_t *cfg) {
     } else {
         cfg->p.use_dma = false;
     }
-    if ((rv = irq_enable(cfg->p.id, cfg->irq_priority, usart_handler, cfg))) {
+    if ((rv = irq_init(cfg->p.id, cfg->irq_priority, usart_handler, cfg))) {
+        return rv;
+    }
+    if ((rv = irq_enable(cfg->p.id))) {
         return rv;
     }
     if ((rv = HAL_UART_Init(&cfg->init)) != HAL_OK) {

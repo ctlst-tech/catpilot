@@ -17,7 +17,10 @@ int adc_init(adc_t *cfg) {
     if ((rv = adc_clock_init(cfg))) {
         return rv;
     }
-    if ((rv = irq_enable(cfg->p.id, cfg->irq_priority, adc_handler, cfg))) {
+    if ((rv = irq_init(cfg->p.id, cfg->irq_priority, adc_handler, cfg))) {
+        return rv;
+    }
+    if ((rv = irq_enable(cfg->p.id))) {
         return rv;
     }
     if ((rv = dma_init(&cfg->dma, adc_dma_handler, cfg))) {
@@ -40,7 +43,7 @@ int adc_init(adc_t *cfg) {
             }
         }
     }
-
+    
     rv = HAL_ADC_Start_DMA(&cfg->init, (uint32_t *)cfg->p.raw, length);
 
     return rv;

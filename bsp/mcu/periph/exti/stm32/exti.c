@@ -19,9 +19,10 @@ int exti_init(exti_t *cfg, void (*handler)(void *area)) {
     if (rv != HAL_OK) {
         return rv;
     }
-    if ((rv = irq_enable(cfg->p.id, cfg->irq_priority, handler, cfg))) {
+    if ((rv = irq_init(cfg->p.id, cfg->irq_priority, handler, cfg))) {
         return rv;
     }
+    irq_disable(cfg->p.id);
 
     return rv;
 }

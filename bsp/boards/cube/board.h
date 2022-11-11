@@ -60,6 +60,8 @@ extern gpio_t gpio_usart3_tx;
 extern gpio_t gpio_usart3_rx;
 extern gpio_t gpio_fmu_pwm[6];
 
+extern exti_t exti_spi1_drdy1;
+
 extern usart_t usart2;
 extern usart_t usart3;
 extern usart_t usart4;

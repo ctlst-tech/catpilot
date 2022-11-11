@@ -16,7 +16,10 @@ int tim_init(tim_t *cfg) {
     if ((rv = HAL_TIM_Base_Init(&cfg->init))) {
         return rv;
     }
-    if ((rv = irq_enable(cfg->p.id, cfg->irq_priority, tim_handler, cfg))) {
+    if ((rv = irq_init(cfg->p.id, cfg->irq_priority, tim_handler, cfg))) {
+        return rv;
+    }
+    if ((rv = irq_enable(cfg->p.id))) {
         return rv;
     }
     return rv;
