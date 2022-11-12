@@ -1,6 +1,6 @@
 #include "irq.h"
-#define MAX_IRQ 149
 
+#define MAX_IRQ 149
 #define IRQ_Handler(id) (irq[id].handler != NULL ? \
                         irq[id].handler(irq[id].area) : \
                         irq_default_handler());

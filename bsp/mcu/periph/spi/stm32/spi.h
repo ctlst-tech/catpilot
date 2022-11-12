@@ -5,8 +5,8 @@
 
 #include "core.h"
 #include "dma.h"
-#include "hal.h"
 #include "gpio.h"
+#include "hal.h"
 
 enum spi_state_t {
     SPI_FREE,

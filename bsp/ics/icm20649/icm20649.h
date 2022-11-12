@@ -54,8 +54,8 @@ typedef struct {
 } icm20649_meas_t;
 
 typedef struct {
-    double temp;
     icm20649_meas_t meas[ICM20649_FIFO_SAMPLES];
+    double temp;
 } icm20649_meas_buffer_t;
 
 typedef struct {

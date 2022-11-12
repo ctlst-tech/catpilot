@@ -1,8 +1,8 @@
 #include "core.h"
 #include "hal.h"
 #include "gpio.h"
-#include "board.h"
 #include "exti.h"
+#include "board.h"
 
 // PWR
 gpio_t gpio_brick1_valid = {GPIOB, {GPIO_PIN_5,  GPIO_MODE_INPUT, GPIO_PULLUP, GPIO_SPEED_HIGH, GPIO_AF0_MCO}};
