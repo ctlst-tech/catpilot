@@ -6,9 +6,10 @@ extern "C" {
 #endif
 
 #include <errno.h>
-#include <stdio.h>
+#include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
 
 #define NODE_MAX_NAME_LENGTH 64
 #define NODE_MODE_NEAREST_PATH 0

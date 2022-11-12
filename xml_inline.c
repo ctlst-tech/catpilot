@@ -1,3 +1,6 @@
+#include <errno.h>
+#include <stdio.h>
+
 #include "node.h"
 
 typedef struct {
@@ -51,8 +54,7 @@ static int xml_inline_open_callback(FILE *file, const char *path) {
     return 0;
 }
 
-static ssize_t xml_inline_read_callback(struct file *file, char *buf,
-                                        size_t count) {
+static ssize_t xml_inline_read_callback(FILE *file, char *buf, size_t count) {
     xml_inline_ocb_t *ocb = (xml_inline_ocb_t *)file->private_data;
 
     size_t bytes_left = ocb->file_len - ocb->offset;
@@ -68,7 +70,7 @@ static ssize_t xml_inline_read_callback(struct file *file, char *buf,
     return br;
 }
 
-static int xml_inline_close_callback(struct file *file) {
+static int xml_inline_close_callback(FILE *file) {
     xml_inline_ocb_t *ocb = (xml_inline_ocb_t *)file->private_data;
     // TODO
     return 0;

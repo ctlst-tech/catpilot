@@ -912,3 +912,36 @@ int fctprintf(void (*out)(char character, void* arg), void* arg, const char* for
   va_end(va);
   return ret;
 }
+
+///////////////////////////////////////////////////////////////////////////////
+
+int fputc_(int c, struct file *stream) {
+    return stream->node->f_op.write(stream, (const char *)&c, 1);
+}
+
+int fprintf_(struct file *stream, const char *format, ...) {
+    va_list va;
+    char buf[128];
+    int16_t len, i;
+    va_start(va, format);
+    len = vsnprintf_(buf, sizeof(buf), format, va);
+    if (len > 0) {
+        for (i = 0; i < len; i++) {
+            fputc_(buf[i], stream);
+        }
+    }
+    va_end(va);
+    return len;
+}
+
+int vfprintf_(struct file *stream, const char *format, va_list ap) {
+  char buf[128];
+  int16_t len, i;
+  len = vsnprintf_(buf, sizeof(buf), format, ap);
+  if (len > 0) {
+    for (i = 0; i < len; i++) {
+      fputc_(buf[i], stream);
+    }
+  }
+  return len;
+}

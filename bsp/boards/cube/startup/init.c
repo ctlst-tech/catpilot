@@ -77,7 +77,6 @@ int board_gpio_init(void) {
     if (gpio_init(&gpio_sensors_en)) {
         return -1;
     }
-
     gpio_reset(&gpio_periph_en);
     gpio_set(&gpio_sensors_en);
 
@@ -175,6 +174,38 @@ int board_periph_init(void) {
         LOG_ERROR("SPI4", "Initialization failed");
         return -1;
     }
+
+    return 0;
+}
+
+int board_fs_init(void) {
+    struct file_operations f_op;
+    int fd;
+
+    f_op.open = usart_open;
+    f_op.write = NULL;
+    f_op.read = usart_read;
+    f_op.close = NULL;
+    f_op.dev = &usart3;
+    node_mount("/dev/stdin", &f_op);
+
+    f_op.open = usart_open;
+    f_op.write = usart_write;
+    f_op.read = NULL;
+    f_op.close = NULL;
+    f_op.dev = &usart3;
+    node_mount("/dev/stdout", &f_op);
+
+    f_op.open = usart_open;
+    f_op.write = usart_write;
+    f_op.read = NULL;
+    f_op.close = NULL;
+    f_op.dev = &usart3;
+    node_mount("/dev/stderr", &f_op);
+
+    fd = open("/dev/stdin", O_RDONLY);
+    fd = open("/dev/stdout", O_WRONLY);
+    fd = open("/dev/stderr", O_WRONLY);
 
     return 0;
 }

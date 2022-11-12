@@ -1,5 +1,7 @@
 #include "node.h"
 
+#include <stdio.h>
+
 static struct node root_node = {
     .name = "",
     .f_op = NULL,
@@ -72,10 +74,11 @@ struct node *node_find(const char *path, int mode) {
     size_t dir_name_length;
     const char *dir_name;
 
-    while ((dir_name = node_get_token(path, &dir_name_length, &dir_context)) != NULL) {
+    while ((dir_name = node_get_token(path, &dir_name_length, &dir_context)) !=
+           NULL) {
         node = node_find_sibling(node->child, dir_name, dir_name_length);
         if (node == NULL) {
-            if(mode == NODE_MODE_NEAREST_PATH) {
+            if (mode == NODE_MODE_NEAREST_PATH) {
                 node = prev_node;
             }
             break;
@@ -157,7 +160,6 @@ static struct node *node_add_sibling(struct node *first_sibling_node,
                                      struct node *new_node) {
     struct node *n;
     for (n = first_sibling_node; n->sibling != NULL; n = n->sibling);
-
     n->sibling = new_node;
     new_node->parent = n->parent;
     return new_node;

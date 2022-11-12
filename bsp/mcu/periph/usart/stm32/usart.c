@@ -10,7 +10,7 @@ int usart_init(usart_t *cfg) {
     int rv = 0;
 
     if (cfg->p.periph_init) {
-        return EEXIST;
+        return 0;
     }
 
     if ((rv = usart_id_init(cfg))) {
@@ -249,8 +249,7 @@ int usart_open(FILE *file, const char *path) {
     errno = 0;
 
     if (cfg->p.tasks_init) {
-        errno = EEXIST;
-        return -1;
+        return 0;
     }
 
     if (cfg->buf_size <= 0) {

@@ -35,6 +35,7 @@
 #include <stdarg.h>
 #include <stddef.h>
 
+#include "node.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -107,6 +108,27 @@ int vprintf_(const char* format, va_list va);
  * \return The number of characters that are sent to the output function, not counting the terminating null character
  */
 int fctprintf(void (*out)(char character, void* arg), void* arg, const char* format, ...);
+
+
+/**
+ * fprintf implementation
+ * \param stream File pointer
+ * \param format A string that specifies the format of the output
+ * \param va A value identifying a variable arguments list
+ * \return The number of characters that are sent to the output function
+ */
+#define fprintf fprintf_
+int fprintf_(struct file *fp, const char *format, ...);
+
+/**
+ * vfprintf implementation
+ * \param stream File pointer
+ * \param format A string that specifies the format of the output
+ * \param va A value identifying a variable arguments list
+ * \return The number of characters that are sent to the output function
+ */
+#define vfprintf vfprintf_
+int vfprintf_(struct file *stream, const char *format, va_list ap);
 
 
 #ifdef __cplusplus
