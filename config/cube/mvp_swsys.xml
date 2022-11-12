@@ -57,7 +57,19 @@
         </connect>
     </task>
 
-    <task type="flow" name="telemetric" config="mvp_flow_telemetric.xml" priority="2" clk_method="timer" clk_period="100">
+    <bridge name="nav" priority="2" clk_method="timer" clk_period="100" to="gcu/nav">
+        <source alias="wx, wy, wz, ax, ay, az">control/$alias</source>
+        <source alias="roll, pitch, yaw">control/$alias</source>
+    </bridge>
+
+
+    <bridge name="man_cont" priority="2" clk_method="timer" clk_period="100" to="gcu/cont">
+        <source alias="manc_lat, manc_lon, manc_thr, manc_rud">control/$alias</source>
+        <source alias="manc_pids_knob">control/manc_pids_tune</source>
+        <source alias="manc_arm">control/arm</source>
+    </bridge>
+
+    <task type="flow" name="telemetric" config="mvp_flow_telemetric.xml" priority="1" clk_method="timer" clk_period="100">
         <connect>
             <in alias="wx">control/wx</in>
             <in alias="wy">control/wy</in>
@@ -78,24 +90,6 @@
 
             <in alias="manc_arm">control/arm</in>
 
-
-            <out alias="roll">gcu/nav/roll</out>
-            <out alias="pitch">gcu/nav/pitch</out>
-            <out alias="yaw">gcu/nav/yaw</out>
-
-            <out alias="manc_lat">gcu/cont/manc_lat</out>
-            <out alias="manc_lon">gcu/cont/manc_lon</out>
-            <out alias="manc_thr">gcu/cont/manc_thr</out>
-            <out alias="manc_rud">gcu/cont/manc_rud</out>
-            <out alias="manc_arm">gcu/cont/manc_arm</out>
-            <out alias="manc_pids_tune">gcu/cont/manc_pids_tune</out>
-
-            <out alias="ax">gcu/nav/ax</out>
-            <out alias="ay">gcu/nav/ay</out>
-            <out alias="az">gcu/nav/az</out>
-            <out alias="wx">gcu/nav/wx</out>
-            <out alias="wy">gcu/nav/wy</out>
-            <out alias="wz">gcu/nav/wz</out>
             <out alias="sine">gcu/hk/sine</out>
         </connect>
     </task>
