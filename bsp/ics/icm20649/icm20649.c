@@ -1,6 +1,6 @@
 #include "icm20649.h"
-
 #include "icm20649_reg.h"
+
 
 // Private functions
 static void icm20649_thread(void *dev_ptr);

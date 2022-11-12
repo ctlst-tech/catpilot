@@ -1,6 +1,6 @@
 #include "core.h"
-#include "hal.h"
 #include "board.h"
+#include "hal.h"
 
 // TELEM1
 usart_t usart2 = {

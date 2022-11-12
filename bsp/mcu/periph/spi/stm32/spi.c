@@ -1,5 +1,5 @@
-#include "spi.h"
 
+#include "spi.h"
 static int spi_id_init(spi_t *cfg);
 static int spi_clock_init(spi_t *cfg);
 void spi_dma_tx_handler(void *area);
