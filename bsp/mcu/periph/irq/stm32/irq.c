@@ -31,8 +31,6 @@ int irq_enable(IRQn_Type id) {
 }
 
 int irq_disable(IRQn_Type id) {
-    irq[id].handler = NULL;
-    irq[id].area = NULL;
     HAL_NVIC_DisableIRQ(id);
     return 0;
 }
@@ -209,10 +207,14 @@ void UART8_IRQHandler(void) {
     IRQ_Handler(UART8_IRQn);
 }
 
+void EXTI4_IRQHandler(void) {
+    IRQ_Handler(EXTI4_IRQn);
+}
+
 void EXTI9_5_IRQHandler(void) {
     IRQ_Handler(EXTI9_5_IRQn);
 }
 
-void EXTI4_IRQHandler(void) {
-    IRQ_Handler(EXTI4_IRQn);
+void EXTI15_10_IRQHandler(void) {
+    IRQ_Handler(EXTI15_10_IRQn);
 }

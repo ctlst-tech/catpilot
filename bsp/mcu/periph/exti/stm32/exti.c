@@ -2,7 +2,7 @@
 
 static int exti_get_id(exti_t *cfg);
 
-int exti_init(exti_t *cfg, void (*handler)(void *area)) {
+int exti_init(exti_t *cfg, void (*handler)(void *area), void *area) {
     int rv = 0;
 
     if (cfg == NULL) {
@@ -19,7 +19,7 @@ int exti_init(exti_t *cfg, void (*handler)(void *area)) {
     if (rv != HAL_OK) {
         return rv;
     }
-    if ((rv = irq_init(cfg->p.id, cfg->irq_priority, handler, cfg))) {
+    if ((rv = irq_init(cfg->p.id, cfg->irq_priority, handler, area))) {
         return rv;
     }
     irq_disable(cfg->p.id);

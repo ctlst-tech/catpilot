@@ -5,15 +5,6 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-static bool enable_;
-
-static char stdout_string[8192];
-static int stdout_len;
-
-void log_enable(bool enable) {
-    enable_ = enable;
-}
-
 static char *msg_types[4] = {
     "INFO",
     "WARN",
@@ -59,12 +50,6 @@ void log_module(uint8_t msg_type, const char *module, const char *s, ...) {
 
     xSemaphoreTake(log_mutex, portMAX_DELAY);
 
-    if(enable_) {
-        printf("%s\n", string);
-    } else {
-        strcpy(stdout_string + stdout_len, string);
-        stdout_len += strlen(string);
-    }
-
+    printf("%s\n", string);
     xSemaphoreGive(log_mutex);
 }

@@ -56,7 +56,6 @@ typedef struct {
 typedef struct {
     icm20649_meas_t meas[ICM20649_FIFO_SAMPLES];
     double temp;
-    uint32_t samples;
 } icm20649_meas_buffer_t;
 
 typedef struct {
@@ -91,7 +90,7 @@ enum icm20649_state_t {
 };
 
 typedef struct {
-    const char name[16];
+    char *name;
     icm20649_interface_t interface;
     icm20649_sync_t sync;
     icm20649_fifo_buffer_t fifo_buffer;

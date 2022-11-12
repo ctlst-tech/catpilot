@@ -22,6 +22,6 @@ typedef struct {
     exti_private_t p;
 } exti_t;
 
-int exti_init(exti_t *cfg, void (*handler)(void *area));
+int exti_init(exti_t *cfg, void (*handler)(void *area), void *area);
 
 #endif  // EXTI_H

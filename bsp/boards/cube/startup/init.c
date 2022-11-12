@@ -78,8 +78,8 @@ int board_gpio_init(void) {
         return -1;
     }
 
-    gpio_set(&gpio_periph_en);
-    gpio_reset(&gpio_sensors_en);
+    gpio_reset(&gpio_periph_en);
+    gpio_set(&gpio_sensors_en);
 
     if (gpio_init(&gpio_fmu_pwm[0])) {
         return -1;
@@ -105,8 +105,28 @@ int board_gpio_init(void) {
     if(gpio_init(&gpio_spi1_cs2)) {
         return -1;
     }
+    if(gpio_init(&gpio_spi2_cs1)) {
+        return -1;
+    }
+    if(gpio_init(&gpio_spi4_cs1)) {
+        return -1;
+    }
+    if(gpio_init(&gpio_spi4_cs2)) {
+        return -1;
+    }
+    if(gpio_init(&gpio_spi4_cs3)) {
+        return -1;
+    }
+    if(gpio_init(&gpio_spi4_cs4)) {
+        return -1;
+    }
     gpio_set(&gpio_spi1_cs1);
     gpio_set(&gpio_spi1_cs2);
+    gpio_set(&gpio_spi2_cs1);
+    gpio_set(&gpio_spi4_cs1);
+    gpio_set(&gpio_spi4_cs2);
+    gpio_set(&gpio_spi4_cs3);
+    gpio_set(&gpio_spi4_cs4);
 
     gpio_reset(&gpio_fmu_pwm[0]);
     gpio_reset(&gpio_fmu_pwm[1]);
@@ -151,10 +171,10 @@ int board_periph_init(void) {
         LOG_ERROR("SPI1", "Initialization failed");
         return -1;
     }
-    // if (spi_init(&spi4)) {
-    //     LOG_ERROR("SPI4", "Initialization failed");
-    //     return -1;
-    // }
+    if (spi_init(&spi4)) {
+        LOG_ERROR("SPI4", "Initialization failed");
+        return -1;
+    }
 
     return 0;
 }

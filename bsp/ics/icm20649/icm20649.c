@@ -21,6 +21,7 @@ static void icm20649_fifo_reset(icm20649_t *dev);
 static void icm20649_temp_process(icm20649_t *dev);
 static void icm20649_gyro_process(icm20649_t *dev);
 static void icm20649_accel_process(icm20649_t *dev);
+static void icm20649_stat(icm20649_t *dev);
 
 void icm20649_drdy_handler(void *area);
 
@@ -37,20 +38,18 @@ int icm20649_start(spi_t *spi, gpio_t *cs, exti_t *drdy, uint32_t period,
         return -1;
     }
 
+    strcpy(dev->name, "ICM20649");
     dev->interface.spi = spi;
     dev->interface.cs = cs;
 
     if (drdy != NULL) {
         dev->interface.drdy = drdy;
-        if(exti_init(dev->interface.drdy, icm20649_drdy_handler)) {
+        if (exti_init(dev->interface.drdy, icm20649_drdy_handler, dev)) {
             return -1;
         }
         if (dev->sync.drdy_sem == NULL) {
             dev->sync.drdy_sem = xSemaphoreCreateBinary();
         }
-        LOG_DEBUG(dev->name, "DRDY mode");
-    } else {
-        LOG_DEBUG(dev->name, "Not DRDY mode");
     }
 
     if (period < 2) {
@@ -69,6 +68,8 @@ int icm20649_start(spi_t *spi, gpio_t *cs, exti_t *drdy, uint32_t period,
         LOG_ERROR(dev->name, "Thread start error");
         return -1;
     }
+
+    LOG_DEBUG(dev->name, "Start service, period = %u ms", period);
 
     xSemaphoreTake(dev->sync.measrdy_sem, 0);
     dev->state = ICM20649_RESET;
@@ -91,8 +92,10 @@ void icm20649_thread(void *dev_ptr) {
 void icm20649_fsm(icm20649_t *dev) {
     switch (dev->state) {
         case ICM20649_RESET:
+            vTaskDelay(100);
             icm20649_write_reg(dev, BANK_0, PWR_MGMT_1, DEVICE_RESET);
             dev->state = ICM20649_RESET_WAIT;
+            vTaskDelay(100);
             break;
 
         case ICM20649_RESET_WAIT:
@@ -101,16 +104,14 @@ void icm20649_fsm(icm20649_t *dev) {
                 icm20649_write_reg(dev, BANK_0, PWR_MGMT_1, CLKSEL_0);
                 icm20649_write_reg(dev, BANK_0, USER_CTRL,
                                    I2C_IF_DIS | SRAM_RST);
-                vTaskDelay(100);
                 dev->state = ICM20649_CONF;
-                LOG_DEBUG(dev->name, "Device available");
             } else {
-                LOG_ERROR(dev->name,
-                          "Wrong default registers values after reset");
                 dev->state = ICM20649_RESET;
                 dev->attempt++;
                 if (dev->attempt > 5) {
                     dev->state = ICM20649_FAIL;
+                    LOG_ERROR(dev->name,
+                              "Wrong default registers values after reset");
                     LOG_ERROR(dev->name, "Fatal error");
                     dev->attempt = 0;
                 }
@@ -120,9 +121,7 @@ void icm20649_fsm(icm20649_t *dev) {
         case ICM20649_CONF:
             if (icm20649_configure(dev)) {
                 icm20649_fifo_reset(dev);
-                // icm20649_fifo_count();
-                // ICM20649_fifo_read();
-                LOG_DEBUG(dev->name, "Device configured");
+                LOG_INFO(dev->name, "Initialization successful");
                 dev->state = ICM20649_FIFO_READ;
             } else {
                 LOG_ERROR(dev->name, "Failed configuration, retrying...");
@@ -143,6 +142,12 @@ void icm20649_fsm(icm20649_t *dev) {
             icm20649_temp_process(dev);
             icm20649_accel_process(dev);
             icm20649_gyro_process(dev);
+            static int count = 0;
+            count++;
+            if (count > 500) {
+                icm20649_stat(dev);
+                count = 0;
+            }
             if (dev->interface.drdy != NULL) {
                 irq_enable(dev->interface.drdy->p.id);
             }
@@ -299,6 +304,7 @@ static int icm20649_configure(icm20649_t *dev) {
 
     // Enable EXTI IRQ for DataReady pin
     if (dev->interface.drdy != NULL) {
+        irq_enable(dev->interface.drdy->p.id);
     }
 
     return rv;
@@ -341,27 +347,31 @@ static void icm20649_gyro_configure(icm20649_t *dev) {
 }
 
 static int icm20649_fifo_read(icm20649_t *dev, uint16_t samples) {
-    dev->fifo_buffer.CMD = FIFO_COUNTH | READ;
-    icm20649_exchange(dev, BANK_0, (uint8_t *)&dev->fifo_buffer,
-                      (uint8_t *)&dev->fifo_buffer, 3);
+    if (samples > 1) {
+        dev->fifo_buffer.CMD = FIFO_COUNTH | READ;
+        icm20649_exchange(dev, BANK_0, (uint8_t *)&dev->fifo_buffer,
+                          (uint8_t *)&dev->fifo_buffer, 3);
 
-    dev->fifo_param.bytes = MIN(
-        msblsb16(dev->fifo_buffer.COUNTH, dev->fifo_buffer.COUNTL), samples);
-    dev->fifo_param.samples = dev->fifo_param.bytes / sizeof(icm20649_fifo_t);
+        dev->fifo_param.bytes =
+            MIN(msblsb16(dev->fifo_buffer.COUNTH, dev->fifo_buffer.COUNTL),
+                samples);
+        dev->fifo_param.samples =
+            dev->fifo_param.bytes / sizeof(icm20649_fifo_t);
 
-    dev->fifo_buffer.CMD = FIFO_COUNTH | READ;
-    icm20649_exchange(dev, BANK_0, (uint8_t *)&dev->fifo_buffer,
-                      (uint8_t *)&dev->fifo_buffer, dev->fifo_param.bytes + 3);
+        dev->fifo_buffer.CMD = FIFO_COUNTH | READ;
+        icm20649_exchange(dev, BANK_0, (uint8_t *)&dev->fifo_buffer,
+                          (uint8_t *)&dev->fifo_buffer,
+                          dev->fifo_param.bytes + 3);
+    } else {
+        dev->fifo_buffer.COUNTL = ACCEL_XOUT_H | READ;
+        dev->fifo_param.samples = 1;
+        dev->fifo_param.bytes = sizeof(icm20649_fifo_t);
+        icm20649_exchange(dev, BANK_0, (uint8_t *)&dev->fifo_buffer.COUNTL,
+                          (uint8_t *)&dev->fifo_buffer.COUNTL,
+                          dev->fifo_param.bytes + 1);
+    }
+
     return 0;
-}
-
-static void icm20649_fifo_count(icm20649_t *dev) {
-    dev->fifo_buffer.CMD = FIFO_COUNTH | READ;
-    icm20649_exchange(dev, BANK_0, (uint8_t *)&dev->fifo_buffer,
-                      (uint8_t *)&dev->fifo_buffer, 3);
-    dev->fifo_param.bytes =
-        msblsb16(dev->fifo_buffer.COUNTH, dev->fifo_buffer.COUNTL);
-    dev->fifo_param.samples = dev->fifo_param.bytes / sizeof(icm20649_fifo_t);
 }
 
 static void icm20649_fifo_reset(icm20649_t *dev) {
@@ -415,10 +425,11 @@ static void icm20649_temp_process(icm20649_t *dev) {
     icm20649_exchange(dev, BANK_0, data, data, sizeof(data));
 
     int16_t temp_raw = msblsb16(data[1], data[2]);
-    dev->meas_buffer.temp = temp_raw / TEMP_SENS + TEMP_OFFSET;
+    dev->meas_buffer.temp = (temp_raw - TEMP_SENS * TEMP_OFFSET) / TEMP_SENS + TEMP_OFFSET;
 }
 
 static void icm20649_stat(icm20649_t *dev) {
+    printf("\n");
     LOG_DEBUG(dev->name, "Statistics:");
     LOG_DEBUG(dev->name, "accel_x = %.3f [m/s2]",
               dev->meas_buffer.meas[0].accel_x);
@@ -433,5 +444,5 @@ static void icm20649_stat(icm20649_t *dev) {
     LOG_DEBUG(dev->name, "gyro_z  = %.3f [deg/s]",
               dev->meas_buffer.meas[0].gyro_z);
     LOG_DEBUG(dev->name, "temp    = %.3f [C]", dev->meas_buffer.temp);
-    LOG_DEBUG(dev->name, "N       = %lu [samples]", dev->meas_buffer.samples);
+    LOG_DEBUG(dev->name, "N       = %lu [samples]", dev->fifo_param.samples);
 }
