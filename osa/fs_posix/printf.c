@@ -915,23 +915,39 @@ int fctprintf(void (*out)(char character, void* arg), void* arg, const char* for
 
 ///////////////////////////////////////////////////////////////////////////////
 
+#include <stdio.h>
+
 int fputc_(int c, struct file *stream) {
-    return stream->node->f_op.write(stream, (const char *)&c, 1);
+  return stream->node->f_op.write(stream, (const char *)&c, 1);
+}
+
+int fgetc_(struct file *stream) {
+  int c;
+  stream->node->f_op.read(stream, (char *)&c, 1);
+  return c;
+}
+
+void _putchar(char character) {
+  fputc_(character, stdout);
+}
+
+int _getchar(void) {
+  return fgetc_(stdin);
 }
 
 int fprintf_(struct file *stream, const char *format, ...) {
-    va_list va;
-    char buf[128];
-    int16_t len, i;
-    va_start(va, format);
-    len = vsnprintf_(buf, sizeof(buf), format, va);
-    if (len > 0) {
-        for (i = 0; i < len; i++) {
-            fputc_(buf[i], stream);
-        }
+  va_list va;
+  char buf[128];
+  int16_t len, i;
+  va_start(va, format);
+  len = vsnprintf_(buf, sizeof(buf), format, va);
+  if (len > 0) {
+    for (i = 0; i < len; i++) {
+      fputc_(buf[i], stream);
     }
-    va_end(va);
-    return len;
+  }
+  va_end(va);
+  return len;
 }
 
 int vfprintf_(struct file *stream, const char *format, va_list ap) {

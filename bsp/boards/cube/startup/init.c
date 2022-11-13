@@ -1,9 +1,9 @@
 #include "board.h"
 #include "core.h"
 #include "hal.h"
-#include "periph.h"
-#include "log.h"
 #include "icm20649.h"
+#include "log.h"
+#include "periph.h"
 
 uint32_t rcc_system_clock = 400000000;
 
@@ -98,25 +98,25 @@ int board_gpio_init(void) {
     if (gpio_init(&gpio_fmu_pwm[5])) {
         return -1;
     }
-    if(gpio_init(&gpio_spi1_cs1)) {
+    if (gpio_init(&gpio_spi1_cs1)) {
         return -1;
     }
-    if(gpio_init(&gpio_spi1_cs2)) {
+    if (gpio_init(&gpio_spi1_cs2)) {
         return -1;
     }
-    if(gpio_init(&gpio_spi2_cs1)) {
+    if (gpio_init(&gpio_spi2_cs1)) {
         return -1;
     }
-    if(gpio_init(&gpio_spi4_cs1)) {
+    if (gpio_init(&gpio_spi4_cs1)) {
         return -1;
     }
-    if(gpio_init(&gpio_spi4_cs2)) {
+    if (gpio_init(&gpio_spi4_cs2)) {
         return -1;
     }
-    if(gpio_init(&gpio_spi4_cs3)) {
+    if (gpio_init(&gpio_spi4_cs3)) {
         return -1;
     }
-    if(gpio_init(&gpio_spi4_cs4)) {
+    if (gpio_init(&gpio_spi4_cs4)) {
         return -1;
     }
     gpio_set(&gpio_spi1_cs1);

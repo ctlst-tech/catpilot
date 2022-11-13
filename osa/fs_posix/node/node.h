@@ -5,10 +5,6 @@
 extern "C" {
 #endif
 
-#include <errno.h>
-#include <stdarg.h>
-#include <stdlib.h>
-#include <string.h>
 #include <sys/types.h>
 
 #define NODE_MAX_NAME_LENGTH 64
@@ -16,7 +12,7 @@ extern "C" {
 #define NODE_MODE_FULL_PATH 1
 
 struct file {
-    unsigned int f_flags;
+    unsigned int flags;
     struct node *node;
     void *private_data;
 };

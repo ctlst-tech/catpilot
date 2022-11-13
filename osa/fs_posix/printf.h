@@ -111,6 +111,44 @@ int fctprintf(void (*out)(char character, void* arg), void* arg, const char* for
 
 
 /**
+ * fgetc implementation
+ * \param stream File pointer
+ * \return Character
+ */
+#define fgetc fgetc_
+int fgetc_(struct file *stream);
+
+
+/**
+ * fputc implementation
+ * \param c Character
+ * \param stream File pointer
+ * \return Received character
+ */
+#define fputc fputc_
+int fputc_(int c, struct file *stream);
+
+
+/**
+ * putchar implementation
+ * \param c Character
+ * \param stream File pointer
+ * \return Received character
+ */
+#define putchar _putchar
+void _putchar(char character);
+
+
+/**
+ * getchar implementation
+ * \param character Character
+ * \return Received character
+ */
+#define getchar _getchar
+int _getchar(void);
+
+
+/**
  * fprintf implementation
  * \param stream File pointer
  * \param format A string that specifies the format of the output
@@ -120,11 +158,12 @@ int fctprintf(void (*out)(char character, void* arg), void* arg, const char* for
 #define fprintf fprintf_
 int fprintf_(struct file *fp, const char *format, ...);
 
+
 /**
  * vfprintf implementation
  * \param stream File pointer
  * \param format A string that specifies the format of the output
- * \param va A value identifying a variable arguments list
+ * \param ap Constant arguments list
  * \return The number of characters that are sent to the output function
  */
 #define vfprintf vfprintf_

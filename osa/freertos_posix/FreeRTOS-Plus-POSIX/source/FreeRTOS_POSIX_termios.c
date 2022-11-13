@@ -1,39 +1,52 @@
-#include <sys/termios.h>
 #include <stdio.h>
-#include <node.h>
-#include <posix.h>
-
-// Portable specific
+#include <sys/termios.h>
 #include "usart.h"
 
-extern file_t *file[MAX_FILES];
-
 int tcgetattr(int __fd, struct termios *__termios_p) {
-    if(__fd < 0) {
+    if (__fd < 2) {
         errno = EBADF;
         return -1;
     }
 
     memset(__termios_p, 0, sizeof(*__termios_p));
 
-    usart_t *cfg = nodegetdevcfg(file[__fd]->nd);
-    speed_t speed = USART_GetSpeed(cfg);
+    usart_t *cfg = files[__fd]->node->f_op.dev;
+
+    if (cfg == NULL) {
+        errno = ENOENT;
+        return -1;
+    }
+
+    speed_t speed = usart_get_speed(cfg);
+
     __termios_p->c_ispeed = speed;
     __termios_p->c_ospeed = speed;
+
     return 0;
 }
 
-int tcsetattr(int __fd, int __optional_actions, const struct termios *__termios_p) {
-    (void) __optional_actions;
+int tcsetattr(int __fd, int __optional_actions,
+              const struct termios *__termios_p) {
     int rv;
-    if(__fd < 0) {
+    (void)__optional_actions;
+
+    if (__fd < 0) {
         errno = EBADF;
         return -1;
     }
-    usart_t *cfg = nodegetdevcfg(file[__fd]->nd);
+    usart_t *cfg = files[__fd]->node->f_op.dev;
+
+    if (cfg == NULL) {
+        errno = ENOENT;
+        return -1;
+    }
+
     speed_t speed = __termios_p->c_ispeed;
-    rv = USART_SetSpeed(cfg, speed);
-    if(rv < 0) return -1;
+    rv = usart_set_speed(cfg, speed);
+    if (rv < 0) {
+        return -1;
+    }
+
     return 0;
 }
 
