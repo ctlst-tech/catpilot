@@ -1,8 +1,18 @@
 #include <stdio.h>
 
-int fatfs_open(void *devcfg, void *file, const char *pathname, int flags);
-ssize_t fatfs_write(void *devcfg, void *file, const void *buf, size_t count);
-ssize_t fatfs_read(void *devcfg, void *file, void *buf, size_t count);
-int fatfs_close(void *devcfg, void *file);
-int fatfs_syncfs(void *devcfg, void *file);
-void *fatfs_filealloc(void);
+#include "ff.h"
+
+FIL *stream_to_fatfs(FILE *stream);
+int fatfs_to_errno(FRESULT result);
+int fatfs_open(struct file *file, const char *path);
+ssize_t fatfs_write(struct file *file, const char *buf, size_t count);
+ssize_t fatfs_read(struct file *file, char *buf, size_t count);
+int fatfs_close(struct file *file);
+int fatfs_syncfs(struct file *file);
+int64_t fatfs_getfree(void);
+int64_t fatfs_gettotal(void);
+int fatfs_mkdir(const char *pathname, mode_t mode);
+char *fatfs_dirname(char *str);
+char *fatfs_getcwd(char *pathname, int len);
+int fatfs_rename(const char *oldpath, const char *newpath);
+int fatfs_rmdir(const char *pathname);

@@ -113,16 +113,14 @@ FILE *new_stream(void) {
     return stream;
 }
 
-int fatfs_open(void *devcfg, void *file, const char *pathname, int flags) {
+int fatfs_open(struct file *file, const char *path) {
     int fatfs_modes;
-    FILE *stream;
     FIL *fh;
     int res;
     int rv = 0;
-
-    stream = (FILE *)file;
-
     errno = 0;
+
+    int flags = file->flags;
 
     if ((flags & O_ACCMODE) == O_RDWR) {
         fatfs_modes = FA_READ | FA_WRITE;
@@ -140,19 +138,14 @@ int fatfs_open(void *devcfg, void *file, const char *pathname, int flags) {
         }
     }
 
-    if (stream == NULL) {
-        errno = EBADF;
-        return -1;
-    }
-
-    fh = stream_to_fatfs(stream);
+    fh = stream_to_fatfs(file);
 
     if (fh == NULL) {
         errno = EBADF;
         return -1;
     }
 
-    res = f_open(fh, pathname, (BYTE)(fatfs_modes & 0xff));
+    res = f_open(fh, path, (BYTE)(fatfs_modes & 0xff));
 
     if (res != FR_OK) {
         errno = fatfs_to_errno(res);
@@ -171,23 +164,18 @@ int fatfs_open(void *devcfg, void *file, const char *pathname, int flags) {
     return (rv);
 }
 
-ssize_t fatfs_write(void *devcfg, void *file, const void *buf, size_t count) {
+ssize_t fatfs_write(struct file *file, const char *buf, size_t count) {
     UINT size;
     FRESULT res;
     FIL *fh;
-    FILE *stream;
     errno = 0;
 
-    stream = (FILE *)file;
-
-    errno = 0;
-
-    if (stream == NULL) {
+    if (file == NULL) {
         errno = EBADF;
         return -1;
     }
 
-    fh = stream_to_fatfs(stream);
+    fh = stream_to_fatfs(file);
 
     if (fh == NULL) {
         errno = EBADF;
@@ -204,23 +192,20 @@ ssize_t fatfs_write(void *devcfg, void *file, const void *buf, size_t count) {
     return ((ssize_t)size);
 }
 
-ssize_t fatfs_read(void *devcfg, void *file, void *buf, size_t count) {
+ssize_t fatfs_read(struct file *file, char *buf, size_t count) {
     UINT size;
     int res;
     int ret;
     FIL *fh;
-    FILE *stream;
-
-    stream = (FILE *)file;
 
     errno = 0;
 
-    if (stream == NULL) {
+    if (file == NULL) {
         errno = EBADF;
         return -1;
     }
 
-    fh = stream_to_fatfs(stream);
+    fh = stream_to_fatfs(file);
     if (fh == NULL) {
         errno = EBADF;
         return -1;
@@ -236,21 +221,18 @@ ssize_t fatfs_read(void *devcfg, void *file, void *buf, size_t count) {
     return ((ssize_t)size);
 }
 
-int fatfs_close(void *devcfg, void *file) {
+int fatfs_close(struct file *file) {
     int res;
     FIL *fh;
-    FILE *stream;
 
     errno = 0;
 
-    stream = (FILE *)file;
-
-    if (stream == NULL) {
+    if (file == NULL) {
         errno = EBADF;
         return -1;
     }
 
-    fh = stream_to_fatfs(stream);
+    fh = stream_to_fatfs(file);
     if (fh == NULL) {
         errno = EBADF;
         return -1;
@@ -266,22 +248,19 @@ int fatfs_close(void *devcfg, void *file) {
     return 0;
 }
 
-int fatfs_syncfs(void *devcfg, void *file) {
+int fatfs_syncfs(struct file *file) {
     FIL *fh;
     FRESULT res;
-    FILE *stream;
 
     errno = 0;
-
-    stream = (FILE *)file;
 
     if (file == NULL) {
         return -1;
     }
 
-    stream->flags |= __SUNGET;
+    file->flags |= __SUNGET;
 
-    fh = stream_to_fatfs(stream);
+    fh = stream_to_fatfs(file);
 
     if (fh == NULL) {
         errno = EBADF;
@@ -326,7 +305,7 @@ int64_t fatfs_gettotal(void) {
     return (int64_t)(tot_sect)*512;
 }
 
-int mkdir(const char *pathname, mode_t mode) {
+int fatfs_mkdir(const char *pathname, mode_t mode) {
     errno = 0;
 
     int res = f_mkdir(pathname);
@@ -339,7 +318,7 @@ int mkdir(const char *pathname, mode_t mode) {
     return 0;
 }
 
-char *dirname(char *str) {
+char *fatfs_dirname(char *str) {
     int end = 0;
     int ind = 0;
 
@@ -355,7 +334,7 @@ char *dirname(char *str) {
     return &str[end];
 }
 
-char *getcwd(char *pathname, int len) {
+char *fatfs_getcwd(char *pathname, int len) {
     int res;
     errno = 0;
 
@@ -367,7 +346,7 @@ char *getcwd(char *pathname, int len) {
     return pathname;
 }
 
-int rename(const char *oldpath, const char *newpath) {
+int fatfs_rename(const char *oldpath, const char *newpath) {
     errno = 0;
 
     int rc = f_rename(oldpath, newpath);
@@ -379,7 +358,7 @@ int rename(const char *oldpath, const char *newpath) {
     return 0;
 }
 
-int rmdir(const char *pathname) {
+int fatfs_rmdir(const char *pathname) {
     errno = 0;
 
     int res = f_unlink(pathname);
