@@ -16,3 +16,4 @@ char *fatfs_dirname(char *str);
 char *fatfs_getcwd(char *pathname, int len);
 int fatfs_rename(const char *oldpath, const char *newpath);
 int fatfs_rmdir(const char *pathname);
+dirent_t *fatfs_readdir(DIR *dirp);

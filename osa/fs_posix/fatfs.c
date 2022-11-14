@@ -368,3 +368,24 @@ int fatfs_rmdir(const char *pathname) {
     }
     return 0;
 }
+
+static dirent_t _de;
+dirent_t *fatfs_readdir(DIR *dirp) {
+    FILINFO fno;
+    int len;
+    int res;
+    errno = 0;
+
+    _de.d_name[0] = 0;
+    res = f_readdir(dirp, &fno);
+    if (res != FR_OK || fno.fname[0] == 0) {
+        errno = fatfs_to_errno(res);
+        return NULL;
+    }
+
+    len = strlen(fno.fname);
+    strncpy(_de.d_name, fno.fname, len);
+    _de.d_name[len] = 0;
+
+    return ((dirent_t *)&_de);
+}
