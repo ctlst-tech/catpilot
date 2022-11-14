@@ -918,6 +918,12 @@ int fctprintf(void (*out)(char character, void* arg), void* arg, const char* for
 #include <stdio.h>
 
 int fputc_(int c, struct file *stream) {
+  if (stream == stdout || stderr == stderr) {
+    if (c == '\n') {
+      const char r = '\r';
+      stream->node->f_op.write(stream, &r, 1);
+    }
+  }
   return stream->node->f_op.write(stream, (const char *)&c, 1);
 }
 

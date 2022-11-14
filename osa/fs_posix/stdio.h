@@ -24,14 +24,14 @@ typedef off_t fpos_t;
 
 typedef struct file FILE;
 
-#define __SRD   0x0001      /* OK to read */
-#define __SWR   0x0002      /* OK to write */
-#define __SSTR  0x0004      /* this is an sprintf/snprintf string */
-#define __SPGM  0x0008      /* fmt string is in progmem */
-#define __SERR  0x0010      /* found error */
-#define __SEOF  0x0020      /* found EOF */
-#define __SUNGET 0x040      /* ungetc() happened */
-#define __SMALLOC 0x80      /* handle is malloc()ed */
+#define __SRD 0x0001   /* OK to read */
+#define __SWR 0x0002   /* OK to write */
+#define __SSTR 0x0004  /* this is an sprintf/snprintf string */
+#define __SPGM 0x0008  /* fmt string is in progmem */
+#define __SERR 0x0010  /* found error */
+#define __SEOF 0x0020  /* found EOF */
+#define __SUNGET 0x040 /* ungetc() happened */
+#define __SMALLOC 0x80 /* handle is malloc()ed */
 
 #undef stdin
 #undef stdout
@@ -42,10 +42,17 @@ typedef struct file FILE;
 #define stderr (files[2])
 
 FILE *fopen(const char *path, const char *mode);
-int fclose(FILE *stream);
+size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream);
+size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream);
+int   fclose(FILE *stream);
+int   fileno(FILE *stream);
+int   isatty(int fd);
+int   ferror(FILE *stream);
+void  perror(const char *s);
+void  clearerr(FILE *stream);
 char *getcwd(char *pathname, int len);
-int mkdir(const char *pathname, mode_t mode);
-int sscanf(const char *buf, const char *fmt, ...);
+int   mkdir(const char *pathname, mode_t mode);
+int   sscanf(const char *buf, const char *fmt, ...);
 
 #include <printf.h>
 
@@ -53,4 +60,4 @@ int sscanf(const char *buf, const char *fmt, ...);
 }
 #endif
 
-#endif // _STDIO_H_
+#endif  // _STDIO_H_

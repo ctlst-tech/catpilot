@@ -118,6 +118,11 @@ int fctprintf(void (*out)(char character, void* arg), void* arg, const char* for
 #define fgetc fgetc_
 int fgetc_(struct file *stream);
 
+/**
+ * getc implementation
+ */
+#define getc fgetc_
+
 
 /**
  * fputc implementation

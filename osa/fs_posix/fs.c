@@ -52,7 +52,6 @@ int fd_new(void) {
     for (int i = 0; i < MAX_FILES; i++) {
         if (files[i] == NULL) {
             rv = i;
-            errno = 0;
             break;
         }
     }
@@ -60,16 +59,25 @@ int fd_new(void) {
 }
 
 int fd_delete(int fd) {
-    if (fd > MAX_FILES) {
+    if (fd > MAX_FILES && fd < 0) {
         return -1;
     }
     files[fd] = NULL;
     return 0;
 }
 
+int fd_check(int fd) {
+    if (fd < 0 || fd > MAX_FILES) {
+        errno = EBADF;
+        return -1;
+    }
+    return 0;
+}
+
 int open(const char *pathname, int flags) {
     int fd, rv;
     struct node *node = node_find(pathname, NODE_MODE_NEAREST_PATH);
+    errno = 0;
 
     if (node == NULL || node->f_op.open == NULL) {
         errno = ENOENT;
@@ -78,9 +86,8 @@ int open(const char *pathname, int flags) {
 
     fd = fd_new();
 
-    if (fd < 0) {
-        errno = ENOMEM;
-        return fd;
+    if (fd_check(fd)) {
+        return -1;
     }
 
     files[fd] = &__files[fd];
@@ -102,6 +109,11 @@ int open(const char *pathname, int flags) {
 
 ssize_t write(int fd, const void *buf, size_t count) {
     int rv;
+    errno = 0;
+
+    if (fd_check(fd)) {
+        return -1;
+    }
 
     if (files[fd] == NULL || files[fd]->node->f_op.write == NULL) {
         errno = ENOENT;
@@ -115,6 +127,11 @@ ssize_t write(int fd, const void *buf, size_t count) {
 
 ssize_t read(int fd, void *buf, size_t count) {
     int rv;
+    errno = 0;
+
+    if (fd_check(fd)) {
+        return -1;
+    }
 
     if (files[fd] == NULL || files[fd]->node->f_op.read == NULL) {
         errno = ENOENT;
@@ -128,6 +145,11 @@ ssize_t read(int fd, void *buf, size_t count) {
 
 int close(int fd) {
     int rv;
+    errno = 0;
+
+    if (fd_check(fd)) {
+        return -1;
+    }
 
     if (files[fd] == NULL || files[fd]->node->f_op.close == NULL) {
         errno = ENOENT;
@@ -135,15 +157,45 @@ int close(int fd) {
     }
 
     rv = files[fd]->node->f_op.close(files[fd]);
+
+    if (rv) {
+        return rv;
+    }
+
     fd_delete(fd);
 
     return rv;
+}
+
+int fileno(FILE *stream) {
+    int fd = -1;
+
+    for (int i = 0; i < MAX_FILES; i++) {
+        if (files[i] == stream) {
+            fd = i;
+            break;
+        }
+    }
+
+    if (fd_check(fd)) {
+        return -1;
+    }
+
+    return fd;
+}
+
+int isatty(int fd) {
+    if (fd > 0 && fd < 3) {
+        return 1;
+    }
+    return 0;
 }
 
 #define modecmp(str, pat) (strcmp(str, pat) == 0 ? 1 : 0)
 
 FILE *fopen(const char *filename, const char *mode) {
     int flag;
+    errno = 0;
 
     if (modecmp(mode, "r") || modecmp(mode, "rb")) {
         flag = O_RDONLY;
@@ -166,22 +218,92 @@ FILE *fopen(const char *filename, const char *mode) {
 
     int fd = open(filename, flag);
 
-    if (fd > 0) {
-        return files[fd];
-    } else {
+    if (fd_check(fd)) {
         return NULL;
     }
+
+    files[fd]->flags &= ~__SERR;
+
+    return files[fd];
 }
 
-int fclose(FILE *stream) {
+size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream) {
+    int fd;
+    errno = 0;
+    size_t count;
+    ssize_t count_s;
+
     if (stream == NULL) {
         errno = ENOENT;
         return -1;
     }
 
-    stream->node->f_op.close(stream);
+    if ((fd = fileno(stream)) < 0) {
+        return 0;
+    }
 
-    return 0;
+    if (!(stream->flags & O_RDWR || stream->flags & O_RDONLY)) {
+        errno = EACCES;
+        return -1;
+    }
+
+    if ((count_s = read(fd, ptr, size * nmemb)) < 0) {
+        return 0;
+    }
+
+    count = count_s;
+
+    return count;
+}
+
+size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream) {
+    int fd;
+    errno = 0;
+    size_t count;
+    ssize_t count_s;
+
+    if (stream == NULL) {
+        errno = ENOENT;
+        return -1;
+    }
+
+    if ((fd = fileno(stream)) < 0) {
+        return 0;
+    }
+
+    if (!(stream->flags & O_RDWR || stream->flags & O_WRONLY)) {
+        errno = EACCES;
+        return -1;
+    }
+
+    if ((count_s = write(fd, ptr, size * nmemb)) < 0) {
+        return 0;
+    }
+
+    count = count_s;
+
+    return count;
+}
+
+int fclose(FILE *stream) {
+    int rv;
+    errno = 0;
+
+    if (stream == NULL) {
+        errno = ENOENT;
+        return -1;
+    }
+
+    rv = stream->node->f_op.close(stream);
+
+    if (rv) {
+        stream->flags |= __SERR;
+        return rv;
+    }
+
+    int fd = fileno(stream);
+
+    return close(fd);
 }
 
 void sync(void) {
@@ -189,29 +311,33 @@ void sync(void) {
         if (files[i] == NULL) {
             continue;
         }
-        files[i]->node->f_op.fsync(files[i]);
+        if (files[i]->node->f_op.fsync(files[i])) {
+            files[i]->flags |= __SERR;
+        }
     }
 }
 
 int fsync(int fileno) {
     FILE *stream;
-
     errno = 0;
+
+    if (fd_check(fileno)) {
+        return -1;
+    }
 
     if (fileno > MAX_FILES) {
         errno = EINVAL;
         return -1;
     }
 
-    if (files[fileno]->node->f_op.fsync(files[fileno])) {
+    stream = files[fileno];
+
+    if (stream->node->f_op.fsync(files[fileno])) {
+        stream->flags |= __SERR;
         return -1;
     }
 
     return 0;
-}
-
-void clearerr(FILE *stream) {
-    stream->flags = 0;
 }
 
 char *strerror(int errnum) {
@@ -233,7 +359,7 @@ void perror(const char *s) {
     }
 }
 
-void clrerror(FILE *stream) {
+void clearerr(FILE *stream) {
     stream->flags &= ~__SEOF;
     stream->flags &= ~__SERR;
 }
@@ -242,6 +368,5 @@ int ferror(FILE *stream) {
     if (stream->flags & __SERR) {
         return 1;
     }
-
     return 0;
 }

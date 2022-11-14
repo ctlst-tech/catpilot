@@ -28,12 +28,10 @@ if (UNIX)
     file(GLOB LINKER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/bsp/mcu/core/stm32/h753/ld/*.ld)
 endif ()
 
-set(LD_WRAP "-Wl,--wrap,fprintf -Wl,--wrap,fclose -Wl,--wrap,fread")
-
 set(MCU_FLAGS "-mcpu=cortex-m7 -mlittle-endian -mfloat-abi=hard -mthumb -mno-unaligned-access")
 
 set(COMMON_FLAGS "${MCU_FLAGS} -Wall -Wextra  -fdata-sections -ffunction-sections -Wl,--gc-sections -Wno-unused-variable -Wno-unused-function -Wno-unused-parameter -Wno-missing-braces")
-set(LINKER_FLAGS "${LINK_MAP_CREATION_FLAG} --specs=nosys.specs -specs=nano.specs ${MCU_FLAGS} -Wl,--start-group -lgcc -lc -lg -Wl,--end-group -Wl,--gc-sections -u _printf_float ${LD_WRAP} -T ${LINKER_SCRIPT}")
+set(LINKER_FLAGS "${LINK_MAP_CREATION_FLAG} --specs=nosys.specs -specs=nano.specs ${MCU_FLAGS} -Wl,--start-group -lgcc -lc -lg -Wl,--end-group -Wl,--gc-sections -u _printf_float -T ${LINKER_SCRIPT}")
 
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")

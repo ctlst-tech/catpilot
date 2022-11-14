@@ -188,6 +188,7 @@ ssize_t fatfs_write(void *devcfg, void *file, const void *buf, size_t count) {
     }
 
     fh = stream_to_fatfs(stream);
+
     if (fh == NULL) {
         errno = EBADF;
         return -1;
@@ -265,19 +266,6 @@ int fatfs_close(void *devcfg, void *file) {
     return 0;
 }
 
-int mkdir(const char *pathname, mode_t mode) {
-    errno = 0;
-
-    int res = f_mkdir(pathname);
-    if (res != FR_OK) {
-        errno = fatfs_to_errno(res);
-        return -1;
-    }
-    (void)mode;
-
-    return 0;
-}
-
 int fatfs_syncfs(void *devcfg, void *file) {
     FIL *fh;
     FRESULT res;
@@ -336,6 +324,19 @@ int64_t fatfs_gettotal(void) {
     /* Get total sectors and free sectors */
     tot_sect = (fs->n_fatent - 2) * fs->csize;
     return (int64_t)(tot_sect)*512;
+}
+
+int mkdir(const char *pathname, mode_t mode) {
+    errno = 0;
+
+    int res = f_mkdir(pathname);
+    if (res != FR_OK) {
+        errno = fatfs_to_errno(res);
+        return -1;
+    }
+    (void)mode;
+
+    return 0;
 }
 
 char *dirname(char *str) {
