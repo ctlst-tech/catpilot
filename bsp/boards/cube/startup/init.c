@@ -178,34 +178,63 @@ int board_periph_init(void) {
     return 0;
 }
 
-int board_fs_init(void) {
-    struct file_operations f_op;
+static int board_std_stream_init(
+    const char *stream, void *dev,
+    int (*dev_open)(struct file *file, const char *path),
+    ssize_t (*dev_write)(struct file *file, const char *buf, size_t count),
+    ssize_t (*dev_read)(struct file *file, char *buf, size_t count)) {
     int fd;
+    char stream_name[16];
+    char stream_path[16];
+    struct file_operations f_op = {0};
 
-    f_op.open = usart_open;
-    f_op.write = NULL;
-    f_op.read = usart_read;
-    f_op.close = NULL;
-    f_op.dev = &usart3;
-    node_mount("/dev/stdin", &f_op);
+    if (stream == NULL || dev == NULL || dev_open == NULL ||
+        dev_write == NULL || dev_read == NULL) {
+        return -1;
+    }
 
-    f_op.open = usart_open;
-    f_op.write = usart_write;
-    f_op.read = NULL;
-    f_op.close = NULL;
-    f_op.dev = &usart3;
-    node_mount("/dev/stdout", &f_op);
+    f_op.open = dev_open;
+    f_op.dev = dev;
 
-    f_op.open = usart_open;
-    f_op.write = usart_write;
-    f_op.read = NULL;
-    f_op.close = NULL;
-    f_op.dev = &usart3;
-    node_mount("/dev/stderr", &f_op);
+    if (!strcmp(stream, "stdin")) {
+        f_op.read = dev_read;
+    } else if (!strcmp(stream, "stdout") || !strcmp(stream, "stderr")) {
+        f_op.write = dev_write;
+    } else {
+        return -1;
+    }
 
-    fd = open("/dev/stdin", O_RDONLY);
-    fd = open("/dev/stdout", O_WRONLY);
-    fd = open("/dev/stderr", O_WRONLY);
+    strncpy(stream_name, stream, sizeof(stream_name));
+    snprintf(stream_path, sizeof(stream_path), "/dev/%s", stream_name);
+
+    if (node_mount(stream_path, &f_op) == NULL) {
+        LOG_ERROR(stream_name, "Initialization failed");
+        return -1;
+    }
+
+    fd = open((const char *)stream_path, O_RDONLY);
+
+    if (fd < 0) {
+        LOG_ERROR(stream_name, "Error descriptor");
+        return -1;
+    }
+
+    return 0;
+}
+
+int board_fs_init(void) {
+    if (board_std_stream_init("stdin", &usart3, usart_open, usart_write,
+                              usart_read)) {
+        return -1;
+    }
+    if (board_std_stream_init("stdout", &usart3, usart_open, usart_write,
+                              usart_read)) {
+        return -1;
+    }
+    if (board_std_stream_init("stderr", &usart3, usart_open, usart_write,
+                              usart_read)) {
+        return -1;
+    }
 
     return 0;
 }
