@@ -9,7 +9,7 @@
 #include "hal.h"
 #include "os.h"
 
-enum i2c_state_t { I2C_FREE, I2C_TRANSMIT, I2C_RECEIVE };
+enum i2c_state_t { I2C_FREE = 0, I2C_TRANSMIT = 1, I2C_RECEIVE = 2 };
 
 typedef struct {
     I2C_HandleTypeDef init;

@@ -9,8 +9,8 @@
 #include "irq.h"
 #include "os.h"
 
-enum sdio_ex_state_t { SDIO_FREE, SDIO_WRITE, SDIO_READ };
-enum sdio_cd_state_t { SDIO_CONNECTED, SDIO_NOT_CONNECTED };
+enum sdio_ex_state_t { SDIO_FREE = 0, SDIO_WRITE = 1, SDIO_READ = 2 };
+enum sdio_cd_state_t { SDIO_CONNECTED = 0, SDIO_NOT_CONNECTED = 1 };
 
 typedef struct {
     IRQn_Type id;

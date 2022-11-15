@@ -47,8 +47,9 @@ int icm20649_start(spi_t *spi, gpio_t *cs, exti_t *drdy, uint32_t period,
         if (exti_init(dev->interface.drdy, icm20649_drdy_handler, dev)) {
             return -1;
         }
+        dev->sync.drdy_sem = xSemaphoreCreateBinary();
         if (dev->sync.drdy_sem == NULL) {
-            dev->sync.drdy_sem = xSemaphoreCreateBinary();
+            return -1;
         }
     }
 
@@ -57,10 +58,11 @@ int icm20649_start(spi_t *spi, gpio_t *cs, exti_t *drdy, uint32_t period,
         return -1;
     }
 
-    dev->os.period = period;
+    dev->os.period = period / portTICK_PERIOD_MS;
 
+    dev->sync.measrdy_sem = xSemaphoreCreateBinary();
     if (dev->sync.measrdy_sem == NULL) {
-        dev->sync.measrdy_sem = xSemaphoreCreateBinary();
+        return -1;
     }
 
     if (xTaskCreate(icm20649_thread, dev->name, 512, dev, dev->os.priority,
@@ -72,7 +74,6 @@ int icm20649_start(spi_t *spi, gpio_t *cs, exti_t *drdy, uint32_t period,
     LOG_DEBUG(dev->name, "Start service, period = %u ms", period);
 
     xSemaphoreTake(dev->sync.measrdy_sem, 0);
-    dev->state = ICM20649_RESET;
 
     return 0;
 }
@@ -82,10 +83,11 @@ void icm20649_thread(void *dev_ptr) {
     TickType_t last_wake_time;
 
     last_wake_time = xTaskGetTickCount();
+    dev->state = ICM20649_RESET;
 
     while (1) {
         icm20649_fsm(dev);
-        xTaskDelayUntil(&last_wake_time, dev->os.period / portTICK_PERIOD_MS);
+        xTaskDelayUntil(&last_wake_time, dev->os.period);
     }
 }
 
@@ -425,7 +427,8 @@ static void icm20649_temp_process(icm20649_t *dev) {
     icm20649_exchange(dev, BANK_0, data, data, sizeof(data));
 
     int16_t temp_raw = msblsb16(data[1], data[2]);
-    dev->meas_buffer.temp = (temp_raw - TEMP_SENS * TEMP_OFFSET) / TEMP_SENS + TEMP_OFFSET;
+    dev->meas_buffer.temp =
+        (temp_raw - TEMP_SENS * TEMP_OFFSET) / TEMP_SENS + TEMP_OFFSET;
 }
 
 static void icm20649_stat(icm20649_t *dev) {

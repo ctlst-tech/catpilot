@@ -9,8 +9,8 @@
 #include "irq.h"
 
 enum tim_state_t {
-    TIM_ACTIVE,
-    TIM_INACTIVE,
+    TIM_ACTIVE = 0,
+    TIM_INACTIVE = 1,
 };
 
 typedef struct {

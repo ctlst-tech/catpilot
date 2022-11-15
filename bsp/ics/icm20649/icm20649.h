@@ -82,11 +82,11 @@ typedef struct {
 } icm20649_thread_t;
 
 enum icm20649_state_t {
-    ICM20649_RESET,
-    ICM20649_RESET_WAIT,
-    ICM20649_CONF,
-    ICM20649_FIFO_READ,
-    ICM20649_FAIL
+    ICM20649_RESET = 0,
+    ICM20649_RESET_WAIT = 1,
+    ICM20649_CONF = 2,
+    ICM20649_FIFO_READ = 3,
+    ICM20649_FAIL = 4
 };
 
 typedef struct {

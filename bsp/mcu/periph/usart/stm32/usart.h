@@ -11,11 +11,11 @@
 #include "os.h"
 #include "ring_buf.h"
 
-enum usart_state_t { USART_FREE, USART_TRANSMIT, USART_RECEIVE };
+enum usart_state_t { USART_FREE = 0, USART_TRANSMIT = 1, USART_RECEIVE = 2 };
 
 enum usart_receive_mode_t {
-    USART_TIMEOUT,
-    USART_IDLE,
+    USART_TIMEOUT = 0,
+    USART_IDLE = 1,
 };
 
 typedef struct {

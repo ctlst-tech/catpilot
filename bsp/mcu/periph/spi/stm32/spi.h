@@ -9,10 +9,10 @@
 #include "hal.h"
 
 enum spi_state_t {
-    SPI_FREE,
-    SPI_TRANSMIT,
-    SPI_RECEIVE,
-    SPI_TRANSMIT_RECEIVE,
+    SPI_FREE = 0,
+    SPI_TRANSMIT = 1,
+    SPI_RECEIVE = 2,
+    SPI_TRANSMIT_RECEIVE = 3,
 };
 
 typedef struct {
