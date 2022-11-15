@@ -4,7 +4,6 @@ project(bsp)
 if (BOARD STREQUAL "cube")
     set(MCU_FAMILY stm32)
     set(MCU_MODEL h753)
-    set(MCU_SERIES stm32h753)
     # set(IC_CUBEIO "ON")
     # set(IC_ICM20602 "ON")
     set(IC_ICM20649 "ON")
@@ -26,13 +25,49 @@ list(APPEND BSP_INC
     boards/${BOARD}/startup
 )
 
-file(GLOB_RECURSE BSP_SRC
-    mcu/core/${MCU_FAMILY}/${MCU_MODEL}/common/*.c
-    mcu/core/${MCU_FAMILY}/${MCU_MODEL}/startup/*.s
-    mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/*.c
-    boards/${BOARD}/cfg/*.c
-    boards/${BOARD}/startup/*.c
-)
+if (MCU_FAMILY STREQUAL "stm32")
+    if(MCU_MODEL STREQUAL "h753")
+        list(APPEND BSP_SRC
+            mcu/core/${MCU_FAMILY}/${MCU_MODEL}/common/system_stm32h7xx.c
+            mcu/core/${MCU_FAMILY}/${MCU_MODEL}/startup/startup_stm32h753xx.s
+        )
+        list(APPEND BSP_SRC
+            mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal.c
+            mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_adc_ex.c
+            mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_adc.c
+            mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_cortex.c
+            mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_dma.c
+            mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_dma_ex.c
+            mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_flash.c
+            mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_flash_ex.c
+            mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_gpio.c
+            mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_i2c.c
+            mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_i2c_ex.c
+            mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_rcc.c
+            mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_rcc_ex.c
+            mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_sd.c
+            mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_sd_ex.c
+            mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_spi.c
+            mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_spi_ex.c
+            mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_tim.c
+            mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_tim_ex.c
+            mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_uart.c
+            mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_uart_ex.c
+            mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_usart.c
+            mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_usart_ex.c
+        )
+        list(APPEND BSP_SRC
+            boards/${BOARD}/cfg/adc_cfg.c
+            boards/${BOARD}/cfg/exti_cfg.c
+            boards/${BOARD}/cfg/gpio_cfg.c
+            boards/${BOARD}/cfg/i2c_cfg.c
+            boards/${BOARD}/cfg/sdmmc_cfg.c
+            boards/${BOARD}/cfg/spi_cfg.c
+            boards/${BOARD}/cfg/usart_cfg.c
+            boards/${BOARD}/startup/init.c
+        )
+    endif()
+endif()
 
 list(APPEND BSP_SRC
     mcu/periph/adc/${MCU_FAMILY}/adc.c
