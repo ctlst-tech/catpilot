@@ -30,8 +30,6 @@ typedef struct {
     int tx_count;
     ring_buf_t *write_buf;
     ring_buf_t *read_buf;
-    SemaphoreHandle_t read_sem;
-    SemaphoreHandle_t write_sem;
     int error;
     bool periph_init;
     bool tasks_init;

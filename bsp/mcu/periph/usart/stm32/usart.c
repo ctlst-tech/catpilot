@@ -222,8 +222,7 @@ void usart_read_task(void *cfg_ptr) {
         } else {
             cfg->p.error = SUCCESS;
         }
-        ring_buf_write(cfg->p.read_buf, buf, cfg->p.rx_count);
-        xSemaphoreGive(cfg->p.read_sem);
+        ring_buf_write(cfg->p.read_buf, buf, MIN(cfg->p.rx_count, cfg->buf_size));
     }
 }
 
@@ -232,7 +231,6 @@ void usart_write_task(void *cfg_ptr) {
     uint8_t *buf = calloc(cfg->buf_size, sizeof(uint8_t));
     uint16_t length;
     while (1) {
-        xSemaphoreTake(cfg->p.write_sem, portMAX_DELAY);
         length = ring_buf_get_data_size(cfg->p.write_buf);
         length = ring_buf_read(cfg->p.write_buf, buf, length);
         if (usart_transmit(cfg, buf, length)) {
@@ -265,13 +263,6 @@ int usart_open(FILE *file, const char *path) {
         return -1;
     }
 
-    cfg->p.read_sem = xSemaphoreCreateBinary();
-    cfg->p.write_sem = xSemaphoreCreateBinary();
-    if (cfg->p.read_sem == NULL || cfg->p.write_sem == NULL) {
-        errno = ENOMEM;
-        return -1;
-    }
-
     xTaskCreate(usart_read_task, cfg->name, 512, cfg, cfg->task_priority, NULL);
     xTaskCreate(usart_write_task, cfg->name, 512, cfg, cfg->task_priority,
                 NULL);
@@ -288,7 +279,6 @@ ssize_t usart_write(FILE *file, const char *buf, size_t count) {
     usart_t *cfg = (usart_t *)file->node->f_op.dev;
 
     rv = ring_buf_write(cfg->p.write_buf, (uint8_t *)buf, count);
-    xSemaphoreGive(cfg->p.write_sem);
     if (cfg->p.error) {
         errno = EPROTO;
         return -1;
@@ -301,7 +291,6 @@ ssize_t usart_read(FILE *file, char *buf, size_t count) {
     errno = 0;
     usart_t *cfg = (usart_t *)file->node->f_op.dev;
 
-    xSemaphoreTake(cfg->p.read_sem, portMAX_DELAY);
     rv = ring_buf_read(cfg->p.read_buf, (uint8_t *)buf, count);
     if (cfg->p.error) {
         errno = EPROTO;

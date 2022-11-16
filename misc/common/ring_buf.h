@@ -14,11 +14,13 @@ typedef struct {
    uint8_t *start_ptr;
    uint16_t size;
    uint16_t count;
-   SemaphoreHandle_t mutex;
+   SemaphoreHandle_t cont_mutex;
+   SemaphoreHandle_t rw_mutex;
+   SemaphoreHandle_t r_sem;
+   SemaphoreHandle_t w_sem;
 } ring_buf_t;
 
 ring_buf_t *ring_buf_init(uint16_t size);
-ring_buf_t *ring_buf_delete(ring_buf_t *ring_buf);
 uint16_t ring_buf_get_data_size(ring_buf_t *ring_buf);
 uint16_t ring_buf_get_free_size(ring_buf_t *ring_buf);
 int ring_buf_write(ring_buf_t *ring_buf, uint8_t *buf, uint16_t length);
