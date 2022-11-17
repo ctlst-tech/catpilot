@@ -10,23 +10,23 @@
         </inputs>
 
         <outputs>
-            <o alias="ax" annotation="ax"/>
-            <o alias="ay" annotation="ay"/>
-            <o alias="az" annotation="az"/>
-            <o alias="wx" annotation="wx"/>
-            <o alias="wy" annotation="wy"/>
-            <o alias="wz" annotation="wz"/>
+            <o alias="ax" annotation="ax" type="core.type.f64"/>
+            <o alias="ay" annotation="ay" type="core.type.f64"/>
+            <o alias="az" annotation="az" type="core.type.f64"/>
+            <o alias="wx" annotation="wx" type="core.type.f64"/>
+            <o alias="wy" annotation="wy" type="core.type.f64"/>
+            <o alias="wz" annotation="wz" type="core.type.f64"/>
 
-            <o alias="roll"/>
-            <o alias="pitch"/>
-            <o alias="yaw"/>
+            <o alias="roll" type="core.type.f64"/>
+            <o alias="pitch" type="core.type.f64"/>
+            <o alias="yaw" type="core.type.f64"/>
 
-            <o alias="manc_lon"/>
-            <o alias="manc_thr"/>
-            <o alias="manc_rud"/>
-            <o alias="manc_pids_tune"/>
+            <o alias="manc_lon" type="core.type.f64"/>
+            <o alias="manc_thr" type="core.type.f64"/>
+            <o alias="manc_rud" type="core.type.f64"/>
+            <o alias="manc_pids_tune" type="core.type.f64"/>
 
-            <o alias="arm" annotation="arm"/>
+            <o alias="arm" annotation="arm" type="core.type.bool"/>
         </outputs>
 
         <params>
