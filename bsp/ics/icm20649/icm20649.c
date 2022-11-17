@@ -157,8 +157,8 @@ void icm20649_fsm(icm20649_t *dev) {
             break;
 
         case ICM20649_FAIL:
-            vTaskDelay(0);
-            break;
+            vTaskDelete(NULL);
+            return;
 
         default:
             break;

@@ -159,8 +159,8 @@ void icm20602_fsm(icm20602_t *dev) {
             break;
 
         case icm20602_FAIL:
-            vTaskDelay(0);
-            break;
+            vTaskDelete(NULL);
+            return;
 
         default:
             break;

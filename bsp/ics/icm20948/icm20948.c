@@ -1,309 +1,309 @@
 #include "icm20948.h"
+
 #include "icm20948_reg.h"
-#include "init.h"
-#include "cfg.h"
-#include "timer.h"
-
-static char *device = "ICM20948";
-
-// Data structures
-static icm20948_cfg_t icm20948_cfg;
-static icm20948_data_t icm20948_fifo;
-static icm20948_imu_meas_t icm20948_imu_meas;
-static enum icm20948_state_t icm20948_state;
-static FIFOBuffer_t icm20948_FIFOBuffer;
-static FIFOParam_t icm20948_FIFOParam;
 
 // Private functions
-static void ICM20948_ChipSelection(void);
-static void ICM20948_ChipDeselection(void);
-static uint8_t ICM20948_ReadReg(uint8_t bank, uint8_t reg);
-static void ICM20948_WriteReg(uint8_t bank, uint8_t reg, uint8_t value);
-static void ICM20948_SetClearReg(uint8_t bank, uint8_t reg, uint8_t setbits, uint8_t clearbits);
-static int ICM20948_Configure(void);
-static void ICM20948_AccelConfigure(void);
-static void ICM20948_GyroConfigure(void);
-static int ICM20948_Probe(void);
-static void ICM20948_Statistics(void);
-static int ICM20948_SampleRead(void);
-static void ICM20948_FIFOCount(void);
-static int ICM20948_FIFORead(void);
-static void ICM20948_FIFOReset(void);
-static void ICM20948_AccelProcess(void);
-static void ICM20948_GyroProcess(void);
-static void ICM20948_TempProcess(void);
+static void icm20948_thread(void *dev_ptr);
+static void icm20948_fsm(icm20948_t *dev);
+static int icm20948_configure(icm20948_t *dev);
+static int icm20948_reset_fifo(icm20948_t *dev);
+static void icm20948_chip_select(icm20948_t *dev);
+static void icm20948_chip_deselect(icm20948_t *dev);
+static uint8_t icm20948_read_reg(icm20948_t *dev, uint8_t bank, uint8_t reg);
+static void icm20948_write_reg(icm20948_t *dev, uint8_t bank, uint8_t reg,
+                               uint8_t value);
+static void icm20948_set_clear_reg(icm20948_t *dev, uint8_t bank, uint8_t reg,
+                                   uint8_t setbits, uint8_t clearbits);
+static int icm20948_fifo_read(icm20948_t *dev, uint16_t samples);
+static void icm20948_accel_configure(icm20948_t *dev);
+static void icm20948_gyro_configure(icm20948_t *dev);
+static void icm20948_fifo_reset(icm20948_t *dev);
+static void icm20948_temp_process(icm20948_t *dev);
+static void icm20948_gyro_process(icm20948_t *dev);
+static void icm20948_accel_process(icm20948_t *dev);
+static void icm20948_stat(icm20948_t *dev);
 
-// Sync
-static int timer_id;
-static int timer_status;
-static SemaphoreHandle_t drdy_semaphore;
-static SemaphoreHandle_t measrdy_semaphore;
-static uint32_t attempt = 0;
-static TickType_t icm20948_last_sample = 0;
+void icm20948_drdy_handler(void *area);
 
 // Public functions
-int ICM20948_Init(spi_t *spi, 
-                  gpio_t *cs, 
-                  exti_t *drdy, 
-                  i2c_t *i2c,
-                  int enable_mag,
-                  int enable_drdy) {
-    if(spi == NULL || cs == NULL) return -1;
-
-    icm20948_cfg.spi = spi;
-    icm20948_cfg.cs = cs;
-    icm20948_cfg.enable_drdy = enable_drdy;
-    icm20948_cfg.enable_mag = enable_mag;
-
-    if(enable_drdy) {
-        if(drdy == NULL) return -1;
-        icm20948_cfg.drdy = drdy;
-        if(drdy_semaphore == NULL) drdy_semaphore = xSemaphoreCreateBinary();
-    }
-    if(enable_mag) {
-        if(i2c == NULL) return -1;
-        icm20948_cfg.i2c = i2c;
+int icm20948_start(spi_t *spi, gpio_t *cs, exti_t *drdy, uint32_t period,
+                   uint32_t thread_priority, int enable_mag) {
+    if (spi == NULL || cs == NULL) {
+        return -1;
     }
 
-    if(measrdy_semaphore == NULL) measrdy_semaphore = xSemaphoreCreateBinary();
+    icm20948_t *dev = calloc(1, sizeof(icm20948_t));
 
-    timer_id = Timer_Create("ICM20948_Timer");
+    if (dev == NULL) {
+        return -1;
+    }
 
-    xSemaphoreTake(measrdy_semaphore, 0);
-    icm20948_state = ICM20948_RESET;
+    strcpy(dev->name, "ICM20948");
+    dev->interface.spi = spi;
+    dev->interface.cs = cs;
+    dev->enable_mag = enable_mag;
+
+    if (drdy != NULL) {
+        dev->interface.drdy = drdy;
+        if (exti_init(dev->interface.drdy, icm20948_drdy_handler, dev)) {
+            return -1;
+        }
+        dev->sync.drdy_sem = xSemaphoreCreateBinary();
+        if (dev->sync.drdy_sem == NULL) {
+            return -1;
+        }
+    }
+
+    if (period < 2) {
+        LOG_ERROR(dev->name, "Too high frequency");
+        return -1;
+    }
+
+    dev->os.period = period / portTICK_PERIOD_MS;
+
+    dev->sync.measrdy_sem = xSemaphoreCreateBinary();
+    if (dev->sync.measrdy_sem == NULL) {
+        return -1;
+    }
+
+    if (xTaskCreate(icm20948_thread, dev->name, 512, dev, dev->os.priority,
+                    NULL) != pdTRUE) {
+        LOG_ERROR(dev->name, "Thread start error");
+        return -1;
+    }
+
+    LOG_DEBUG(dev->name, "Start service, period = %u ms", period);
+
+    xSemaphoreTake(dev->sync.measrdy_sem, 0);
 
     return 0;
 }
 
-static int ind = 0;
-static void _debug(void) {
-    static int all = 0;
-    static int error = 0;
-    all += icm20948_fifo.samples;
-    // if(xTaskGetTickCount() > 60000) {
-    //         vTaskDelay(100);
-    // }
+void icm20948_thread(void *dev_ptr) {
+    icm20948_t *dev = dev_ptr;
+    TickType_t last_wake_time;
+
+    last_wake_time = xTaskGetTickCount();
+    dev->state = ICM20948_RESET;
+
+    while (1) {
+        icm20948_fsm(dev);
+        xTaskDelayUntil(&last_wake_time, dev->os.period);
+    }
 }
 
-void ICM20948_Run(void) {
-    switch(icm20948_state) {
-
-        default:
+void icm20948_fsm(icm20948_t *dev) {
+    switch (dev->state) {
         case ICM20948_RESET:
-            timer_status = Timer_Start(timer_id, 2000);
-
-            if(timer_status == TIMER_STARTED) {
-                ICM20948_WriteReg(BANK_0, PWR_MGMT_1, DEVICE_RESET);
-            } else if(timer_status == TIMER_COUNTING) {
-            } else if(timer_status == TIMER_FINISHED) {
-                icm20948_state = ICM20948_RESET_WAIT;
-            }
-
+            vTaskDelay(100);
+            icm20948_write_reg(dev, BANK_0, PWR_MGMT_1, DEVICE_RESET);
+            dev->state = ICM20948_RESET_WAIT;
+            vTaskDelay(100);
             break;
 
         case ICM20948_RESET_WAIT:
-            timer_status = Timer_Start(timer_id, 100);
-
-            if(timer_status == TIMER_STARTED) {
-                if((ICM20948_ReadReg(BANK_0, WHO_AM_I) == WHOAMI) &&
-                   (ICM20948_ReadReg(BANK_0, PWR_MGMT_1) == 0x41)) {
-                    ICM20948_WriteReg(BANK_0, PWR_MGMT_1, CLKSEL_0);
-                    ICM20948_WriteReg(BANK_0, USER_CTRL, I2C_IF_DIS | SRAM_RST);
-                } else {
-                    Timer_Stop(timer_id);
-                    LOG_ERROR(device, "Wrong default registers values after reset");
-                    icm20948_state = ICM20948_RESET;
-                    attempt++;
-                    if(attempt > 5) {
-                        icm20948_state = ICM20948_FAIL;
-                        LOG_ERROR(device, "Fatal error");
-                        attempt = 0;
-                    }
+            if ((icm20948_read_reg(dev, BANK_0, WHO_AM_I) == WHOAMI) &&
+                (icm20948_read_reg(dev, BANK_0, PWR_MGMT_1) == 0x41)) {
+                icm20948_write_reg(dev, BANK_0, PWR_MGMT_1, CLKSEL_0);
+                icm20948_write_reg(dev, BANK_0, USER_CTRL,
+                                   I2C_IF_DIS | SRAM_RST);
+                dev->state = ICM20948_CONF;
+            } else {
+                dev->state = ICM20948_RESET;
+                dev->attempt++;
+                if (dev->attempt > 5) {
+                    dev->state = ICM20948_FAIL;
+                    LOG_ERROR(dev->name,
+                              "Wrong default registers values after reset");
+                    LOG_ERROR(dev->name, "Fatal error");
+                    dev->attempt = 0;
                 }
-            } else if(timer_status == TIMER_COUNTING) {
-            } else if(timer_status == TIMER_FINISHED) {
-                icm20948_state = ICM20948_CONF;
-                LOG_DEBUG(device, "Device available");
             }
-
             break;
 
         case ICM20948_CONF:
-            if(ICM20948_Configure()) {
-                ICM20948_FIFOReset();
-                icm20948_last_sample = xTaskGetTickCount();
-                // ICM20948_FIFOCount();
-                // ICM20948_FIFORead();
-                LOG_DEBUG(device, "Device configured");
-                icm20948_state = ICM20948_FIFO_READ;
+            if (icm20948_configure(dev)) {
+                icm20948_fifo_reset(dev);
+                LOG_INFO(dev->name, "Initialization successful");
+                dev->state = ICM20948_FIFO_READ;
             } else {
-                LOG_ERROR(device, "Failed configuration, retrying...");
-                attempt++;
-                if(attempt > 5) {
-                    icm20948_state = ICM20948_RESET;
-                    LOG_ERROR(device, "Failed configuration, reset...");
-                    attempt = 0;
+                LOG_ERROR(dev->name, "Failed configuration, retrying...");
+                dev->attempt++;
+                if (dev->attempt > 5) {
+                    dev->state = ICM20948_RESET;
+                    LOG_ERROR(dev->name, "Failed configuration, reset...");
+                    dev->attempt = 0;
                 }
             }
-
             break;
 
         case ICM20948_FIFO_READ:
-            if(icm20948_cfg.enable_drdy) {
-                xSemaphoreTake(drdy_semaphore, portMAX_DELAY);
+            if (dev->interface.drdy != NULL) {
+                xSemaphoreTake(dev->sync.drdy_sem, portMAX_DELAY);
             }
-            // ICM20948_FIFOCount();
-            // ICM20948_FIFORead();
-            ICM20948_SampleRead();
-            icm20948_fifo.imu_dt = xTaskGetTickCount() - icm20948_last_sample;
-            icm20948_fifo.samples = icm20948_FIFOParam.samples;
-            icm20948_last_sample = xTaskGetTickCount();
-            xSemaphoreGive(measrdy_semaphore);
-            _debug();
+            icm20948_fifo_read(dev, 1);
+            icm20948_temp_process(dev);
+            icm20948_accel_process(dev);
+            icm20948_gyro_process(dev);
+            static int count = 0;
+            count++;
+            if (count > 2000) {
+                icm20948_stat(dev);
+                count = 0;
+            }
+            if (dev->interface.drdy != NULL) {
+                irq_enable(dev->interface.drdy->p.id);
+            }
+            xSemaphoreGive(dev->sync.measrdy_sem);
             break;
 
         case ICM20948_FAIL:
-            vTaskDelay(0);
+            vTaskDelete(NULL);
+            return;
+
+        default:
             break;
     }
 }
 
-int ICM20948_Operation(void) {
-    if(icm20948_state == ICM20948_FIFO_READ) {
-        return 0;
-    } else {
-        return -1;
-    }
-}
-
-void ICM20948_DataReadyHandler(void) {
+void icm20948_drdy_handler(void *area) {
+    icm20948_t *dev = (icm20948_t *)area;
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
-    xSemaphoreGiveFromISR(drdy_semaphore, &xHigherPriorityTaskWoken);
+    xSemaphoreGiveFromISR(dev->sync.drdy_sem, &xHigherPriorityTaskWoken);
 
-    HAL_EXTI_ClearPending((EXTI_HandleTypeDef *)&icm20948_cfg.drdy->EXTI_Handle,
-                            EXTI_TRIGGER_RISING);
-    EXTI_DisableIRQ(icm20948_cfg.drdy);
+    HAL_EXTI_ClearPending((EXTI_HandleTypeDef *)&dev->interface.drdy->handle,
+                          EXTI_TRIGGER_RISING);
+    irq_disable(dev->interface.drdy->p.id);
 
-    if(xHigherPriorityTaskWoken == pdTRUE) {
+    if (xHigherPriorityTaskWoken == pdTRUE) {
         portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
     }
 }
 
-void ICM20948_GetMeasBlock(void *ptr) {
-    xSemaphoreTake(measrdy_semaphore, portMAX_DELAY);
-    memcpy(ptr, (void *)&icm20948_imu_meas, sizeof(icm20948_imu_meas_t));
+void icm20948_get_meas_non_block(icm20948_t *dev, void *ptr) {
+    memcpy(ptr, (void *)&dev, sizeof(icm20948_meas_t));
 }
 
-void ICM20948_GetMeasNonBlock(void *ptr) {
-    memcpy(ptr, (void *)&icm20948_imu_meas, sizeof(icm20948_imu_meas_t));
+void icm20948_get_meas_block(icm20948_t *dev, void *ptr) {
+    xSemaphoreTake(dev->sync.measrdy_sem, portMAX_DELAY);
+    icm20948_get_meas_non_block(dev, ptr);
 }
 
 // Private functions
-static void ICM20948_ChipSelection(void) {
-    spi_chip_select(icm20948_cfg.spi, icm20948_cfg.cs);
+static void icm20948_chip_select(icm20948_t *dev) {
+    spi_chip_select(dev->interface.spi, dev->interface.cs);
 }
 
-static void ICM20948_ChipDeselection(void) {
-    spi_chip_deselect(icm20948_cfg.spi, icm20948_cfg.cs);
+static void icm20948_chip_deselect(icm20948_t *dev) {
+    spi_chip_deselect(dev->interface.spi, dev->interface.cs);
 }
 
-static void ICM20948_SetBank(uint8_t bank) {
+static void icm20948_set_bank(icm20948_t *dev, uint8_t bank) {
     static uint8_t prev_bank = 0xFF;
     uint8_t data[2];
     data[0] = REG_BANK_SEL;
     data[1] = bank;
-    if(bank != prev_bank) {
-        spi_transmit_receive(icm20948_cfg.spi, data, data, sizeof(data));
+    if (bank != prev_bank) {
+        spi_transmit_receive(dev->interface.spi, data, data, sizeof(data));
     }
     prev_bank = bank;
 }
 
-static uint8_t ICM20948_ReadReg(uint8_t bank, uint8_t reg) {
+static void icm20948_exchange(icm20948_t *dev, uint8_t bank, uint8_t *tx_buf,
+                              uint8_t *rx_buf, uint16_t length) {
+    icm20948_chip_select(dev);
+    icm20948_set_bank(dev, bank);
+    spi_transmit_receive(dev->interface.spi, tx_buf, rx_buf, length);
+    icm20948_chip_deselect(dev);
+}
+
+static uint8_t icm20948_read_reg(icm20948_t *dev, uint8_t bank, uint8_t reg) {
     uint8_t data[2];
     data[0] = reg | READ;
-    ICM20948_ChipSelection();
-    ICM20948_SetBank(bank);
-    spi_transmit_receive(icm20948_cfg.spi, data, data, sizeof(data));
-    ICM20948_ChipDeselection();
+    data[1] = 0;
+    icm20948_exchange(dev, bank, data, data, sizeof(data));
     return data[1];
 }
 
-static void ICM20948_WriteReg(uint8_t bank, uint8_t reg, uint8_t value) {
+static void icm20948_write_reg(icm20948_t *dev, uint8_t bank, uint8_t reg,
+                               uint8_t value) {
     uint8_t data[2];
-    data[0] = reg;
+    data[0] = reg | WRITE;
     data[1] = value;
-    ICM20948_ChipSelection();
-    ICM20948_SetBank(bank);
-    spi_transmit(icm20948_cfg.spi, data, sizeof(data));
-    ICM20948_ChipDeselection();
+    icm20948_exchange(dev, bank, data, data, sizeof(data));
 }
 
-static void ICM20948_SetClearReg(uint8_t bank, uint8_t reg, uint8_t setbits, uint8_t clearbits) {
-    uint8_t orig_val = ICM20948_ReadReg(bank, reg);
+static void icm20948_set_clear_reg(icm20948_t *dev, uint8_t bank, uint8_t reg,
+                                   uint8_t setbits, uint8_t clearbits) {
+    uint8_t orig_val = icm20948_read_reg(dev, bank, reg);
     uint8_t val = (orig_val & ~clearbits) | setbits;
     if (orig_val != val) {
-        ICM20948_WriteReg(bank, reg, val);
+        icm20948_write_reg(dev, bank, reg, val);
     }
 }
 
-static int ICM20948_Configure(void) {
+static int icm20948_configure(icm20948_t *dev) {
     uint8_t orig_val;
     int rv = 1;
 
     // Set configure BANK_0
-    for(int i = 0; i < BANK_0_SIZE_REG_CFG; i++) {
-        ICM20948_SetClearReg(BANK_0, 
-                             bank_0_reg_cfg[i].reg, 
-                             bank_0_reg_cfg[i].setbits, 
-                             bank_0_reg_cfg[i].clearbits);
+    for (int i = 0; i < BANK_0_SIZE_REG_CFG; i++) {
+        icm20948_set_clear_reg(dev, BANK_0, bank_0_reg_cfg[i].reg,
+                               bank_0_reg_cfg[i].setbits,
+                               bank_0_reg_cfg[i].clearbits);
     }
 
     // Check BANK_0
-    for(int i = 0; i < BANK_0_SIZE_REG_CFG; i++) {
-        orig_val = ICM20948_ReadReg(BANK_0, bank_0_reg_cfg[i].reg);
+    for (int i = 0; i < BANK_0_SIZE_REG_CFG; i++) {
+        orig_val = icm20948_read_reg(dev, BANK_0, bank_0_reg_cfg[i].reg);
 
-        if((orig_val & bank_0_reg_cfg[i].setbits) != bank_0_reg_cfg[i].setbits) {
-            LOG_ERROR(device, "0x%02x: 0x%02x (0x%02x not set)",
-            (uint8_t)bank_0_reg_cfg[i].reg, orig_val, bank_0_reg_cfg[i].setbits);
+        if ((orig_val & bank_0_reg_cfg[i].setbits) !=
+            bank_0_reg_cfg[i].setbits) {
+            LOG_ERROR(dev->name, "0x%02x: 0x%02x (0x%02x not set)",
+                      (uint8_t)bank_0_reg_cfg[i].reg, orig_val,
+                      bank_0_reg_cfg[i].setbits);
             rv = 0;
         }
 
-        if((orig_val & bank_0_reg_cfg[i].clearbits) != 0) {
-            LOG_ERROR(device, "0x%02x: 0x%02x (0x%02x not cleared)",
-            (uint8_t)bank_0_reg_cfg[i].reg, orig_val, bank_0_reg_cfg[i].clearbits);
+        if ((orig_val & bank_0_reg_cfg[i].clearbits) != 0) {
+            LOG_ERROR(dev->name, "0x%02x: 0x%02x (0x%02x not cleared)",
+                      (uint8_t)bank_0_reg_cfg[i].reg, orig_val,
+                      bank_0_reg_cfg[i].clearbits);
             rv = 0;
         }
     }
 
     // Set configure BANK_2
-    for(int i = 0; i < BANK_2_SIZE_REG_CFG; i++) {
-        ICM20948_SetClearReg(BANK_2, 
-                             bank_2_reg_cfg[i].reg, 
-                             bank_2_reg_cfg[i].setbits, 
-                             bank_2_reg_cfg[i].clearbits);
+    for (int i = 0; i < BANK_2_SIZE_REG_CFG; i++) {
+        icm20948_set_clear_reg(dev, BANK_2, bank_2_reg_cfg[i].reg,
+                               bank_2_reg_cfg[i].setbits,
+                               bank_2_reg_cfg[i].clearbits);
     }
 
     // Check BANK_2
-    for(int i = 0; i < BANK_2_SIZE_REG_CFG; i++) {
-        orig_val = ICM20948_ReadReg(BANK_2, bank_2_reg_cfg[i].reg);
+    for (int i = 0; i < BANK_2_SIZE_REG_CFG; i++) {
+        orig_val = icm20948_read_reg(dev, BANK_2, bank_2_reg_cfg[i].reg);
 
-        if((orig_val & bank_2_reg_cfg[i].setbits) != bank_2_reg_cfg[i].setbits) {
-            LOG_ERROR(device, "0x%02x: 0x%02x (0x%02x not set)",
-            (uint8_t)bank_2_reg_cfg[i].reg, orig_val, bank_2_reg_cfg[i].setbits);
+        if ((orig_val & bank_2_reg_cfg[i].setbits) !=
+            bank_2_reg_cfg[i].setbits) {
+            LOG_ERROR(dev->name, "0x%02x: 0x%02x (0x%02x not set)",
+                      (uint8_t)bank_2_reg_cfg[i].reg, orig_val,
+                      bank_2_reg_cfg[i].setbits);
             rv = 0;
         }
 
-        if((orig_val & bank_2_reg_cfg[i].clearbits) != 0) {
-            LOG_ERROR(device, "0x%02x: 0x%02x (0x%02x not cleared)",
-            (uint8_t)bank_2_reg_cfg[i].reg, orig_val, bank_2_reg_cfg[i].clearbits);
+        if ((orig_val & bank_2_reg_cfg[i].clearbits) != 0) {
+            LOG_ERROR(dev->name, "0x%02x: 0x%02x (0x%02x not cleared)",
+                      (uint8_t)bank_2_reg_cfg[i].reg, orig_val,
+                      bank_2_reg_cfg[i].clearbits);
             rv = 0;
         }
     }
 
     // Set configure BANK_3
     reg_cfg_t bank_3_reg_cfg[BANK_3_SIZE_REG_CFG];
-    if(icm20948_cfg.enable_mag) {
+    if(dev->enable_mag) {
         memcpy(bank_3_reg_cfg, 
                bank_3_reg_cfg_w_mag, 
                sizeof(reg_cfg_t) * BANK_3_SIZE_REG_CFG);
@@ -314,7 +314,7 @@ static int ICM20948_Configure(void) {
     }
 
     for(int i = 0; i < BANK_3_SIZE_REG_CFG; i++) {
-        ICM20948_SetClearReg(BANK_3, 
+        icm20948_set_clear_reg(dev, BANK_3, 
                              bank_3_reg_cfg[i].reg, 
                              bank_3_reg_cfg[i].setbits, 
                              bank_3_reg_cfg[i].clearbits);
@@ -322,225 +322,167 @@ static int ICM20948_Configure(void) {
 
     // Check BANK_3
     for(int i = 0; i < BANK_3_SIZE_REG_CFG; i++) {
-        orig_val = ICM20948_ReadReg(BANK_3, bank_3_reg_cfg[i].reg);
+        orig_val = icm20948_read_reg(dev, BANK_3, bank_3_reg_cfg[i].reg);
 
         if((orig_val & bank_3_reg_cfg[i].setbits) != bank_3_reg_cfg[i].setbits) {
-            LOG_ERROR(device, "0x%02x: 0x%02x (0x%02x not set)",
+            LOG_ERROR(dev->name, "0x%02x: 0x%02x (0x%02x not set)",
             (uint8_t)bank_3_reg_cfg[i].reg, orig_val, bank_3_reg_cfg[i].setbits);
             rv = 0;
         }
 
         if((orig_val & bank_3_reg_cfg[i].clearbits) != 0) {
-            LOG_ERROR(device, "0x%02x: 0x%02x (0x%02x not cleared)",
+            LOG_ERROR(dev->name, "0x%02x: 0x%02x (0x%02x not cleared)",
             (uint8_t)bank_3_reg_cfg[i].reg, orig_val, bank_3_reg_cfg[i].clearbits);
             rv = 0;
         }
     }
 
-    vTaskDelay(1);
-
     // Set scale and range for processing
-    ICM20948_AccelConfigure();
-    ICM20948_GyroConfigure();
+    icm20948_accel_configure(dev);
+    icm20948_gyro_configure(dev);
 
     // Enable EXTI IRQ for DataReady pin
-    if(icm20948_cfg.enable_drdy) {
-        EXTI_EnableIRQ(icm20948_cfg.drdy);
+    if (dev->interface.drdy != NULL) {
+        irq_enable(dev->interface.drdy->p.id);
     }
 
     return rv;
 }
 
-static void ICM20948_AccelConfigure(void) {
-    uint8_t ACCEL_FS_SEL = ICM20948_ReadReg(BANK_2, ACCEL_CONFIG) & (BIT1 | BIT2);
-    ACCEL_FS_SEL = ICM20948_ReadReg(BANK_2, ACCEL_CONFIG) & (BIT1 | BIT2);
-
+static void icm20948_accel_configure(icm20948_t *dev) {
+    const uint8_t ACCEL_FS_SEL =
+        icm20948_read_reg(dev, BANK_2, ACCEL_CONFIG) & (BIT1 | BIT2);
 
     if(ACCEL_FS_SEL == ACCEL_FS_SEL_2G) {
-        icm20948_cfg.param.accel_scale = (CONST_G / 16384.f);
-        icm20948_cfg.param.accel_range = (2.f * CONST_G);
+        dev->meas_param.accel_scale = (CONST_G / 16384.f);
+        dev->meas_param.accel_range = (2.f * CONST_G);
     } else if(ACCEL_FS_SEL == ACCEL_FS_SEL_4G) {
-        icm20948_cfg.param.accel_scale = (CONST_G / 8192.f);
-        icm20948_cfg.param.accel_range = (4.f * CONST_G);
+        dev->meas_param.accel_scale = (CONST_G / 8192.f);
+        dev->meas_param.accel_range = (4.f * CONST_G);
     } else if(ACCEL_FS_SEL == ACCEL_FS_SEL_8G) {
-        icm20948_cfg.param.accel_scale = (CONST_G / 4096.f);
-        icm20948_cfg.param.accel_range = (8.f * CONST_G);
+        dev->meas_param.accel_scale = (CONST_G / 4096.f);
+        dev->meas_param.accel_range = (8.f * CONST_G);
     } else if(ACCEL_FS_SEL == ACCEL_FS_SEL_16G) {
-        icm20948_cfg.param.accel_scale = (CONST_G / 2048.f);
-        icm20948_cfg.param.accel_range = (16.f * CONST_G);
+        dev->meas_param.accel_scale = (CONST_G / 2048.f);
+        dev->meas_param.accel_range = (16.f * CONST_G);
     }
 }
 
-static void ICM20948_GyroConfigure(void) {
-    uint8_t FS_SEL = ICM20948_ReadReg(BANK_2, GYRO_CONFIG_1) & (BIT1 | BIT2);
-    FS_SEL = ICM20948_ReadReg(BANK_2, GYRO_CONFIG_1) & (BIT1 | BIT2);
+static void icm20948_gyro_configure(icm20948_t *dev) {
+    const uint8_t FS_SEL =
+        icm20948_read_reg(dev, BANK_2, GYRO_CONFIG_1) & (BIT1 | BIT2);
 
     if(FS_SEL == GYRO_FS_SEL_250_DPS) {
-        icm20948_cfg.param.gyro_range = 250.f;
+        dev->meas_param.gyro_range = 250.f;
     } else if(FS_SEL == GYRO_FS_SEL_500_DPS) {
-        icm20948_cfg.param.gyro_range = 500.f;
+        dev->meas_param.gyro_range = 500.f;
     } else if(FS_SEL == GYRO_FS_SEL_1000_DPS) {
-        icm20948_cfg.param.gyro_range = 1000.f;
+        dev->meas_param.gyro_range = 1000.f;
     } else if(FS_SEL == GYRO_FS_SEL_2000_DPS) {
-        icm20948_cfg.param.gyro_range = 2000.f;
+        dev->meas_param.gyro_range = 2000.f;
     }
 
-    icm20948_cfg.param.gyro_scale = (icm20948_cfg.param.gyro_range / 32768.f);
+    dev->meas_param.gyro_scale = (dev->meas_param.gyro_range / 32768.f);
 }
 
-static int ICM20948_SampleRead(void) {
-    icm20948_FIFOBuffer.COUNTL = ACCEL_XOUT_H | READ;
-    icm20948_FIFOParam.bytes = 13;
-    icm20948_FIFOParam.samples = 1;
+static int icm20948_fifo_read(icm20948_t *dev, uint16_t samples) {
+    if (samples > 1) {
+        dev->fifo_buffer.CMD = FIFO_COUNTH | READ;
+        icm20948_exchange(dev, BANK_0, (uint8_t *)&dev->fifo_buffer,
+                          (uint8_t *)&dev->fifo_buffer, 3);
 
-    ICM20948_ChipSelection();
-    ICM20948_SetBank(BANK_0);
-    spi_transmit_receive(icm20948_cfg.spi, 
-                (uint8_t *)&icm20948_FIFOBuffer.COUNTL, 
-                (uint8_t *)&icm20948_FIFOBuffer.COUNTL,
-                icm20948_FIFOParam.bytes);
-    ICM20948_ChipDeselection();
+        dev->fifo_param.bytes =
+            MIN(msblsb16(dev->fifo_buffer.COUNTH, dev->fifo_buffer.COUNTL),
+                samples);
+        dev->fifo_param.samples =
+            dev->fifo_param.bytes / sizeof(icm20948_fifo_t);
 
-    ICM20948_TempProcess();
-    ICM20948_AccelProcess();
-    ICM20948_GyroProcess();
-
-    icm20948_imu_meas.accel_x = icm20948_fifo.accel_x[0];
-    icm20948_imu_meas.accel_y = icm20948_fifo.accel_y[0];
-    icm20948_imu_meas.accel_z = icm20948_fifo.accel_z[0];
-    icm20948_imu_meas.gyro_x = icm20948_fifo.gyro_x[0];
-    icm20948_imu_meas.gyro_y = icm20948_fifo.gyro_y[0];
-    icm20948_imu_meas.gyro_z = icm20948_fifo.gyro_z[0];
-    icm20948_imu_meas.imu_dt = icm20948_fifo.imu_dt;
-
-    if(icm20948_cfg.enable_drdy) {
-        EXTI_EnableIRQ(icm20948_cfg.drdy);
+        dev->fifo_buffer.CMD = FIFO_COUNTH | READ;
+        icm20948_exchange(dev, BANK_0, (uint8_t *)&dev->fifo_buffer,
+                          (uint8_t *)&dev->fifo_buffer,
+                          dev->fifo_param.bytes + 3);
+    } else {
+        dev->fifo_buffer.COUNTL = ACCEL_XOUT_H | READ;
+        dev->fifo_param.samples = 1;
+        dev->fifo_param.bytes = sizeof(icm20948_fifo_t);
+        icm20948_exchange(dev, BANK_0, (uint8_t *)&dev->fifo_buffer.COUNTL,
+                          (uint8_t *)&dev->fifo_buffer.COUNTL,
+                          dev->fifo_param.bytes + 1);
     }
 
     return 0;
 }
 
-static void ICM20948_FIFOCount(void) {
-    icm20948_FIFOBuffer.CMD = FIFO_COUNTH | READ;
-
-    ICM20948_ChipSelection();
-    ICM20948_SetBank(BANK_0);
-    spi_transmit_receive(icm20948_cfg.spi, 
-                        (uint8_t *)&icm20948_FIFOBuffer, 
-                        (uint8_t *)&icm20948_FIFOBuffer,
-                        3);
-    ICM20948_ChipDeselection();
-    icm20948_FIFOParam.bytes = msblsb16(icm20948_FIFOBuffer.COUNTH, 
-                                        icm20948_FIFOBuffer.COUNTL);
-    icm20948_FIFOParam.samples = icm20948_FIFOParam.bytes / sizeof(FIFO_t);
+static void icm20948_fifo_reset(icm20948_t *dev) {
+    icm20948_write_reg(dev, BANK_0, FIFO_RST, FIFO_RESET);
+    icm20948_set_clear_reg(dev, BANK_0, FIFO_RST, 0, FIFO_RESET);
 }
 
-static int ICM20948_FIFORead(void) {
-    icm20948_FIFOBuffer.CMD = FIFO_COUNTH | READ;
+static void icm20948_accel_process(icm20948_t *dev) {
+    for (int i = 0; i < dev->fifo_param.samples; i++) {
+        int16_t accel_x = msblsb16(dev->fifo_buffer.buf[i].ACCEL_XOUT_H,
+                                   dev->fifo_buffer.buf[i].ACCEL_XOUT_L);
+        int16_t accel_y = msblsb16(dev->fifo_buffer.buf[i].ACCEL_YOUT_H,
+                                   dev->fifo_buffer.buf[i].ACCEL_YOUT_L);
+        int16_t accel_z = msblsb16(dev->fifo_buffer.buf[i].ACCEL_ZOUT_H,
+                                   dev->fifo_buffer.buf[i].ACCEL_ZOUT_L);
 
-    ICM20948_ChipSelection();
-    ICM20948_SetBank(BANK_0);
-    spi_transmit_receive(icm20948_cfg.spi, 
-                        (uint8_t *)&icm20948_FIFOBuffer, 
-                        (uint8_t *)&icm20948_FIFOBuffer,
-                        icm20948_FIFOParam.bytes + 3);
-    ICM20948_ChipDeselection();
-
-    ICM20948_TempProcess();
-    ICM20948_AccelProcess();
-    ICM20948_GyroProcess();
-
-    if(icm20948_cfg.enable_drdy) {
-        EXTI_EnableIRQ(icm20948_cfg.drdy);
-    }
-
-    return 0;
-}
-
-static void ICM20948_FIFOReset(void) {
-    ICM20948_WriteReg(BANK_0, FIFO_RST, FIFO_RESET);
-    ICM20948_SetClearReg(BANK_0, FIFO_RST, 0, FIFO_RESET);
-}
-
-static void ICM20948_AccelProcess(void) {
-    for (int i = 0; i < icm20948_FIFOParam.samples; i++) {
-        int16_t accel_x = msblsb16(icm20948_FIFOBuffer.buf[i].ACCEL_XOUT_H,
-                                    icm20948_FIFOBuffer.buf[i].ACCEL_XOUT_L);
-        int16_t accel_y = msblsb16(icm20948_FIFOBuffer.buf[i].ACCEL_YOUT_H,
-                                    icm20948_FIFOBuffer.buf[i].ACCEL_YOUT_L);
-        int16_t accel_z = msblsb16(icm20948_FIFOBuffer.buf[i].ACCEL_ZOUT_H,
-                                    icm20948_FIFOBuffer.buf[i].ACCEL_ZOUT_L);
-
-        icm20948_fifo.accel_x[i] = accel_x * icm20948_cfg.param.accel_scale;
-        icm20948_fifo.accel_y[i] = ((accel_y == INT16_MIN) ? INT16_MAX : -accel_y) *
-                                        icm20948_cfg.param.accel_scale;
-        icm20948_fifo.accel_z[i] = ((accel_z == INT16_MIN) ? INT16_MAX : -accel_z) *
-                                        icm20948_cfg.param.accel_scale;
-
-        ind += (fabs(icm20948_fifo.accel_x[i]) > 10 ? 1 : 0);
-        ind += (fabs(icm20948_fifo.accel_y[i]) > 10 ? 1 : 0);
-        ind += (fabs(icm20948_fifo.accel_z[i]) > 10 ? 1 : 0);
-        ind += (fabs(icm20948_fifo.accel_z[i]) < 9 ? 1 : 0);
+        dev->meas_buffer.meas[i].accel_x =
+            accel_x * dev->meas_param.accel_scale;
+        dev->meas_buffer.meas[i].accel_y =
+            ((accel_y == INT16_MIN) ? INT16_MAX : -accel_y) *
+            dev->meas_param.accel_scale;
+        dev->meas_buffer.meas[i].accel_z =
+            ((accel_z == INT16_MIN) ? INT16_MAX : -accel_z) *
+            dev->meas_param.accel_scale;
     }
 }
 
-static void ICM20948_GyroProcess(void) {
-    for (int i = 0; i < icm20948_FIFOParam.samples; i++) {
-        int16_t gyro_x = msblsb16(icm20948_FIFOBuffer.buf[i].GYRO_XOUT_H,
-                                    icm20948_FIFOBuffer.buf[i].GYRO_XOUT_L);
-        int16_t gyro_y = msblsb16(icm20948_FIFOBuffer.buf[i].GYRO_YOUT_H,
-                                    icm20948_FIFOBuffer.buf[i].GYRO_YOUT_L);
-        int16_t gyro_z = msblsb16(icm20948_FIFOBuffer.buf[i].GYRO_ZOUT_H,
-                                    icm20948_FIFOBuffer.buf[i].GYRO_ZOUT_L);
+static void icm20948_gyro_process(icm20948_t *dev) {
+    for (int i = 0; i < dev->fifo_param.samples; i++) {
+        int16_t gyro_x = msblsb16(dev->fifo_buffer.buf[i].GYRO_XOUT_H,
+                                  dev->fifo_buffer.buf[i].GYRO_XOUT_L);
+        int16_t gyro_y = msblsb16(dev->fifo_buffer.buf[i].GYRO_YOUT_H,
+                                  dev->fifo_buffer.buf[i].GYRO_YOUT_L);
+        int16_t gyro_z = msblsb16(dev->fifo_buffer.buf[i].GYRO_ZOUT_H,
+                                  dev->fifo_buffer.buf[i].GYRO_ZOUT_L);
 
-        icm20948_fifo.gyro_x[i] = gyro_x * icm20948_cfg.param.gyro_scale;
-        icm20948_fifo.gyro_y[i] = ((gyro_y == INT16_MIN) ? INT16_MAX : -gyro_y) *
-                                    icm20948_cfg.param.gyro_scale;
-        icm20948_fifo.gyro_z[i] = ((gyro_z == INT16_MIN) ? INT16_MAX : -gyro_z) *
-                                    icm20948_cfg.param.gyro_scale;
-        ind += (fabs(icm20948_fifo.gyro_x[i]) > 10 ? 1 : 0);
-        ind += (fabs(icm20948_fifo.gyro_y[i]) > 10 ? 1 : 0);
-        ind += (fabs(icm20948_fifo.gyro_z[i]) > 10 ? 1 : 0);
+        dev->meas_buffer.meas[i].gyro_x = gyro_x * dev->meas_param.gyro_scale;
+        dev->meas_buffer.meas[i].gyro_y =
+            ((gyro_y == INT16_MIN) ? INT16_MAX : -gyro_y) *
+            dev->meas_param.gyro_scale;
+        dev->meas_buffer.meas[i].gyro_z =
+            ((gyro_z == INT16_MIN) ? INT16_MAX : -gyro_z) *
+            dev->meas_param.gyro_scale;
     }
 }
 
-static void ICM20948_TempProcess(void) {
+static void icm20948_temp_process(icm20948_t *dev) {
     uint8_t data[3];
     data[0] = TEMP_OUT_H | READ;
 
-    ICM20948_ChipSelection();
-    ICM20948_SetBank(BANK_0);
-    spi_transmit_receive(icm20948_cfg.spi, &data[0], &data[1], sizeof(data));
-    ICM20948_ChipDeselection();
+    icm20948_exchange(dev, BANK_0, data, data, sizeof(data));
 
     int16_t temp_raw = msblsb16(data[1], data[2]);
-    icm20948_fifo.temp = temp_raw / TEMP_SENS + TEMP_OFFSET;
+    dev->meas_buffer.temp =
+        (temp_raw - TEMP_SENS * TEMP_OFFSET) / TEMP_SENS + TEMP_OFFSET;
 }
 
-static int ICM20948_Probe(void) {
-    uint8_t whoami;
-    whoami = ICM20948_ReadReg(BANK_1, WHO_AM_I);
-    if(whoami != WHOAMI) {
-        LOG_ERROR(device, "unexpected WHO_AM_I reg 0x%02x\n", whoami);
-        return ENODEV;
-    }
-    return 0;
-}
-
-static void ICM20948_Statistics(void) {
-    LOG_DEBUG(device, "Statistics:");
-    LOG_DEBUG(device, "accel_x = %.3f [m/s2]", icm20948_fifo.accel_x[0]);
-    LOG_DEBUG(device, "accel_y = %.3f [m/s2]", icm20948_fifo.accel_y[0]);
-    LOG_DEBUG(device, "accel_z = %.3f [m/s2]", icm20948_fifo.accel_z[0]);
-    LOG_DEBUG(device, "gyro_x  = %.3f [deg/s]", icm20948_fifo.gyro_x[0]);
-    LOG_DEBUG(device, "gyro_y  = %.3f [deg/s]", icm20948_fifo.gyro_y[0]);
-    LOG_DEBUG(device, "gyro_z  = %.3f [deg/s]", icm20948_fifo.gyro_z[0]);
-    LOG_DEBUG(device, "mag_x   = %.3f [G]", icm20948_fifo.mag_x);
-    LOG_DEBUG(device, "mag_y   = %.3f [G]", icm20948_fifo.mag_y);
-    LOG_DEBUG(device, "mag_z   = %.3f [G]", icm20948_fifo.mag_z);
-    LOG_DEBUG(device, "temp    = %.3f [C]", icm20948_fifo.temp);
-    LOG_DEBUG(device, "N       = %lu [samples]", icm20948_fifo.samples);
-    LOG_DEBUG(device, "IMU dt  = %lu [ms]", icm20948_fifo.imu_dt);
-    LOG_DEBUG(device, "MAG dt  = %lu [ms]", icm20948_fifo.mag_dt);
-    LOG_DEBUG(device, "N = %lu", icm20948_fifo.samples);
+static void icm20948_stat(icm20948_t *dev) {
+    printf("\n");
+    LOG_DEBUG(dev->name, "Statistics:");
+    LOG_DEBUG(dev->name, "accel_x = %.3f [m/s2]",
+              dev->meas_buffer.meas[0].accel_x);
+    LOG_DEBUG(dev->name, "accel_y = %.3f [m/s2]",
+              dev->meas_buffer.meas[0].accel_y);
+    LOG_DEBUG(dev->name, "accel_z = %.3f [m/s2]",
+              dev->meas_buffer.meas[0].accel_z);
+    LOG_DEBUG(dev->name, "gyro_x  = %.3f [deg/s]",
+              dev->meas_buffer.meas[0].gyro_x);
+    LOG_DEBUG(dev->name, "gyro_y  = %.3f [deg/s]",
+              dev->meas_buffer.meas[0].gyro_y);
+    LOG_DEBUG(dev->name, "gyro_z  = %.3f [deg/s]",
+              dev->meas_buffer.meas[0].gyro_z);
+    LOG_DEBUG(dev->name, "temp    = %.3f [C]", dev->meas_buffer.temp);
+    LOG_DEBUG(dev->name, "N       = %lu [samples]", dev->fifo_param.samples);
 }
