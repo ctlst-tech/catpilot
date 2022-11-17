@@ -5,7 +5,7 @@ if (BOARD STREQUAL "cube")
     set(MCU_FAMILY stm32)
     set(MCU_MODEL h753)
     # set(IC_CUBEIO "ON")
-    # set(IC_ICM20602 "ON")
+    set(IC_ICM20602 "ON")
     set(IC_ICM20649 "ON")
     # set(IC_ICM20948 "ON")
     # set(IC_MS5611 "ON")
@@ -38,6 +38,7 @@ if (MCU_FAMILY STREQUAL "stm32")
             mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_cortex.c
             mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_dma.c
             mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_dma_ex.c
+            mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_exti.c
             mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_flash.c
             mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_flash_ex.c
             mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_gpio.c

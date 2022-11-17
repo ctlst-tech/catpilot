@@ -1,7 +1,8 @@
-#include "stm32_base.h"
+#ifndef ICM20602_REG_H
+#define ICM20602_REG_H
+
 #include "bit.h"
-#include "icm20602.h"
-#pragma once
+#include "icm20649.h"
 
 #define type_t static const uint8_t
 
@@ -17,6 +18,7 @@ type_t GYRO_CONFIG          = 0x1B;
 type_t ACCEL_CONFIG         = 0x1C;
 type_t ACCEL_CONFIG2        = 0x1D;
 type_t FIFO_EN              = 0x23;
+type_t ACCEL_XOUT_H         = 0x3B;
 type_t INT_PIN_CFG          = 0x37;
 type_t INT_ENABLE           = 0x38;
 type_t TEMP_OUT_H           = 0x41;
@@ -102,24 +104,6 @@ static const float TEMP_SENS_MAX = 85.f;
 type_t READ = 0x80;
 type_t WRITE = 0x00;
 
-// FIFO layout
-typedef struct {
-    uint8_t ACCEL_XOUT_H;
-    uint8_t ACCEL_XOUT_L;
-    uint8_t ACCEL_YOUT_H;
-    uint8_t ACCEL_YOUT_L;
-    uint8_t ACCEL_ZOUT_H;
-    uint8_t ACCEL_ZOUT_L;
-    uint8_t TEMP_H;
-    uint8_t TEMP_L;
-    uint8_t GYRO_XOUT_H;
-    uint8_t GYRO_XOUT_L;
-    uint8_t GYRO_YOUT_H;
-    uint8_t GYRO_YOUT_L;
-    uint8_t GYRO_ZOUT_H;
-    uint8_t GYRO_ZOUT_L;
-} FIFO_t;
-
 #define SIZE_REG_CFG 24
 
 typedef struct {
@@ -157,14 +141,4 @@ static const reg_cfg_t reg_cfg[SIZE_REG_CFG] = {
     {ZA_OFFSET_L,   0, 0},
 };
 
-typedef struct {
-    uint8_t CMD;
-    uint8_t COUNTH;
-    uint8_t COUNTL;
-    FIFO_t buf[ICM20602_FIFO_SIZE / sizeof(FIFO_t) + 1];
-} FIFOBuffer_t;
-
-typedef struct {
-    uint16_t bytes;
-    uint16_t samples;
-} FIFOParam_t;
+#endif  // ICM20602_REG_H

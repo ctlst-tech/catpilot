@@ -2,6 +2,7 @@
 #include "core.h"
 #include "hal.h"
 #include "icm20649.h"
+#include "icm20602.h"
 #include "log.h"
 #include "periph.h"
 
@@ -241,5 +242,6 @@ int board_fs_init(void) {
 
 int board_services_start(void) {
     icm20649_start(&spi1, &gpio_spi1_cs1, &exti_spi1_drdy1, 2, 10);
+    icm20602_start(&spi4, &gpio_spi4_cs2, NULL, 2, 10);
     return 0;
 }

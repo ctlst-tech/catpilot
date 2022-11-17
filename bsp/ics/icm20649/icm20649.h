@@ -90,7 +90,7 @@ enum icm20649_state_t {
 };
 
 typedef struct {
-    char *name;
+    char name[32];
     icm20649_interface_t interface;
     icm20649_sync_t sync;
     icm20649_fifo_buffer_t fifo_buffer;

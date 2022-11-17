@@ -146,7 +146,7 @@ void icm20649_fsm(icm20649_t *dev) {
             icm20649_gyro_process(dev);
             static int count = 0;
             count++;
-            if (count > 500) {
+            if (count > 2000) {
                 icm20649_stat(dev);
                 count = 0;
             }
