@@ -6,8 +6,17 @@
 #include "icm20948.h"
 #include "log.h"
 #include "periph.h"
+#include "fatfs.h"
 
 uint32_t rcc_system_clock = 400000000;
+
+void HAL_Delay(uint32_t Delay) {
+    vTaskDelay(Delay);
+}
+
+uint32_t HAL_GetTick(void) {
+    return xTaskGetTickCount();
+}
 
 int board_clock_init(void) {
     RCC_OscInitTypeDef RCC_OscInitStruct = {0};
@@ -176,6 +185,10 @@ int board_periph_init(void) {
         LOG_ERROR("SPI4", "Initialization failed");
         return -1;
     }
+    if (sdio_init(&sdio)) {
+        LOG_ERROR("SDIO", "Initialization failed");
+        return -1;
+    }
 
     return 0;
 }
@@ -224,6 +237,28 @@ static int board_std_stream_init(
     return 0;
 }
 
+static FATFS fs;
+static int board_sd_card_init(void) {
+    struct file_operations f_op = {
+        .open = fatfs_open,
+        .write = fatfs_write,
+        .read = fatfs_read,
+        .close = fatfs_close,
+        .fsync = fatfs_syncfs,
+        .dev = &sdio
+    };
+    if (node_mount("/fs", &f_op) == NULL) {
+        LOG_ERROR("SDCARD", "Initialization failed");
+        return -1;
+    }
+    if(f_mount(&fs, "/", 1)) {
+        LOG_ERROR("SDMMC", "Mount error");
+        return -1;
+    }
+    LOG_INFO("SDMMC", "Mount successful");
+    return 0;
+}
+
 int board_fs_init(void) {
     if (board_std_stream_init("stdin", &usart3, usart_open, usart_write,
                               usart_read)) {
@@ -235,6 +270,9 @@ int board_fs_init(void) {
     }
     if (board_std_stream_init("stderr", &usart3, usart_open, usart_write,
                               usart_read)) {
+        return -1;
+    }
+    if (board_sd_card_init()) {
         return -1;
     }
 

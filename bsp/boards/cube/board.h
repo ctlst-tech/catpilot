@@ -73,4 +73,6 @@ extern usart_t usart8;
 extern spi_t spi1;
 extern spi_t spi4;
 
+extern sdio_t sdio;
+
 #endif  // BOARD_H

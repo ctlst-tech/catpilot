@@ -23,6 +23,9 @@
 /* Get Drive Status                                                      */
 /*-----------------------------------------------------------------------*/
 
+extern sdio_t sdio;
+static sdcard_t *sdcard;
+
 DSTATUS disk_status (
     BYTE pdrv		/* Physical drive nmuber to identify the drive */
 )
@@ -30,7 +33,7 @@ DSTATUS disk_status (
     DSTATUS stat;
     int result;
 
-    result = SDCARD_GetStatus();
+    result = sdcard_get_status(sdcard);
 
     if(result) {
         stat = RES_NOTRDY;
@@ -54,9 +57,9 @@ DSTATUS disk_initialize (
     DSTATUS stat;
     int result;
 
-    result = SDCARD_Init();
+    sdcard = sdcard_init(&sdio);
 
-    if(result) {
+    if(sdcard == NULL) {
         stat = STA_NOINIT;
     } else {
         stat = RES_OK;
@@ -81,7 +84,7 @@ DRESULT disk_read (
     DRESULT res;
     int result;
 
-    result = SDCARD_Read(buff, sector, count);
+    result = sdcard_read(sdcard, buff, sector, count);
 
     if(result) {
         res = RES_ERROR;
@@ -110,7 +113,7 @@ DRESULT disk_write (
     DRESULT res;
     int result;
 
-    result = SDCARD_Write((uint8_t *)buff, sector, count);
+    result = sdcard_write(sdcard, (uint8_t *)buff, sector, count);
 
     if(result) {
         res = RES_ERROR;
@@ -135,7 +138,7 @@ DRESULT disk_ioctl (
 )
 {
     DRESULT res = RES_ERROR;
-    HAL_SD_CardInfoTypeDef CardInfo;
+    HAL_SD_CardInfoTypeDef card_info;
 
     switch (cmd)
     {
@@ -146,22 +149,22 @@ DRESULT disk_ioctl (
 
     /* Get number of sectors on the disk (DWORD) */
     case GET_SECTOR_COUNT :
-        SDCARD_GetInfo(&CardInfo);
-        *(DWORD*)buff = CardInfo.LogBlockNbr;
+        sdcard_get_info(sdcard, &card_info);
+        *(DWORD*)buff = card_info.LogBlockNbr;
         res = RES_OK;
         break;
 
     /* Get R/W sector size (WORD) */
     case GET_SECTOR_SIZE :
-        SDCARD_GetInfo(&CardInfo);
-        *(WORD*)buff = CardInfo.LogBlockSize;
+        sdcard_get_info(sdcard, &card_info);
+        *(WORD*)buff = card_info.LogBlockSize;
         res = RES_OK;
         break;
 
     /* Get erase block size in unit of sector (DWORD) */
     case GET_BLOCK_SIZE :
-        SDCARD_GetInfo(&CardInfo);
-        *(DWORD*)buff = CardInfo.LogBlockSize / SD_DEFAULT_BLOCK_SIZE;
+        sdcard_get_info(sdcard, &card_info);
+        *(DWORD*)buff = card_info.LogBlockSize / SD_DEFAULT_BLOCK_SIZE;
         res = RES_OK;
         break;
 

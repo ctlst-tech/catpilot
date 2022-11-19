@@ -56,13 +56,14 @@ if (MCU_FAMILY STREQUAL "stm32")
             mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_uart_ex.c
             mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_usart.c
             mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_usart_ex.c
+            mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_ll_sdmmc.c
         )
         list(APPEND BSP_SRC
             boards/${BOARD}/cfg/adc_cfg.c
             boards/${BOARD}/cfg/exti_cfg.c
             boards/${BOARD}/cfg/gpio_cfg.c
             boards/${BOARD}/cfg/i2c_cfg.c
-            boards/${BOARD}/cfg/sdmmc_cfg.c
+            boards/${BOARD}/cfg/sdio_cfg.c
             boards/${BOARD}/cfg/spi_cfg.c
             boards/${BOARD}/cfg/usart_cfg.c
             boards/${BOARD}/startup/init.c

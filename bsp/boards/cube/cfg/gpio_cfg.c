@@ -1,7 +1,5 @@
 #include "core.h"
 #include "hal.h"
-#include "gpio.h"
-#include "exti.h"
 #include "board.h"
 
 // PWR

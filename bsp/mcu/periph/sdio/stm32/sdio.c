@@ -184,12 +184,11 @@ int sdio_get_status(sdio_t *cfg) {
 void sdio_handler(void *area) {
     sdio_t *cfg = (sdio_t *)area;
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-    if (__HAL_SD_GET_FLAG(&cfg->init, SDMMC_FLAG_DATAEND) != RESET) {
-        if ((cfg->init.Context & SD_CONTEXT_IT) != 0U) {
-            xSemaphoreGiveFromISR(cfg->p.sem, &xHigherPriorityTaskWoken);
-            if (xHigherPriorityTaskWoken == pdTRUE) {
-                portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-            }
+    HAL_SD_IRQHandler(&cfg->init);
+    if(cfg->init.State == HAL_SD_STATE_READY) {
+        xSemaphoreGiveFromISR(cfg->p.sem, &xHigherPriorityTaskWoken);
+        if (xHigherPriorityTaskWoken == pdTRUE) {
+            portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
         }
     }
 }

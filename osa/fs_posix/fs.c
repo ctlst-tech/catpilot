@@ -94,7 +94,12 @@ int open(const char *pathname, int flags) {
     files[fd]->node = node;
     files[fd]->flags = flags;
 
-    rv = files[fd]->node->f_op.open(files[fd], pathname);
+    char *relative_pathname =
+        strstr(pathname, node->name) + strlen(node->name);
+    while((*relative_pathname) == '/' && (*relative_pathname) != '\0') {
+        relative_pathname++;
+    }
+    rv = files[fd]->node->f_op.open(files[fd], relative_pathname);
 
     if (rv) {
         errno = EIO;
@@ -311,8 +316,10 @@ void sync(void) {
         if (files[i] == NULL) {
             continue;
         }
-        if (files[i]->node->f_op.fsync(files[i])) {
-            files[i]->flags |= __SERR;
+        if (files[i]->node->f_op.fsync != NULL) {
+            if (files[i]->node->f_op.fsync(files[i])) {
+                files[i]->flags |= __SERR;
+            }
         }
     }
 }
@@ -327,6 +334,11 @@ int fsync(int fileno) {
 
     if (fileno > MAX_FILES) {
         errno = EINVAL;
+        return -1;
+    }
+
+    if (files[fileno] == NULL || files[fileno]->node->f_op.fsync == NULL) {
+        errno = ENOENT;
         return -1;
     }
 

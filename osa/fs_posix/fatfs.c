@@ -141,8 +141,11 @@ int fatfs_open(struct file *file, const char *path) {
     fh = stream_to_fatfs(file);
 
     if (fh == NULL) {
-        errno = EBADF;
-        return -1;
+        file->private_data = (FIL *)calloc(sizeof(FIL), 1);
+        fh = stream_to_fatfs(file);
+        if (fh == NULL) {
+            return -1;
+        }
     }
 
     res = f_open(fh, path, (BYTE)(fatfs_modes & 0xff));
