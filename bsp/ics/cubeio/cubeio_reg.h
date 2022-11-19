@@ -1,22 +1,9 @@
-#pragma once
-#include "stm32_base.h"
-#include "bit.h"
+#ifndef CUBEIO_REG_H
+#define CUBEIO_REG_H
+
+#include "cubeio.h"
 
 // Protocol
-#define PKT_MAX_REGS                        22
-#define MAX_CHANNELS                        16
-
-#pragma pack(push, 1)
-typedef struct {
-    uint8_t count:6;
-    uint8_t code:2;
-    uint8_t crc;
-    uint8_t page;
-    uint8_t offset;
-    uint16_t regs[PKT_MAX_REGS];
-} cubeio_packet_t;
-#pragma pack(pop)
-
 #define PAGE_CONFIG                         0
 #define PAGE_STATUS                         1
 #define PAGE_ACTUATORS                      2
@@ -89,98 +76,6 @@ typedef struct {
 #define SAFETY_OFF                          1
 #define SAFETY_ON                           0
 
-// Structures
-typedef struct {
-    uint16_t protocol_version;
-    uint16_t protocol_version2;
-} cubeio_page_config_t;
-
-typedef struct {
-    uint8_t num_channels;
-    uint16_t pwm[MAX_CHANNELS];
-    uint16_t failsafe_pwm[MAX_CHANNELS];
-    uint8_t heater_duty;
-    uint16_t safety_mask;
-} cubeio_pwm_out_t;
-
-typedef struct {
-    uint16_t pwm[MAX_CHANNELS];
-} cubeio_pwm_in_t;
-
-typedef struct {
-    uint16_t freq;
-    uint16_t chmask;
-    uint16_t default_freq;
-    uint16_t sbus_rate_hz;
-    uint8_t oneshot_enabled;
-    uint8_t brushed_enabled;
-} cubeio_rate_t;
-
-typedef struct {
-    uint16_t freemem;
-    uint32_t timestamp_ms;
-    uint16_t vservo;
-    uint16_t vrssi;
-    uint32_t num_errors;
-    uint32_t total_pkts;
-    uint8_t flag_safety_off;
-    uint8_t safety_forced_off;
-    uint8_t err_crc;
-    uint8_t err_bad_opcode;
-    uint8_t err_read;
-    uint8_t err_write;
-    uint8_t err_uart;
-} cubeio_page_reg_status_t;
-
-typedef struct {
-    uint8_t count;
-    uint8_t flags_failsafe:1;
-    uint8_t flags_rc_ok:1;
-    uint8_t rc_protocol;
-    uint16_t channel[MAX_CHANNELS];
-    int16_t rssi;
-} cubeio_page_rc_input_t;
-
-/*
-  data for mixing on FMU failsafe
- */
-typedef struct {
-    uint16_t servo_min[MAX_CHANNELS];
-    uint16_t servo_max[MAX_CHANNELS];
-    uint16_t servo_trim[MAX_CHANNELS];
-    uint8_t servo_function[MAX_CHANNELS];
-    uint8_t servo_reversed[MAX_CHANNELS];
-
-    // RC input arrays are in AETR order
-    uint16_t rc_min[4];
-    uint16_t rc_max[4];
-    uint16_t rc_trim[4];
-    uint8_t rc_reversed[MAX_CHANNELS];
-    uint8_t rc_channel[4];
-
-    // gain for elevon and vtail mixing, x1000
-    uint16_t mixing_gain;
-
-    // channel which when high forces mixer
-    int8_t rc_chan_override;
-
-    // is the throttle an angle input?
-    uint8_t throttle_is_angle;
-
-    // mask of channels which are pure manual in override
-    uint16_t manual_rc_mask;
-
-    // enabled needs to be 1 to enable mixing
-    uint8_t enabled;
-
-    uint8_t pad;
-} cubeio_page_mixing_t;
-
-typedef struct __attribute__((packed, aligned(2))) {
-    uint8_t channel_mask;
-    uint8_t output_mask;
-} cubeio_page_gpio_t;
-
 // Helpers
 static uint16_t get_pkt_count(cubeio_packet_t *pkt) {
     return (pkt->count);
@@ -241,3 +136,5 @@ static uint8_t crc_packet(cubeio_packet_t *pkt) {
 
     return c;
 }
+
+#endif  // CUBEIO_REG_H

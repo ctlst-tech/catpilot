@@ -1,12 +1,13 @@
 #include "board.h"
 #include "core.h"
+#include "cubeio.h"
+#include "fatfs.h"
 #include "hal.h"
-#include "icm20649.h"
 #include "icm20602.h"
+#include "icm20649.h"
 #include "icm20948.h"
 #include "log.h"
 #include "periph.h"
-#include "fatfs.h"
 
 uint32_t rcc_system_clock = 400000000;
 
@@ -27,7 +28,8 @@ int board_clock_init(void) {
     RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
     RCC_OscInitStruct.HSIState = RCC_HSI_ON;
     RCC_OscInitStruct.PLL.PLLState = RCC_PLL_OFF;
-    while (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK);
+    while (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
+    }
 
     // XTAL = 24 MHz, SYSCLK = 400 MHz
     RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
@@ -38,7 +40,8 @@ int board_clock_init(void) {
     RCC_OscInitStruct.PLL.PLLP = 2;
     RCC_OscInitStruct.PLL.PLLQ = 8;
     RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-    while (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK);
+    while (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
+    }
 
     // AHB = 200 MHz, APB1 = APB2 = APB3 = APB4 = 100 MHz
     RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK |
@@ -50,7 +53,8 @@ int board_clock_init(void) {
     RCC_ClkInitStruct.APB2CLKDivider = RCC_APB2_DIV2;
     RCC_ClkInitStruct.APB3CLKDivider = RCC_APB3_DIV2;
     RCC_ClkInitStruct.APB4CLKDivider = RCC_APB4_DIV2;
-    while (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK);
+    while (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK) {
+    }
 
     // PLL2
     PeriphClkInitStruct.PLL2.PLL2FRACN = 0;
@@ -76,7 +80,8 @@ int board_clock_init(void) {
     PeriphClkInitStruct.AdcClockSelection = RCC_ADCCLKSOURCE_PLL2;
     PeriphClkInitStruct.SdmmcClockSelection = RCC_SDMMCCLKSOURCE_PLL;
 
-    while (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct));
+    while (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct)) {
+    }
 
     return 0;
 }
@@ -239,23 +244,20 @@ static int board_std_stream_init(
 
 static FATFS fs;
 static int board_sd_card_init(void) {
-    struct file_operations f_op = {
-        .open = fatfs_open,
-        .write = fatfs_write,
-        .read = fatfs_read,
-        .close = fatfs_close,
-        .fsync = fatfs_syncfs,
-        .dev = &sdio
-    };
+    struct file_operations f_op = {.open = fatfs_open,
+                                   .write = fatfs_write,
+                                   .read = fatfs_read,
+                                   .close = fatfs_close,
+                                   .fsync = fatfs_syncfs,
+                                   .dev = &sdio};
     if (node_mount("/fs", &f_op) == NULL) {
         LOG_ERROR("SDCARD", "Initialization failed");
         return -1;
     }
-    if(f_mount(&fs, "/", 1)) {
+    if (f_mount(&fs, "/", 1)) {
         LOG_ERROR("SDMMC", "Mount error");
         return -1;
     }
-    LOG_INFO("SDMMC", "Mount successful");
     return 0;
 }
 
@@ -283,5 +285,6 @@ int board_services_start(void) {
     icm20649_start(&spi1, &gpio_spi1_cs1, &exti_spi1_drdy1, 2, 10);
     icm20602_start(&spi4, &gpio_spi4_cs2, NULL, 2, 10);
     icm20948_start(&spi4, &gpio_spi4_cs1, NULL, 2, 10, 0);
+    cubeio_start(&usart6, 2, 9);
     return 0;
 }

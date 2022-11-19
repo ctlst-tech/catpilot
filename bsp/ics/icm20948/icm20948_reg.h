@@ -1,7 +1,6 @@
 #ifndef ICM20948_REG_H
 #define ICM20948_REG_H
 
-#include "bit.h"
 #include "icm20948.h"
 
 #define type_t static const uint8_t

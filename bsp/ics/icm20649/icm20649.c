@@ -59,6 +59,7 @@ int icm20649_start(spi_t *spi, gpio_t *cs, exti_t *drdy, uint32_t period,
     }
 
     dev->os.period = period / portTICK_PERIOD_MS;
+    dev->os.priority = thread_priority;
 
     dev->sync.measrdy_sem = xSemaphoreCreateBinary();
     if (dev->sync.measrdy_sem == NULL) {
@@ -71,7 +72,8 @@ int icm20649_start(spi_t *spi, gpio_t *cs, exti_t *drdy, uint32_t period,
         return -1;
     }
 
-    LOG_DEBUG(dev->name, "Start service, period = %u ms", period);
+    LOG_DEBUG(dev->name, "Start service, period = %u ms, priority = %u",
+              dev->os.period, dev->os.priority);
 
     xSemaphoreTake(dev->sync.measrdy_sem, 0);
 

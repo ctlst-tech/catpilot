@@ -60,6 +60,7 @@ int icm20948_start(spi_t *spi, gpio_t *cs, exti_t *drdy, uint32_t period,
     }
 
     dev->os.period = period / portTICK_PERIOD_MS;
+    dev->os.priority = thread_priority;
 
     dev->sync.measrdy_sem = xSemaphoreCreateBinary();
     if (dev->sync.measrdy_sem == NULL) {
@@ -72,7 +73,8 @@ int icm20948_start(spi_t *spi, gpio_t *cs, exti_t *drdy, uint32_t period,
         return -1;
     }
 
-    LOG_DEBUG(dev->name, "Start service, period = %u ms", period);
+    LOG_DEBUG(dev->name, "Start service, period = %u ms, priority = %u",
+              dev->os.period, dev->os.priority);
 
     xSemaphoreTake(dev->sync.measrdy_sem, 0);
 
@@ -303,36 +305,36 @@ static int icm20948_configure(icm20948_t *dev) {
 
     // Set configure BANK_3
     reg_cfg_t bank_3_reg_cfg[BANK_3_SIZE_REG_CFG];
-    if(dev->enable_mag) {
-        memcpy(bank_3_reg_cfg, 
-               bank_3_reg_cfg_w_mag, 
+    if (dev->enable_mag) {
+        memcpy(bank_3_reg_cfg, bank_3_reg_cfg_w_mag,
                sizeof(reg_cfg_t) * BANK_3_SIZE_REG_CFG);
     } else {
-        memcpy(bank_3_reg_cfg, 
-               bank_3_reg_cfg_wo_mag, 
+        memcpy(bank_3_reg_cfg, bank_3_reg_cfg_wo_mag,
                sizeof(reg_cfg_t) * BANK_3_SIZE_REG_CFG);
     }
 
-    for(int i = 0; i < BANK_3_SIZE_REG_CFG; i++) {
-        icm20948_set_clear_reg(dev, BANK_3, 
-                             bank_3_reg_cfg[i].reg, 
-                             bank_3_reg_cfg[i].setbits, 
-                             bank_3_reg_cfg[i].clearbits);
+    for (int i = 0; i < BANK_3_SIZE_REG_CFG; i++) {
+        icm20948_set_clear_reg(dev, BANK_3, bank_3_reg_cfg[i].reg,
+                               bank_3_reg_cfg[i].setbits,
+                               bank_3_reg_cfg[i].clearbits);
     }
 
     // Check BANK_3
-    for(int i = 0; i < BANK_3_SIZE_REG_CFG; i++) {
+    for (int i = 0; i < BANK_3_SIZE_REG_CFG; i++) {
         orig_val = icm20948_read_reg(dev, BANK_3, bank_3_reg_cfg[i].reg);
 
-        if((orig_val & bank_3_reg_cfg[i].setbits) != bank_3_reg_cfg[i].setbits) {
+        if ((orig_val & bank_3_reg_cfg[i].setbits) !=
+            bank_3_reg_cfg[i].setbits) {
             LOG_ERROR(dev->name, "0x%02x: 0x%02x (0x%02x not set)",
-            (uint8_t)bank_3_reg_cfg[i].reg, orig_val, bank_3_reg_cfg[i].setbits);
+                      (uint8_t)bank_3_reg_cfg[i].reg, orig_val,
+                      bank_3_reg_cfg[i].setbits);
             rv = 0;
         }
 
-        if((orig_val & bank_3_reg_cfg[i].clearbits) != 0) {
+        if ((orig_val & bank_3_reg_cfg[i].clearbits) != 0) {
             LOG_ERROR(dev->name, "0x%02x: 0x%02x (0x%02x not cleared)",
-            (uint8_t)bank_3_reg_cfg[i].reg, orig_val, bank_3_reg_cfg[i].clearbits);
+                      (uint8_t)bank_3_reg_cfg[i].reg, orig_val,
+                      bank_3_reg_cfg[i].clearbits);
             rv = 0;
         }
     }
@@ -353,16 +355,16 @@ static void icm20948_accel_configure(icm20948_t *dev) {
     const uint8_t ACCEL_FS_SEL =
         icm20948_read_reg(dev, BANK_2, ACCEL_CONFIG) & (BIT1 | BIT2);
 
-    if(ACCEL_FS_SEL == ACCEL_FS_SEL_2G) {
+    if (ACCEL_FS_SEL == ACCEL_FS_SEL_2G) {
         dev->meas_param.accel_scale = (CONST_G / 16384.f);
         dev->meas_param.accel_range = (2.f * CONST_G);
-    } else if(ACCEL_FS_SEL == ACCEL_FS_SEL_4G) {
+    } else if (ACCEL_FS_SEL == ACCEL_FS_SEL_4G) {
         dev->meas_param.accel_scale = (CONST_G / 8192.f);
         dev->meas_param.accel_range = (4.f * CONST_G);
-    } else if(ACCEL_FS_SEL == ACCEL_FS_SEL_8G) {
+    } else if (ACCEL_FS_SEL == ACCEL_FS_SEL_8G) {
         dev->meas_param.accel_scale = (CONST_G / 4096.f);
         dev->meas_param.accel_range = (8.f * CONST_G);
-    } else if(ACCEL_FS_SEL == ACCEL_FS_SEL_16G) {
+    } else if (ACCEL_FS_SEL == ACCEL_FS_SEL_16G) {
         dev->meas_param.accel_scale = (CONST_G / 2048.f);
         dev->meas_param.accel_range = (16.f * CONST_G);
     }
@@ -372,13 +374,13 @@ static void icm20948_gyro_configure(icm20948_t *dev) {
     const uint8_t FS_SEL =
         icm20948_read_reg(dev, BANK_2, GYRO_CONFIG_1) & (BIT1 | BIT2);
 
-    if(FS_SEL == GYRO_FS_SEL_250_DPS) {
+    if (FS_SEL == GYRO_FS_SEL_250_DPS) {
         dev->meas_param.gyro_range = 250.f;
-    } else if(FS_SEL == GYRO_FS_SEL_500_DPS) {
+    } else if (FS_SEL == GYRO_FS_SEL_500_DPS) {
         dev->meas_param.gyro_range = 500.f;
-    } else if(FS_SEL == GYRO_FS_SEL_1000_DPS) {
+    } else if (FS_SEL == GYRO_FS_SEL_1000_DPS) {
         dev->meas_param.gyro_range = 1000.f;
-    } else if(FS_SEL == GYRO_FS_SEL_2000_DPS) {
+    } else if (FS_SEL == GYRO_FS_SEL_2000_DPS) {
         dev->meas_param.gyro_range = 2000.f;
     }
 

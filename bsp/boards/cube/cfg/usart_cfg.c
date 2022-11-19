@@ -153,7 +153,7 @@ usart_t usart6 = {
     .mode = USART_IDLE,
     .gpio_tx = &gpio_usart6_tx,
     .gpio_rx = &gpio_usart6_rx,
-    .timeout = 50,
+    .timeout = 100,
     .irq_priority = 7,
     .p = {0}
 };

@@ -365,15 +365,7 @@ void usart_dma_tx_handler(void *area) {
 
 void usart_dma_rx_handler(void *area) {
     usart_t *cfg = (usart_t *)area;
-    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-    HAL_DMA_IRQHandler(&cfg->dma_tx.init);
-    if (cfg->dma_rx.init.State == HAL_DMA_STATE_READY &&
-        cfg->mode == USART_TIMEOUT) {
-        xSemaphoreGiveFromISR(cfg->p.rx_sem, &xHigherPriorityTaskWoken);
-        if (xHigherPriorityTaskWoken == pdTRUE) {
-            portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-        }
-    }
+    HAL_DMA_IRQHandler(&cfg->dma_rx.init);
 }
 
 static int usart_id_init(usart_t *cfg) {

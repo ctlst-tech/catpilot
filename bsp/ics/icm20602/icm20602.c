@@ -58,6 +58,7 @@ int icm20602_start(spi_t *spi, gpio_t *cs, exti_t *drdy, uint32_t period,
     }
 
     dev->os.period = period / portTICK_PERIOD_MS;
+    dev->os.priority = thread_priority;
 
     dev->sync.measrdy_sem = xSemaphoreCreateBinary();
     if (dev->sync.measrdy_sem == NULL) {
@@ -70,7 +71,8 @@ int icm20602_start(spi_t *spi, gpio_t *cs, exti_t *drdy, uint32_t period,
         return -1;
     }
 
-    LOG_DEBUG(dev->name, "Start service, period = %u ms", period);
+    LOG_DEBUG(dev->name, "Start service, period = %u ms, priority = %u",
+              dev->os.period, dev->os.priority);
 
     xSemaphoreTake(dev->sync.measrdy_sem, 0);
 
@@ -289,8 +291,7 @@ static void icm20602_accel_configure(icm20602_t *dev) {
 }
 
 static void icm20602_gyro_configure(icm20602_t *dev) {
-    const uint8_t FS_SEL =
-        icm20602_read_reg(dev, GYRO_CONFIG) & (BIT4 | BIT3);
+    const uint8_t FS_SEL = icm20602_read_reg(dev, GYRO_CONFIG) & (BIT4 | BIT3);
 
     if (FS_SEL == FS_SEL_250_DPS) {
         dev->meas_param.gyro_range = 250.f;
