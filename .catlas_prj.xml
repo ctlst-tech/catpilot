@@ -1,10 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-
 <catlas_project>
-
     <doc name="Software system" type="swsys" file="config/cube/mvp_swsys.xml"/>
-<!--    <doc name="Requirements" type="req" file="../../sample_xmls/req_sample.xml"/>-->
-<!--    <doc name="Func architecture" type="func_arch" file="../../sample_xmls/func_arch_sample.xml"/>-->
-<!--    <doc name="Func architecture" type="func_arch" file="../../sample_xmls/func_arch_sample.xml"/>-->
-
+    <doc name="System schematic" type="hw_scheme" file="system_schematic.xml"/>
 </catlas_project>

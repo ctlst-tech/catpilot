@@ -1,0 +1,6 @@
+<hw_sys_scheme>
+    <device designator="kore_board_1" part_number="kore_board"/>
+    <device designator="pa-rr-260-8_1" part_number="pa-rr-260-8"/>
+    <device designator="ping200x_1" part_number="ping200x"/>
+    <device designator="cube_orange_1" part_number="cube_orange"/>
+</hw_sys_scheme>
