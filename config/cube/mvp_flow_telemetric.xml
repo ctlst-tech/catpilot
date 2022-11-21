@@ -1,160 +1,155 @@
 <?xml version="1.0" encoding="utf-8" ?>
 
 <flow>
-
     <spec name="control">
-        <annotation>
-        </annotation>
-
         <inputs>
-            <i alias="wx" annotation="wx" type="core.type.f64"/>
-            <i alias="wy" annotation="wy" type="core.type.f64"/>
-            <i alias="wz" annotation="wz" type="core.type.f64"/>
-            <i alias="ax" annotation="ax" type="core.type.f64"/>
-            <i alias="ay" annotation="ay" type="core.type.f64"/>
-            <i alias="az" annotation="az" type="core.type.f64"/>
-
-            <i alias="roll" annotation="roll" type="core.type.f64"/>
-            <i alias="pitch" annotation="pitch" type="core.type.f64"/>
-            <i alias="yaw" annotation="yaw" type="core.type.f64"/>
-
+            <i alias="wx" type="core.type.f64"/>
+            <i alias="wy" type="core.type.f64"/>
+            <i alias="wz" type="core.type.f64"/>
+            <i alias="ax" type="core.type.f64"/>
+            <i alias="ay" type="core.type.f64"/>
+            <i alias="az" type="core.type.f64"/>
+            <i alias="roll" type="core.type.f64"/>
+            <i alias="pitch" type="core.type.f64"/>
+            <i alias="yaw" type="core.type.f64"/>
             <i alias="manc_lat" type="core.type.f64"/>
             <i alias="manc_lon" type="core.type.f64"/>
             <i alias="manc_thr" type="core.type.f64"/>
             <i alias="manc_rud" type="core.type.f64"/>
             <i alias="manc_pids_tune" type="core.type.f64"/>
-
             <i alias="manc_arm" type="core.type.f64"/>
         </inputs>
 
         <outputs>
-            <o alias="wx" annotation="wx" type="core.type.f64"/>
-            <o alias="wy" annotation="wy" type="core.type.f64"/>
-            <o alias="wz" annotation="wz" type="core.type.f64"/>
-            <o alias="ax" annotation="ax" type="core.type.f64"/>
-            <o alias="ay" annotation="ay" type="core.type.f64"/>
-            <o alias="az" annotation="az" type="core.type.f64"/>
-
-            <o alias="roll" annotation="roll" type="core.type.f64"/>
-            <o alias="pitch" annotation="pitch" type="core.type.f64"/>
-            <o alias="yaw" annotation="yaw" type="core.type.f64"/>
-
+            <o alias="wx" type="core.type.f64"/>
+            <o alias="wy" type="core.type.f64"/>
+            <o alias="wz" type="core.type.f64"/>
+            <o alias="ax" type="core.type.f64"/>
+            <o alias="ay" type="core.type.f64"/>
+            <o alias="az" type="core.type.f64"/>
+            <o alias="roll" type="core.type.f64"/>
+            <o alias="pitch" type="core.type.f64"/>
+            <o alias="yaw" type="core.type.f64"/>
             <o alias="manc_lat" type="core.type.f64"/>
             <o alias="manc_lon" type="core.type.f64"/>
             <o alias="manc_thr" type="core.type.f64"/>
             <o alias="manc_rud" type="core.type.f64"/>
             <o alias="manc_pids_tune" type="core.type.f64"/>
             <o alias="manc_arm" type="core.type.f64"/>
-
-            <o alias="sine" annotation="sine" type="core.type.f64"/>
+            <o alias="sine" type="core.type.f64"/>
         </outputs>
-
-        <params>
-        </params>
     </spec>
 
     <functions>
         <f name="sine" by_spec="core.source.sin">
             <param alias="period">1.0</param>
+            <param alias="phase"/>
         </f>
 
         <f name="ax_gain" by_spec="core.math.gain">
-            <param alias="gain">1.0</param>
             <in alias="input">inputs/ax</in>
+
+            <param alias="gain">1.0</param>
         </f>
 
         <f name="ay_gain" by_spec="core.math.gain">
-            <param alias="gain">1.0</param>
             <in alias="input">inputs/ay</in>
+
+            <param alias="gain">1.0</param>
         </f>
 
         <f name="az_gain" by_spec="core.math.gain">
-            <param alias="gain">1.0</param>
             <in alias="input">inputs/az</in>
+
+            <param alias="gain">1.0</param>
         </f>
 
         <f name="wx_gain" by_spec="core.math.gain">
-            <param alias="gain">57.3</param>
             <in alias="input">inputs/wx</in>
+
+            <param alias="gain">57.3</param>
         </f>
 
         <f name="wy_gain" by_spec="core.math.gain">
-            <param alias="gain">57.3</param>
             <in alias="input">inputs/wy</in>
+
+            <param alias="gain">57.3</param>
         </f>
 
         <f name="wz_gain" by_spec="core.math.gain">
-            <param alias="gain">57.3</param>
             <in alias="input">inputs/wz</in>
+
+            <param alias="gain">57.3</param>
         </f>
 
         <f name="manc_lat_gain" by_spec="core.math.gain">
-            <param alias="gain">1.0</param>
             <in alias="input">inputs/manc_lat</in>
+
+            <param alias="gain">1.0</param>
         </f>
 
         <f name="manc_lon_gain" by_spec="core.math.gain">
-            <param alias="gain">1.0</param>
             <in alias="input">inputs/manc_lon</in>
+
+            <param alias="gain">1.0</param>
         </f>
 
         <f name="manc_thr_gain" by_spec="core.math.gain">
-            <param alias="gain">1.0</param>
             <in alias="input">inputs/manc_thr</in>
+
+            <param alias="gain">1.0</param>
         </f>
 
         <f name="manc_rud_gain" by_spec="core.math.gain">
-            <param alias="gain">1.0</param>
             <in alias="input">inputs/manc_rud</in>
+
+            <param alias="gain">1.0</param>
         </f>
 
         <f name="manc_pids_tune_gain" by_spec="core.math.gain">
-            <param alias="gain">1.0</param>
             <in alias="input">inputs/manc_pids_tune</in>
+
+            <param alias="gain">1.0</param>
         </f>
 
         <f name="manc_arm_gain" by_spec="core.math.gain">
-            <param alias="gain">1.0</param>
             <in alias="input">inputs/manc_arm</in>
+
+            <param alias="gain">1.0</param>
         </f>
 
         <f name="roll_gain" by_spec="core.math.gain">
-            <param alias="gain">57.3</param>
             <in alias="input">inputs/roll</in>
+
+            <param alias="gain">57.3</param>
         </f>
 
         <f name="pitch_gain" by_spec="core.math.gain">
-            <param alias="gain">57.3</param>
             <in alias="input">inputs/pitch</in>
+
+            <param alias="gain">57.3</param>
         </f>
 
         <f name="yaw_gain" by_spec="core.math.gain">
-            <param alias="gain">57.3</param>
             <in alias="input">inputs/yaw</in>
-        </f>
 
-<!--        <f name="fmu_pwm" by_spec="cube.io.gpio">-->
-<!--            <param alias="channel">4</param>-->
-<!--        </f>-->
+            <param alias="gain">57.3</param>
+        </f>
 
         <f name="logger" by_spec="cube.misc.cli_logger">
             <in alias="v1">wx_gain/output</in>
             <in alias="v2">wy_gain/output</in>
             <in alias="v3">wz_gain/output</in>
-
             <in alias="v4">ax_gain/output</in>
             <in alias="v5">ay_gain/output</in>
             <in alias="v6">az_gain/output</in>
-
             <in alias="v7">roll_gain/output</in>
             <in alias="v8">pitch_gain/output</in>
             <in alias="v9">yaw_gain/output</in>
-
             <in alias="v10">manc_lat_gain/output</in>
             <in alias="v11">manc_lon_gain/output</in>
             <in alias="v12">manc_rud_gain/output</in>
         </f>
-
     </functions>
 
     <link_outputs>
@@ -164,19 +159,15 @@
         <link alias="wx">wx_gain/output</link>
         <link alias="wy">wy_gain/output</link>
         <link alias="wz">wz_gain/output</link>
-
-        <link alias="roll" annotation="roll">roll_gain/output</link>
-        <link alias="pitch" annotation="pitch">pitch_gain/output</link>
-        <link alias="yaw" annotation="yaw">yaw_gain/output</link>
-
+        <link alias="roll">roll_gain/output</link>
+        <link alias="pitch">pitch_gain/output</link>
+        <link alias="yaw">yaw_gain/output</link>
         <link alias="manc_lat">manc_lat_gain/output</link>
         <link alias="manc_lon">manc_lon_gain/output</link>
         <link alias="manc_thr">manc_thr_gain/output</link>
         <link alias="manc_rud">manc_rud_gain/output</link>
         <link alias="manc_pids_tune">manc_pids_tune_gain/output</link>
         <link alias="manc_arm">manc_arm_gain/output</link>
-
         <link alias="sine">sine/out</link>
     </link_outputs>
-
 </flow>

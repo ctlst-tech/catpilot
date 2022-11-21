@@ -1,0 +1,595 @@
+{
+    "swsys_cube_mvp": {
+        "root_meta": {
+            "geometry": "{\"x\":0,\"y\":0,\"width\":204,\"height\":544}"
+        },
+        "nodes": {
+            "control_flow": {
+                "ports": {},
+                "geometry": "{\"x\":12.3859,\"y\":12.2949,\"width\":180,\"height\":40}"
+            },
+            "telemetric": {
+                "ports": {},
+                "geometry": "{\"x\":12,\"y\":332,\"width\":180,\"height\":40}"
+            },
+            "control": {
+                "ports": {},
+                "geometry": "{\"x\":12,\"y\":172,\"width\":180,\"height\":40}"
+            },
+            "gcu": {
+                "ports": {},
+                "geometry": "{\"x\":12,\"y\":492,\"width\":180,\"height\":40}"
+            }
+        },
+        "edges": {
+            "task_control_flow-->bus_control": {
+                "geometry": "{\"id\":\"lAh6j17N9VP7\",\"labels\":[{\"x\":96,\"y\":112}],\"junctionPoints\":[],\"sections\":[{\"bendPoints\":[],\"start\":{\"x\":102.3859,\"y\":52.2949},\"end\":{\"x\":102,\"y\":172}}]}"
+            },
+            "task_telemetric-->bus_gcu": {
+                "geometry": "{\"id\":\"49Ne16lgugfD\",\"labels\":[{\"x\":96,\"y\":432}],\"junctionPoints\":[],\"sections\":[{\"bendPoints\":[],\"start\":{\"x\":102,\"y\":372},\"end\":{\"x\":102,\"y\":492}}]}"
+            },
+            "bus_control-->task_telemetric": {
+                "geometry": "{\"id\":\"URmEdfteQXSZ\",\"labels\":[{\"x\":96,\"y\":272}],\"junctionPoints\":[],\"sections\":[{\"bendPoints\":[],\"start\":{\"x\":102,\"y\":212},\"end\":{\"x\":102,\"y\":332}}]}"
+            }
+        }
+    },
+    "flow_control": {
+        "root_meta": {
+            "geometry": "{\"x\":0,\"y\":0,\"width\":6594,\"height\":3654.1071}"
+        },
+        "nodes": {
+            "sine": {
+                "geometry": "{\"x\":702,\"y\":2078,\"width\":180,\"height\":55}",
+                "ports": {
+                    "Sinus value": {}
+                }
+            },
+            "ax_gain": {
+                "geometry": "{\"x\":702,\"y\":357,\"width\":180,\"height\":55}",
+                "ports": {
+                    "Output": {},
+                    "Input": {}
+                }
+            },
+            "ay_gain": {
+                "geometry": "{\"x\":702,\"y\":472,\"width\":180,\"height\":55}",
+                "ports": {
+                    "Output": {},
+                    "Input": {}
+                }
+            },
+            "az_gain": {
+                "geometry": "{\"x\":702,\"y\":587,\"width\":180,\"height\":55}",
+                "ports": {
+                    "Output": {},
+                    "Input": {}
+                }
+            },
+            "wx_gain": {
+                "geometry": "{\"x\":702,\"y\":12,\"width\":180,\"height\":55}",
+                "ports": {
+                    "Output": {},
+                    "Input": {}
+                }
+            },
+            "wy_gain": {
+                "geometry": "{\"x\":702,\"y\":127,\"width\":180,\"height\":55}",
+                "ports": {
+                    "Output": {},
+                    "Input": {}
+                }
+            },
+            "wz_gain": {
+                "geometry": "{\"x\":702,\"y\":242,\"width\":180,\"height\":55}",
+                "ports": {
+                    "Output": {},
+                    "Input": {}
+                }
+            },
+            "manc_lat_gain": {
+                "geometry": "{\"x\":702,\"y\":1047,\"width\":180,\"height\":55}",
+                "ports": {
+                    "Output": {},
+                    "Input": {}
+                }
+            },
+            "manc_lon_gain": {
+                "geometry": "{\"x\":702,\"y\":1162,\"width\":180,\"height\":55}",
+                "ports": {
+                    "Output": {},
+                    "Input": {}
+                }
+            },
+            "manc_thr_gain": {
+                "geometry": "{\"x\":702,\"y\":1733,\"width\":180,\"height\":55}",
+                "ports": {
+                    "Output": {},
+                    "Input": {}
+                }
+            },
+            "manc_rud_gain": {
+                "geometry": "{\"x\":702,\"y\":1277,\"width\":180,\"height\":55}",
+                "ports": {
+                    "Output": {},
+                    "Input": {}
+                }
+            },
+            "manc_pids_tune_gain": {
+                "geometry": "{\"x\":702,\"y\":1848,\"width\":180,\"height\":55}",
+                "ports": {
+                    "Output": {},
+                    "Input": {}
+                }
+            },
+            "manc_arm_gain": {
+                "geometry": "{\"x\":702,\"y\":1963,\"width\":180,\"height\":55}",
+                "ports": {
+                    "Output": {},
+                    "Input": {}
+                }
+            },
+            "roll_gain": {
+                "geometry": "{\"x\":702,\"y\":702,\"width\":180,\"height\":55}",
+                "ports": {
+                    "Output": {},
+                    "Input": {}
+                }
+            },
+            "pitch_gain": {
+                "geometry": "{\"x\":702,\"y\":817,\"width\":180,\"height\":55}",
+                "ports": {
+                    "Output": {},
+                    "Input": {}
+                }
+            },
+            "yaw_gain": {
+                "geometry": "{\"x\":702,\"y\":932,\"width\":180,\"height\":55}",
+                "ports": {
+                    "Output": {},
+                    "Input": {}
+                }
+            },
+            "logger": {
+                "geometry": "{\"x\":1542,\"y\":512.9615,\"width\":180,\"height\":220}",
+                "ports": {
+                    "Variable 1": {},
+                    "Variable 2": {},
+                    "Variable 3": {},
+                    "Variable 4": {},
+                    "Variable 5": {},
+                    "Variable 6": {},
+                    "Variable 7": {},
+                    "Variable 8": {},
+                    "Variable 9": {},
+                    "Variable 10": {},
+                    "Variable 11": {},
+                    "Variable 12": {}
+                }
+            },
+            "inputs": {
+                "geometry": "{\"x\":12,\"y\":22.9375,\"width\":180,\"height\":265}",
+                "ports": {
+                    "wx": {},
+                    "wy": {},
+                    "wz": {},
+                    "ax": {},
+                    "ay": {},
+                    "az": {},
+                    "roll": {},
+                    "pitch": {},
+                    "yaw": {},
+                    "manc_lat": {},
+                    "manc_lon": {},
+                    "manc_thr": {},
+                    "manc_rud": {},
+                    "manc_pids_tune": {},
+                    "manc_arm": {}
+                }
+            },
+            "outputs": {
+                "geometry": "{\"x\":1542,\"y\":1476.7353,\"width\":180,\"height\":280}",
+                "ports": {
+                    "wx": {},
+                    "wy": {},
+                    "wz": {},
+                    "ax": {},
+                    "ay": {},
+                    "az": {},
+                    "roll": {},
+                    "pitch": {},
+                    "yaw": {},
+                    "manc_lat": {},
+                    "manc_lon": {},
+                    "manc_thr": {},
+                    "manc_rud": {},
+                    "manc_pids_tune": {},
+                    "manc_arm": {},
+                    "sine": {}
+                }
+            }
+        },
+        "edges": {
+            "inputs/ax-->ax_gain/input;": {
+                "geometry": "{\"id\":\"vIi77UpGOivj\",\"labels\":[{\"x\":642,\"y\":391.5}],\"junctionPoints\":[],\"sections\":[{\"bendPoints\":[{\"x\":552,\"y\":89.1875},{\"x\":552,\"y\":384.5}],\"start\":{\"x\":192,\"y\":89.1875},\"end\":{\"x\":702,\"y\":384.5}}]}"
+            },
+            "inputs/ay-->ay_gain/input;": {
+                "geometry": "{\"id\":\"E6962GDtwDPb\",\"labels\":[{\"x\":642,\"y\":506.5}],\"junctionPoints\":[],\"sections\":[{\"bendPoints\":[{\"x\":522,\"y\":105.75},{\"x\":522,\"y\":499.5}],\"start\":{\"x\":192,\"y\":105.75},\"end\":{\"x\":702,\"y\":499.5}}]}"
+            },
+            "inputs/az-->az_gain/input;": {
+                "geometry": "{\"id\":\"ZQvKt7Nra5tx\",\"labels\":[{\"x\":642,\"y\":621.5}],\"junctionPoints\":[],\"sections\":[{\"bendPoints\":[{\"x\":492,\"y\":122.3125},{\"x\":492,\"y\":614.5}],\"start\":{\"x\":192,\"y\":122.3125},\"end\":{\"x\":702,\"y\":614.5}}]}"
+            },
+            "inputs/wx-->wx_gain/input;": {
+                "geometry": "{\"id\":\"8FcKgzjzc2iN\",\"labels\":[{\"x\":642,\"y\":46.5}],\"junctionPoints\":[],\"sections\":[{\"bendPoints\":[],\"start\":{\"x\":192,\"y\":39.5},\"end\":{\"x\":702,\"y\":39.5}}]}"
+            },
+            "inputs/wy-->wy_gain/input;": {
+                "geometry": "{\"id\":\"t4yS38xqDc2g\",\"labels\":[{\"x\":642,\"y\":161.5}],\"junctionPoints\":[],\"sections\":[{\"bendPoints\":[{\"x\":612,\"y\":56.0625},{\"x\":612,\"y\":154.5}],\"start\":{\"x\":192,\"y\":56.0625},\"end\":{\"x\":702,\"y\":154.5}}]}"
+            },
+            "inputs/wz-->wz_gain/input;": {
+                "geometry": "{\"id\":\"pDxV9pJqojl0\",\"labels\":[{\"x\":642,\"y\":276.5}],\"junctionPoints\":[],\"sections\":[{\"bendPoints\":[{\"x\":582,\"y\":72.625},{\"x\":582,\"y\":269.5}],\"start\":{\"x\":192,\"y\":72.625},\"end\":{\"x\":702,\"y\":269.5}}]}"
+            },
+            "inputs/manc_lat-->manc_lat_gain/input;": {
+                "geometry": "{\"id\":\"HFb12Zh8GilL\",\"labels\":[{\"x\":642,\"y\":1081.5}],\"junctionPoints\":[],\"sections\":[{\"bendPoints\":[{\"x\":372,\"y\":188.5625},{\"x\":372,\"y\":1074.5}],\"start\":{\"x\":192,\"y\":188.5625},\"end\":{\"x\":702,\"y\":1074.5}}]}"
+            },
+            "inputs/manc_lon-->manc_lon_gain/input;": {
+                "geometry": "{\"id\":\"kk6Ky55RaHiW\",\"labels\":[{\"x\":642,\"y\":1196.5}],\"junctionPoints\":[],\"sections\":[{\"bendPoints\":[{\"x\":342,\"y\":205.125},{\"x\":342,\"y\":1189.5}],\"start\":{\"x\":192,\"y\":205.125},\"end\":{\"x\":702,\"y\":1189.5}}]}"
+            },
+            "inputs/manc_thr-->manc_thr_gain/input;": {
+                "geometry": "{\"id\":\"L1QBPW6h1n7m\",\"labels\":[{\"x\":642,\"y\":1767.5}],\"junctionPoints\":[],\"sections\":[{\"bendPoints\":[{\"x\":312,\"y\":221.6875},{\"x\":312,\"y\":1760.5}],\"start\":{\"x\":192,\"y\":221.6875},\"end\":{\"x\":702,\"y\":1760.5}}]}"
+            },
+            "inputs/manc_rud-->manc_rud_gain/input;": {
+                "geometry": "{\"id\":\"0QRfBJrgFK1d\",\"labels\":[{\"x\":642,\"y\":1311.5}],\"junctionPoints\":[],\"sections\":[{\"bendPoints\":[{\"x\":282,\"y\":238.25},{\"x\":282,\"y\":1304.5}],\"start\":{\"x\":192,\"y\":238.25},\"end\":{\"x\":702,\"y\":1304.5}}]}"
+            },
+            "inputs/manc_pids_tune-->manc_pids_tune_gain/input;": {
+                "geometry": "{\"id\":\"uHGXDsxuU8GJ\",\"labels\":[{\"x\":642,\"y\":1882.5}],\"junctionPoints\":[],\"sections\":[{\"bendPoints\":[{\"x\":252,\"y\":254.8125},{\"x\":252,\"y\":1875.5}],\"start\":{\"x\":192,\"y\":254.8125},\"end\":{\"x\":702,\"y\":1875.5}}]}"
+            },
+            "inputs/manc_arm-->manc_arm_gain/input;": {
+                "geometry": "{\"id\":\"MeYBG55QBjUa\",\"labels\":[{\"x\":642,\"y\":1997.5}],\"junctionPoints\":[],\"sections\":[{\"bendPoints\":[{\"x\":222,\"y\":271.375},{\"x\":222,\"y\":1990.5}],\"start\":{\"x\":192,\"y\":271.375},\"end\":{\"x\":702,\"y\":1990.5}}]}"
+            },
+            "inputs/roll-->roll_gain/input;": {
+                "geometry": "{\"id\":\"WIdaLXcaWSJh\",\"labels\":[{\"x\":642,\"y\":736.5}],\"junctionPoints\":[],\"sections\":[{\"bendPoints\":[{\"x\":462,\"y\":138.875},{\"x\":462,\"y\":729.5}],\"start\":{\"x\":192,\"y\":138.875},\"end\":{\"x\":702,\"y\":729.5}}]}"
+            },
+            "inputs/pitch-->pitch_gain/input;": {
+                "geometry": "{\"id\":\"LM65OQ5Zll5E\",\"labels\":[{\"x\":642,\"y\":851.5}],\"junctionPoints\":[],\"sections\":[{\"bendPoints\":[{\"x\":432,\"y\":155.4375},{\"x\":432,\"y\":844.5}],\"start\":{\"x\":192,\"y\":155.4375},\"end\":{\"x\":702,\"y\":844.5}}]}"
+            },
+            "inputs/yaw-->yaw_gain/input;": {
+                "geometry": "{\"id\":\"wioYjATU4Jnb\",\"labels\":[{\"x\":642,\"y\":966.5}],\"junctionPoints\":[],\"sections\":[{\"bendPoints\":[{\"x\":402,\"y\":172},{\"x\":402,\"y\":959.5}],\"start\":{\"x\":192,\"y\":172},\"end\":{\"x\":702,\"y\":959.5}}]}"
+            },
+            "wx_gain/output-->logger/v1;": {
+                "geometry": "{\"id\":\"AX6XHXHWpnmu\",\"labels\":[{\"x\":1272,\"y\":46.5}],\"junctionPoints\":[],\"sections\":[{\"bendPoints\":[{\"x\":1422,\"y\":39.5},{\"x\":1422,\"y\":529.8846}],\"start\":{\"x\":882,\"y\":39.5},\"end\":{\"x\":1542,\"y\":529.8846}}]}"
+            },
+            "wy_gain/output-->logger/v2;": {
+                "geometry": "{\"id\":\"6YRKVvpgZjph\",\"labels\":[{\"x\":1272,\"y\":161.5}],\"junctionPoints\":[],\"sections\":[{\"bendPoints\":[{\"x\":1392,\"y\":154.5},{\"x\":1392,\"y\":546.8077}],\"start\":{\"x\":882,\"y\":154.5},\"end\":{\"x\":1542,\"y\":546.8077}}]}"
+            },
+            "wz_gain/output-->logger/v3;": {
+                "geometry": "{\"id\":\"It4aNVNSWNFF\",\"labels\":[{\"x\":1272,\"y\":276.5}],\"junctionPoints\":[],\"sections\":[{\"bendPoints\":[{\"x\":1362,\"y\":269.5},{\"x\":1362,\"y\":563.7308}],\"start\":{\"x\":882,\"y\":269.5},\"end\":{\"x\":1542,\"y\":563.7308}}]}"
+            },
+            "ax_gain/output-->logger/v4;": {
+                "geometry": "{\"id\":\"B6Bzib2TDi0J\",\"labels\":[{\"x\":1272,\"y\":391.5}],\"junctionPoints\":[],\"sections\":[{\"bendPoints\":[{\"x\":1332,\"y\":384.5},{\"x\":1332,\"y\":580.6538}],\"start\":{\"x\":882,\"y\":384.5},\"end\":{\"x\":1542,\"y\":580.6538}}]}"
+            },
+            "ay_gain/output-->logger/v5;": {
+                "geometry": "{\"id\":\"ixksXjmqTQ1v\",\"labels\":[{\"x\":1272,\"y\":506.5}],\"junctionPoints\":[],\"sections\":[{\"bendPoints\":[{\"x\":1302,\"y\":499.5},{\"x\":1302,\"y\":597.5769}],\"start\":{\"x\":882,\"y\":499.5},\"end\":{\"x\":1542,\"y\":597.5769}}]}"
+            },
+            "az_gain/output-->logger/v6;": {
+                "geometry": "{\"id\":\"7Zmo5SgXqSR7\",\"labels\":[{\"x\":1272,\"y\":621.5}],\"junctionPoints\":[],\"sections\":[{\"bendPoints\":[],\"start\":{\"x\":882,\"y\":614.5},\"end\":{\"x\":1542,\"y\":614.5}}]}"
+            },
+            "roll_gain/output-->logger/v7;": {
+                "geometry": "{\"id\":\"R9LmFYDEfKu3\",\"labels\":[{\"x\":1272,\"y\":736.5}],\"junctionPoints\":[],\"sections\":[{\"bendPoints\":[{\"x\":1302,\"y\":729.5},{\"x\":1302,\"y\":631.4231}],\"start\":{\"x\":882,\"y\":729.5},\"end\":{\"x\":1542,\"y\":631.4231}}]}"
+            },
+            "pitch_gain/output-->logger/v8;": {
+                "geometry": "{\"id\":\"IGLuzqw22fsW\",\"labels\":[{\"x\":1272,\"y\":851.5}],\"junctionPoints\":[],\"sections\":[{\"bendPoints\":[{\"x\":1332,\"y\":844.5},{\"x\":1332,\"y\":648.3462}],\"start\":{\"x\":882,\"y\":844.5},\"end\":{\"x\":1542,\"y\":648.3462}}]}"
+            },
+            "yaw_gain/output-->logger/v9;": {
+                "geometry": "{\"id\":\"wZRLg41OfiAz\",\"labels\":[{\"x\":1272,\"y\":966.5}],\"junctionPoints\":[],\"sections\":[{\"bendPoints\":[{\"x\":1362,\"y\":959.5},{\"x\":1362,\"y\":665.2692}],\"start\":{\"x\":882,\"y\":959.5},\"end\":{\"x\":1542,\"y\":665.2692}}]}"
+            },
+            "manc_lat_gain/output-->logger/v10;": {
+                "geometry": "{\"id\":\"wyfNFnTAElpY\",\"labels\":[{\"x\":1272,\"y\":1081.5}],\"junctionPoints\":[],\"sections\":[{\"bendPoints\":[{\"x\":1392,\"y\":1074.5},{\"x\":1392,\"y\":682.1923}],\"start\":{\"x\":882,\"y\":1074.5},\"end\":{\"x\":1542,\"y\":682.1923}}]}"
+            },
+            "manc_lon_gain/output-->logger/v11;": {
+                "geometry": "{\"id\":\"Hg1haMTQ1O2U\",\"labels\":[{\"x\":1272,\"y\":1196.5}],\"junctionPoints\":[],\"sections\":[{\"bendPoints\":[{\"x\":1422,\"y\":1189.5},{\"x\":1422,\"y\":699.1154}],\"start\":{\"x\":882,\"y\":1189.5},\"end\":{\"x\":1542,\"y\":699.1154}}]}"
+            },
+            "manc_rud_gain/output-->logger/v12;": {
+                "geometry": "{\"id\":\"G5IP4MQdiydQ\",\"labels\":[{\"x\":1272,\"y\":1311.5}],\"junctionPoints\":[],\"sections\":[{\"bendPoints\":[{\"x\":1452,\"y\":1304.5},{\"x\":1452,\"y\":716.0385}],\"start\":{\"x\":882,\"y\":1304.5},\"end\":{\"x\":1542,\"y\":716.0385}}]}"
+            },
+            "ax_gain/output-->outputs/ax;": {
+                "geometry": "{\"id\":\"s2AScRMiyAwy\",\"labels\":[{\"x\":1272,\"y\":1463.5}],\"junctionPoints\":[{\"x\":1152,\"y\":384.5}],\"sections\":[{\"bendPoints\":[{\"x\":1152,\"y\":384.5},{\"x\":1152,\"y\":1456.5},{\"x\":1392,\"y\":1456.5},{\"x\":1392,\"y\":1542.6176}],\"start\":{\"x\":882,\"y\":384.5},\"end\":{\"x\":1542,\"y\":1542.6176}}]}"
+            },
+            "ay_gain/output-->outputs/ay;": {
+                "geometry": "{\"id\":\"EmSbbxmZVXcy\",\"labels\":[{\"x\":1272,\"y\":1501.5}],\"junctionPoints\":[{\"x\":1122,\"y\":499.5}],\"sections\":[{\"bendPoints\":[{\"x\":1122,\"y\":499.5},{\"x\":1122,\"y\":1494.5},{\"x\":1362,\"y\":1494.5},{\"x\":1362,\"y\":1559.0882}],\"start\":{\"x\":882,\"y\":499.5},\"end\":{\"x\":1542,\"y\":1559.0882}}]}"
+            },
+            "az_gain/output-->outputs/az;": {
+                "geometry": "{\"id\":\"cf4lV9djAeoc\",\"labels\":[{\"x\":1272,\"y\":1539.5}],\"junctionPoints\":[{\"x\":1092,\"y\":614.5}],\"sections\":[{\"bendPoints\":[{\"x\":1092,\"y\":614.5},{\"x\":1092,\"y\":1532.5},{\"x\":1332,\"y\":1532.5},{\"x\":1332,\"y\":1575.5588}],\"start\":{\"x\":882,\"y\":614.5},\"end\":{\"x\":1542,\"y\":1575.5588}}]}"
+            },
+            "wx_gain/output-->outputs/wx;": {
+                "geometry": "{\"id\":\"0EVwxSU2ikOQ\",\"labels\":[{\"x\":1272,\"y\":1349.5}],\"junctionPoints\":[{\"x\":1242,\"y\":39.5}],\"sections\":[{\"bendPoints\":[{\"x\":1242,\"y\":39.5},{\"x\":1242,\"y\":1342.5},{\"x\":1482,\"y\":1342.5},{\"x\":1482,\"y\":1493.2059}],\"start\":{\"x\":882,\"y\":39.5},\"end\":{\"x\":1542,\"y\":1493.2059}}]}"
+            },
+            "wy_gain/output-->outputs/wy;": {
+                "geometry": "{\"id\":\"1TA387ASuGqR\",\"labels\":[{\"x\":1272,\"y\":1387.5}],\"junctionPoints\":[{\"x\":1212,\"y\":154.5}],\"sections\":[{\"bendPoints\":[{\"x\":1212,\"y\":154.5},{\"x\":1212,\"y\":1380.5},{\"x\":1452,\"y\":1380.5},{\"x\":1452,\"y\":1509.6765}],\"start\":{\"x\":882,\"y\":154.5},\"end\":{\"x\":1542,\"y\":1509.6765}}]}"
+            },
+            "wz_gain/output-->outputs/wz;": {
+                "geometry": "{\"id\":\"l0p94lbPdSmq\",\"labels\":[{\"x\":1272,\"y\":1425.5}],\"junctionPoints\":[{\"x\":1182,\"y\":269.5}],\"sections\":[{\"bendPoints\":[{\"x\":1182,\"y\":269.5},{\"x\":1182,\"y\":1418.5},{\"x\":1422,\"y\":1418.5},{\"x\":1422,\"y\":1526.1471}],\"start\":{\"x\":882,\"y\":269.5},\"end\":{\"x\":1542,\"y\":1526.1471}}]}"
+            },
+            "roll_gain/output-->outputs/roll;": {
+                "geometry": "{\"id\":\"Blf82lmSED14\",\"labels\":[{\"x\":1272,\"y\":1577.5}],\"junctionPoints\":[{\"x\":1062,\"y\":729.5}],\"sections\":[{\"bendPoints\":[{\"x\":1062,\"y\":729.5},{\"x\":1062,\"y\":1570.5},{\"x\":1302,\"y\":1570.5},{\"x\":1302,\"y\":1592.0294}],\"start\":{\"x\":882,\"y\":729.5},\"end\":{\"x\":1542,\"y\":1592.0294}}]}"
+            },
+            "pitch_gain/output-->outputs/pitch;": {
+                "geometry": "{\"id\":\"8lTsRfQ048eG\",\"labels\":[{\"x\":1272,\"y\":1615.5}],\"junctionPoints\":[{\"x\":1032,\"y\":844.5}],\"sections\":[{\"bendPoints\":[{\"x\":1032,\"y\":844.5},{\"x\":1032,\"y\":1608.5}],\"start\":{\"x\":882,\"y\":844.5},\"end\":{\"x\":1542,\"y\":1608.5}}]}"
+            },
+            "yaw_gain/output-->outputs/yaw;": {
+                "geometry": "{\"id\":\"jtFCYfpc1uep\",\"labels\":[{\"x\":1272,\"y\":1653.5}],\"junctionPoints\":[{\"x\":1002,\"y\":959.5}],\"sections\":[{\"bendPoints\":[{\"x\":1002,\"y\":959.5},{\"x\":1002,\"y\":1646.5},{\"x\":1302,\"y\":1646.5},{\"x\":1302,\"y\":1624.9706}],\"start\":{\"x\":882,\"y\":959.5},\"end\":{\"x\":1542,\"y\":1624.9706}}]}"
+            },
+            "manc_lat_gain/output-->outputs/manc_lat;": {
+                "geometry": "{\"id\":\"GlfnJf09RR4P\",\"labels\":[{\"x\":1272,\"y\":1691.5}],\"junctionPoints\":[{\"x\":972,\"y\":1074.5}],\"sections\":[{\"bendPoints\":[{\"x\":972,\"y\":1074.5},{\"x\":972,\"y\":1684.5},{\"x\":1332,\"y\":1684.5},{\"x\":1332,\"y\":1641.4412}],\"start\":{\"x\":882,\"y\":1074.5},\"end\":{\"x\":1542,\"y\":1641.4412}}]}"
+            },
+            "manc_lon_gain/output-->outputs/manc_lon;": {
+                "geometry": "{\"id\":\"HmYlRRiJsV1z\",\"labels\":[{\"x\":1272,\"y\":1729.5}],\"junctionPoints\":[{\"x\":942,\"y\":1189.5}],\"sections\":[{\"bendPoints\":[{\"x\":942,\"y\":1189.5},{\"x\":942,\"y\":1722.5},{\"x\":1362,\"y\":1722.5},{\"x\":1362,\"y\":1657.9118}],\"start\":{\"x\":882,\"y\":1189.5},\"end\":{\"x\":1542,\"y\":1657.9118}}]}"
+            },
+            "manc_thr_gain/output-->outputs/manc_thr;": {
+                "geometry": "{\"id\":\"G2gc0lWBYJkb\",\"labels\":[{\"x\":1272,\"y\":1767.5}],\"junctionPoints\":[],\"sections\":[{\"bendPoints\":[{\"x\":1392,\"y\":1760.5},{\"x\":1392,\"y\":1674.3824}],\"start\":{\"x\":882,\"y\":1760.5},\"end\":{\"x\":1542,\"y\":1674.3824}}]}"
+            },
+            "manc_rud_gain/output-->outputs/manc_rud;": {
+                "geometry": "{\"id\":\"q5ceZyueGNzm\",\"labels\":[{\"x\":1272,\"y\":1805.5}],\"junctionPoints\":[{\"x\":912,\"y\":1304.5}],\"sections\":[{\"bendPoints\":[{\"x\":912,\"y\":1304.5},{\"x\":912,\"y\":1798.5},{\"x\":1422,\"y\":1798.5},{\"x\":1422,\"y\":1690.8529}],\"start\":{\"x\":882,\"y\":1304.5},\"end\":{\"x\":1542,\"y\":1690.8529}}]}"
+            },
+            "manc_pids_tune_gain/output-->outputs/manc_pids_tune;": {
+                "geometry": "{\"id\":\"QanzTFfJTvhB\",\"labels\":[{\"x\":1272,\"y\":1882.5}],\"junctionPoints\":[],\"sections\":[{\"bendPoints\":[{\"x\":1452,\"y\":1875.5},{\"x\":1452,\"y\":1707.3235}],\"start\":{\"x\":882,\"y\":1875.5},\"end\":{\"x\":1542,\"y\":1707.3235}}]}"
+            },
+            "manc_arm_gain/output-->outputs/manc_arm;": {
+                "geometry": "{\"id\":\"qrqf61aJWI2S\",\"labels\":[{\"x\":1272,\"y\":1997.5}],\"junctionPoints\":[],\"sections\":[{\"bendPoints\":[{\"x\":1482,\"y\":1990.5},{\"x\":1482,\"y\":1723.7941}],\"start\":{\"x\":882,\"y\":1990.5},\"end\":{\"x\":1542,\"y\":1723.7941}}]}"
+            },
+            "sine/out-->outputs/sine;": {
+                "geometry": "{\"id\":\"E0rEPo5p6pM1\",\"labels\":[{\"x\":1272,\"y\":2112.5}],\"junctionPoints\":[],\"sections\":[{\"bendPoints\":[{\"x\":1512,\"y\":2105.5},{\"x\":1512,\"y\":1740.2647}],\"start\":{\"x\":882,\"y\":2105.5},\"end\":{\"x\":1542,\"y\":1740.2647}}]}"
+            }
+        }
+    },
+    "hw_scheme_scheme1": {
+        "root_meta": {
+            "geometry": "{\"x\":0,\"y\":0,\"width\":444,\"height\":712}"
+        },
+        "nodes": {
+            "kore_board_1": {
+                "ports": {
+                    "TLM1": {
+                        "geometry": "{\"x\":384.9157,\"y\":19.2946,\"width\":8,\"height\":8,\"side\":\"EAST\"}"
+                    },
+                    "TLM2": {
+                        "geometry": "{\"x\":384.9157,\"y\":38.5892,\"width\":8,\"height\":8,\"side\":\"EAST\"}"
+                    },
+                    "SER3": {
+                        "geometry": "{\"x\":0,\"y\":69.4605,\"width\":8,\"height\":8,\"side\":\"WEST\"}"
+                    },
+                    "SER4": {
+                        "geometry": "{\"x\":384.9157,\"y\":57.8838,\"width\":8,\"height\":8,\"side\":\"EAST\"}"
+                    },
+                    "SER5": {
+                        "geometry": "{\"x\":384.9157,\"y\":77.1784,\"width\":8,\"height\":8,\"side\":\"EAST\"}"
+                    },
+                    "Safety Button": {
+                        "geometry": "{\"x\":0,\"y\":208.3816,\"width\":8,\"height\":8,\"side\":\"WEST\"}"
+                    },
+                    "Safety LED": {
+                        "geometry": "{\"x\":0,\"y\":277.8421,\"width\":8,\"height\":8,\"side\":\"WEST\"}"
+                    },
+                    "I2C1": {
+                        "geometry": "{\"x\":0,\"y\":138.921,\"width\":8,\"height\":8,\"side\":\"WEST\"}"
+                    },
+                    "I2C2": {
+                        "geometry": "{\"x\":384.9157,\"y\":96.4729,\"width\":8,\"height\":8,\"side\":\"EAST\"}"
+                    },
+                    "SPI": {
+                        "geometry": "{\"x\":384.9157,\"y\":115.7675,\"width\":8,\"height\":8,\"side\":\"EAST\"}"
+                    },
+                    "CAN1": {
+                        "geometry": "{\"x\":384.9157,\"y\":135.0621,\"width\":8,\"height\":8,\"side\":\"EAST\"}"
+                    },
+                    "CAN2": {
+                        "geometry": "{\"x\":384.9157,\"y\":154.3567,\"width\":8,\"height\":8,\"side\":\"EAST\"}"
+                    },
+                    "FMU DBG": {
+                        "geometry": "{\"x\":384.9157,\"y\":173.6513,\"width\":8,\"height\":8,\"side\":\"EAST\"}"
+                    },
+                    "IO DBG": {
+                        "geometry": "{\"x\":384.9157,\"y\":192.9459,\"width\":8,\"height\":8,\"side\":\"EAST\"}"
+                    },
+                    "Cube Interface": {
+                        "geometry": "{\"x\":192.4579,\"y\":0,\"width\":8,\"height\":8,\"side\":\"NORTH\"}"
+                    },
+                    "Battery Voltage": {
+                        "geometry": "{\"x\":384.9157,\"y\":212.2405,\"width\":8,\"height\":8,\"side\":\"EAST\"}"
+                    },
+                    "5.3V": {
+                        "geometry": "{\"x\":384.9157,\"y\":231.5351,\"width\":8,\"height\":8,\"side\":\"EAST\"}"
+                    },
+                    "12.2V": {
+                        "geometry": "{\"x\":384.9157,\"y\":250.8297,\"width\":8,\"height\":8,\"side\":\"EAST\"}"
+                    },
+                    "MAIN1": {
+                        "geometry": "{\"x\":76.9831,\"y\":347.3026,\"width\":8,\"height\":8,\"side\":\"SOUTH\"}"
+                    },
+                    "MAIN2": {
+                        "geometry": "{\"x\":153.9663,\"y\":347.3026,\"width\":8,\"height\":8,\"side\":\"SOUTH\"}"
+                    },
+                    "MAIN3": {
+                        "geometry": "{\"x\":230.9494,\"y\":347.3026,\"width\":8,\"height\":8,\"side\":\"SOUTH\"}"
+                    },
+                    "MAIN4": {
+                        "geometry": "{\"x\":307.9326,\"y\":347.3026,\"width\":8,\"height\":8,\"side\":\"SOUTH\"}"
+                    },
+                    "MAIN5": {
+                        "geometry": "{\"x\":384.9157,\"y\":270.1242,\"width\":8,\"height\":8,\"side\":\"EAST\"}"
+                    },
+                    "MAIN6": {
+                        "geometry": "{\"x\":384.9157,\"y\":289.4188,\"width\":8,\"height\":8,\"side\":\"EAST\"}"
+                    },
+                    "MAIN7": {
+                        "geometry": "{\"x\":384.9157,\"y\":308.7134,\"width\":8,\"height\":8,\"side\":\"EAST\"}"
+                    },
+                    "MAIN8": {
+                        "geometry": "{\"x\":384.9157,\"y\":328.008,\"width\":8,\"height\":8,\"side\":\"EAST\"}"
+                    }
+                },
+                "geometry": "{\"x\":149.8578,\"y\":215.2438,\"width\":384.9157,\"height\":347.3026}"
+            },
+            "cube_orange_1": {
+                "ports": {
+                    "Cube Interface": {
+                        "geometry": "{\"x\":88.1824,\"y\":202.3766,\"width\":8,\"height\":8,\"side\":\"SOUTH\"}"
+                    }
+                },
+                "geometry": "{\"x\":253.6852,\"y\":-76.4738,\"width\":176.3648,\"height\":202.3766}"
+            },
+            "skywalker_1": {
+                "geometry": "{\"x\":31.2474,\"y\":681.3497,\"width\":120,\"height\":200}",
+                "ports": {
+                    "PWM": {
+                        "geometry": "{\"x\":60,\"y\":0,\"width\":8,\"height\":8,\"side\":\"NORTH\"}"
+                    },
+                    "Power": {
+                        "geometry": "{\"x\":120,\"y\":100,\"width\":8,\"height\":8,\"side\":\"EAST\"}"
+                    },
+                    "DC": {
+                        "geometry": "{\"x\":60,\"y\":200,\"width\":8,\"height\":8,\"side\":\"SOUTH\"}"
+                    }
+                }
+            },
+            "skywalker_2": {
+                "geometry": "{\"x\":206.8868,\"y\":680.3427,\"width\":120,\"height\":200}",
+                "ports": {
+                    "PWM": {
+                        "geometry": "{\"x\":60,\"y\":0,\"width\":8,\"height\":8,\"side\":\"NORTH\"}"
+                    },
+                    "Power": {
+                        "geometry": "{\"x\":120,\"y\":100,\"width\":8,\"height\":8,\"side\":\"EAST\"}"
+                    },
+                    "DC": {
+                        "geometry": "{\"x\":60,\"y\":200,\"width\":8,\"height\":8,\"side\":\"SOUTH\"}"
+                    }
+                }
+            },
+            "skywalker_3": {
+                "geometry": "{\"x\":358.5094,\"y\":679.9685,\"width\":120,\"height\":200}",
+                "ports": {
+                    "PWM": {
+                        "geometry": "{\"x\":60,\"y\":0,\"width\":8,\"height\":8,\"side\":\"NORTH\"}"
+                    },
+                    "Power": {
+                        "geometry": "{\"x\":120,\"y\":100,\"width\":8,\"height\":8,\"side\":\"EAST\"}"
+                    },
+                    "DC": {
+                        "geometry": "{\"x\":60,\"y\":200,\"width\":8,\"height\":8,\"side\":\"SOUTH\"}"
+                    }
+                }
+            },
+            "skywalker_4": {
+                "geometry": "{\"x\":517.1928,\"y\":680.0736,\"width\":120,\"height\":200}",
+                "ports": {
+                    "PWM": {
+                        "geometry": "{\"x\":60,\"y\":0,\"width\":8,\"height\":8,\"side\":\"NORTH\"}"
+                    },
+                    "Power": {
+                        "geometry": "{\"x\":120,\"y\":100,\"width\":8,\"height\":8,\"side\":\"EAST\"}"
+                    },
+                    "DC": {
+                        "geometry": "{\"x\":60,\"y\":200,\"width\":8,\"height\":8,\"side\":\"SOUTH\"}"
+                    }
+                }
+            },
+            "sik_telemetry_radio_1": {
+                "geometry": "{\"x\":698.0941,\"y\":198.8545,\"width\":180,\"height\":70,\"empty\":true}",
+                "ports": {
+                    "Serial": {
+                        "geometry": "{\"x\":0,\"y\":35,\"width\":8,\"height\":8,\"side\":\"WEST\"}"
+                    },
+                    "Power": {
+                        "geometry": "{\"x\":180,\"y\":35,\"width\":8,\"height\":8,\"side\":\"EAST\"}"
+                    }
+                }
+            },
+            "cm-4510_1": {
+                "geometry": "{\"x\":36.526,\"y\":970.8578,\"width\":110,\"height\":110}",
+                "ports": {
+                    "DC": {
+                        "geometry": "{\"x\":52.0643,\"y\":0,\"width\":8,\"height\":8,\"side\":\"NORTH\"}"
+                    }
+                }
+            },
+            "cm-4510_2": {
+                "geometry": "{\"x\":212.262,\"y\":969.8024,\"width\":110,\"height\":110,\"empty\":true}",
+                "ports": {
+                    "DC": {
+                        "geometry": "{\"x\":55,\"y\":0,\"width\":8,\"height\":8,\"side\":\"NORTH\"}"
+                    }
+                }
+            },
+            "cm-4510_3": {
+                "geometry": "{\"x\":364.2456,\"y\":970.7148,\"width\":110,\"height\":110,\"empty\":true}",
+                "ports": {
+                    "DC": {
+                        "geometry": "{\"x\":55,\"y\":0,\"width\":8,\"height\":8,\"side\":\"NORTH\"}"
+                    }
+                }
+            },
+            "cm-4510_4": {
+                "geometry": "{\"x\":523.0838,\"y\":971.7458,\"width\":110,\"height\":110,\"empty\":true}",
+                "ports": {
+                    "DC": {
+                        "geometry": "{\"x\":55,\"y\":0,\"width\":8,\"height\":8,\"side\":\"NORTH\"}"
+                    }
+                }
+            },
+            "h-rtk_f9p_rover_2": {
+                "geometry": "{\"x\":-158.457,\"y\":262.2675,\"width\":180,\"height\":115,\"empty\":true}",
+                "ports": {
+                    "UART": {
+                        "geometry": "{\"x\":180,\"y\":23,\"width\":8,\"height\":8,\"side\":\"EAST\"}"
+                    },
+                    "I2C": {
+                        "geometry": "{\"x\":180,\"y\":46,\"width\":8,\"height\":8,\"side\":\"EAST\"}"
+                    },
+                    "VCC 5V": {
+                        "geometry": "{\"x\":90,\"y\":0,\"width\":8,\"height\":8,\"side\":\"NORTH\"}"
+                    },
+                    "SAFETY_SWITCH": {
+                        "geometry": "{\"x\":180,\"y\":69,\"width\":8,\"height\":8,\"side\":\"EAST\"}"
+                    },
+                    "SAFETY_LED": {
+                        "geometry": "{\"x\":180,\"y\":92,\"width\":8,\"height\":8,\"side\":\"EAST\"}"
+                    }
+                }
+            }
+        },
+        "edges": {
+            "skywalker_4/DC-->cm-4510_4/DC": {
+                "geometry": "{\"jumpPoints\":[],\"junctionPoints\":[],\"sections\":[{\"start\":{\"x\":577.1928,\"y\":880.0736,\"side\":\"SOUTH\"},\"bendPoints\":[],\"end\":{\"x\":578.0838,\"y\":971.7458,\"side\":\"NORTH\"}}]}"
+            },
+            "skywalker_3/DC-->cm-4510_3/DC": {
+                "geometry": "{\"jumpPoints\":[],\"junctionPoints\":[],\"sections\":[{\"start\":{\"x\":418.5094,\"y\":879.9685,\"side\":\"SOUTH\"},\"bendPoints\":[],\"end\":{\"x\":419.2456,\"y\":970.7148,\"side\":\"NORTH\"}}]}"
+            },
+            "skywalker_2/DC-->cm-4510_2/DC": {
+                "geometry": "{\"jumpPoints\":[],\"junctionPoints\":[],\"sections\":[{\"start\":{\"x\":266.8868,\"y\":880.3427,\"side\":\"SOUTH\"},\"bendPoints\":[],\"end\":{\"x\":267.262,\"y\":969.8024,\"side\":\"NORTH\"}}]}"
+            },
+            "skywalker_1/DC-->cm-4510_1/DC": {
+                "geometry": "{\"jumpPoints\":[],\"junctionPoints\":[],\"sections\":[{\"start\":{\"x\":91.2474,\"y\":881.3497,\"side\":\"SOUTH\"},\"bendPoints\":[],\"end\":{\"x\":91.526,\"y\":970.8578,\"side\":\"NORTH\"}}]}"
+            },
+            "kore_board_1/TLM1-->sik_telemetry_radio_1/Serial": {
+                "geometry": "{\"jumpPoints\":[],\"junctionPoints\":[],\"sections\":[{\"start\":{\"x\":534.7735,\"y\":234.5384,\"side\":\"EAST\"},\"bendPoints\":[],\"end\":{\"x\":698.0941,\"y\":233.8545}}]}"
+            },
+            "h-rtk_f9p_rover_2/UART-->kore_board_1/SER3": {
+                "geometry": "{\"jumpPoints\":[],\"junctionPoints\":[],\"sections\":[{\"start\":{\"x\":21.543,\"y\":285.2675},\"bendPoints\":[],\"end\":{\"x\":149.8578,\"y\":284.7043,\"side\":\"WEST\"}}]}"
+            },
+            "kore_board_1/MAIN4-->skywalker_4/PWM": {
+                "geometry": "{\"jumpPoints\":[],\"junctionPoints\":[],\"sections\":[{\"start\":{\"x\":457.7904,\"y\":562.5464,\"side\":\"SOUTH\"},\"bendPoints\":[{\"x\":457.7904,\"y\":621.31},{\"x\":577.1928,\"y\":621.31}],\"end\":{\"x\":577.1928,\"y\":680.0736}}]}"
+            },
+            "kore_board_1/MAIN3-->skywalker_3/PWM": {
+                "geometry": "{\"jumpPoints\":[],\"junctionPoints\":[],\"sections\":[{\"start\":{\"x\":380.8072,\"y\":562.5464,\"side\":\"SOUTH\"},\"bendPoints\":[{\"x\":380.8072,\"y\":621.2574},{\"x\":418.5094,\"y\":621.2574}],\"end\":{\"x\":418.5094,\"y\":679.9685}}]}"
+            },
+            "kore_board_1/MAIN2-->skywalker_2/PWM": {
+                "geometry": "{\"jumpPoints\":[],\"junctionPoints\":[],\"sections\":[{\"start\":{\"x\":303.8241,\"y\":562.5464,\"side\":\"SOUTH\"},\"bendPoints\":[{\"x\":303.8241,\"y\":621.4445},{\"x\":266.8868,\"y\":621.4445}],\"end\":{\"x\":266.8868,\"y\":680.3427}}]}"
+            },
+            "kore_board_1/MAIN1-->skywalker_1/PWM": {
+                "geometry": "{\"jumpPoints\":[],\"junctionPoints\":[],\"sections\":[{\"start\":{\"x\":226.8409,\"y\":562.5464,\"side\":\"SOUTH\"},\"bendPoints\":[{\"x\":226.8409,\"y\":621.941},{\"x\":91.2474,\"y\":621.941}],\"end\":{\"x\":91.2474,\"y\":681.3497}}]}"
+            },
+            "cube_orange_1/Cube Interface-->kore_board_1/Cube Interface": {
+                "geometry": "{\"jumpPoints\":[],\"junctionPoints\":[],\"sections\":[{\"start\":{\"x\":341.8676,\"y\":125.9028,\"side\":\"SOUTH\"},\"bendPoints\":[],\"end\":{\"x\":342.3157,\"y\":215.2438,\"side\":\"NORTH\"}}]}"
+            }
+        }
+    }
+}

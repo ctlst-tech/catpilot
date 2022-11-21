@@ -1,37 +1,19 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 
-<swsys>
-
-    <bus name="control" max_topics="256" eq_channel="1">
-
+<swsys name="cube_mvp">
+    <bus name="control" eq_channel="1">
+        <event_queue buffer_size="2048" size="20"/>
     </bus>
 
-    <bus name="gcu" max_topics="256">
+    <bus name="gcu" eq_channel="0">
+        <event_queue buffer_size="4000" size="16"/>
+
         <dir name="hk" eq_channel="16"/>
         <dir name="nav" eq_channel="16"/>
         <dir name="cont" eq_channel="16"/>
-
-<!--        <event_queue size="128" buffer_size="4000"/>-->
-        <event_queue size="16" buffer_size="4000"/>
     </bus>
 
-
-    <service type="sdtl" name="gcu_link">
-        <param alias="baudrate">57600</param>
-        <param alias="ser_path">/dev/ttyS1</param>
-
-        <channel name="downlink" id="1" type="rel" />
-        <channel name="downlink_sk" id="2" type="unrel" />
-    </service>
-
-    <service type="eqrb_sdtl" name="debug_sdtl">
-        <param alias="service">gcu_link</param>
-        <param alias="channel_1">downlink</param>
-        <param alias="channel_2">downlink_sk</param>
-        <param alias="bus">gcu</param>
-    </service>
-
-    <task type="flow" name="control_flow" config="mvp_flow_control.xml" priority="6" clk_method="freerun">
+    <task name="control_flow" type="flow" config="mvp_flow_control.xml" priority="6" clk_method="freerun">
         <connect>
             <out alias="wx">control/wx</out>
             <out alias="wy">control/wy</out>
@@ -39,16 +21,13 @@
             <out alias="ax">control/ax</out>
             <out alias="ay">control/ay</out>
             <out alias="az">control/az</out>
-
             <out alias="roll">control/roll</out>
             <out alias="pitch">control/pitch</out>
             <out alias="yaw">control/yaw</out>
-
             <out alias="ax">control/roll</out>
             <out alias="ay">control/pitch</out>
             <out alias="az">control/yaw</out>
             <out alias="arm">control/arm</out>
-
             <out alias="manc_lat">control/manc_lat</out>
             <out alias="manc_lon">control/manc_lon</out>
             <out alias="manc_thr">control/manc_thr</out>
@@ -57,19 +36,7 @@
         </connect>
     </task>
 
-    <bridge name="nav" priority="2" clk_method="timer" clk_period="100" to="gcu/nav">
-        <source alias="wx, wy, wz, ax, ay, az">control/$alias</source>
-        <source alias="roll, pitch, yaw">control/$alias</source>
-    </bridge>
-
-
-    <bridge name="man_cont" priority="2" clk_method="timer" clk_period="100" to="gcu/cont">
-        <source alias="manc_lat, manc_lon, manc_thr, manc_rud">control/$alias</source>
-        <source alias="manc_pids_knob">control/manc_pids_tune</source>
-        <source alias="manc_arm">control/arm</source>
-    </bridge>
-
-    <task type="flow" name="telemetric" config="mvp_flow_telemetric.xml" priority="1" clk_method="timer" clk_period="100">
+    <task name="telemetric" type="flow" config="mvp_flow_telemetric.xml" priority="1" clk_method="timer">
         <connect>
             <in alias="wx">control/wx</in>
             <in alias="wy">control/wy</in>
@@ -77,22 +44,29 @@
             <in alias="ax">control/ax</in>
             <in alias="ay">control/ay</in>
             <in alias="az">control/az</in>
-
             <in alias="roll">control/roll</in>
             <in alias="pitch">control/pitch</in>
             <in alias="yaw">control/yaw</in>
-
             <in alias="manc_lat">control/manc_lat</in>
             <in alias="manc_lon">control/manc_lon</in>
             <in alias="manc_thr">control/manc_thr</in>
             <in alias="manc_rud">control/manc_rud</in>
             <in alias="manc_pids_tune">control/manc_pids_tune</in>
-
             <in alias="manc_arm">control/arm</in>
 
             <out alias="sine">gcu/hk/sine</out>
         </connect>
     </task>
 
+    <service type="sdtl" name="gcu_link">
+        <param alias="baudrate">57600</param>
+        <param alias="ser_path">/dev/ttyS1</param>
+    </service>
 
+    <service type="eqrb_sdtl" name="debug_sdtl">
+        <param alias="service">gcu_link</param>
+        <param alias="channel_1">downlink</param>
+        <param alias="channel_2">downlink_sk</param>
+        <param alias="bus">gcu</param>
+    </service>
 </swsys>
