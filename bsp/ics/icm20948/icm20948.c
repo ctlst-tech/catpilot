@@ -21,21 +21,20 @@ static void icm20948_fifo_reset(icm20948_t *dev);
 static void icm20948_temp_process(icm20948_t *dev);
 static void icm20948_gyro_process(icm20948_t *dev);
 static void icm20948_accel_process(icm20948_t *dev);
-static void icm20948_stat(icm20948_t *dev);
 
 void icm20948_drdy_handler(void *area);
 
 // Public functions
-int icm20948_start(spi_t *spi, gpio_t *cs, exti_t *drdy, uint32_t period,
+icm20948_t* icm20948_start(spi_t *spi, gpio_t *cs, exti_t *drdy, uint32_t period,
                    uint32_t thread_priority, int enable_mag) {
     if (spi == NULL || cs == NULL) {
-        return -1;
+        return NULL;
     }
 
     icm20948_t *dev = calloc(1, sizeof(icm20948_t));
 
     if (dev == NULL) {
-        return -1;
+        return NULL;
     }
 
     strcpy(dev->name, "ICM20948");
@@ -46,17 +45,17 @@ int icm20948_start(spi_t *spi, gpio_t *cs, exti_t *drdy, uint32_t period,
     if (drdy != NULL) {
         dev->interface.drdy = drdy;
         if (exti_init(dev->interface.drdy, icm20948_drdy_handler, dev)) {
-            return -1;
+            return NULL;
         }
         dev->sync.drdy_sem = xSemaphoreCreateBinary();
         if (dev->sync.drdy_sem == NULL) {
-            return -1;
+            return NULL;
         }
     }
 
     if (period < 2) {
         LOG_ERROR(dev->name, "Too high frequency");
-        return -1;
+        return NULL;
     }
 
     dev->os.period = period / portTICK_PERIOD_MS;
@@ -64,13 +63,13 @@ int icm20948_start(spi_t *spi, gpio_t *cs, exti_t *drdy, uint32_t period,
 
     dev->sync.measrdy_sem = xSemaphoreCreateBinary();
     if (dev->sync.measrdy_sem == NULL) {
-        return -1;
+        return NULL;
     }
 
     if (xTaskCreate(icm20948_thread, dev->name, 512, dev, dev->os.priority,
                     NULL) != pdTRUE) {
         LOG_ERROR(dev->name, "Thread start error");
-        return -1;
+        return NULL;
     }
 
     LOG_DEBUG(dev->name, "Start service, period = %u ms, priority = %u",
@@ -78,7 +77,7 @@ int icm20948_start(spi_t *spi, gpio_t *cs, exti_t *drdy, uint32_t period,
 
     xSemaphoreTake(dev->sync.measrdy_sem, 0);
 
-    return 0;
+    return dev;
 }
 
 void icm20948_thread(void *dev_ptr) {
@@ -147,12 +146,6 @@ void icm20948_fsm(icm20948_t *dev) {
             icm20948_temp_process(dev);
             icm20948_accel_process(dev);
             icm20948_gyro_process(dev);
-            static int count = 0;
-            count++;
-            if (count > 2000) {
-                icm20948_stat(dev);
-                count = 0;
-            }
             if (dev->interface.drdy != NULL) {
                 irq_enable(dev->interface.drdy->p.id);
             }
@@ -190,6 +183,28 @@ void icm20948_get_meas_non_block(icm20948_t *dev, void *ptr) {
 void icm20948_get_meas_block(icm20948_t *dev, void *ptr) {
     xSemaphoreTake(dev->sync.measrdy_sem, portMAX_DELAY);
     icm20948_get_meas_non_block(dev, ptr);
+}
+
+void icm20948_stat(icm20948_t *dev) {
+    if(dev == NULL || dev->state != ICM20948_FIFO_READ) {
+        return;
+    }
+    printf("\n");
+    LOG_DEBUG(dev->name, "Statistics:");
+    LOG_DEBUG(dev->name, "accel_x = %.3f [m/s2]",
+              dev->meas_buffer.meas[0].accel_x);
+    LOG_DEBUG(dev->name, "accel_y = %.3f [m/s2]",
+              dev->meas_buffer.meas[0].accel_y);
+    LOG_DEBUG(dev->name, "accel_z = %.3f [m/s2]",
+              dev->meas_buffer.meas[0].accel_z);
+    LOG_DEBUG(dev->name, "gyro_x  = %.3f [deg/s]",
+              dev->meas_buffer.meas[0].gyro_x);
+    LOG_DEBUG(dev->name, "gyro_y  = %.3f [deg/s]",
+              dev->meas_buffer.meas[0].gyro_y);
+    LOG_DEBUG(dev->name, "gyro_z  = %.3f [deg/s]",
+              dev->meas_buffer.meas[0].gyro_z);
+    LOG_DEBUG(dev->name, "temp    = %.3f [C]", dev->meas_buffer.temp);
+    LOG_DEBUG(dev->name, "N       = %lu [samples]", dev->fifo_param.samples);
 }
 
 // Private functions
@@ -394,7 +409,7 @@ static int icm20948_fifo_read(icm20948_t *dev, uint16_t samples) {
                           (uint8_t *)&dev->fifo_buffer, 3);
 
         dev->fifo_param.bytes =
-            MIN(msblsb16(dev->fifo_buffer.COUNTH, dev->fifo_buffer.COUNTL),
+            MIN(msb_lsb_16(dev->fifo_buffer.COUNTH, dev->fifo_buffer.COUNTL),
                 samples);
         dev->fifo_param.samples =
             dev->fifo_param.bytes / sizeof(icm20948_fifo_t);
@@ -422,11 +437,11 @@ static void icm20948_fifo_reset(icm20948_t *dev) {
 
 static void icm20948_accel_process(icm20948_t *dev) {
     for (int i = 0; i < dev->fifo_param.samples; i++) {
-        int16_t accel_x = msblsb16(dev->fifo_buffer.buf[i].ACCEL_XOUT_H,
+        int16_t accel_x = msb_lsb_16(dev->fifo_buffer.buf[i].ACCEL_XOUT_H,
                                    dev->fifo_buffer.buf[i].ACCEL_XOUT_L);
-        int16_t accel_y = msblsb16(dev->fifo_buffer.buf[i].ACCEL_YOUT_H,
+        int16_t accel_y = msb_lsb_16(dev->fifo_buffer.buf[i].ACCEL_YOUT_H,
                                    dev->fifo_buffer.buf[i].ACCEL_YOUT_L);
-        int16_t accel_z = msblsb16(dev->fifo_buffer.buf[i].ACCEL_ZOUT_H,
+        int16_t accel_z = msb_lsb_16(dev->fifo_buffer.buf[i].ACCEL_ZOUT_H,
                                    dev->fifo_buffer.buf[i].ACCEL_ZOUT_L);
 
         dev->meas_buffer.meas[i].accel_x =
@@ -442,11 +457,11 @@ static void icm20948_accel_process(icm20948_t *dev) {
 
 static void icm20948_gyro_process(icm20948_t *dev) {
     for (int i = 0; i < dev->fifo_param.samples; i++) {
-        int16_t gyro_x = msblsb16(dev->fifo_buffer.buf[i].GYRO_XOUT_H,
+        int16_t gyro_x = msb_lsb_16(dev->fifo_buffer.buf[i].GYRO_XOUT_H,
                                   dev->fifo_buffer.buf[i].GYRO_XOUT_L);
-        int16_t gyro_y = msblsb16(dev->fifo_buffer.buf[i].GYRO_YOUT_H,
+        int16_t gyro_y = msb_lsb_16(dev->fifo_buffer.buf[i].GYRO_YOUT_H,
                                   dev->fifo_buffer.buf[i].GYRO_YOUT_L);
-        int16_t gyro_z = msblsb16(dev->fifo_buffer.buf[i].GYRO_ZOUT_H,
+        int16_t gyro_z = msb_lsb_16(dev->fifo_buffer.buf[i].GYRO_ZOUT_H,
                                   dev->fifo_buffer.buf[i].GYRO_ZOUT_L);
 
         dev->meas_buffer.meas[i].gyro_x = gyro_x * dev->meas_param.gyro_scale;
@@ -465,26 +480,7 @@ static void icm20948_temp_process(icm20948_t *dev) {
 
     icm20948_exchange(dev, BANK_0, data, data, sizeof(data));
 
-    int16_t temp_raw = msblsb16(data[1], data[2]);
+    int16_t temp_raw = msb_lsb_16(data[1], data[2]);
     dev->meas_buffer.temp =
         (temp_raw - TEMP_SENS * TEMP_OFFSET) / TEMP_SENS + TEMP_OFFSET;
-}
-
-static void icm20948_stat(icm20948_t *dev) {
-    printf("\n");
-    LOG_DEBUG(dev->name, "Statistics:");
-    LOG_DEBUG(dev->name, "accel_x = %.3f [m/s2]",
-              dev->meas_buffer.meas[0].accel_x);
-    LOG_DEBUG(dev->name, "accel_y = %.3f [m/s2]",
-              dev->meas_buffer.meas[0].accel_y);
-    LOG_DEBUG(dev->name, "accel_z = %.3f [m/s2]",
-              dev->meas_buffer.meas[0].accel_z);
-    LOG_DEBUG(dev->name, "gyro_x  = %.3f [deg/s]",
-              dev->meas_buffer.meas[0].gyro_x);
-    LOG_DEBUG(dev->name, "gyro_y  = %.3f [deg/s]",
-              dev->meas_buffer.meas[0].gyro_y);
-    LOG_DEBUG(dev->name, "gyro_z  = %.3f [deg/s]",
-              dev->meas_buffer.meas[0].gyro_z);
-    LOG_DEBUG(dev->name, "temp    = %.3f [C]", dev->meas_buffer.temp);
-    LOG_DEBUG(dev->name, "N       = %lu [samples]", dev->fifo_param.samples);
 }

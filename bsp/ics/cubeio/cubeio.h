@@ -129,7 +129,7 @@ typedef struct {
     char name[32];
     usart_t *usart;
     cubeio_thread_t os;
-} cubeio_cfg_t;
+} cubeio_t;
 
 enum cubeio_state_t {
     CUBEIO_RESET = 0,
@@ -166,7 +166,7 @@ enum cubeio_channel_type_t {
 
 typedef uint32_t cubeio_eventmask_t;
 
-int cubeio_start(usart_t *usart, uint32_t period, uint32_t thread_priority);
+cubeio_t *cubeio_start(usart_t *usart, uint32_t period, uint32_t thread_priority);
 void cubeio_set_range(int type, uint8_t channel, uint16_t channel_type,
                       uint16_t min, uint16_t max);
 void cubeio_set_pwm(uint8_t channels, double *pwm);
@@ -185,5 +185,6 @@ void cubeio_force_safety_off(void);
 void cubeio_set_imu_heater_duty(uint8_t duty);
 int16_t cubeio_get_rssi(void);
 void cubeio_enable_sbus_out(uint16_t freq);
+void cubeio_stat(void);
 
 #endif  // CUBEIO_H

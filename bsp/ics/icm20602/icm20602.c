@@ -20,21 +20,20 @@ static void icm20602_fifo_reset(icm20602_t *dev);
 static void icm20602_temp_process(icm20602_t *dev);
 static void icm20602_gyro_process(icm20602_t *dev);
 static void icm20602_accel_process(icm20602_t *dev);
-static void icm20602_stat(icm20602_t *dev);
 
 void icm20602_drdy_handler(void *area);
 
 // Public functions
-int icm20602_start(spi_t *spi, gpio_t *cs, exti_t *drdy, uint32_t period,
+icm20602_t* icm20602_start(spi_t *spi, gpio_t *cs, exti_t *drdy, uint32_t period,
                    uint32_t thread_priority) {
     if (spi == NULL || cs == NULL) {
-        return -1;
+        return NULL;
     }
 
     icm20602_t *dev = calloc(1, sizeof(icm20602_t));
 
     if (dev == NULL) {
-        return -1;
+        return NULL;
     }
 
     strcpy(dev->name, "ICM20602");
@@ -44,17 +43,17 @@ int icm20602_start(spi_t *spi, gpio_t *cs, exti_t *drdy, uint32_t period,
     if (drdy != NULL) {
         dev->interface.drdy = drdy;
         if (exti_init(dev->interface.drdy, icm20602_drdy_handler, dev)) {
-            return -1;
+            return NULL;
         }
         dev->sync.drdy_sem = xSemaphoreCreateBinary();
         if (dev->sync.drdy_sem == NULL) {
-            return -1;
+            return NULL;
         }
     }
 
     if (period < 2) {
         LOG_ERROR(dev->name, "Too high frequency");
-        return -1;
+        return NULL;
     }
 
     dev->os.period = period / portTICK_PERIOD_MS;
@@ -62,13 +61,13 @@ int icm20602_start(spi_t *spi, gpio_t *cs, exti_t *drdy, uint32_t period,
 
     dev->sync.measrdy_sem = xSemaphoreCreateBinary();
     if (dev->sync.measrdy_sem == NULL) {
-        return -1;
+        return NULL;
     }
 
     if (xTaskCreate(icm20602_thread, dev->name, 512, dev, dev->os.priority,
                     NULL) != pdTRUE) {
         LOG_ERROR(dev->name, "Thread start error");
-        return -1;
+        return NULL;
     }
 
     LOG_DEBUG(dev->name, "Start service, period = %u ms, priority = %u",
@@ -76,7 +75,7 @@ int icm20602_start(spi_t *spi, gpio_t *cs, exti_t *drdy, uint32_t period,
 
     xSemaphoreTake(dev->sync.measrdy_sem, 0);
 
-    return 0;
+    return dev;
 }
 
 void icm20602_thread(void *dev_ptr) {
@@ -84,7 +83,7 @@ void icm20602_thread(void *dev_ptr) {
     TickType_t last_wake_time;
 
     last_wake_time = xTaskGetTickCount();
-    dev->state = icm20602_RESET;
+    dev->state = ICM20602_RESET;
 
     while (1) {
         icm20602_fsm(dev);
@@ -94,14 +93,14 @@ void icm20602_thread(void *dev_ptr) {
 
 void icm20602_fsm(icm20602_t *dev) {
     switch (dev->state) {
-        case icm20602_RESET:
+        case ICM20602_RESET:
             vTaskDelay(100);
             icm20602_write_reg(dev, PWR_MGMT_1, DEVICE_RESET);
-            dev->state = icm20602_RESET_WAIT;
+            dev->state = ICM20602_RESET_WAIT;
             vTaskDelay(100);
             break;
 
-        case icm20602_RESET_WAIT:
+        case ICM20602_RESET_WAIT:
             if ((icm20602_read_reg(dev, WHO_AM_I) == WHOAMI) &&
                 (icm20602_read_reg(dev, PWR_MGMT_1) == 0x41) &&
                 (icm20602_read_reg(dev, CONFIG) == 0x80)) {
@@ -110,12 +109,12 @@ void icm20602_fsm(icm20602_t *dev) {
                 icm20602_write_reg(dev, SIGNAL_PATH_RESET,
                                    ACCEL_RST | TEMP_RST);
                 icm20602_write_reg(dev, SIG_COND_RST, 0);
-                dev->state = icm20602_CONF;
+                dev->state = ICM20602_CONF;
             } else {
-                dev->state = icm20602_RESET;
+                dev->state = ICM20602_RESET;
                 dev->attempt++;
                 if (dev->attempt > 5) {
-                    dev->state = icm20602_FAIL;
+                    dev->state = ICM20602_FAIL;
                     LOG_ERROR(dev->name,
                               "Wrong default registers values after reset");
                     LOG_ERROR(dev->name, "Fatal error");
@@ -124,23 +123,23 @@ void icm20602_fsm(icm20602_t *dev) {
             }
             break;
 
-        case icm20602_CONF:
+        case ICM20602_CONF:
             if (icm20602_configure(dev)) {
                 icm20602_fifo_reset(dev);
                 LOG_INFO(dev->name, "Initialization successful");
-                dev->state = icm20602_FIFO_READ;
+                dev->state = ICM20602_FIFO_READ;
             } else {
                 LOG_ERROR(dev->name, "Failed configuration, retrying...");
                 dev->attempt++;
                 if (dev->attempt > 5) {
-                    dev->state = icm20602_RESET;
+                    dev->state = ICM20602_RESET;
                     LOG_ERROR(dev->name, "Failed configuration, reset...");
                     dev->attempt = 0;
                 }
             }
             break;
 
-        case icm20602_FIFO_READ:
+        case ICM20602_FIFO_READ:
             if (dev->interface.drdy != NULL) {
                 xSemaphoreTake(dev->sync.drdy_sem, portMAX_DELAY);
             }
@@ -148,19 +147,13 @@ void icm20602_fsm(icm20602_t *dev) {
             icm20602_temp_process(dev);
             icm20602_accel_process(dev);
             icm20602_gyro_process(dev);
-            static int count = 0;
-            count++;
-            if (count > 2000) {
-                icm20602_stat(dev);
-                count = 0;
-            }
             if (dev->interface.drdy != NULL) {
                 irq_enable(dev->interface.drdy->p.id);
             }
             xSemaphoreGive(dev->sync.measrdy_sem);
             break;
 
-        case icm20602_FAIL:
+        case ICM20602_FAIL:
             vTaskDelete(NULL);
             return;
 
@@ -191,6 +184,28 @@ void icm20602_get_meas_non_block(icm20602_t *dev, void *ptr) {
 void icm20602_get_meas_block(icm20602_t *dev, void *ptr) {
     xSemaphoreTake(dev->sync.measrdy_sem, portMAX_DELAY);
     icm20602_get_meas_non_block(dev, ptr);
+}
+
+void icm20602_stat(icm20602_t *dev) {
+    if(dev == NULL || dev->state != ICM20602_FIFO_READ) {
+        return;
+    }
+    printf("\n");
+    LOG_DEBUG(dev->name, "Statistics:");
+    LOG_DEBUG(dev->name, "accel_x = %.3f [m/s2]",
+              dev->meas_buffer.meas[0].accel_x);
+    LOG_DEBUG(dev->name, "accel_y = %.3f [m/s2]",
+              dev->meas_buffer.meas[0].accel_y);
+    LOG_DEBUG(dev->name, "accel_z = %.3f [m/s2]",
+              dev->meas_buffer.meas[0].accel_z);
+    LOG_DEBUG(dev->name, "gyro_x  = %.3f [deg/s]",
+              dev->meas_buffer.meas[0].gyro_x);
+    LOG_DEBUG(dev->name, "gyro_y  = %.3f [deg/s]",
+              dev->meas_buffer.meas[0].gyro_y);
+    LOG_DEBUG(dev->name, "gyro_z  = %.3f [deg/s]",
+              dev->meas_buffer.meas[0].gyro_z);
+    LOG_DEBUG(dev->name, "temp    = %.3f [C]", dev->meas_buffer.temp);
+    LOG_DEBUG(dev->name, "N       = %lu [samples]", dev->fifo_param.samples);
 }
 
 // Private functions
@@ -313,7 +328,7 @@ static int icm20602_fifo_read(icm20602_t *dev, uint16_t samples) {
                           (uint8_t *)&dev->fifo_buffer, 3);
 
         dev->fifo_param.bytes =
-            MIN(msblsb16(dev->fifo_buffer.COUNTH, dev->fifo_buffer.COUNTL),
+            MIN(msb_lsb_16(dev->fifo_buffer.COUNTH, dev->fifo_buffer.COUNTL),
                 samples);
         dev->fifo_param.samples =
             dev->fifo_param.bytes / sizeof(icm20602_fifo_t);
@@ -341,11 +356,11 @@ static void icm20602_fifo_reset(icm20602_t *dev) {
 
 static void icm20602_accel_process(icm20602_t *dev) {
     for (int i = 0; i < dev->fifo_param.samples; i++) {
-        int16_t accel_x = msblsb16(dev->fifo_buffer.buf[i].ACCEL_XOUT_H,
+        int16_t accel_x = msb_lsb_16(dev->fifo_buffer.buf[i].ACCEL_XOUT_H,
                                    dev->fifo_buffer.buf[i].ACCEL_XOUT_L);
-        int16_t accel_y = msblsb16(dev->fifo_buffer.buf[i].ACCEL_YOUT_H,
+        int16_t accel_y = msb_lsb_16(dev->fifo_buffer.buf[i].ACCEL_YOUT_H,
                                    dev->fifo_buffer.buf[i].ACCEL_YOUT_L);
-        int16_t accel_z = msblsb16(dev->fifo_buffer.buf[i].ACCEL_ZOUT_H,
+        int16_t accel_z = msb_lsb_16(dev->fifo_buffer.buf[i].ACCEL_ZOUT_H,
                                    dev->fifo_buffer.buf[i].ACCEL_ZOUT_L);
 
         dev->meas_buffer.meas[i].accel_x =
@@ -361,11 +376,11 @@ static void icm20602_accel_process(icm20602_t *dev) {
 
 static void icm20602_gyro_process(icm20602_t *dev) {
     for (int i = 0; i < dev->fifo_param.samples; i++) {
-        int16_t gyro_x = msblsb16(dev->fifo_buffer.buf[i].GYRO_XOUT_H,
+        int16_t gyro_x = msb_lsb_16(dev->fifo_buffer.buf[i].GYRO_XOUT_H,
                                   dev->fifo_buffer.buf[i].GYRO_XOUT_L);
-        int16_t gyro_y = msblsb16(dev->fifo_buffer.buf[i].GYRO_YOUT_H,
+        int16_t gyro_y = msb_lsb_16(dev->fifo_buffer.buf[i].GYRO_YOUT_H,
                                   dev->fifo_buffer.buf[i].GYRO_YOUT_L);
-        int16_t gyro_z = msblsb16(dev->fifo_buffer.buf[i].GYRO_ZOUT_H,
+        int16_t gyro_z = msb_lsb_16(dev->fifo_buffer.buf[i].GYRO_ZOUT_H,
                                   dev->fifo_buffer.buf[i].GYRO_ZOUT_L);
 
         dev->meas_buffer.meas[i].gyro_x = gyro_x * dev->meas_param.gyro_scale;
@@ -384,26 +399,7 @@ static void icm20602_temp_process(icm20602_t *dev) {
 
     icm20602_exchange(dev, data, data, sizeof(data));
 
-    int16_t temp_raw = msblsb16(data[1], data[2]);
+    int16_t temp_raw = msb_lsb_16(data[1], data[2]);
     dev->meas_buffer.temp =
         (temp_raw - TEMP_SENS * TEMP_OFFSET) / TEMP_SENS + TEMP_OFFSET;
-}
-
-static void icm20602_stat(icm20602_t *dev) {
-    printf("\n");
-    LOG_DEBUG(dev->name, "Statistics:");
-    LOG_DEBUG(dev->name, "accel_x = %.3f [m/s2]",
-              dev->meas_buffer.meas[0].accel_x);
-    LOG_DEBUG(dev->name, "accel_y = %.3f [m/s2]",
-              dev->meas_buffer.meas[0].accel_y);
-    LOG_DEBUG(dev->name, "accel_z = %.3f [m/s2]",
-              dev->meas_buffer.meas[0].accel_z);
-    LOG_DEBUG(dev->name, "gyro_x  = %.3f [deg/s]",
-              dev->meas_buffer.meas[0].gyro_x);
-    LOG_DEBUG(dev->name, "gyro_y  = %.3f [deg/s]",
-              dev->meas_buffer.meas[0].gyro_y);
-    LOG_DEBUG(dev->name, "gyro_z  = %.3f [deg/s]",
-              dev->meas_buffer.meas[0].gyro_z);
-    LOG_DEBUG(dev->name, "temp    = %.3f [C]", dev->meas_buffer.temp);
-    LOG_DEBUG(dev->name, "N       = %lu [samples]", dev->fifo_param.samples);
 }

@@ -1,4 +1,6 @@
-#pragma once
+#ifndef LOG_H
+#define LOG_H
+
 #include <stdint.h>
 #include <stdarg.h>
 #include <stdbool.h>
@@ -33,3 +35,5 @@ void log_enable(bool enable);
 #ifndef LOG_DEBUG_ENABLE
 #define LOG_DEBUG(MODULE, S, ...)   _LOG(LOG_EMPTY_TYPE, MODULE, S, ##__VA_ARGS__)
 #endif
+
+#endif  // LOG_H

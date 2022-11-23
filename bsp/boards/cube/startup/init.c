@@ -1,11 +1,7 @@
 #include "board.h"
 #include "core.h"
-#include "cubeio.h"
 #include "fatfs.h"
 #include "hal.h"
-#include "icm20602.h"
-#include "icm20649.h"
-#include "icm20948.h"
 #include "log.h"
 #include "periph.h"
 
@@ -282,9 +278,11 @@ int board_fs_init(void) {
 }
 
 int board_services_start(void) {
-    icm20649_start(&spi1, &gpio_spi1_cs1, &exti_spi1_drdy1, 2, 10);
-    icm20602_start(&spi4, &gpio_spi4_cs2, NULL, 2, 10);
-    icm20948_start(&spi4, &gpio_spi4_cs1, NULL, 2, 10, 0);
-    cubeio_start(&usart6, 2, 9);
+    icm20649 = icm20649_start(&spi1, &gpio_spi1_cs1, &exti_spi1_drdy1, 2, 10);
+    icm20602 = icm20602_start(&spi4, &gpio_spi4_cs2, NULL, 2, 10);
+    // icm20948 = icm20948_start(&spi4, &gpio_spi4_cs1, NULL, 2, 10, 0);
+    ms5611_1 = ms5611_start(&spi1, &gpio_spi1_cs2, 10, 8);
+    // ms5611_2 = ms5611_start(&spi4, &gpio_spi4_cs3, 10, 8);
+    cubeio = cubeio_start(&usart6, 2, 9);
     return 0;
 }

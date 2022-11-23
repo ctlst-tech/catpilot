@@ -8,7 +8,7 @@ if (BOARD STREQUAL "cube")
     set(IC_ICM20602 "ON")
     set(IC_ICM20649 "ON")
     set(IC_ICM20948 "ON")
-    # set(IC_MS5611 "ON")
+    set(IC_MS5611 "ON")
     set(IC_SD "ON")
 else ()
     message(FATAL_ERROR "BOARD is not selected!")
@@ -63,6 +63,7 @@ if (MCU_FAMILY STREQUAL "stm32")
             boards/${BOARD}/cfg/exti_cfg.c
             boards/${BOARD}/cfg/gpio_cfg.c
             boards/${BOARD}/cfg/i2c_cfg.c
+            boards/${BOARD}/cfg/ics_cfg.c
             boards/${BOARD}/cfg/sdio_cfg.c
             boards/${BOARD}/cfg/spi_cfg.c
             boards/${BOARD}/cfg/usart_cfg.c

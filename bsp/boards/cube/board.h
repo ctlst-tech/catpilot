@@ -1,6 +1,11 @@
 #ifndef BOARD_H
 #define BOARD_H
 
+#include "cubeio.h"
+#include "icm20602.h"
+#include "icm20649.h"
+#include "icm20948.h"
+#include "ms5611.h"
 #include "periph.h"
 
 int board_clock_init(void);
@@ -74,5 +79,12 @@ extern spi_t spi1;
 extern spi_t spi4;
 
 extern sdio_t sdio;
+
+extern icm20649_t *icm20649;
+extern icm20602_t *icm20602;
+extern icm20948_t *icm20948;
+extern cubeio_t *cubeio;
+extern ms5611_t *ms5611_1;
+extern ms5611_t *ms5611_2;
 
 #endif  // BOARD_H

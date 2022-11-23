@@ -93,19 +93,20 @@ typedef struct {
     char name[32];
     icm20649_interface_t interface;
     icm20649_sync_t sync;
+    icm20649_thread_t os;
     icm20649_fifo_buffer_t fifo_buffer;
     icm20649_fifo_param_t fifo_param;
     icm20649_meas_buffer_t meas_buffer;
     icm20649_meas_t meas;
     icm20649_meas_param_t meas_param;
-    icm20649_thread_t os;
     enum icm20649_state_t state;
     uint8_t attempt;
 } icm20649_t;
 
-int icm20649_start(spi_t *spi, gpio_t *cs, exti_t *drdy, uint32_t period,
+icm20649_t* icm20649_start(spi_t *spi, gpio_t *cs, exti_t *drdy, uint32_t period,
                    uint32_t thread_priority);
 void icm20649_get_meas_block(icm20649_t *dev, void *ptr);
 void icm20649_get_meas_non_block(icm20649_t *dev, void *ptr);
+void icm20649_stat(icm20649_t *dev);
 
 #endif  // ICM20649_H

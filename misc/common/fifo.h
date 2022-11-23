@@ -1,3 +1,6 @@
+#ifndef FIFO_H
+#define FIFO_H
+
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -18,3 +21,5 @@ fifo_t *fifo_init(uint32_t size);
 int fifo_write(fifo_t *fifo, uint8_t *buf, uint16_t length);
 int fifo_read(fifo_t *fifo, uint8_t *buf, uint16_t length);
 int fifo_get_data_size(fifo_t *fifo);
+
+#endif  // FIFO_H

@@ -3,7 +3,7 @@
 #include "cubeio_reg.h"
 
 // Data structures
-static cubeio_cfg_t cubeio_cfg;
+static cubeio_t cubeio;
 static enum cubeio_state_t cubeio_state;
 static cubeio_packet_t cubeio_tx_packet;
 static cubeio_packet_t cubeio_rx_packet;
@@ -56,39 +56,39 @@ static TickType_t last_servo_read_ms;
 static TickType_t last_safety_ms;
 
 // Public functions
-int cubeio_start(usart_t *usart, uint32_t period, uint32_t thread_priority) {
+cubeio_t *cubeio_start(usart_t *usart, uint32_t period, uint32_t thread_priority) {
     if (usart == NULL) {
-        return -1;
+        return NULL;
     }
 
-    strncpy(cubeio_cfg.name, "CUBEIO", 32);
-    cubeio_cfg.usart = usart;
+    strncpy(cubeio.name, "CUBEIO", 32);
+    cubeio.usart = usart;
 
     if (period < 2) {
-        LOG_ERROR(cubeio_cfg.name, "Too high frequency");
-        return -1;
+        LOG_ERROR(cubeio.name, "Too high frequency");
+        return NULL;
     }
 
-    cubeio_cfg.os.period = period / portTICK_PERIOD_MS;
-    cubeio_cfg.os.priority = thread_priority;
+    cubeio.os.period = period / portTICK_PERIOD_MS;
+    cubeio.os.priority = thread_priority;
 
     iordy_semaphore = xSemaphoreCreateBinary();
     if (iordy_semaphore == NULL) {
-        return -1;
+        return NULL;
     }
 
-    if (xTaskCreate(cuibeio_thread, cubeio_cfg.name, 512, NULL,
-                    cubeio_cfg.os.priority, NULL) != pdTRUE) {
-        LOG_ERROR(cubeio_cfg.name, "Thread start error");
-        return -1;
+    if (xTaskCreate(cuibeio_thread, cubeio.name, 512, NULL,
+                    cubeio.os.priority, NULL) != pdTRUE) {
+        LOG_ERROR(cubeio.name, "Thread start error");
+        return NULL;
     }
 
-    LOG_DEBUG(cubeio_cfg.name, "Start service, period = %u ms, priority = %u",
-              cubeio_cfg.os.period, cubeio_cfg.os.priority);
+    LOG_DEBUG(cubeio.name, "Start service, period = %u ms, priority = %u",
+              cubeio.os.period, cubeio.os.priority);
 
     xSemaphoreGive(iordy_semaphore);
 
-    return 0;
+    return &cubeio;
 }
 
 void cuibeio_thread(void *dev_ptr) {
@@ -97,7 +97,7 @@ void cuibeio_thread(void *dev_ptr) {
     cubeio_state = CUBEIO_RESET;
     while (1) {
         cubeio_fsm();
-        xTaskDelayUntil(&last_wake_time, cubeio_cfg.os.period);
+        xTaskDelayUntil(&last_wake_time, cubeio.os.period);
     }
 }
 
@@ -113,12 +113,12 @@ static void cubeio_fsm(void) {
 
             if (cubeio_config.protocol_version != PROTOCOL_VERSION ||
                 cubeio_config.protocol_version2 != PROTOCOL_VERSION2) {
-                LOG_ERROR(cubeio_cfg.name, "Wrong protocols versions: %lu, %lu",
+                LOG_ERROR(cubeio.name, "Wrong protocols versions: %lu, %lu",
                           cubeio_config.protocol_version,
                           cubeio_config.protocol_version2);
                 attempt++;
                 if (attempt > 5) {
-                    LOG_ERROR(cubeio_cfg.name, "Fatal error");
+                    LOG_ERROR(cubeio.name, "Fatal error");
                     cubeio_state = CUBEIO_FAIL;
                 }
             }
@@ -130,7 +130,7 @@ static void cubeio_fsm(void) {
                                          P_SETUP_ARMING_FMU_ARMED |
                                          P_SETUP_ARMING_RC_HANDLING_DISABLED,
                                      0)) {
-                LOG_ERROR(cubeio_cfg.name, "Arming setup error");
+                LOG_ERROR(cubeio.name, "Arming setup error");
                 cubeio_state = CUBEIO_FAIL;
             }
 
@@ -138,7 +138,7 @@ static void cubeio_fsm(void) {
 
         case CUBEIO_CONF:
             // TODO: There will be a default configuration
-            LOG_INFO(cubeio_cfg.name, "Initialization successful");
+            LOG_INFO(cubeio.name, "Initialization successful");
             cubeio_state = CUBEIO_OPERATION;
             break;
 
@@ -249,19 +249,6 @@ static void cubeio_fsm(void) {
             vTaskDelay(1000);
             break;
     }
-}
-
-int CubeIO_Operation(void) {
-    if (cubeio_state == CUBEIO_OPERATION) {
-        return 0;
-    } else {
-        return -1;
-    }
-}
-
-int CubeIO_Ready(void) {
-    xSemaphoreTake(iordy_semaphore, portMAX_DELAY);
-    return 1;
 }
 
 void cubeio_set_range(int type, uint8_t channel, uint16_t channel_type,
@@ -391,7 +378,7 @@ static int cubeio_write_regs(uint8_t page, uint8_t offset, uint8_t count,
     tx_pkt.crc = crc_packet(&tx_pkt);
 
     for (uint8_t att = 0; att < 3; att++) {
-        rv = usart_transmit_receive(cubeio_cfg.usart, (uint8_t *)&tx_pkt,
+        rv = usart_transmit_receive(cubeio.usart, (uint8_t *)&tx_pkt,
                                     (uint8_t *)&rx_pkt, sizeof(tx_pkt),
                                     sizeof(rx_pkt));
 
@@ -399,7 +386,7 @@ static int cubeio_write_regs(uint8_t page, uint8_t offset, uint8_t count,
             continue;
         }
         if (get_pkt_code(&rx_pkt) != PKT_CODE_SUCCESS) {
-            LOG_ERROR(cubeio_cfg.name, "Bad code, 0x%X, 0x%X, %d", page, offset,
+            LOG_ERROR(cubeio.name, "Bad code, 0x%X, 0x%X, %d", page, offset,
                       count);
             rv = EINVAL;
             continue;
@@ -407,7 +394,7 @@ static int cubeio_write_regs(uint8_t page, uint8_t offset, uint8_t count,
         uint8_t got_crc = rx_pkt.crc;
         rx_pkt.crc = 0;
         if (crc_packet(&rx_pkt) != got_crc) {
-            LOG_ERROR(cubeio_cfg.name, "Bad crc, 0x%X, 0x%X, %d", page, offset,
+            LOG_ERROR(cubeio.name, "Bad crc, 0x%X, 0x%X, %d", page, offset,
                       count);
             rv = EPROTO;
             continue;
@@ -433,7 +420,7 @@ static int cubeio_read_regs(uint8_t page, uint8_t offset, uint8_t count,
     tx_pkt.crc = crc_packet(&tx_pkt);
 
     for (uint8_t att = 0; att < 3; att++) {
-        rv = usart_transmit_receive(cubeio_cfg.usart, (uint8_t *)&tx_pkt,
+        rv = usart_transmit_receive(cubeio.usart, (uint8_t *)&tx_pkt,
                                     (uint8_t *)&rx_pkt, sizeof(tx_pkt),
                                     sizeof(rx_pkt));
 
@@ -441,13 +428,13 @@ static int cubeio_read_regs(uint8_t page, uint8_t offset, uint8_t count,
             continue;
         }
         if (get_pkt_code(&rx_pkt) != PKT_CODE_SUCCESS) {
-            LOG_ERROR(cubeio_cfg.name, "Bad code, 0x%X, 0x%X, %d", page, offset,
+            LOG_ERROR(cubeio.name, "Bad code, 0x%X, 0x%X, %d", page, offset,
                       count);
             rv = EINVAL;
             continue;
         }
         if (get_pkt_count(&rx_pkt) != count) {
-            LOG_ERROR(cubeio_cfg.name, "Bad count, %d, %d", count,
+            LOG_ERROR(cubeio.name, "Bad count, %d, %d", count,
                       get_pkt_size(&rx_pkt));
             rv = EINVAL;
             continue;
@@ -455,7 +442,7 @@ static int cubeio_read_regs(uint8_t page, uint8_t offset, uint8_t count,
         uint8_t got_crc = rx_pkt.crc;
         rx_pkt.crc = 0;
         if (crc_packet(&rx_pkt) != got_crc) {
-            LOG_ERROR(cubeio_cfg.name, "Bad crc, 0x%X, 0x%X, %d", page, offset,
+            LOG_ERROR(cubeio.name, "Bad crc, 0x%X, 0x%X, %d", page, offset,
                       count);
             rv = EPROTO;
             continue;
@@ -465,6 +452,30 @@ static int cubeio_read_regs(uint8_t page, uint8_t offset, uint8_t count,
     }
 
     return rv;
+}
+
+void cubeio_stat(void) {
+    if(cubeio_state != CUBEIO_OPERATION) {
+        return;
+    }
+    printf("\n");
+    LOG_DEBUG(cubeio.name, "Statistics:");
+    LOG_DEBUG(cubeio.name, "rc_ch1  = %u", cubeio_page_rc_input.channel[0]);
+    LOG_DEBUG(cubeio.name, "rc_ch2  = %u", cubeio_page_rc_input.channel[1]);
+    LOG_DEBUG(cubeio.name, "rc_ch3  = %u", cubeio_page_rc_input.channel[2]);
+    LOG_DEBUG(cubeio.name, "rc_ch4  = %u", cubeio_page_rc_input.channel[3]);
+    LOG_DEBUG(cubeio.name, "rc_ch5  = %u", cubeio_page_rc_input.channel[4]);
+    LOG_DEBUG(cubeio.name, "rc_ch6  = %u", cubeio_page_rc_input.channel[5]);
+    LOG_DEBUG(cubeio.name, "rc_ch7  = %u", cubeio_page_rc_input.channel[6]);
+    LOG_DEBUG(cubeio.name, "rc_ch8  = %u", cubeio_page_rc_input.channel[7]);
+    LOG_DEBUG(cubeio.name, "rc_ch9  = %u", cubeio_page_rc_input.channel[8]);
+    LOG_DEBUG(cubeio.name, "rc_ch10 = %u", cubeio_page_rc_input.channel[9]);
+    LOG_DEBUG(cubeio.name, "rc_ch11 = %u", cubeio_page_rc_input.channel[10]);
+    LOG_DEBUG(cubeio.name, "rc_ch12 = %u", cubeio_page_rc_input.channel[11]);
+    LOG_DEBUG(cubeio.name, "rc_ch13 = %u", cubeio_page_rc_input.channel[12]);
+    LOG_DEBUG(cubeio.name, "rc_ch14 = %u", cubeio_page_rc_input.channel[13]);
+    LOG_DEBUG(cubeio.name, "rc_ch15 = %u", cubeio_page_rc_input.channel[14]);
+    LOG_DEBUG(cubeio.name, "rc_ch16 = %u", cubeio_page_rc_input.channel[15]);
 }
 
 static int cubeio_write_reg(uint8_t page, uint8_t offset, uint16_t reg) {

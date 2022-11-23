@@ -1,5 +1,5 @@
 #include "log.h"
-#include "func.h"
+#include "macros.h"
 #include <string.h>
 #include <time.h>
 #include <stdarg.h>
