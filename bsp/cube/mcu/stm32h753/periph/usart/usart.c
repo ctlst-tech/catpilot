@@ -323,8 +323,7 @@ int USART_ClockEnable(usart_cfg_t *cfg) {
             } else {
                 cfg->inst.error = SUCCESS;
             }
-            RingBuf_Write(cfg->inst.read_buf, buf, cfg->inst.rx_count);
-            xSemaphoreGive(cfg->inst.read_semaphore);
+            ring_buf_write(cfg->inst.read_buf, buf, cfg->inst.rx_count);
         }
     }
 
@@ -333,9 +332,8 @@ int USART_ClockEnable(usart_cfg_t *cfg) {
         uint8_t *buf = calloc(cfg->buf_size, sizeof(uint8_t));
         uint16_t length;
         while(1) {
-            xSemaphoreTake(cfg->inst.write_semaphore, portMAX_DELAY);
-            length = RingBuf_GetDataSize(cfg->inst.write_buf);
-            length = RingBuf_Read(cfg->inst.write_buf, buf, length);
+            length = ring_buf_get_data_size(cfg->inst.write_buf);
+            length = ring_buf_read(cfg->inst.write_buf, buf, length);
             if(USART_Transmit(cfg, buf, length)) {
                 cfg->inst.error = ERROR;
             } else {
@@ -358,19 +356,14 @@ int USART_ClockEnable(usart_cfg_t *cfg) {
             return -1;
         }
 
-        cfg->inst.read_buf = RingBuf_Init(cfg->buf_size);
-        cfg->inst.write_buf = RingBuf_Init(cfg->buf_size);
+        cfg->inst.read_buf = ring_buf_init(cfg->buf_size);
+        cfg->inst.write_buf = ring_buf_init(cfg->buf_size);
         
         if(cfg->inst.read_buf == NULL ||
             cfg->inst.write_buf == NULL) {
                 errno = ENXIO;
                 return -1;
         }
-
-        cfg->inst.read_semaphore = xSemaphoreCreateBinary();
-        cfg->inst.write_semaphore = xSemaphoreCreateBinary();
-        if(cfg->inst.read_semaphore == NULL) return -1;
-        if(cfg->inst.write_semaphore == NULL) return -1;
 
         static int usartnum = 0;
         char read_task_name[configMAX_TASK_NAME_LEN];
@@ -402,10 +395,9 @@ int USART_ClockEnable(usart_cfg_t *cfg) {
         usart_cfg_t *cfg = (usart_cfg_t *)devcfg;
 
         errno = 0;
-        rv = RingBuf_Write(cfg->inst.write_buf,
+        rv = ring_buf_write(cfg->inst.write_buf,
                            (uint8_t *)buf,
                            count);
-        xSemaphoreGive(cfg->inst.write_semaphore);
         if(cfg->inst.error) {
             errno = EPROTO;
             return -1;
@@ -419,8 +411,7 @@ int USART_ClockEnable(usart_cfg_t *cfg) {
         (void)file;
         usart_cfg_t *cfg = (usart_cfg_t *)devcfg;
 
-        xSemaphoreTake(cfg->inst.read_semaphore, portMAX_DELAY);
-        rv = RingBuf_Read(cfg->inst.read_buf,
+        rv = ring_buf_read(cfg->inst.read_buf,
                            (uint8_t *)buf,
                            count);
         if(cfg->inst.error) {

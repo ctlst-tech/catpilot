@@ -50,6 +50,19 @@ int cfsetospeed(struct termios *__termios_p, speed_t __speed) {
     return 0;
 }
 
+int cfmakeraw(struct termios *__termios_p) {
+    __termios_p->c_iflag &= ~(IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL|IXON);
+    __termios_p->c_oflag &= ~OPOST;
+//    __termios_p->c_lflag &= ~(ECHO|ECHONL|ICANON|ISIG|IEXTEN);
+//    __termios_p->c_cflag &= ~(CSIZE|PARENB);
+//    __termios_p->c_cflag |= CS8;
+    __termios_p->c_cc[VMIN] = 1;		/* read returns when one char is available.  */
+    __termios_p->c_cc[VTIME] = 0;
+    return 0;
+}
+
+
+
 int cfsetispeed(struct termios *__termios_p, speed_t __speed) {
     __termios_p->c_ispeed = __speed;
     return 0;
