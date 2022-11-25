@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<flow>
+    <spec>
+        <outputs>
+            <o alias="1" type="core.type.f64"/>
+            <o alias="2" type="core.type.f64"/>
+        </outputs>
+    </spec>
+
+    <functions>
+        <f name="cube.io.gpio_2" by_spec="cube.io.gpio">
+            <in alias="input_float">cube.sensors.icm20649_2/ax</in>
+
+            <param alias="channel"/>
+        </f>
+
+        <f name="cube.sensors.icm20649_2" by_spec="cube.sensors.icm20649"/>
+    </functions>
+
+</flow>

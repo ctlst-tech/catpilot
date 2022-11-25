@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<flow>
+    <functions>
+        <f name="cube.io.gpio_3" by_spec="cube.io.gpio">
+            <param alias="channel"/>
+        </f>
+    </functions>
+
+</flow>

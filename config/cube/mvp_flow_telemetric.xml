@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 
 <flow>
-    <spec name="control">
+    <spec name="telemetric">
         <inputs>
             <i alias="wx" type="core.type.f64"/>
             <i alias="wy" type="core.type.f64"/>
