@@ -64,12 +64,12 @@
         </connect>
     </task>
 
-    <bridge name="nav" priority="2" clk_method="timer" clk_period="100" to="gcu/nav">
+    <bridge name="nav" priority="2" clk_method="timer" clk_period="100" to="gcu_bus/nav">
         <source alias="omega, a">nav_bus/$alias</source>
         <source alias="roll, pitch, yaw">nav_bus/$alias</source>
     </bridge>
 
-    <bridge name="man_cont" priority="2" clk_method="timer" clk_period="100" to="gcu/cont">
+    <bridge name="man_cont" priority="2" clk_method="timer" clk_period="100" to="gcu_bus/cont">
         <source alias="direct, direct_collective">control_bus/$alias</source>
     </bridge>
 
