@@ -1,11 +1,13 @@
 #include "sd.h"
 
-sdcard_t *sdcard_init(sdio_t *sdio) {
+sdcard_t *sdcard_init(char *name, sdio_t *sdio) {
     sdcard_t *dev = calloc(sizeof(sdcard_t), 1);
+
     if(dev != NULL) {
         dev->sdio = sdio;
-        strncpy(dev->name, "SDMMC", 32);
+        strncpy(dev->name, name, MAX_NAME_LEN);
     }
+
     return dev;
 }
 

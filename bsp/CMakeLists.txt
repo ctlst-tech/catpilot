@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 3.6)
-project(bsp)
 
 if (BOARD STREQUAL "cube")
     set(MCU_FAMILY stm32)
@@ -11,8 +10,23 @@ if (BOARD STREQUAL "cube")
     set(IC_MS5611 "ON")
     set(IC_SD "ON")
 else ()
-    message(FATAL_ERROR "BOARD is not selected!")
+    message(FATAL_ERROR "Board is not selected!")
 endif ()
+
+set(CMAKE_TOOLCHAIN_FILE mcu/core/${MCU_FAMILY}/${MCU_MODEL}/${MCU_MODEL}_toolchain.cmake)
+
+project(bsp C ASM)
+
+message("\nBoard Support Package information:")
+message("   Board: ${BOARD}")
+message("   MCU family: ${MCU_FAMILY}")
+message("   MCU model: ${MCU_MODEL}")
+message("   Toolchain: ${CMAKE_TOOLCHAIN_FILE}")
+message("   C Compiler: ${CMAKE_C_COMPILER}")
+message("   C++ Compiler: ${CMAKE_CXX_COMPILER}")
+message("   Compiler flags: ${COMMON_FLAGS}")
+message("   Linker flags: ${LINKER_FLAGS}")
+message("\n")
 
 list(APPEND BSP_INC
     mcu/core/${MCU_FAMILY}/common

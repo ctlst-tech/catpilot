@@ -10,6 +10,7 @@
 #include "log.h"
 #include "os.h"
 #include "periph.h"
+#include "service.h"
 
 #define ICM20649_FIFO_SIZE 4096
 #define ICM20649_FIFO_SAMPLES 342
@@ -76,11 +77,6 @@ typedef struct {
     SemaphoreHandle_t measrdy_sem;
 } icm20649_sync_t;
 
-typedef struct {
-    uint32_t period;
-    uint32_t priority;
-} icm20649_thread_t;
-
 enum icm20649_state_t {
     ICM20649_RESET = 0,
     ICM20649_RESET_WAIT = 1,
@@ -90,10 +86,10 @@ enum icm20649_state_t {
 };
 
 typedef struct {
-    char name[32];
+    char name[MAX_NAME_LEN];
     icm20649_interface_t interface;
+    service_t *service;
     icm20649_sync_t sync;
-    icm20649_thread_t os;
     icm20649_fifo_buffer_t fifo_buffer;
     icm20649_fifo_param_t fifo_param;
     icm20649_meas_buffer_t meas_buffer;
@@ -103,8 +99,8 @@ typedef struct {
     uint8_t attempt;
 } icm20649_t;
 
-icm20649_t* icm20649_start(spi_t *spi, gpio_t *cs, exti_t *drdy, uint32_t period,
-                   uint32_t thread_priority);
+icm20649_t *icm20649_start(char *name, uint32_t period, uint32_t priority,
+                          spi_t *spi, gpio_t *cs, exti_t *drdy);
 void icm20649_get_meas_block(icm20649_t *dev, void *ptr);
 void icm20649_get_meas_non_block(icm20649_t *dev, void *ptr);
 void icm20649_stat(icm20649_t *dev);

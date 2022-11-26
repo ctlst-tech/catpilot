@@ -10,6 +10,7 @@
 #include "log.h"
 #include "os.h"
 #include "periph.h"
+#include "service.h"
 
 #define MS5611_PROM_SIZE 8
 
@@ -54,11 +55,6 @@ typedef struct {
     SemaphoreHandle_t measrdy_sem;
 } ms5611_sync_t;
 
-typedef struct {
-    uint32_t period;
-    uint32_t priority;
-} ms5611_thread_t;
-
 enum ms5611_state_t {
     MS5611_RESET = 0,
     MS5611_READ_CALIB = 1,
@@ -67,10 +63,10 @@ enum ms5611_state_t {
 };
 
 typedef struct {
-    char name[32];
+    char name[MAX_NAME_LEN];
     ms5611_interface_t interface;
+    service_t *service;
     ms5611_sync_t sync;
-    ms5611_thread_t os;
     ms5611_prom_t calib;
     ms5611_raw_t raw;
     ms5611_meas_t meas;
@@ -78,8 +74,8 @@ typedef struct {
     uint8_t attempt;
 } ms5611_t;
 
-ms5611_t* ms5611_start(spi_t *spi, gpio_t *cs, uint32_t period,
-                 uint32_t thread_priority);
+ms5611_t *ms5611_start(const char *name, uint32_t period, uint32_t priority,
+                       spi_t *spi, gpio_t *cs);
 double ms5611_get_meas_block(ms5611_t *dev, void *ptr);
 double ms5611_get_meas_non_block(ms5611_t *dev, void *ptr);
 void ms5611_stat(ms5611_t *dev);

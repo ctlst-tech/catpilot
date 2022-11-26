@@ -10,6 +10,7 @@
 #include "log.h"
 #include "os.h"
 #include "periph.h"
+#include "service.h"
 
 #define ICM20602_FIFO_SIZE 1008
 #define ICM20602_FIFO_SAMPLES 72
@@ -76,11 +77,6 @@ typedef struct {
     SemaphoreHandle_t measrdy_sem;
 } icm20602_sync_t;
 
-typedef struct {
-    uint32_t period;
-    uint32_t priority;
-} icm20602_thread_t;
-
 enum icm20602_state_t {
     ICM20602_RESET = 0,
     ICM20602_RESET_WAIT = 1,
@@ -90,10 +86,10 @@ enum icm20602_state_t {
 };
 
 typedef struct {
-    char name[32];
+    char name[MAX_NAME_LEN];
     icm20602_interface_t interface;
+    service_t *service;
     icm20602_sync_t sync;
-    icm20602_thread_t os;
     icm20602_fifo_buffer_t fifo_buffer;
     icm20602_fifo_param_t fifo_param;
     icm20602_meas_buffer_t meas_buffer;
@@ -103,8 +99,8 @@ typedef struct {
     uint8_t attempt;
 } icm20602_t;
 
-icm20602_t* icm20602_start(spi_t *spi, gpio_t *cs, exti_t *drdy, uint32_t period,
-                   uint32_t thread_priority);
+icm20602_t *icm20602_start(char *name, uint32_t period, uint32_t priority,
+                           spi_t *spi, gpio_t *cs, exti_t *drdy);
 void icm20602_get_meas_block(icm20602_t *dev, void *ptr);
 void icm20602_get_meas_non_block(icm20602_t *dev, void *ptr);
 void icm20602_stat(icm20602_t *dev);

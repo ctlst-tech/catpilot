@@ -3,8 +3,7 @@
 #include "ms5611_reg.h"
 
 // Private functions
-void ms5611_thread(void *dev_ptr);
-void ms5611_fsm(ms5611_t *dev);
+void ms5611_fsm(void *area);
 static void ms5611_chip_selection(ms5611_t *dev);
 static void ms5611_chip_deselection(ms5611_t *dev);
 static void ms5611_exchange(ms5611_t *dev, uint8_t *tx_buf, uint8_t *rx_buf,
@@ -17,9 +16,10 @@ static int ms5611_read_meas(ms5611_t *dev);
 static void ms5611_process_meas(ms5611_t *dev);
 
 // Public functions
-ms5611_t* ms5611_start(spi_t *spi, gpio_t *cs, uint32_t period,
-                 uint32_t thread_priority) {
-    if (spi == NULL || cs == NULL) {
+ms5611_t *ms5611_start(const char *name, uint32_t period, uint32_t priority,
+                       spi_t *spi, gpio_t *cs) {
+    if (spi == NULL || cs == NULL || name == NULL || period <= 0 ||
+        priority <= 0) {
         return NULL;
     }
 
@@ -29,51 +29,30 @@ ms5611_t* ms5611_start(spi_t *spi, gpio_t *cs, uint32_t period,
         return NULL;
     }
 
-    strcpy(dev->name, "MS5611");
+    strncpy(dev->name, name, MAX_NAME_LEN);
     dev->interface.spi = spi;
     dev->interface.cs = cs;
-
-    if (period < 2) {
-        LOG_ERROR(dev->name, "Too high frequency");
-        return NULL;
-    }
-
-    dev->os.period = period / portTICK_PERIOD_MS;
-    dev->os.priority = thread_priority;
 
     dev->sync.measrdy_sem = xSemaphoreCreateBinary();
     if (dev->sync.measrdy_sem == NULL) {
         return NULL;
     }
 
-    if (xTaskCreate(ms5611_thread, dev->name, 512, dev, dev->os.priority,
-                    NULL) != pdTRUE) {
-        LOG_ERROR(dev->name, "Thread start error");
+    dev->state = MS5611_RESET;
+
+    if ((dev->service = service_start(dev->name, dev, ms5611_fsm, period,
+                                      priority)) == NULL) {
+        LOG_ERROR(dev->name, "Fatal error");
         return NULL;
     }
-
-    LOG_DEBUG(dev->name, "Start service, period = %u ms, priority = %u",
-              dev->os.period, dev->os.priority);
 
     xSemaphoreTake(dev->sync.measrdy_sem, 0);
 
     return dev;
 }
 
-void ms5611_thread(void *dev_ptr) {
-    ms5611_t *dev = dev_ptr;
-    TickType_t last_wake_time;
-
-    last_wake_time = xTaskGetTickCount();
-    dev->state = MS5611_RESET;
-
-    while (1) {
-        ms5611_fsm(dev);
-        xTaskDelayUntil(&last_wake_time, dev->os.period);
-    }
-}
-
-void ms5611_fsm(ms5611_t *dev) {
+void ms5611_fsm(void *area) {
+    ms5611_t *dev = (ms5611_t *)area;
     switch (dev->state) {
         case MS5611_RESET:
             vTaskDelay(5);
@@ -112,7 +91,7 @@ void ms5611_fsm(ms5611_t *dev) {
 }
 
 void ms5611_stat(ms5611_t *dev) {
-    if(dev == NULL || dev->state != MS5611_READ_MEAS) {
+    if (dev == NULL || dev->state != MS5611_READ_MEAS) {
         return;
     }
     printf("\n");

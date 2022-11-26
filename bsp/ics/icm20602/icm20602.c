@@ -3,8 +3,7 @@
 #include "icm20602_reg.h"
 
 // Private functions
-static void icm20602_thread(void *dev_ptr);
-static void icm20602_fsm(icm20602_t *dev);
+static void icm20602_fsm(void *area);
 static int icm20602_configure(icm20602_t *dev);
 static int icm20602_reset_fifo(icm20602_t *dev);
 static void icm20602_chip_select(icm20602_t *dev);
@@ -24,9 +23,10 @@ static void icm20602_accel_process(icm20602_t *dev);
 void icm20602_drdy_handler(void *area);
 
 // Public functions
-icm20602_t* icm20602_start(spi_t *spi, gpio_t *cs, exti_t *drdy, uint32_t period,
-                   uint32_t thread_priority) {
-    if (spi == NULL || cs == NULL) {
+icm20602_t *icm20602_start(char *name, uint32_t period, uint32_t priority,
+                           spi_t *spi, gpio_t *cs, exti_t *drdy) {
+    if (spi == NULL || cs == NULL || name == NULL || period <= 0 ||
+        priority <= 0) {
         return NULL;
     }
 
@@ -36,7 +36,8 @@ icm20602_t* icm20602_start(spi_t *spi, gpio_t *cs, exti_t *drdy, uint32_t period
         return NULL;
     }
 
-    strcpy(dev->name, "ICM20602");
+    strncpy(dev->name, name, MAX_NAME_LEN);
+
     dev->interface.spi = spi;
     dev->interface.cs = cs;
 
@@ -51,47 +52,26 @@ icm20602_t* icm20602_start(spi_t *spi, gpio_t *cs, exti_t *drdy, uint32_t period
         }
     }
 
-    if (period < 2) {
-        LOG_ERROR(dev->name, "Too high frequency");
-        return NULL;
-    }
-
-    dev->os.period = period / portTICK_PERIOD_MS;
-    dev->os.priority = thread_priority;
-
     dev->sync.measrdy_sem = xSemaphoreCreateBinary();
     if (dev->sync.measrdy_sem == NULL) {
         return NULL;
     }
 
-    if (xTaskCreate(icm20602_thread, dev->name, 512, dev, dev->os.priority,
-                    NULL) != pdTRUE) {
-        LOG_ERROR(dev->name, "Thread start error");
+    dev->state = ICM20602_RESET;
+
+    if ((dev->service = service_start(dev->name, dev, icm20602_fsm, period,
+                                      priority)) == NULL) {
+        LOG_ERROR(dev->name, "Fatal error");
         return NULL;
     }
-
-    LOG_DEBUG(dev->name, "Start service, period = %u ms, priority = %u",
-              dev->os.period, dev->os.priority);
 
     xSemaphoreTake(dev->sync.measrdy_sem, 0);
 
     return dev;
 }
 
-void icm20602_thread(void *dev_ptr) {
-    icm20602_t *dev = dev_ptr;
-    TickType_t last_wake_time;
-
-    last_wake_time = xTaskGetTickCount();
-    dev->state = ICM20602_RESET;
-
-    while (1) {
-        icm20602_fsm(dev);
-        xTaskDelayUntil(&last_wake_time, dev->os.period);
-    }
-}
-
-void icm20602_fsm(icm20602_t *dev) {
+void icm20602_fsm(void *area) {
+    icm20602_t *dev = (icm20602_t *)area;
     switch (dev->state) {
         case ICM20602_RESET:
             vTaskDelay(100);
@@ -187,7 +167,7 @@ void icm20602_get_meas_block(icm20602_t *dev, void *ptr) {
 }
 
 void icm20602_stat(icm20602_t *dev) {
-    if(dev == NULL || dev->state != ICM20602_FIFO_READ) {
+    if (dev == NULL || dev->state != ICM20602_FIFO_READ) {
         return;
     }
     printf("\n");
@@ -357,11 +337,11 @@ static void icm20602_fifo_reset(icm20602_t *dev) {
 static void icm20602_accel_process(icm20602_t *dev) {
     for (int i = 0; i < dev->fifo_param.samples; i++) {
         int16_t accel_x = msb_lsb_16(dev->fifo_buffer.buf[i].ACCEL_XOUT_H,
-                                   dev->fifo_buffer.buf[i].ACCEL_XOUT_L);
+                                     dev->fifo_buffer.buf[i].ACCEL_XOUT_L);
         int16_t accel_y = msb_lsb_16(dev->fifo_buffer.buf[i].ACCEL_YOUT_H,
-                                   dev->fifo_buffer.buf[i].ACCEL_YOUT_L);
+                                     dev->fifo_buffer.buf[i].ACCEL_YOUT_L);
         int16_t accel_z = msb_lsb_16(dev->fifo_buffer.buf[i].ACCEL_ZOUT_H,
-                                   dev->fifo_buffer.buf[i].ACCEL_ZOUT_L);
+                                     dev->fifo_buffer.buf[i].ACCEL_ZOUT_L);
 
         dev->meas_buffer.meas[i].accel_x =
             accel_x * dev->meas_param.accel_scale;
@@ -377,11 +357,11 @@ static void icm20602_accel_process(icm20602_t *dev) {
 static void icm20602_gyro_process(icm20602_t *dev) {
     for (int i = 0; i < dev->fifo_param.samples; i++) {
         int16_t gyro_x = msb_lsb_16(dev->fifo_buffer.buf[i].GYRO_XOUT_H,
-                                  dev->fifo_buffer.buf[i].GYRO_XOUT_L);
+                                    dev->fifo_buffer.buf[i].GYRO_XOUT_L);
         int16_t gyro_y = msb_lsb_16(dev->fifo_buffer.buf[i].GYRO_YOUT_H,
-                                  dev->fifo_buffer.buf[i].GYRO_YOUT_L);
+                                    dev->fifo_buffer.buf[i].GYRO_YOUT_L);
         int16_t gyro_z = msb_lsb_16(dev->fifo_buffer.buf[i].GYRO_ZOUT_H,
-                                  dev->fifo_buffer.buf[i].GYRO_ZOUT_L);
+                                    dev->fifo_buffer.buf[i].GYRO_ZOUT_L);
 
         dev->meas_buffer.meas[i].gyro_x = gyro_x * dev->meas_param.gyro_scale;
         dev->meas_buffer.meas[i].gyro_y =

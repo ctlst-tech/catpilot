@@ -14,7 +14,7 @@ extern "C" {
 #define MAXLN 128
 #define MAX_FILES 32
 #define MAX_NODES 10
-#define MAX_NAME_LEN 64
+#define MAX_NAME_LEN 32
 #define EOF -1
 
 extern int errno;

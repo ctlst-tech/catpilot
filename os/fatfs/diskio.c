@@ -57,7 +57,7 @@ DSTATUS disk_initialize (
     DSTATUS stat;
     int result;
 
-    sdcard = sdcard_init(&sdio);
+    sdcard = sdcard_init("SDCARD", &sdio);
 
     if(sdcard == NULL) {
         stat = STA_NOINIT;
