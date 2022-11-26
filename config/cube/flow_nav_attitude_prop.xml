@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<flow name="nav_attitude_prop">
+    <spec>
+        <inputs>
+            <i alias="omega_bias" type="core.type.vector3f64"/>
+            <i alias="q0" type="core.type.quat"/>
+            <i alias="q" type="core.type.quat"/>
+            <i alias="reset" type="core.type.bool"/>
+        </inputs>
+
+        <outputs>
+            <o alias="a" type="core.type.vector3f64"/>
+            <o alias="omega" type="core.type.vector3f64"/>
+            <o alias="q" type="core.type.quat"/>
+        </outputs>
+    </spec>
+
+    <functions>
+        <f name="imu1" by_spec="cube.sensors.icm20649"/>
+
+        <f name="omega_x_biased" by_spec="core.math.sub">
+            <in alias="input0">imu1/wx</in>
+            <in alias="input1">inputs/omega_bias/x</in>
+        </f>
+
+        <f name="omega_y_biased" by_spec="core.math.sub">
+            <in alias="input0">imu1/wy</in>
+            <in alias="input1">inputs/omega_bias/y</in>
+        </f>
+
+        <f name="omega_z_biased" by_spec="core.math.sub">
+            <in alias="input0">imu1/wz</in>
+            <in alias="input1">inputs/omega_bias/z</in>
+        </f>
+
+        <f name="integrate_att" by_spec="core.quat.prop">
+            <in alias="wx">omega_x_biased/output</in>
+            <in alias="wy">omega_y_biased/output</in>
+            <in alias="wz">omega_z_biased/output</in>
+            <in alias="q0">inputs/q0</in>
+            <in alias="q">inputs/q</in>
+            <in alias="reset">inputs/reset</in>
+        </f>
+    </functions>
+
+    <f name="accel" by_spec="core.math.vector3">
+        <in alias="x">imu1/ax</in>
+        <in alias="y">imu1/ay</in>
+        <in alias="z">imu1/az</in>
+    </f>
+
+    <f name="omega" by_spec="core.math.vector3">
+        <in alias="x">imu1/wx</in>
+        <in alias="y">imu1/wy</in>
+        <in alias="z">imu1/wz</in>
+    </f>
+
+    <link_outputs>
+        <link alias="a">accel/v</link>
+        <link alias="omega">omega/v</link>
+        <link alias="q">integrate_att/Q</link>
+    </link_outputs>
+
+</flow>

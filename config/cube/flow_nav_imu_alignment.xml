@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<flow name="nav_imu_alignment">
+    <spec>
+        <inputs>
+            <i alias="omega" type="core.type.vector3f64"/>
+            <i alias="start" type="core.type.bool"/>
+        </inputs>
+
+        <outputs>
+            <o alias="omega_bias" type="core.type.vector3f64"/>
+            <o alias="q0" type="core.type.quat"/>
+        </outputs>
+    </spec>
+
+    <functions>
+
+        <f name="bias_calib_proto" by_spec="core.filter.mvng_av">
+            <in alias="i1">inputs/omega/x</in>
+            <in alias="i2">inputs/omega/y</in>
+            <in alias="i3">inputs/omega/z</in>
+        </f>
+
+        <f name="omega_bias_concat" by_spec="core.math.vector3">
+            <in alias="x">bias_calib_proto/a1</in>
+            <in alias="y">bias_calib_proto/a2</in>
+            <in alias="z">bias_calib_proto/a3</in>
+        </f>
+
+    </functions>
+
+
+    <link_outputs>
+        <link alias="desired_omega">desired_omega/v</link>
+        <link alias="omega_bias">omega_bias_concat/v</link>
+    </link_outputs>
+</flow>
