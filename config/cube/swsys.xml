@@ -83,7 +83,7 @@
     </service>
 
     <service type="eqrb_sdtl" name="debug_sdtl">
-        <event_queue_source value="gcu"/>
+        <event_queue_source value="gcu_bus"/>
 
         <sdtl_service value="gcu_link"/>
 

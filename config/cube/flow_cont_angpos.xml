@@ -8,12 +8,12 @@
             <i alias="gain" type="core.type.f64"/>
             <i alias="desired_roll" type="core.type.f64"/>
             <i alias="desired_pitch" type="core.type.f64"/>
-            <o alias="rc_desired_omega" type="core.type.vector3f64"/>
+            <i alias="rc_desired_omega" type="core.type.v3f64"/>
             <i alias="enable" type="core.type.f64"/>
         </inputs>
 
         <outputs>
-            <o alias="desired_omega" type="core.type.vector3f64"/>
+            <o alias="desired_omega" type="core.type.v3f64"/>
             <o alias="enabled" type="core.type.bool"/>
         </outputs>
     </spec>
@@ -63,7 +63,7 @@
             <in alias="input1">inputs/gain</in>
         </f>
 
-        <f name="desired_auto_omega" by_spec="core.math.vector3">
+        <f name="desired_auto_omega" by_spec="core.math.vector3f64">
             <in alias="x">pid_multed_roll/output</in>
             <in alias="y">pid_multed_pitch/output</in>
             <in alias="z">inputs/rc_desired_omega/z</in>
@@ -72,7 +72,7 @@
         <f name="desired_omega" by_spec="core.cont.mux3f64">
             <in alias="input0">inputs/rc_desired_omega</in>
             <in alias="input1">desired_auto_omega/v</in>
-            <in alias="select">mode_switch/mode2</in>
+            <in alias="select">inputs/enable</in>
         </f>
 
     </functions>

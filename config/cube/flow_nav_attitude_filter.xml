@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
 
-<flow name="nav_attitude_filter">
-    <spec>
+<flow>
+    <spec name="nav_attitude_filter">
         <inputs>
             <i alias="q" type="core.type.quat"/>
-            <i alias="a" type="core.type.vector3f64"/>
+            <i alias="a" type="core.type.v3f64"/>
         </inputs>
 
         <outputs>
@@ -21,10 +21,10 @@
             <param alias="value">0.0</param>
         </f>
 
-        <f name="concat_accels" by_spec="core.math.vector3">
-            <in alias="x">input/a/x</in>
-            <in alias="y">input/a/y</in>
-            <in alias="z">input/a/z</in>
+        <f name="concat_accels" by_spec="core.math.vector3f64">
+            <in alias="x">inputs/a/x</in>
+            <in alias="y">inputs/a/y</in>
+            <in alias="z">inputs/a/z</in>
         </f>
 
         <f name="accel_horizon" by_spec="core.nav.att_from_accel">
@@ -38,7 +38,7 @@
         </f>
 
         <f name="to_euler" by_spec="core.quat.to_euler">
-            <in alias="q">input/q</in>
+            <in alias="q">inputs/q</in>
         </f>
 
         <f name="roll_err" by_spec="core.math.sub">

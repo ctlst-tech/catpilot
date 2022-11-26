@@ -3,10 +3,10 @@
 <flow>
     <spec name="cont_angrate">
         <inputs>
-            <i alias="omega" type="core.type.vector3f64"/>
-            <i alias="desired_omega" type="core.type.vector3f64"/>
+            <i alias="omega" type="core.type.v3f64"/>
+            <i alias="desired_omega" type="core.type.v3f64"/>
             <i alias="collective" type="core.type.f64"/>
-            <i alias="direct" type="core.type.vector3"/>
+            <i alias="direct" type="core.type.v3f64"/>
             <i alias="enable" type="core.type.bool"/>
             <i alias="arming" type="core.type.bool"/>
             <i alias="pids_rate_gain_multiplier" type="core.type.f64"/>
@@ -35,7 +35,7 @@
             <in alias="input">inputs/desired_omega/x</in>
             <in alias="feedback">inputs/omega/x</in>
             <in alias="preset">omega_integral_preset/output</in>
-            <in alias="enable">inputs/endble</in>
+            <in alias="enable">inputs/enable</in>
 
             <param alias="Kp">1.0</param>
             <param alias="Ki">0.03</param>
@@ -50,7 +50,7 @@
             <in alias="input">inputs/desired_omega/y</in>
             <in alias="feedback">inputs/omega/y</in>
             <in alias="preset">omega_integral_preset/output</in>
-            <in alias="enable">inputs/endble</in>
+            <in alias="enable">inputs/enable</in>
 
             <param alias="Kp">1.0</param>
             <param alias="Ki">0.03</param>
@@ -65,7 +65,7 @@
             <in alias="input">inputs/desired_omega/z</in>
             <in alias="feedback">inputs/omega/z</in>
             <in alias="preset">omega_integral_preset/output</in>
-            <in alias="enable">inputs/endble</in>
+            <in alias="enable">inputs/enable</in>
 
             <param alias="Kp">0.8</param>
             <param alias="Ki">0.1</param>
@@ -76,10 +76,14 @@
             <param alias="output_max">+1.0</param>
         </f>
 
-        <f name="cont_idle" by_spec="core.math.vector3">
-            <in alias="x">zero/output</in>
-            <in alias="y">zero/output</in>
-            <in alias="z">zero/output</in>
+        <f name="cont_idle_position" by_spec="core.source.constant">
+            <param alias="value">0.0</param>
+        </f>
+
+        <f name="cont_idle" by_spec="core.math.vector3f64">
+            <in alias="x">cont_idle_position/output</in>
+            <in alias="y">cont_idle_position/output</in>
+            <in alias="z">cont_idle_position/output</in>
         </f>
 
         <f name="cont_idle_collective" by_spec="core.source.constant">
@@ -101,14 +105,14 @@
             <in alias="input1">inputs/pids_rate_gain_multiplier</in>
         </f>
 
-        <f name="angrate_cont_auto" by_spec="core.math.vector3">
+        <f name="angrate_cont_auto" by_spec="core.math.vector3f64">
             <in alias="x">pid_multed_x/output</in>
             <in alias="y">pid_multed_y/output</in>
             <in alias="z">pid_multed_z/output</in>
         </f>
 
         <f name="att_cont_mode_mux" by_spec="core.cont.mux3f64">
-            <in alias="input0">inputs/direct/v</in>
+            <in alias="input0">inputs/direct</in>
             <in alias="input1">angrate_cont_auto/v</in>
             <in alias="select">inputs/enable</in>
         </f>
@@ -123,20 +127,20 @@
             <param alias="value">0.15</param>
         </f>
 
-        <f name="collective_in" by_spec="core.math.gain">
-            <in alias="input">rc/rc_channel3</in>
+        <f name="collective_input" by_spec="core.math.gain">
+            <in alias="input">inputs/collective</in>
             <param alias="gain">0.85</param>
         </f>
 
         <f name="collective_sol" by_spec="core.math.add">
             <in alias="input0">collective_min/output</in>
-            <in alias="input1">collective_in/output</in>
+            <in alias="input1">collective_input/output</in>
         </f>
 
         <f name="collective_arm_mux" by_spec="core.cont.mux">
             <in alias="input0">cont_idle_collective/output</in>
             <in alias="input1">collective_sol/output</in>
-            <in alias="select">mode_switch/mode1</in>
+            <in alias="select">inputs/enable</in>
         </f>
 
         <f name="mixer" by_spec="core.cont.quadrotor_mix">
