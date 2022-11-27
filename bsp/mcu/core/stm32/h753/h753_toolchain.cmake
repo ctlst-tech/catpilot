@@ -30,7 +30,7 @@ if (UNIX)
     set(CMAKE_SIZE          ${TOOLCHAIN_BIN_PATH}-size)
     set(CMAKE_OBJCOPY       ${TOOLCHAIN_BIN_PATH}-objcopy)
     set(CMAKE_OBJDUMP       ${TOOLCHAIN_BIN_PATH}-objdump)
-    set(LINKER_SCRIPT       ${CMAKE_CURRENT_SOURCE_DIR}/mcu/core/stm32/h753/ld/linker_stm32h753.ld)
+    set(LINKER_SCRIPT       ${CMAKE_CURRENT_SOURCE_DIR}/bsp/mcu/core/stm32/h753/ld/linker_stm32h753.ld)
 endif ()
 
 set(MCU_FLAGS "-mcpu=cortex-m7 -mlittle-endian -mfloat-abi=hard -mthumb -mno-unaligned-access")

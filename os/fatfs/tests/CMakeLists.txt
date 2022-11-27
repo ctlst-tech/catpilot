@@ -4,11 +4,11 @@ set(CMAKE_CXX_STANDARD 14)
 
 find_package(Catch2 REQUIRED)
 
-include_directories(../fs_posix/node)
+include(../fsa/node/node.h)
 
 set(NODE_SRC
     node_tests.cpp
-    ../fs_posix/node/node.c
+    ../fsa/node/node.c
 )
 
 add_executable(node_tests ${NODE_SRC})

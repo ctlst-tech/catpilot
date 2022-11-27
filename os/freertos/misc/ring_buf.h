@@ -1,26 +1,26 @@
 #ifndef RING_BUF_H
 #define RING_BUF_H
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include "core.h"
-#include "os.h"
+
 #include "macros.h"
+#include "os.h"
 
 #define RINGBUFFER_MAX_SIZE 1024
 
 typedef struct {
-   uint8_t *write_ptr;
-   uint8_t *read_ptr;
-   uint8_t *start_ptr;
-   uint16_t size;
-   uint16_t count;
-   SemaphoreHandle_t cont_mutex;
-   SemaphoreHandle_t rw_mutex;
-   SemaphoreHandle_t r_sem;
-   SemaphoreHandle_t w_sem;
+    uint8_t *write_ptr;
+    uint8_t *read_ptr;
+    uint8_t *start_ptr;
+    uint16_t size;
+    uint16_t count;
+    SemaphoreHandle_t cont_mutex;
+    SemaphoreHandle_t rw_mutex;
+    SemaphoreHandle_t r_sem;
+    SemaphoreHandle_t w_sem;
 } ring_buf_t;
 
 ring_buf_t *ring_buf_init(uint16_t size);

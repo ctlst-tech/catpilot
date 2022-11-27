@@ -1,7 +1,9 @@
 #ifndef SERVICE_H
 #define SERVICE_H
 
-#include "core.h"
+#include <string.h>
+
+#include "log.h"
 #include "os.h"
 
 #define SERVICE_MAX 10

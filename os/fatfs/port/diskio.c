@@ -10,8 +10,6 @@
 #include "ff.h"			/* Obtains integer types */
 #include "diskio.h"		/* Declarations of disk functions */
 
-#include "sd.h"	/* User low level storage driver */
-
 /* Definitions of physical drive number for each drive */
 #define DEV_RAM		0	/* Example: Map Ramdisk to physical drive 0 */
 #define DEV_MMC		1	/* Example: Map MMC/SD card to physical drive 1 */
@@ -19,12 +17,17 @@
 
 #define SD_DEFAULT_BLOCK_SIZE 512
 
+extern int sdcard_init(void);
+extern int sdcard_read(uint8_t *pdata, uint32_t address, uint32_t num);
+extern int sdcard_write(uint8_t *pdata, uint32_t address, uint32_t num);
+extern int sdcard_get_status(void);
+extern uint32_t sdcard_get_sector_count(void);
+extern uint16_t sdcard_get_sector_size(void);
+extern uint32_t sdcard_get_block_size(void);
+
 /*-----------------------------------------------------------------------*/
 /* Get Drive Status                                                      */
 /*-----------------------------------------------------------------------*/
-
-extern sdio_t sdio;
-static sdcard_t *sdcard;
 
 DSTATUS disk_status (
     BYTE pdrv		/* Physical drive nmuber to identify the drive */
@@ -33,7 +36,7 @@ DSTATUS disk_status (
     DSTATUS stat;
     int result;
 
-    result = sdcard_get_status(sdcard);
+    result = sdcard_get_status();
 
     if(result) {
         stat = RES_NOTRDY;
@@ -57,9 +60,9 @@ DSTATUS disk_initialize (
     DSTATUS stat;
     int result;
 
-    sdcard = sdcard_init("SDCARD", &sdio);
+    result = sdcard_init();
 
-    if(sdcard == NULL) {
+    if(result) {
         stat = STA_NOINIT;
     } else {
         stat = RES_OK;
@@ -84,7 +87,7 @@ DRESULT disk_read (
     DRESULT res;
     int result;
 
-    result = sdcard_read(sdcard, buff, sector, count);
+    result = sdcard_read((uint8_t *)buff, sector, count);
 
     if(result) {
         res = RES_ERROR;
@@ -113,7 +116,7 @@ DRESULT disk_write (
     DRESULT res;
     int result;
 
-    result = sdcard_write(sdcard, (uint8_t *)buff, sector, count);
+    result = sdcard_write((uint8_t *)buff, sector, count);
 
     if(result) {
         res = RES_ERROR;
@@ -138,7 +141,6 @@ DRESULT disk_ioctl (
 )
 {
     DRESULT res = RES_ERROR;
-    HAL_SD_CardInfoTypeDef card_info;
 
     switch (cmd)
     {
@@ -149,22 +151,19 @@ DRESULT disk_ioctl (
 
     /* Get number of sectors on the disk (DWORD) */
     case GET_SECTOR_COUNT :
-        sdcard_get_info(sdcard, &card_info);
-        *(DWORD*)buff = card_info.LogBlockNbr;
+        *(DWORD*)buff = sdcard_get_sector_count();
         res = RES_OK;
         break;
 
     /* Get R/W sector size (WORD) */
     case GET_SECTOR_SIZE :
-        sdcard_get_info(sdcard, &card_info);
-        *(WORD*)buff = card_info.LogBlockSize;
+        *(WORD*)buff = sdcard_get_sector_size();
         res = RES_OK;
         break;
 
     /* Get erase block size in unit of sector (DWORD) */
     case GET_BLOCK_SIZE :
-        sdcard_get_info(sdcard, &card_info);
-        *(DWORD*)buff = card_info.LogBlockSize / SD_DEFAULT_BLOCK_SIZE;
+        *(DWORD*)buff = sdcard_get_block_size();
         res = RES_OK;
         break;
 
@@ -175,7 +174,7 @@ DRESULT disk_ioctl (
     return res;
 }
 
-__weak DWORD get_fattime (void)
+DWORD get_fattime (void)
 {
   return 0;
 }

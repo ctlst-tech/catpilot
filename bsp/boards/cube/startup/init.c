@@ -246,12 +246,17 @@ static int board_sd_card_init(void) {
                                    .close = fatfs_close,
                                    .fsync = fatfs_syncfs,
                                    .dev = &sdio};
+    char name[] = "SDCARD";
+    if(sdcard_start(name, &sdio) == NULL) {
+        LOG_ERROR(name, "Initialization failed");
+        return -1;
+    }
     if (node_mount("/fs", &f_op) == NULL) {
-        LOG_ERROR("SDCARD", "Initialization failed");
+        LOG_ERROR(name, "Initialization failed");
         return -1;
     }
     if (f_mount(&fs, "/", 1)) {
-        LOG_ERROR("SDMMC", "Mount error");
+        LOG_ERROR(name, "Mount error");
         return -1;
     }
     return 0;

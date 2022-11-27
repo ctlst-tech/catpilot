@@ -7,6 +7,7 @@
 #include "icm20948.h"
 #include "ms5611.h"
 #include "periph.h"
+#include "sd.h"
 
 int board_clock_init(void);
 int board_periph_init(void);

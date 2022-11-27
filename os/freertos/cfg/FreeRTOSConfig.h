@@ -1,5 +1,3 @@
-#include "systemclock.h"
-
 extern uint32_t rcc_system_clock;
 
 #ifndef FREERTOS_CONFIG_H
@@ -44,14 +42,20 @@ extern uint32_t rcc_system_clock;
 #define configUSE_DAEMON_TASK_STARTUP_HOOK      0
 
 /* Run time and task stats gathering related definitions. */
-#define configGENERATE_RUN_TIME_STATS           1
-#define configUSE_TRACE_FACILITY                1
-#define configUSE_STATS_FORMATTING_FUNCTIONS    1
+#define configGENERATE_RUN_TIME_STATS           0
+#define configUSE_TRACE_FACILITY                0
+#define configUSE_STATS_FORMATTING_FUNCTIONS    0
 
-extern void Monitor_StartTimer(void);
-extern uint32_t Monitor_GetCounter(void);
-#define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS() Monitor_StartTimer()
-#define portGET_RUN_TIME_COUNTER_VALUE() Monitor_GetCounter()
+// POSIX implementation
+#define posixconfigENABLE_PTHREAD_COND_T 1
+#define posixconfigENABLE_PTHREAD_MUTEX_T 1
+#define posixconfigENABLE_PTHREAD_MUTEXATTR_T 1
+#define configUSE_POSIX_ERRNO 1
+
+// extern void Monitor_StartTimer(void);
+// extern uint32_t Monitor_GetCounter(void);
+// #define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS() Monitor_StartTimer()
+// #define portGET_RUN_TIME_COUNTER_VALUE() Monitor_GetCounter()
 
 /* Co-routine related definitions. */
 #define configUSE_CO_ROUTINES                   0

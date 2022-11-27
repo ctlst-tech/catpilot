@@ -1,20 +1,5 @@
 cmake_minimum_required(VERSION 3.6)
 
-if (BOARD STREQUAL "cube")
-    set(MCU_FAMILY stm32)
-    set(MCU_MODEL h753)
-    set(IC_CUBEIO "ON")
-    set(IC_ICM20602 "ON")
-    set(IC_ICM20649 "ON")
-    set(IC_ICM20948 "ON")
-    set(IC_MS5611 "ON")
-    set(IC_SD "ON")
-else ()
-    message(FATAL_ERROR "Board is not selected!")
-endif ()
-
-set(CMAKE_TOOLCHAIN_FILE mcu/core/${MCU_FAMILY}/${MCU_MODEL}/${MCU_MODEL}_toolchain.cmake)
-
 project(bsp C ASM)
 
 message("\nBoard Support Package information:")
@@ -161,3 +146,6 @@ endif ()
 
 add_library(bsp-static STATIC ${BSP_SRC})
 target_include_directories(bsp-static PUBLIC ${BSP_INC})
+target_link_libraries(bsp-static 
+    os-static
+)

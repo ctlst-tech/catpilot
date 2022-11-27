@@ -11,12 +11,16 @@
 typedef struct {
     char name[MAX_NAME_LEN];
     sdio_t *sdio;
+    HAL_SD_CardInfoTypeDef info;
 } sdcard_t;
 
-sdcard_t *sdcard_init(char *name, sdio_t *sdio);
-int sdcard_read(sdcard_t *dev, uint8_t *pdata, uint32_t address, uint32_t num);
-int sdcard_write(sdcard_t *dev, uint8_t *pdata, uint32_t address, uint32_t num);
-int sdcard_get_info(sdcard_t *dev, HAL_SD_CardInfoTypeDef *info);
-int sdcard_get_status(sdcard_t *dev);
+sdcard_t *sdcard_start(char *name, sdio_t *sdio);
+int sdcard_init(void);
+int sdcard_read(uint8_t *pdata, uint32_t address, uint32_t num);
+int sdcard_write(uint8_t *pdata, uint32_t address, uint32_t num);
+int sdcard_get_status(void);
+uint32_t sdcard_get_sector_count(void);
+uint16_t sdcard_get_sector_size(void);
+uint32_t sdcard_get_block_size(void);
 
 #endif  // SD_H

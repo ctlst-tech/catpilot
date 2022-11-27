@@ -1,9 +1,5 @@
 #include "service.h"
 
-#include <string.h>
-
-#include "log.h"
-
 static service_t _service[SERVICE_MAX];
 static uint32_t num;
 

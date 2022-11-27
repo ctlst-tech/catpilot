@@ -2,22 +2,23 @@ cmake_minimum_required(VERSION 3.15)
 
 set(PROJ_NAME "catpilot")
 
-set(ASM_FILE ${PROJECT_BINARY_DIR}/${PROJ_NAME}.asm)
-# TODO: Use defines from bsp-static lib
-set(CMAKE_TOOLCHAIN_FILE bsp/mcu/core/stm32/h753/stm32h753_toolchain.cmake)
+if (BOARD STREQUAL "cube")
+    set(MCU_FAMILY stm32)
+    set(MCU_MODEL h753)
+    set(IC_CUBEIO "ON")
+    set(IC_ICM20602 "ON")
+    set(IC_ICM20649 "ON")
+    set(IC_ICM20948 "ON")
+    set(IC_MS5611 "ON")
+    set(IC_SD "ON")
+    set(OS "freertos")
+    set(FS "fatfs")
+else ()
+    message(FATAL_ERROR "Board is not selected!")
+endif ()
 
-# TODO: Replace to OS CMakeLists
-include_directories(BEFORE
-    osa/freertos_posix/include/FreeRTOS_POSIX
-    osa/freertos_posix/include
-    osa/freertos_posix/include
-    osa/freertos_posix/FreeRTOS-Plus-POSIX/include
-    osa/freertos_posix/FreeRTOS-Plus-POSIX/include/portable/
-    osa/freertos_posix/include/private
-    os/freertos/core/inc
-    os/freertos/
-    os/freertos/port/cortex_m7/
-)
+set(CMAKE_TOOLCHAIN_FILE bsp/mcu/core/${MCU_FAMILY}/${MCU_MODEL}/${MCU_MODEL}_toolchain.cmake)
+set(ASM_FILE ${PROJECT_BINARY_DIR}/${PROJ_NAME}.asm)
 
 set(MAP_CREATION "ON")
 set(ESWB_EQRB_NO_SOCKET "1")
@@ -26,74 +27,36 @@ set(FAKE_PTHREAD "1")
 
 project(${PROJ_NAME} C ASM)
 
-set(ARCH cortex_m7)
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/firmware)
-set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "" )
-set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "" )
 
-# TODO: Replace to OS CMakeLists
-set(DIR_OS os/freertos)
-set(DIR_FS os/fatfs)
-set(DIR_OSA osa)
-
-set(DIR_C_ATOM c-atom)
-set(DIR_ESWB c-atom/eswb)
-
-# TODO: Replace to lib CMakeLists
-set(DIR_MDL modules)
-set(DIR_MISC misc)
-
+# FIXME
 include_directories(
-    ${DIR_OS}
-    ${DIR_OS}/core/inc
-    ${DIR_OS}/port/${ARCH}
-
-    ${DIR_C_ATOM}/swsys
-
-    ${DIR_FS}
-
-    ${DIR_OSA}/fs_posix
-
-    ${DIR_MDL}
-    ${DIR_MDL}/common
-    ${DIR_MDL}/logger
-
-    ${DIR_MISC}/common
+    os/freertos/core/inc
+    os/freertos/cfg
+    os/freertos/port
+    os/freertos/osa/FreeRTOS-Plus-POSIX/include
+    os/freertos/osa/include
+    os/freertos/osa/include/FreeRTOS_POSIX
+    os/freertos/osa/include/private
+    c-atom/swsys
 )
 
+add_subdirectory(os)
 add_subdirectory(bsp)
 add_subdirectory(c-atom)
 include(fspecs.cmake)
 
-set(SRC_MAIN main.c)
-set(XML_INLINE xml_inline.c xml_inline_cfgs.c)
-
-file(GLOB_RECURSE SRC_MDL    ${DIR_MDL}/*.c)
-file(GLOB_RECURSE SRC_MISC   ${DIR_MISC}/*.c)
-file(GLOB_RECURSE SRC_FS     ${DIR_FS}/*.c)
-file(GLOB_RECURSE SRC_OS     ${DIR_OS}/core/*.c
-                             ${DIR_OS}/port/${ARCH}/*.c
-                             ${DIR_OS}/MemMang/heap_3.c
-                             ${DIR_OS}/MemMang/heap.c)
-file(GLOB_RECURSE SRC_OSA    ${DIR_OSA}/*.c)
-
-set(SOURCES
-    ${SRC_MAIN}
-    ${XML_INLINE}
-    ${SRC_MDL}
-    ${SRC_MISC}
-    ${SRC_FS}
-    ${SRC_OS}
-    ${SRC_OSA}
-    ${FSPECS_REG}
-)
-
 add_executable(${PROJECT_NAME}.elf
-    ${DIR_C_ATOM}/function/error.c # FIXME
-    ${DIR_C_ATOM}/function/conv.c # FIXME
+    main.c
+    xml_inline.c
+    xml_inline_cfgs.c
+    # FIXME
+    c-atom/function/error.c
+    c-atom/function/conv.c
 )
 
-target_link_libraries(${PROJECT_NAME}.elf PRIVATE
+target_link_libraries(${PROJECT_NAME}.elf PUBLIC
+    os-static
     bsp-static
     c-atom-static
     ${FSPECS_LIBS}
