@@ -332,8 +332,7 @@ int USART_ClockEnable(usart_cfg_t *cfg) {
         uint8_t *buf = calloc(cfg->buf_size, sizeof(uint8_t));
         uint16_t length;
         while(1) {
-            length = ring_buf_get_data_size(cfg->inst.write_buf);
-            length = ring_buf_read(cfg->inst.write_buf, buf, length);
+            length = ring_buf_read(cfg->inst.write_buf, buf, cfg->buf_size);
             if(USART_Transmit(cfg, buf, length)) {
                 cfg->inst.error = ERROR;
             } else {
