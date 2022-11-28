@@ -289,4 +289,5 @@ int board_fail(void) {
     while (1) {
         vTaskDelay(1000);
     }
+    return -1;
 }
