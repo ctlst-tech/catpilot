@@ -64,6 +64,13 @@ char  *dirname(char *str);
 int    rename(const char *oldpath, const char *newpath);
 char  *getcwd(char *pathname, int len);
 
+int std_stream_init(const char *stream, void *dev,
+                    int (*dev_open)(struct file *file, const char *path),
+                    ssize_t (*dev_write)(struct file *file, const char *buf,
+                                         size_t count),
+                    ssize_t (*dev_read)(struct file *file, char *buf,
+                                        size_t count));
+
 #include <printf.h>
 
 #ifdef __cplusplus

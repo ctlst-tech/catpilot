@@ -12,11 +12,6 @@ static FATFS fs;
 
 void board_start_thread(void *param);
 extern void *catpilot(void *param);
-static int board_std_stream_init(
-    const char *stream, void *dev,
-    int (*dev_open)(struct file *file, const char *path),
-    ssize_t (*dev_write)(struct file *file, const char *buf, size_t count),
-    ssize_t (*dev_read)(struct file *file, char *buf, size_t count));
 
 int board_start(void) {
     HAL_Init();
@@ -44,20 +39,19 @@ int board_cli_init(void) {
     if (usart_init(cli)) {
         return -1;
     }
-    if (board_std_stream_init("stdin", cli, usart_open, usart_write,
-                              usart_read)) {
+    if (std_stream_init("stdin", cli, usart_open, usart_write, usart_read)) {
         return -1;
     }
-    if (board_std_stream_init("stdout", cli, usart_open, usart_write,
-                              usart_read)) {
+    if (std_stream_init("stdout", cli, usart_open, usart_write, usart_read)) {
         return -1;
     }
-    if (board_std_stream_init("stderr", cli, usart_open, usart_write,
-                              usart_read)) {
+    if (std_stream_init("stderr", cli, usart_open, usart_write, usart_read)) {
         return -1;
     }
+
     printf("\n\nCatalyst Aerospace Technologies\n");
     printf("CatPilot, version 0.1\n\n");
+
     return 0;
 }
 
@@ -245,48 +239,6 @@ int board_periph_init(void) {
         return -1;
     }
     LOG_INFO("BOARD", "Initialization successful");
-    return 0;
-}
-
-static int board_std_stream_init(
-    const char *stream, void *dev,
-    int (*dev_open)(struct file *file, const char *path),
-    ssize_t (*dev_write)(struct file *file, const char *buf, size_t count),
-    ssize_t (*dev_read)(struct file *file, char *buf, size_t count)) {
-    int fd;
-    char stream_name[16];
-    char stream_path[16];
-    struct file_operations f_op = {0};
-
-    if (stream == NULL || dev == NULL || dev_open == NULL ||
-        dev_write == NULL || dev_read == NULL) {
-        return -1;
-    }
-
-    f_op.open = dev_open;
-    f_op.dev = dev;
-
-    if (!strcmp(stream, "stdin")) {
-        f_op.read = dev_read;
-    } else if (!strcmp(stream, "stdout") || !strcmp(stream, "stderr")) {
-        f_op.write = dev_write;
-    } else {
-        return -1;
-    }
-
-    strncpy(stream_name, stream, sizeof(stream_name));
-    snprintf(stream_path, sizeof(stream_path), "/dev/%s", stream_name);
-
-    if (node_mount(stream_path, &f_op) == NULL) {
-        return -1;
-    }
-
-    fd = open((const char *)stream_path, O_RDONLY);
-
-    if (fd < 0) {
-        return -1;
-    }
-
     return 0;
 }
 

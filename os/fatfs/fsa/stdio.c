@@ -94,9 +94,8 @@ int open(const char *pathname, int flags) {
     files[fd]->node = node;
     files[fd]->flags = flags;
 
-    char *relative_pathname =
-        strstr(pathname, node->name) + strlen(node->name);
-    while((*relative_pathname) == '/' && (*relative_pathname) != '\0') {
+    char *relative_pathname = strstr(pathname, node->name) + strlen(node->name);
+    while ((*relative_pathname) == '/' && (*relative_pathname) != '\0') {
         relative_pathname++;
     }
     rv = files[fd]->node->f_op.open(files[fd], relative_pathname);
@@ -380,5 +379,48 @@ int ferror(FILE *stream) {
     if (stream->flags & __SERR) {
         return 1;
     }
+    return 0;
+}
+
+int std_stream_init(const char *stream, void *dev,
+                    int (*dev_open)(struct file *file, const char *path),
+                    ssize_t (*dev_write)(struct file *file, const char *buf,
+                                         size_t count),
+                    ssize_t (*dev_read)(struct file *file, char *buf,
+                                        size_t count)) {
+    int fd;
+    char stream_name[16];
+    char stream_path[16];
+    struct file_operations f_op = {0};
+
+    if (stream == NULL || dev == NULL || dev_open == NULL ||
+        dev_write == NULL || dev_read == NULL) {
+        return -1;
+    }
+
+    f_op.open = dev_open;
+    f_op.dev = dev;
+
+    if (!strcmp(stream, "stdin")) {
+        f_op.read = dev_read;
+    } else if (!strcmp(stream, "stdout") || !strcmp(stream, "stderr")) {
+        f_op.write = dev_write;
+    } else {
+        return -1;
+    }
+
+    strncpy(stream_name, stream, sizeof(stream_name));
+    snprintf(stream_path, sizeof(stream_path), "/dev/%s", stream_name);
+
+    if (node_mount(stream_path, &f_op) == NULL) {
+        return -1;
+    }
+
+    fd = open((const char *)stream_path, O_RDONLY);
+
+    if (fd < 0) {
+        return -1;
+    }
+
     return 0;
 }
