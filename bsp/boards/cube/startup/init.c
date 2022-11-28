@@ -1,3 +1,5 @@
+#include <pthread.h>
+
 #include "board.h"
 #include "core.h"
 #include "fatfs.h"
@@ -6,6 +8,58 @@
 #include "periph.h"
 
 uint32_t rcc_system_clock = 400000000;
+static FATFS fs;
+
+void board_start_thread(void *param);
+extern void *catpilot(void *param);
+static int board_std_stream_init(
+    const char *stream, void *dev,
+    int (*dev_open)(struct file *file, const char *path),
+    ssize_t (*dev_write)(struct file *file, const char *buf, size_t count),
+    ssize_t (*dev_read)(struct file *file, char *buf, size_t count));
+
+int board_start(void) {
+    HAL_Init();
+    board_clock_init();
+    xTaskCreate(board_start_thread, "board_start_thread", 100, NULL, 3, NULL);
+    vTaskStartScheduler();
+    return 0;
+}
+
+void board_start_thread(void *param) {
+    pthread_t tid;
+    pthread_attr_t attr;
+    int arg = 0;
+
+    pthread_attr_init(&attr);
+    pthread_attr_setstacksize(&attr, 65535);
+    pthread_create(&tid, &attr, catpilot, &arg);
+    pthread_join(tid, NULL);
+    pthread_exit(NULL);
+}
+
+int board_cli_init(void) {
+    usart_t *cli = &usart3;
+
+    if (usart_init(cli)) {
+        return -1;
+    }
+    if (board_std_stream_init("stdin", cli, usart_open, usart_write,
+                              usart_read)) {
+        return -1;
+    }
+    if (board_std_stream_init("stdout", cli, usart_open, usart_write,
+                              usart_read)) {
+        return -1;
+    }
+    if (board_std_stream_init("stderr", cli, usart_open, usart_write,
+                              usart_read)) {
+        return -1;
+    }
+    printf("\n\nCatalyst Aerospace Technologies\n");
+    printf("CatPilot, version 0.1\n\n");
+    return 0;
+}
 
 void HAL_Delay(uint32_t Delay) {
     vTaskDelay(Delay);
@@ -190,7 +244,7 @@ int board_periph_init(void) {
         LOG_ERROR("SDIO", "Initialization failed");
         return -1;
     }
-
+    LOG_INFO("BOARD", "Initialization successful");
     return 0;
 }
 
@@ -224,21 +278,18 @@ static int board_std_stream_init(
     snprintf(stream_path, sizeof(stream_path), "/dev/%s", stream_name);
 
     if (node_mount(stream_path, &f_op) == NULL) {
-        LOG_ERROR(stream_name, "Initialization failed");
         return -1;
     }
 
     fd = open((const char *)stream_path, O_RDONLY);
 
     if (fd < 0) {
-        LOG_ERROR(stream_name, "Error descriptor");
         return -1;
     }
 
     return 0;
 }
 
-static FATFS fs;
 static int board_sd_card_init(void) {
     struct file_operations f_op = {.open = fatfs_open,
                                    .write = fatfs_write,
@@ -247,7 +298,7 @@ static int board_sd_card_init(void) {
                                    .fsync = fatfs_syncfs,
                                    .dev = &sdio};
     char name[] = "SDCARD";
-    if(sdcard_start(name, &sdio) == NULL) {
+    if (sdcard_start(name, &sdio) == NULL) {
         LOG_ERROR(name, "Initialization failed");
         return -1;
     }
@@ -263,31 +314,27 @@ static int board_sd_card_init(void) {
 }
 
 int board_fs_init(void) {
-    if (board_std_stream_init("stdin", &usart3, usart_open, usart_write,
-                              usart_read)) {
-        return -1;
-    }
-    if (board_std_stream_init("stdout", &usart3, usart_open, usart_write,
-                              usart_read)) {
-        return -1;
-    }
-    if (board_std_stream_init("stderr", &usart3, usart_open, usart_write,
-                              usart_read)) {
-        return -1;
-    }
     if (board_sd_card_init()) {
         return -1;
     }
-
     return 0;
 }
 
 int board_services_start(void) {
-    icm20649 = icm20649_start("ICM20649", 2, 10, &spi1, &gpio_spi1_cs1, &exti_spi1_drdy1);
+    icm20649 = icm20649_start("ICM20649", 2, 10, &spi1, &gpio_spi1_cs1,
+                              &exti_spi1_drdy1);
     icm20602 = icm20602_start("ICM20602", 2, 10, &spi4, &gpio_spi4_cs2, NULL);
-    icm20948 = icm20948_start("ICM20948", 2, 10, &spi4, &gpio_spi4_cs1, NULL, 0);
+    icm20948 =
+        icm20948_start("ICM20948", 2, 10, &spi4, &gpio_spi4_cs1, NULL, 0);
     ms5611_1 = ms5611_start("MS5611", 100, 8, &spi1, &gpio_spi1_cs2);
     // ms5611_2 = ms5611_start(&spi4, &gpio_spi4_cs3, 10, 8);
     cubeio = cubeio_start("CUBEIO", 2, 9, &usart6);
     return 0;
+}
+
+int board_fail(void) {
+    LOG_ERROR("BOARD", "Fatal error");
+    while (1) {
+        vTaskDelay(1000);
+    }
 }

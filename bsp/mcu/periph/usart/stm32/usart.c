@@ -203,7 +203,8 @@ int usart_transmit_receive(usart_t *cfg, uint8_t *tx_pdata, uint8_t *rx_pdata,
     return rv;
 }
 
-int usart_set_speed(usart_t *cfg, uint32_t speed) {
+int usart_set_speed(void *dev, uint32_t speed) {
+    usart_t *cfg = (usart_t *)dev;
     cfg->init.Init.BaudRate = speed;
     cfg->init.Instance->BRR = (uint16_t)(UART_DIV_SAMPLING16(
         HAL_RCC_GetPCLK1Freq(), cfg->init.Init.BaudRate,
@@ -211,7 +212,10 @@ int usart_set_speed(usart_t *cfg, uint32_t speed) {
     return 0;
 }
 
-uint32_t usart_get_speed(usart_t *cfg) { return (cfg->init.Init.BaudRate); }
+uint32_t usart_get_speed(void *dev) { 
+    usart_t *cfg = (usart_t *)dev;
+    return (cfg->init.Init.BaudRate); 
+}
 
 void usart_read_task(void *cfg_ptr) {
     usart_t *cfg = (usart_t *)cfg_ptr;

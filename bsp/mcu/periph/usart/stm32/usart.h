@@ -56,8 +56,8 @@ int usart_transmit(usart_t *cfg, uint8_t *pdata, uint16_t length);
 int usart_receive(usart_t *cfg, uint8_t *pdata, uint16_t length);
 int usart_transmit_receive(usart_t *cfg, uint8_t *tx_pdata, uint8_t *rx_pdata,
                            uint16_t tx_length, uint16_t rx_length);
-int usart_set_speed(usart_t *cfg, uint32_t speed);
-uint32_t usart_get_speed(usart_t *cfg);
+int usart_set_speed(void *dev, uint32_t speed);
+uint32_t usart_get_speed(void *dev);
 int usart_open(FILE *file, const char *path);
 ssize_t usart_write(FILE *file, const char *buf, size_t count);
 ssize_t usart_read(FILE *file, char *buf, size_t count);

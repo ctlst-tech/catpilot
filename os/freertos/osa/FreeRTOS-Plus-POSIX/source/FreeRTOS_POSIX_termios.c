@@ -1,6 +1,9 @@
 #include <stdio.h>
+#include <errno.h>
 #include <sys/termios.h>
-#include "usart.h"
+
+extern int usart_set_speed(void *dev, uint32_t speed);
+extern uint32_t usart_get_speed(void *dev);
 
 int tcgetattr(int __fd, struct termios *__termios_p) {
     if (__fd < 2) {
@@ -8,16 +11,14 @@ int tcgetattr(int __fd, struct termios *__termios_p) {
         return -1;
     }
 
-    memset(__termios_p, 0, sizeof(*__termios_p));
+    void *dev = files[__fd]->node->f_op.dev;
 
-    usart_t *cfg = files[__fd]->node->f_op.dev;
-
-    if (cfg == NULL) {
+    if (dev == NULL) {
         errno = ENOENT;
         return -1;
     }
 
-    speed_t speed = usart_get_speed(cfg);
+    speed_t speed = usart_get_speed(dev);
 
     __termios_p->c_ispeed = speed;
     __termios_p->c_ospeed = speed;
@@ -30,19 +31,20 @@ int tcsetattr(int __fd, int __optional_actions,
     int rv;
     (void)__optional_actions;
 
-    if (__fd < 0) {
+    if (__fd < 2) {
         errno = EBADF;
         return -1;
     }
-    usart_t *cfg = files[__fd]->node->f_op.dev;
 
-    if (cfg == NULL) {
+    void *dev = files[__fd]->node->f_op.dev;
+
+    if (dev == NULL) {
         errno = ENOENT;
         return -1;
     }
 
     speed_t speed = __termios_p->c_ispeed;
-    rv = usart_set_speed(cfg, speed);
+    rv = usart_set_speed(dev, speed);
     if (rv < 0) {
         return -1;
     }

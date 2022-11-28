@@ -42,6 +42,7 @@ if (OS STREQUAL "freertos")
         freertos/osa/FreeRTOS-Plus-POSIX/source/FreeRTOS_POSIX_pthread.c
         freertos/osa/FreeRTOS-Plus-POSIX/source/FreeRTOS_POSIX_sched.c
         freertos/osa/FreeRTOS-Plus-POSIX/source/FreeRTOS_POSIX_semaphore.c
+        freertos/osa/FreeRTOS-Plus-POSIX/source/FreeRTOS_POSIX_termios.c
         freertos/osa/FreeRTOS-Plus-POSIX/source/FreeRTOS_POSIX_timer.c
         freertos/osa/FreeRTOS-Plus-POSIX/source/FreeRTOS_POSIX_unistd.c
         freertos/osa/FreeRTOS-Plus-POSIX/source/FreeRTOS_POSIX_utils.c

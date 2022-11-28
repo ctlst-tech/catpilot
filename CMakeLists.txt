@@ -37,6 +37,7 @@ include_directories(
     os/freertos/osa/FreeRTOS-Plus-POSIX/include
     os/freertos/osa/include
     os/freertos/osa/include/FreeRTOS_POSIX
+    os/freertos/osa/include/FreeRTOS_POSIX/sys
     os/freertos/osa/include/private
     c-atom/swsys
 )
@@ -50,9 +51,17 @@ add_executable(${PROJECT_NAME}.elf
     main.c
     xml_inline.c
     xml_inline_cfgs.c
+    ${FSPECS_REG}
     # FIXME
     c-atom/function/error.c
     c-atom/function/conv.c
+)
+
+target_link_libraries(c-atom-static PUBLIC
+    os-static
+)
+target_link_libraries(eswb-static PUBLIC
+    os-static
 )
 
 target_link_libraries(${PROJECT_NAME}.elf PUBLIC

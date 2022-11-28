@@ -21,15 +21,13 @@ typedef struct {
 const char *xml_inline_find_file(const char *path, size_t *size);
 
 static int xml_inline_open_callback(FILE *file, const char *path) {
-    xml_inline_ocb_t *ocb = (xml_inline_ocb_t *)file->private_data;
     size_t filesize;
 
-    if (ocb == NULL) {
-        ocb = calloc(1, sizeof(*ocb));
+    if (file->private_data == NULL) {
+        file->private_data = calloc(1, sizeof(xml_inline_ocb_t));
     }
 
-    // FIXME: quick fixed now, fix it appropriately
-    path += strlen("/cfg/");
+    xml_inline_ocb_t *ocb = (xml_inline_ocb_t *)file->private_data;
 
     const char *file_string = xml_inline_find_file(path, &filesize);
 
@@ -84,6 +82,6 @@ int xml_inline_mount(const char *mount_to) {
                                    .read = xml_inline_read_callback,
                                    .close = xml_inline_close_callback,
                                    .dev = NULL};
-    struct node *node = node_mount("mount_to", &f_op);
+    struct node *node = node_mount(mount_to, &f_op);
     return 0;
 }
