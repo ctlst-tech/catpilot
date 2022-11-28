@@ -155,7 +155,8 @@ Function(
     inputs=[
         Input(
             name='arm',
-            title='CUBE IO PWM output arming signal',
+            title='Arming signal',
+            description='CUBE IO PWM output arming signal',
             value_type='core.type.bool'
         ),
         Input(
