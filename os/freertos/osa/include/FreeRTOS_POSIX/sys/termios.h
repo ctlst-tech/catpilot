@@ -87,3 +87,4 @@ int tcgetattr(int __fd, struct termios *__termios_p);
 int tcsetattr(int __fd, int __optional_actions,
                 const struct termios *__termios_p);
 int tcflush(int __fd, int __queue_selector);
+int cfmakeraw(struct termios *__termios_p);

@@ -1,10 +1,11 @@
-from ctlst import *
+from fspeclib import *
 
 Function(
     name='cube.io.rc',
     title=LocalizedString(
         en='io'
     ),
+    has_pre_exec_init_call=True,
     parameters=[],
     inputs=[],
     outputs=[

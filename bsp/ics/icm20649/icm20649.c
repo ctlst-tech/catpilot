@@ -20,6 +20,7 @@ static void icm20649_fifo_reset(icm20649_t *dev);
 static void icm20649_temp_process(icm20649_t *dev);
 static void icm20649_gyro_process(icm20649_t *dev);
 static void icm20649_accel_process(icm20649_t *dev);
+static void icm20649_update_meas(icm20649_t *dev);
 
 void icm20649_drdy_handler(void *area);
 
@@ -53,6 +54,11 @@ icm20649_t *icm20649_start(char *name, uint32_t period, uint32_t priority,
     }
 
     dev->sync.measrdy_sem = xSemaphoreCreateBinary();
+    if (dev->sync.measrdy_sem == NULL) {
+        return NULL;
+    }
+
+    dev->sync.mutex = xSemaphoreCreateMutex();
     if (dev->sync.measrdy_sem == NULL) {
         return NULL;
     }
@@ -124,6 +130,7 @@ void icm20649_fsm(void *area) {
             icm20649_temp_process(dev);
             icm20649_accel_process(dev);
             icm20649_gyro_process(dev);
+            icm20649_update_meas(dev);
             if (dev->interface.drdy != NULL) {
                 irq_enable(dev->interface.drdy->p.id);
             }
@@ -155,7 +162,9 @@ void icm20649_drdy_handler(void *area) {
 }
 
 void icm20649_get_meas_non_block(icm20649_t *dev, void *ptr) {
-    memcpy(ptr, (void *)&dev, sizeof(icm20649_meas_t));
+    xSemaphoreTake(dev->sync.mutex, portMAX_DELAY);
+    memcpy(ptr, (void *)&dev->meas, sizeof(icm20649_meas_t));
+    xSemaphoreGive(dev->sync.mutex);
 }
 
 void icm20649_get_meas_block(icm20649_t *dev, void *ptr) {
@@ -425,4 +434,15 @@ static void icm20649_temp_process(icm20649_t *dev) {
     int16_t temp_raw = msb_lsb_16(data[1], data[2]);
     dev->meas_buffer.temp =
         (temp_raw - TEMP_SENS * TEMP_OFFSET) / TEMP_SENS + TEMP_OFFSET;
+}
+
+static void icm20649_update_meas(icm20649_t *dev) {
+    xSemaphoreTake(dev->sync.mutex, portMAX_DELAY);
+    dev->meas.accel_x = dev->meas_buffer.meas[0].accel_x;
+    dev->meas.accel_y = dev->meas_buffer.meas[0].accel_y;
+    dev->meas.accel_z = dev->meas_buffer.meas[0].accel_z;
+    dev->meas.gyro_x = dev->meas_buffer.meas[0].gyro_x;
+    dev->meas.gyro_y = dev->meas_buffer.meas[0].gyro_y;
+    dev->meas.gyro_z = dev->meas_buffer.meas[0].gyro_z;
+    xSemaphoreGive(dev->sync.mutex);
 }

@@ -1,4 +1,2 @@
 CMakeLists.txt
-fspecs.h
-registry.c
-cube_registry.c
+*registry.c

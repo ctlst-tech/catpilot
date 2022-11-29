@@ -25,26 +25,52 @@ set(ESWB_EQRB_NO_SOCKET "1")
 set(CATOM_NO_SOCKET "1")
 set(FAKE_PTHREAD "1")
 
+execute_process (
+        COMMAND bash -c "git show --quiet | grep 'commit ' | sed 's/commit //' | awk '{print substr(toupper($0),1,8)}' | tr '\n' ' '"
+        OUTPUT_VARIABLE GIT_HASH
+)
+execute_process (
+        COMMAND bash -c "if [ -z \"$(git status -s)\" ]; then echo CLEAN; else echo DIRTY; fi | tr '\n' ' '"
+        OUTPUT_VARIABLE GIT_STATE
+)
+
 project(${PROJ_NAME} C ASM)
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/firmware)
 
 # FIXME
 include_directories(
-    os/freertos/core/inc
-    os/freertos/cfg
-    os/freertos/port
-    os/freertos/osa/FreeRTOS-Plus-POSIX/include
-    os/freertos/osa/include
-    os/freertos/osa/include/FreeRTOS_POSIX
-    os/freertos/osa/include/FreeRTOS_POSIX/sys
-    os/freertos/osa/include/private
+    os/${OS}/core/inc
+    os/${OS}/cfg
+    os/${OS}/port
+    os/${OS}/osa/FreeRTOS-Plus-POSIX/include
+    os/${OS}/osa/include
+    os/${OS}/osa/include/FreeRTOS_POSIX
+    os/${OS}/osa/include/FreeRTOS_POSIX/sys
+    os/${OS}/osa/include/private
     c-atom/swsys
 )
+
+message("\n${PROJECT_NAME}:")
+message("   Board: ${BOARD}")
+message("   MCU family: ${MCU_FAMILY}")
+message("   MCU model: ${MCU_MODEL}")
+message("   Toolchain: ${CMAKE_TOOLCHAIN_FILE}")
+message("   C Compiler: ${CMAKE_C_COMPILER}")
+message("   C++ Compiler: ${CMAKE_CXX_COMPILER}")
+message("   Compiler flags: ${COMMON_FLAGS}")
+message("   Linker flags: ${LINKER_FLAGS}")
+message("\n")
 
 add_subdirectory(os)
 add_subdirectory(bsp)
 add_subdirectory(c-atom)
+
+include_directories(
+    ${OS_EXT_INC}
+    ${BSP_EXT_INC}
+)
+
 include(fspecs.cmake)
 
 add_executable(${PROJECT_NAME}.elf
@@ -57,12 +83,8 @@ add_executable(${PROJECT_NAME}.elf
     c-atom/function/conv.c
 )
 
-target_link_libraries(c-atom-static PUBLIC
-    os-static
-)
-target_link_libraries(eswb-static PUBLIC
-    os-static
-)
+target_link_libraries(c-atom-static PUBLIC os-static)
+target_link_libraries(eswb-static PUBLIC os-static)
 
 target_link_libraries(${PROJECT_NAME}.elf PUBLIC
     os-static
@@ -71,6 +93,9 @@ target_link_libraries(${PROJECT_NAME}.elf PUBLIC
     ${FSPECS_LIBS}
     -lc -lm -lnosys
 )
+
+target_compile_definitions(${PROJECT_NAME}.elf PRIVATE GIT_HASH=\"${GIT_HASH}\")
+target_compile_definitions(${PROJECT_NAME}.elf PRIVATE GIT_STATE=\"${GIT_STATE}\")
 
 set(ELF_FILE ${EXECUTABLE_OUTPUT_PATH}/${PROJECT_NAME}.elf)
 set(HEX_FILE ${EXECUTABLE_OUTPUT_PATH}/${PROJECT_NAME}.hex)

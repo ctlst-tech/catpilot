@@ -14,8 +14,8 @@ clean_build:
 	@echo Building
 	rm -r -f build
 	mkdir build
-	cd build && cmake .. -DTYPE=Cube -DCMAKE_BUILD_TYPE=Release && make ctlst-fmuv5.elf -j15
+	cd build && cmake .. -DTYPE=Cube -DCMAKE_BUILD_TYPE=Release && make catpilot.elf -j15
 
 flash:
 	@echo Firmware downloading
-	openocd -f interface/stlink.cfg -f ./bsp/cube/mcu/stm32h753/core/stm32h7.cfg -c "init" -c "program ./build/firmware/ctlst-fmuv5.elf verify reset exit"
+	openocd -f interface/stlink.cfg -f ./bsp/cube/mcu/stm32h753/core/stm32h7.cfg -c "init" -c "program ./build/firmware/catpilot.elf verify reset exit"

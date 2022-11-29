@@ -1,4 +1,4 @@
-from ctlst import *
+from fspeclib import *
 
 Function(
     name='cube.misc.cli_logger',

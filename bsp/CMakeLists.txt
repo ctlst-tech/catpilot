@@ -2,17 +2,6 @@ cmake_minimum_required(VERSION 3.6)
 
 project(bsp C ASM)
 
-message("\nBoard Support Package information:")
-message("   Board: ${BOARD}")
-message("   MCU family: ${MCU_FAMILY}")
-message("   MCU model: ${MCU_MODEL}")
-message("   Toolchain: ${CMAKE_TOOLCHAIN_FILE}")
-message("   C Compiler: ${CMAKE_C_COMPILER}")
-message("   C++ Compiler: ${CMAKE_CXX_COMPILER}")
-message("   Compiler flags: ${COMMON_FLAGS}")
-message("   Linker flags: ${LINKER_FLAGS}")
-message("\n")
-
 list(APPEND BSP_INC
     mcu/core/${MCU_FAMILY}/common
     mcu/core/${MCU_FAMILY}/${MCU_MODEL}
@@ -146,6 +135,7 @@ endif ()
 
 add_library(bsp-static STATIC ${BSP_SRC})
 target_include_directories(bsp-static PUBLIC ${BSP_INC})
-target_link_libraries(bsp-static 
-    os-static
-)
+target_link_libraries(bsp-static os-static)
+
+list(TRANSFORM BSP_INC PREPEND "bsp/")
+set(BSP_EXT_INC ${BSP_INC} PARENT_SCOPE)
