@@ -235,8 +235,7 @@ void usart_write_task(void *cfg_ptr) {
     uint8_t *buf = calloc(cfg->buf_size, sizeof(uint8_t));
     uint16_t length;
     while (1) {
-        length = ring_buf_get_data_size(cfg->p.write_buf);
-        length = ring_buf_read(cfg->p.write_buf, buf, length);
+        length = ring_buf_read(cfg->p.write_buf, buf, cfg->buf_size);
         if (usart_transmit(cfg, buf, length)) {
             cfg->p.error = ERROR;
         } else {

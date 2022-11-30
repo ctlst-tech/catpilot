@@ -49,9 +49,6 @@ int board_cli_init(void) {
         return -1;
     }
 
-    printf("\n\nCatalyst Aerospace Technologies\n");
-    printf("CatPilot, version 0.1\n\n");
-
     return 0;
 }
 

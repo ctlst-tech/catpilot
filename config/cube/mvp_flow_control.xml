@@ -10,23 +10,23 @@
         </inputs>
 
         <outputs>
-            <o alias="ax" annotation="ax"/>
-            <o alias="ay" annotation="ay"/>
-            <o alias="az" annotation="az"/>
-            <o alias="wx" annotation="wx"/>
-            <o alias="wy" annotation="wy"/>
-            <o alias="wz" annotation="wz"/>
+            <o alias="ax" annotation="ax" type="core.type.f64"/>
+            <o alias="ay" annotation="ay" type="core.type.f64"/>
+            <o alias="az" annotation="az" type="core.type.f64"/>
+            <o alias="wx" annotation="wx" type="core.type.f64"/>
+            <o alias="wy" annotation="wy" type="core.type.f64"/>
+            <o alias="wz" annotation="wz" type="core.type.f64"/>
 
-            <o alias="roll"/>
-            <o alias="pitch"/>
-            <o alias="yaw"/>
+            <o alias="roll" type="core.type.f64"/>
+            <o alias="pitch" type="core.type.f64"/>
+            <o alias="yaw" type="core.type.f64"/>
 
-            <o alias="manc_lon"/>
-            <o alias="manc_thr"/>
-            <o alias="manc_rud"/>
-            <o alias="manc_pids_tune"/>
+            <o alias="manc_lon" type="core.type.f64"/>
+            <o alias="manc_thr" type="core.type.f64"/>
+            <o alias="manc_rud" type="core.type.f64"/>
+            <o alias="manc_pids_tune" type="core.type.f64"/>
 
-            <o alias="arm" annotation="arm"/>
+            <o alias="arm" annotation="arm" type="core.type.bool"/>
         </outputs>
 
         <params>
@@ -154,13 +154,12 @@
             <in alias="input">rc/rc_channel2</in>
         </f>
 
-<!--        <f name="pwm_meander" by_spec="core.source.meander">-->
-<!--            <param alias="semi_period">20</param>-->
-<!--        </f>-->
+        <f name="pwm_meander" by_spec="core.source.meander">
+            <param alias="semi_period">20</param>
+        </f>
 
         <f name="cont_manc_signals" by_spec="core.math.vector3">
             <in alias="x">rc/rc_channel1</in>
-<!--            <in alias="x">pwm_meander/output</in>-->
             <in alias="y">rc_channel2_inv/output</in>
             <in alias="z">rc/rc_channel4</in>
         </f>
@@ -384,19 +383,20 @@
         </f>
 
 
-<!--        <f name="pwm_meadner_pin" by_spec="cube.io.gpio">-->
-<!--            <param alias="channel">5</param>-->
-<!--            <in alias="input_float">pwm_meander/output</in>-->
-<!--        </f>-->
+        <f name="pwm_meadner_pin" by_spec="cube.io.gpio">
+            <param alias="channel">5</param>
+            <in alias="input_float">pwm_meander/output</in>
+        </f>
 
         <f name="io" by_spec="cube.io.pwm">
-<!--            <in alias="ch1">pwm_meander/output</in>-->
 
             <in alias="ch1">mixer/m1</in>
             <in alias="ch2">mixer/m2</in>
             <in alias="ch3">mixer/m3</in>
             <in alias="ch4">mixer/m4</in>
             <in alias="arm">arm_signal/output</in>
+
+            <in alias="ch8">pwm_meander/output</in>
 
             <param alias="ch1_min">1000</param>
             <param alias="ch1_max">2000</param>

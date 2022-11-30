@@ -7,46 +7,46 @@
         </annotation>
 
         <inputs>
-            <i alias="wx" annotation="wx"/>
-            <i alias="wy" annotation="wy"/>
-            <i alias="wz" annotation="wz"/>
-            <i alias="ax" annotation="ax"/>
-            <i alias="ay" annotation="ay"/>
-            <i alias="az" annotation="az"/>
+            <i alias="wx" annotation="wx" type="core.type.f64"/>
+            <i alias="wy" annotation="wy" type="core.type.f64"/>
+            <i alias="wz" annotation="wz" type="core.type.f64"/>
+            <i alias="ax" annotation="ax" type="core.type.f64"/>
+            <i alias="ay" annotation="ay" type="core.type.f64"/>
+            <i alias="az" annotation="az" type="core.type.f64"/>
 
-            <i alias="roll" annotation="roll"/>
-            <i alias="pitch" annotation="pitch"/>
-            <i alias="yaw" annotation="yaw"/>
+            <i alias="roll" annotation="roll" type="core.type.f64"/>
+            <i alias="pitch" annotation="pitch" type="core.type.f64"/>
+            <i alias="yaw" annotation="yaw" type="core.type.f64"/>
 
-            <i alias="manc_lat"/>
-            <i alias="manc_lon"/>
-            <i alias="manc_thr"/>
-            <i alias="manc_rud"/>
-            <i alias="manc_pids_tune"/>
+            <i alias="manc_lat" type="core.type.f64"/>
+            <i alias="manc_lon" type="core.type.f64"/>
+            <i alias="manc_thr" type="core.type.f64"/>
+            <i alias="manc_rud" type="core.type.f64"/>
+            <i alias="manc_pids_tune" type="core.type.f64"/>
 
-            <i alias="manc_arm"/>
+            <i alias="manc_arm" type="core.type.f64"/>
         </inputs>
 
         <outputs>
-            <o alias="wx" annotation="wx"/>
-            <o alias="wy" annotation="wy"/>
-            <o alias="wz" annotation="wz"/>
-            <o alias="ax" annotation="ax"/>
-            <o alias="ay" annotation="ay"/>
-            <o alias="az" annotation="az"/>
+            <o alias="wx" annotation="wx" type="core.type.f64"/>
+            <o alias="wy" annotation="wy" type="core.type.f64"/>
+            <o alias="wz" annotation="wz" type="core.type.f64"/>
+            <o alias="ax" annotation="ax" type="core.type.f64"/>
+            <o alias="ay" annotation="ay" type="core.type.f64"/>
+            <o alias="az" annotation="az" type="core.type.f64"/>
 
-            <o alias="roll" annotation="roll"/>
-            <o alias="pitch" annotation="pitch"/>
-            <o alias="yaw" annotation="yaw"/>
+            <o alias="roll" annotation="roll" type="core.type.f64"/>
+            <o alias="pitch" annotation="pitch" type="core.type.f64"/>
+            <o alias="yaw" annotation="yaw" type="core.type.f64"/>
 
-            <o alias="manc_lat"/>
-            <o alias="manc_lon"/>
-            <o alias="manc_thr"/>
-            <o alias="manc_rud"/>
-            <o alias="manc_pids_tune"/>
-            <o alias="manc_arm"/>
+            <o alias="manc_lat" type="core.type.f64"/>
+            <o alias="manc_lon" type="core.type.f64"/>
+            <o alias="manc_thr" type="core.type.f64"/>
+            <o alias="manc_rud" type="core.type.f64"/>
+            <o alias="manc_pids_tune" type="core.type.f64"/>
+            <o alias="manc_arm" type="core.type.f64"/>
 
-            <o alias="sine" annotation="sine"/>
+            <o alias="sine" annotation="sine" type="core.type.f64"/>
         </outputs>
 
         <params>
@@ -60,77 +60,77 @@
 
         <f name="ax_gain" by_spec="core.math.gain">
             <param alias="gain">1.0</param>
-            <in alias="input">ax</in>
+            <in alias="input">inputs/ax</in>
         </f>
 
         <f name="ay_gain" by_spec="core.math.gain">
             <param alias="gain">1.0</param>
-            <in alias="input">ay</in>
+            <in alias="input">inputs/ay</in>
         </f>
 
         <f name="az_gain" by_spec="core.math.gain">
             <param alias="gain">1.0</param>
-            <in alias="input">az</in>
+            <in alias="input">inputs/az</in>
         </f>
 
         <f name="wx_gain" by_spec="core.math.gain">
             <param alias="gain">57.3</param>
-            <in alias="input">wx</in>
+            <in alias="input">inputs/wx</in>
         </f>
 
         <f name="wy_gain" by_spec="core.math.gain">
             <param alias="gain">57.3</param>
-            <in alias="input">wy</in>
+            <in alias="input">inputs/wy</in>
         </f>
 
         <f name="wz_gain" by_spec="core.math.gain">
             <param alias="gain">57.3</param>
-            <in alias="input">wz</in>
+            <in alias="input">inputs/wz</in>
         </f>
 
         <f name="manc_lat_gain" by_spec="core.math.gain">
             <param alias="gain">1.0</param>
-            <in alias="input">manc_lat</in>
+            <in alias="input">inputs/manc_lat</in>
         </f>
 
         <f name="manc_lon_gain" by_spec="core.math.gain">
             <param alias="gain">1.0</param>
-            <in alias="input">manc_lon</in>
+            <in alias="input">inputs/manc_lon</in>
         </f>
 
         <f name="manc_thr_gain" by_spec="core.math.gain">
             <param alias="gain">1.0</param>
-            <in alias="input">manc_thr</in>
+            <in alias="input">inputs/manc_thr</in>
         </f>
 
         <f name="manc_rud_gain" by_spec="core.math.gain">
             <param alias="gain">1.0</param>
-            <in alias="input">manc_rud</in>
+            <in alias="input">inputs/manc_rud</in>
         </f>
 
         <f name="manc_pids_tune_gain" by_spec="core.math.gain">
             <param alias="gain">1.0</param>
-            <in alias="input">manc_pids_tune</in>
+            <in alias="input">inputs/manc_pids_tune</in>
         </f>
 
         <f name="manc_arm_gain" by_spec="core.math.gain">
             <param alias="gain">1.0</param>
-            <in alias="input">manc_arm</in>
+            <in alias="input">inputs/manc_arm</in>
         </f>
 
         <f name="roll_gain" by_spec="core.math.gain">
             <param alias="gain">57.3</param>
-            <in alias="input">roll</in>
+            <in alias="input">inputs/roll</in>
         </f>
 
         <f name="pitch_gain" by_spec="core.math.gain">
             <param alias="gain">57.3</param>
-            <in alias="input">pitch</in>
+            <in alias="input">inputs/pitch</in>
         </f>
 
         <f name="yaw_gain" by_spec="core.math.gain">
             <param alias="gain">57.3</param>
-            <in alias="input">yaw</in>
+            <in alias="input">inputs/yaw</in>
         </f>
 
 <!--        <f name="fmu_pwm" by_spec="cube.io.gpio">-->
