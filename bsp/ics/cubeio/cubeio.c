@@ -110,8 +110,8 @@ static void cubeio_fsm(void *area) {
                     dev->pwm_out.pwm[i] = cubeio_scale_output(
                         dev->pwm[i], &dev->pwm_range_cfg[i]);
                 }
-                cubeio_write_regs(dev, PAGE_DIRECT_PWM, 0, dev->pwm_out.num_channels,
-                                  dev->pwm_out.pwm);
+                cubeio_write_regs(dev, PAGE_DIRECT_PWM, 0,
+                                  dev->pwm_out.num_channels, dev->pwm_out.pwm);
                 // DEBUG
                 // gpio_reset(&gpio_fmu_pwm[1]);
             }
@@ -120,15 +120,18 @@ static void cubeio_fsm(void *area) {
                     dev->pwm_out.failsafe_pwm[i] = cubeio_scale_output(
                         dev->failsafe_pwm, &dev->pwm_range_cfg[i]);
                 }
-                cubeio_write_regs(dev, PAGE_FAILSAFE_PWM, 0, CUBEIO_MAX_CHANNELS,
+                cubeio_write_regs(dev, PAGE_FAILSAFE_PWM, 0,
+                                  CUBEIO_MAX_CHANNELS,
                                   dev->pwm_out.failsafe_pwm);
             }
             if (cubeio_pop_event(dev, CUBEIO_FORCE_SAFETY_OFF)) {
-                cubeio_write_reg(dev, PAGE_SETUP, PAGE_REG_SETUP_FORCE_SAFETY_OFF,
+                cubeio_write_reg(dev, PAGE_SETUP,
+                                 PAGE_REG_SETUP_FORCE_SAFETY_OFF,
                                  FORCE_SAFETY_MAGIC);
             }
             if (cubeio_pop_event(dev, CUBEIO_FORCE_SAFETY_ON)) {
-                cubeio_write_reg(dev, PAGE_SETUP, PAGE_REG_SETUP_FORCE_SAFETY_ON,
+                cubeio_write_reg(dev, PAGE_SETUP,
+                                 PAGE_REG_SETUP_FORCE_SAFETY_ON,
                                  FORCE_SAFETY_MAGIC);
             }
             if (cubeio_pop_event(dev, CUBEIO_ENABLE_SBUS_OUT)) {
@@ -144,7 +147,8 @@ static void cubeio_fsm(void *area) {
                                  dev->rate.chmask);
             }
             if (cubeio_pop_event(dev, CUBEIO_SET_IMU_HEATER_DUTY)) {
-                cubeio_write_reg(dev, PAGE_SETUP, PAGE_REG_SETUP_HEATER_DUTY_CYCLE,
+                cubeio_write_reg(dev, PAGE_SETUP,
+                                 PAGE_REG_SETUP_HEATER_DUTY_CYCLE,
                                  dev->pwm_out.heater_duty);
             }
             if (cubeio_pop_event(dev, CUBEIO_SET_DEFAULT_RATE)) {
@@ -484,11 +488,15 @@ uint16_t cubeio_scale_output(double out, cubeio_range_cfg_t *cfg) {
 }
 
 double cubeio_scale_input(uint16_t in, cubeio_range_cfg_t *cfg) {
-    if ((cfg->max - cfg->min) == 0) return 0;
-    if (cfg->type == CUBEIO_CHANNEL_UNIPOLAR) {
-        return ((in - cfg->min) / (double)(cfg->max - cfg->min));
+    double rv;
+    if (in < cfg->min || in > cfg->max) {
+        rv = 0;
+    } else if (cfg->type == CUBEIO_CHANNEL_UNIPOLAR) {
+        rv = (in - cfg->min) / (double)(cfg->max - cfg->min);
+        rv = SAT(rv, 1, 0);
     } else if (cfg->type == CUBEIO_CHANNEL_BIPOLAR) {
-        return (2 * (in - cfg->min) / (double)(cfg->max - cfg->min) - 1.0);
+        rv = (2 * (in - cfg->min) / (double)(cfg->max - cfg->min) - 1.0);
+        rv = SAT(rv, 1, -1);
     }
-    return 0;
+    return rv;
 }
