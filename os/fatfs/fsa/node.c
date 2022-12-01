@@ -175,6 +175,7 @@ static struct node *node_add_child(struct node *parent_node,
     struct node *n;
     if (parent_node->child == NULL) {
         parent_node->child = child_node;
+        child_node->parent = parent_node;
     } else {
         node_add_sibling(parent_node->child, child_node);
     }

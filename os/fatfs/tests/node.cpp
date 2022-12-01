@@ -1,6 +1,7 @@
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 
-#include "node.h"
+#include "../fsa/node.h"
+#include <string.h>
 
 extern "C" struct node *node_get_root();
 

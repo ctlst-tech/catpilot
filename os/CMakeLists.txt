@@ -6,6 +6,7 @@ if (OS STREQUAL "freertos")
     list(APPEND OS_INC
         freertos
         freertos/cfg
+        freertos/cli
         freertos/core/inc
         freertos/inc
         freertos/misc
@@ -22,6 +23,7 @@ if (OS STREQUAL "freertos")
     )
 
     list(APPEND OS_SRC
+        freertos/cli/cli.c
         freertos/core/src/croutine.c
         freertos/core/src/hooks.c
         freertos/core/src/list.c
