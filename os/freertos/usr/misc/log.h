@@ -22,6 +22,8 @@ void log_enable(bool enable);
     log_module(type, module, s, ##__VA_ARGS__);\
 }
 
+int log_print(int argc, char **argv);
+
 #define LOG_INFO(MODULE, S, ...)    _LOG(LOG_INFO_TYPE, MODULE, S, ##__VA_ARGS__)
 #define LOG_WARN(MODULE, S, ...)    _LOG(LOG_WARN_TYPE, MODULE, S, ##__VA_ARGS__)
 #define LOG_ERROR(MODULE, S, ...)   _LOG(LOG_ERROR_TYPE, MODULE, S, ##__VA_ARGS__)

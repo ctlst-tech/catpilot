@@ -9,7 +9,6 @@ if (OS STREQUAL "freertos")
         freertos/cli
         freertos/core/inc
         freertos/inc
-        freertos/misc
         freertos/osa
         freertos/osa/include
         freertos/osa/include/FreeRTOS_POSIX
@@ -19,11 +18,12 @@ if (OS STREQUAL "freertos")
         freertos/osa/include/private
         freertos/osa/FreeRTOS-Plus-POSIX/include
         freertos/osa/FreeRTOS-Plus-POSIX/include/portable
-        freertos/port
+        freertos/usr/cli
+        freertos/usr/misc
+        freertos/usr/service
     )
 
     list(APPEND OS_SRC
-        freertos/cli/cli.c
         freertos/core/src/croutine.c
         freertos/core/src/hooks.c
         freertos/core/src/list.c
@@ -32,10 +32,6 @@ if (OS STREQUAL "freertos")
         freertos/core/src/timers.c
         freertos/memmang/heap_3.c
         freertos/memmang/heap.c
-        freertos/misc/bit.c
-        freertos/misc/log.c
-        freertos/misc/ring_buf.c
-        freertos/misc/service.c
         freertos/osa/FreeRTOS-Plus-POSIX/source/FreeRTOS_POSIX_clock.c
         freertos/osa/FreeRTOS-Plus-POSIX/source/FreeRTOS_POSIX_mqueue.c
         freertos/osa/FreeRTOS-Plus-POSIX/source/FreeRTOS_POSIX_pthread_barrier.c
@@ -49,6 +45,13 @@ if (OS STREQUAL "freertos")
         freertos/osa/FreeRTOS-Plus-POSIX/source/FreeRTOS_POSIX_unistd.c
         freertos/osa/FreeRTOS-Plus-POSIX/source/FreeRTOS_POSIX_utils.c
         freertos/port/port.c
+        freertos/usr/misc/bit.c
+        freertos/usr/misc/log.c
+        freertos/usr/misc/ring_buf.c
+        freertos/usr/cli/cmd.c
+        freertos/usr/cli/node.c
+        freertos/usr/cli/service.c
+        freertos/usr/service/service.c
     )
 
 else ()

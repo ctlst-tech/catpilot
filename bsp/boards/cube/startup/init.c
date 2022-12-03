@@ -6,6 +6,13 @@
 #include "hal.h"
 #include "log.h"
 #include "periph.h"
+#include "cli.h"
+
+int board_clock_init(void);
+int board_cli_init(void *dev, char *hash, char *state);
+int board_periph_init(void);
+int board_fs_init(void);
+int board_services_start(void);
 
 uint32_t rcc_system_clock = 400000000;
 static FATFS fs;
@@ -21,6 +28,22 @@ int board_start(void) {
     return 0;
 }
 
+int board_init(char *hash, char *state) {
+    if (board_cli_init(&usart3, hash, state)) {
+        return -1;
+    }
+    if (board_fs_init()) {
+        return -1;
+    }
+    if (board_periph_init()) {
+        return -1;
+    }
+    if (board_services_start()) {
+        return -1;
+    }
+    return 0;
+}
+
 void board_start_thread(void *param) {
     pthread_t tid;
     pthread_attr_t attr;
@@ -33,8 +56,8 @@ void board_start_thread(void *param) {
     pthread_exit(NULL);
 }
 
-int board_cli_init(void) {
-    usart_t *cli = &usart3;
+int board_cli_init(void *dev, char *hash, char *state) {
+    usart_t *cli = (usart_t *)dev;
 
     if (usart_init(cli)) {
         return -1;
@@ -46,6 +69,12 @@ int board_cli_init(void) {
         return -1;
     }
     if (std_stream_init("stderr", cli, usart_open, usart_write, usart_read)) {
+        return -1;
+    }
+    if (cli_service_start(128, 1)) {
+        return -1;
+    }
+    if (cli_cmd_init(hash, state)) {
         return -1;
     }
 
@@ -231,10 +260,6 @@ int board_periph_init(void) {
         LOG_ERROR("SPI4", "Initialization failed");
         return -1;
     }
-    if (sdio_init(&sdio)) {
-        LOG_ERROR("SDIO", "Initialization failed");
-        return -1;
-    }
     LOG_INFO("BOARD", "Initialization successful");
     return 0;
 }
@@ -252,17 +277,21 @@ static int board_sd_card_init(void) {
         return -1;
     }
     if (node_mount("/fs", &f_op) == NULL) {
-        LOG_ERROR(name, "Initialization failed");
+        LOG_ERROR(name, "Node mount failed");
         return -1;
     }
     if (f_mount(&fs, "/", 1)) {
-        LOG_ERROR(name, "Mount error");
+        LOG_ERROR(name, "f_mount error");
         return -1;
     }
     return 0;
 }
 
 int board_fs_init(void) {
+    if (sdio_init(&sdio)) {
+        LOG_ERROR("SDIO", "Initialization failed");
+        return -1;
+    }
     if (board_sd_card_init()) {
         return -1;
     }

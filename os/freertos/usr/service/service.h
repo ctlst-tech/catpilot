@@ -8,7 +8,7 @@
 
 #define SERVICE_MAX 10
 #define SERVICE_MAX_NAME 16
-#define SERVICE_MAX_STACK_SIZE 512
+#define SERVICE_MAX_STACK_SIZE configMINIMAL_STACK_SIZE
 
 typedef struct {
     char name[SERVICE_MAX_NAME];

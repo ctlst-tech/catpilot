@@ -13,7 +13,9 @@ void service(void *area) {
               service->priority);
 
     while (1) {
-        xTaskDelayUntil(&xLastWakeTime, service->period);
+        if (service->period > 0) {
+            xTaskDelayUntil(&xLastWakeTime, service->period);
+        }
         service->handler(service->area);
     }
 }
@@ -27,8 +29,8 @@ service_t *service_start(char *name, void *area, void (*handler)(void *area),
         return NULL;
     }
 
-    if (area == NULL || handler == NULL) {
-        LOG_ERROR(name, "Wrong handler or area");
+    if (handler == NULL) {
+        LOG_ERROR(name, "Wrong handler");
         return NULL;
     }
 

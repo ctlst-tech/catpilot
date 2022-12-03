@@ -10,11 +10,7 @@
 #include "sd.h"
 
 int board_start(void);
-int board_clock_init(void);
-int board_cli_init(void);
-int board_periph_init(void);
-int board_fs_init(void);
-int board_services_start(void);
+int board_init(char *hash, char *state);
 int board_fail(void);
 
 extern uint32_t rcc_system_clock;

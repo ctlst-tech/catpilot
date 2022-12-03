@@ -4,6 +4,13 @@
 #include "swsys.h"
 #include "xml_inline.h"
 
+#include "cli.h"
+
+#ifndef GIT_HASH
+#define GIT_HASH = "N/A" 
+#define GIT_STATE = "N/A" 
+#endif
+
 swsys_t core_sys;
 
 int main(void) {
@@ -15,41 +22,13 @@ int main(void) {
 void *catpilot(void *param) {
     pthread_setname_np((char *)__func__);
 
-    board_cli_init();
-
-    printf("\n\n\n\n"
-    "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n"
-    "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n"
-    "FFFFFFFFFFFFFFFFFFFFE       FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n"
-    "FFFFFFFF#             EFF  FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n"
-    "FFFFFF    EFFFFFFFF FFFF  FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n"
-    "FFFFF  FF  FFFFFE    EF  FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n"
-    "FFFFE FFE      4FFF FF  FFFFFFE       EFE        F  FFFFE       FFF         FFFF\n"
-    "FFFF     EFF FE  FFFF  FFFFFFF  FFFFFFFFFFFF  FFFF  FFFFF   FFFFFFFFFF  FFFFFFFF\n"
-    "FFFF   EFFFFFF   FFE  FFFFFFFF  FFFFFFFFFFFF  FFFF  FFFFFEEEEE   FFFFF  FFFFFFFF\n"
-    "FFFFFFFFFFFF   FFFE  FFFFFFFFFF       FFFFFF  FFFFF     FF       FFFFF  FFFFFFFF\n"
-    "FFFFFFFFFF   FFFFF  FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n"
-    "FFFFFFFFF          FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFFFFFFFFFF\n"
-    "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n"
-    "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n"
-    "               __        _ __      __      \n"
-    "   _________ _/ /_____  (_) /___  / /_     \n"
-    "  / ___/ __ `/ __/ __ \\/ / / __ \\/ __/   \n"
-    " / /__/ /_/ / /_/ /_/ / / / /_/ / /_       \n"
-    " \\___/\\__,_/\\__/ .___/_/_/\\____/\\__/  \n"
-    "              /_/                          \n"
-    "                                           \n");
-    printf("Catalyst Aerospace Technologies\n");
-    printf("CatPilot\n");
-    printf("Commit hash:  "GIT_HASH"\n");
-    printf("Commit state: "GIT_STATE"\n");
-    printf("\n");
-
-    board_periph_init();
-    board_fs_init();
-    board_services_start();
+    board_init(GIT_HASH, GIT_STATE);
 
     xml_inline_mount("/cfg");
+
+    while(1) {
+        vTaskDelay(1000);
+    }
 
     swsys_rv_t swsys_rv = swsys_load("/cfg/mvp_swsys.xml", "/cfg", &core_sys);
     if (swsys_rv == swsys_e_ok) {

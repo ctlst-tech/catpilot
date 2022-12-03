@@ -154,8 +154,10 @@ static const char *node_get_token(const char *full_path, size_t *rv_length,
 static struct node *node_find_sibling(struct node *first_sibling_node,
                                       const char *dir_name, size_t length) {
     for (struct node *n = first_sibling_node; n != NULL; n = n->sibling) {
-        if (strncmp(n->name, dir_name, length) == 0) {
-            return n;
+        if (strlen(n->name) == length) {
+            if (strncmp(n->name, dir_name, length) == 0) {
+                return n;
+            }
         }
     }
     return NULL;

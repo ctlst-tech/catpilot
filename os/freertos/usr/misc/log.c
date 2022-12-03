@@ -14,11 +14,13 @@ static char *msg_color[5] = {
 };
 static SemaphoreHandle_t log_mutex;
 
+static char buf[8192];
+static int offset = 0;
+
 void log_module(uint8_t msg_type, const char *module, const char *s, ...) {
     if (log_mutex == NULL) {
         log_mutex = xSemaphoreCreateMutex();
     }
-
     ssize_t length = 0;
     char string[LOG_MAX_LENGTH] = {};
     char module_alig[20] = {};
@@ -31,6 +33,7 @@ void log_module(uint8_t msg_type, const char *module, const char *s, ...) {
 
     clock_gettime(CLOCK_MONOTONIC, &t);
 
+    xSemaphoreTake(log_mutex, portMAX_DELAY);
     length += sprintf(string + length, "%.3f\t", t.tv_sec + t.tv_nsec * 1e-9);
     length += sprintf(string + length, "%s%s%s\t", msg_color[msg_type],
                       msg_types[msg_type], msg_color[4]);
@@ -42,8 +45,13 @@ void log_module(uint8_t msg_type, const char *module, const char *s, ...) {
         vsnprintf(string + length, MAX(LOG_MAX_LENGTH - length, 0), s, arg);
     va_end(arg);
 
-    xSemaphoreTake(log_mutex, portMAX_DELAY);
-
-    printf("%s\n", string);
+    offset += sprintf(buf + offset, "%s\r\n", string);
     xSemaphoreGive(log_mutex);
+}
+
+int log_print(int argc, char **argv) {
+    xSemaphoreTake(log_mutex, portMAX_DELAY);
+    write(1, buf, offset);
+    xSemaphoreGive(log_mutex);
+    return 0;
 }

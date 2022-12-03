@@ -17,6 +17,7 @@ if (MCU_FAMILY STREQUAL "stm32")
     if(MCU_MODEL STREQUAL "h753")
         list(APPEND BSP_SRC
             mcu/core/${MCU_FAMILY}/${MCU_MODEL}/common/system_stm32h7xx.c
+            mcu/core/${MCU_FAMILY}/${MCU_MODEL}/common/syscalls.c
             mcu/core/${MCU_FAMILY}/${MCU_MODEL}/startup/startup_stm32h753xx.s
         )
         list(APPEND BSP_SRC
