@@ -36,7 +36,8 @@ typedef struct {
     uint8_t CMD;
     uint8_t COUNTH;
     uint8_t COUNTL;
-    icm20649_fifo_t buf[ICM20649_FIFO_SIZE / sizeof(icm20649_fifo_t) + 1];
+    // icm20649_fifo_t buf[ICM20649_FIFO_SIZE / sizeof(icm20649_fifo_t) + 1];
+    icm20649_fifo_t buf[1];
 } icm20649_fifo_buffer_t;
 
 typedef struct {
@@ -55,7 +56,8 @@ typedef struct {
 } icm20649_meas_t;
 
 typedef struct {
-    icm20649_meas_t meas[ICM20649_FIFO_SAMPLES];
+    // icm20649_meas_t meas[ICM20649_FIFO_SAMPLES];
+    icm20649_meas_t meas[1];
     double temp;
 } icm20649_meas_buffer_t;
 

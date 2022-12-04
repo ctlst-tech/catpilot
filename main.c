@@ -26,10 +26,6 @@ void *catpilot(void *param) {
 
     xml_inline_mount("/cfg");
 
-    while(1) {
-        vTaskDelay(1000);
-    }
-
     swsys_rv_t swsys_rv = swsys_load("/cfg/mvp_swsys.xml", "/cfg", &core_sys);
     if (swsys_rv == swsys_e_ok) {
         LOG_INFO("SYSTEM", "Configuration loading successful");

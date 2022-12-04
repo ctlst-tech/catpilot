@@ -137,7 +137,7 @@
 <!--            <param alias="channel">4</param>-->
 <!--        </f>-->
 
-        <f name="logger" by_spec="cube.misc.cli_logger">
+        <!-- <f name="logger" by_spec="cube.misc.cli_logger">
             <in alias="v1">wx_gain/output</in>
             <in alias="v2">wy_gain/output</in>
             <in alias="v3">wz_gain/output</in>
@@ -153,7 +153,7 @@
             <in alias="v10">manc_lat_gain/output</in>
             <in alias="v11">manc_lon_gain/output</in>
             <in alias="v12">manc_rud_gain/output</in>
-        </f>
+        </f> -->
 
     </functions>
 
