@@ -6,7 +6,7 @@ ctslt-fmuv5 is open sourcing project with c-atom library hardware integration
 #### Software requirement
 1. cmake > 3.15
 2. openocd
-3. stlink
+3. stlink-tools
 4. catch2
 5. bison
 6. flex

@@ -1,159 +1,43 @@
 #include <pthread.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <node.h>
-#include <sys/termios.h>
 
-#include "stm32_base.h"
-#include "stm32_periph.h"
-
-#include "ff.h"
-#include "log.h"
-
+#include "board.h"
 #include "swsys.h"
-#include "function.h"
-#include "fsminst.h"
+#include "xml_inline.h"
 
-#include "init.h"
-#include "devices.h"
-#include "logger.h"
-#include "module.h"
-
-#include "fatfs_posix.h"
-
-#define LOG_STDOUT_ENABLE 1
-#define ECHO_ENABLE 1
-
-void main_thread(void *param);
-void *ctlst(void *param);
-int xml_inline_mount(const char *mount_to);
-
-static FATFS fs;
+#include "cli.h"
 
 #ifndef GIT_HASH
-#define GIT_HASH "N/A"
-#define GIT_STATE "N/A"
+#define GIT_HASH = "N/A" 
+#define GIT_STATE = "N/A" 
 #endif
-
-int main(void) {
-    HAL_Init();
-    RCC_Init();
-    xTaskCreate(main_thread, "main_thread", 100, NULL, 3, NULL );
-    vTaskStartScheduler();
-    while(1);
-}
-
-void main_thread(void *param) {
-    pthread_t tid;
-    pthread_attr_t attr;
-    int arg = 0;
-    pthread_attr_init(&attr);
-    pthread_attr_setstacksize(&attr, 65535);
-    pthread_create(&tid, &attr, ctlst, &arg);
-    pthread_join(tid, NULL);
-    pthread_exit(NULL);
-}
-
-static void uart_testing() {
-    int rv1;
-    int rv2;
-    const char *buf1 = "ttyS1 probe\n\r";
-    const char *buf2 = "ttyS2 probe\n";
-    const char *buf1_r = "same_fd_write\n\r";
-    int ttyS1 = open("/dev/ttyS1", O_RDWR);
-    int ttyS1_d = open("/dev/ttyS1", O_RDWR);
-    //    int ttyS2 = open("/dev/ttyS2", O_RDWR);
-    int cntr = 0;
-    while(1) {
-        cntr++;
-        if (cntr > 10) {
-            write(ttyS1, buf1, strlen(buf1));
-            cntr = 0;
-        }
-        write(ttyS1_d, buf1_r, strlen(buf1_r));
-    //        write(ttyS2, buf2, strlen(buf2));
-        vTaskDelay(10);
-    }
-}
 
 swsys_t core_sys;
 
-const char *core_swsys_set_params(const char *task_name, const char *cmd) {
-     swsys_rv_t rv = swsys_set_params(&core_sys, task_name, cmd);
-     return swsys_strerror(rv);
+int main(void) {
+    board_start();
+    while (1) {
+    }
 }
 
-void *ctlst(void *param) {
-    static FRESULT res;
-    int rv = 0;
-    int fd;
-
+void *catpilot(void *param) {
     pthread_setname_np((char *)__func__);
 
-    CLI();
-
-
-
-    #if(LOG_STDOUT_ENABLE)
-        log_enable(true);
-    #else
-        log_enable(false);
-    #endif
-
-    #if(ECHO_ENABLE)
-        CLI_EchoStart();
-    #endif
-
-    if(Devices_Init()) {
-        LOG_INFO("BOARD", "Sleeping...");
-        while(1) {
-            vTaskDelay(1000);
-        }
-    }
-
-    LOG_INFO("SYSTEM", "Version " GIT_HASH " State " GIT_STATE);
-
-    res = f_mount(&fs, "/", 1);
-    mkdir("/fs", S_IRWXU);
-    mkdir("/fs/config", S_IRWXU);
-
-    int nd = nodereg("/fs");
-    noderegopen(nd, fatfs_open);
-    noderegwrite(nd, fatfs_write);
-    noderegread(nd, fatfs_read);
-    noderegclose(nd, fatfs_close);
-    noderegfilealloc(nd, fatfs_filealloc);
-    noderegdevcfg(nd, NULL);
-
-    Logger_Init();
-
-    if (res == FR_OK) {
-        LOG_INFO("SDMMC", "Mount successful");
-    } else {
-        LOG_ERROR("SDMMC", "Mount error");
-    }
-
+    board_init(GIT_HASH, GIT_STATE);
 
     xml_inline_mount("/cfg");
 
-    // while(1) vTaskDelay(100);
-
-    if (res == FR_OK) {
-        swsys_rv_t swsys_rv = swsys_load("/cfg/mvp_swsys.xml", "/cfg/", &core_sys);
-        if (swsys_rv == swsys_e_ok) {
-            LOG_INFO("SYSTEM", "System starts")
-            swsys_rv = swsys_top_module_start(&core_sys);
-            if (swsys_rv != swsys_e_ok) {
-                LOG_ERROR("SYSTEM", "SWSYS start error")
-            }
-        } else {
-            LOG_ERROR("SYSTEM", "SWSYS config load error")
+    swsys_rv_t swsys_rv = swsys_load("/cfg/mvp_swsys.xml", "/cfg", &core_sys);
+    if (swsys_rv == swsys_e_ok) {
+        LOG_INFO("SYSTEM", "Configuration loading successful");
+        swsys_rv = swsys_top_module_start(&core_sys);
+        if (swsys_rv != swsys_e_ok) {
+            LOG_ERROR("SYSTEM", "Module start error");
         }
     } else {
+        LOG_ERROR("SYSTEM", "Configuration loading error");
     }
 
-    while(1) {
-        vTaskDelay(2000);
-        LOG_INFO("SYSTEM", "Failed to start");
-    }
+    board_fail();
+
+    return NULL;
 }

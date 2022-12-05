@@ -1,17 +1,16 @@
 #include "cube_sensors_icm20649.h"
-#include "icm20649.h"
-#include "gpio.h"
-#include "init.h"
+#include "board.h"
 
 #define deg2rad(d) ((d) * (M_PI / 180.0))
 
 void cube_sensors_icm20649_exec(cube_sensors_icm20649_outputs_t *o)
 {
-    icm20649_imu_meas_t meas;
+    gpio_set(&gpio_fmu_pwm[0]);
 
-    GPIO_Set(&gpio_fmu_pwm[0]);
+    icm20649_meas_t meas;
 
-    ICM20649_GetMeasBlock(&meas);
+    icm20649_get_meas_block(icm20649, &meas);
+
     o->wx = deg2rad(meas.gyro_x);
     o->wy = deg2rad(meas.gyro_y);
     o->wz = deg2rad(meas.gyro_z);
@@ -20,5 +19,5 @@ void cube_sensors_icm20649_exec(cube_sensors_icm20649_outputs_t *o)
     o->ay = -meas.accel_y;
     o->az = -meas.accel_z;
 
-    GPIO_Reset(&gpio_fmu_pwm[0]);
+    gpio_reset(&gpio_fmu_pwm[0]);
 }

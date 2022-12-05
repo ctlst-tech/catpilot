@@ -1,8 +1,5 @@
 #include "cube_misc_cli_logger.h"
 
-void CLI_write_stream_string(const char *str);
-
-
 void cube_misc_cli_logger_exec(const cube_misc_cli_logger_inputs_t *i){
     static char str2post[256];
 #define VAR_FMT "%+08.3f "
@@ -15,5 +12,5 @@ void cube_misc_cli_logger_exec(const cube_misc_cli_logger_inputs_t *i){
              i->v7, i->v8, i->v9, i->v10, i->v11, i->v12
     );
 
-    CLI_write_stream_string(str2post);
+    printf("%s", str2post);
 }

@@ -1,28 +1,25 @@
 #include "cube_io_rc.h"
-#include "cubeio.h"
-#include "gpio.h"
-#include "init.h"
-
+#include "board.h"
 
 fspec_rv_t cube_io_rc_pre_exec_init() {
 
-    CubeIO_SetRange(CubeIO_RC, 0, CubeIO_ChannelBipolar, 982, 2006);
-    CubeIO_SetRange(CubeIO_RC, 1, CubeIO_ChannelBipolar, 982, 2006);
-    CubeIO_SetRange(CubeIO_RC, 2, CubeIO_ChannelUnipolar, 982, 2006);
-    CubeIO_SetRange(CubeIO_RC, 3, CubeIO_ChannelBipolar, 982, 2006);
-    CubeIO_SetRange(CubeIO_RC, 4, CubeIO_ChannelUnipolar, 982, 2006);
-    CubeIO_SetRange(CubeIO_RC, 5, CubeIO_ChannelUnipolar, 982, 2006);
-    CubeIO_SetRange(CubeIO_RC, 6, CubeIO_ChannelUnipolar, 982, 2006);
-    CubeIO_SetRange(CubeIO_RC, 7, CubeIO_ChannelUnipolar, 982, 2006);
-    CubeIO_SetRange(CubeIO_RC, 8, CubeIO_ChannelUnipolar, 982, 2006);
-    CubeIO_SetRange(CubeIO_RC, 9, CubeIO_ChannelUnipolar, 982, 2006);
-    CubeIO_SetRange(CubeIO_RC, 9, CubeIO_ChannelUnipolar, 982, 2006);
-    CubeIO_SetRange(CubeIO_RC, 10, CubeIO_ChannelUnipolar, 982, 2006);
-    CubeIO_SetRange(CubeIO_RC, 11, CubeIO_ChannelUnipolar, 982, 2006);
-    CubeIO_SetRange(CubeIO_RC, 12, CubeIO_ChannelUnipolar, 982, 2006);
-    CubeIO_SetRange(CubeIO_RC, 13, CubeIO_ChannelUnipolar, 982, 2006);
-    CubeIO_SetRange(CubeIO_RC, 14, CubeIO_ChannelUnipolar, 982, 2006);
-    CubeIO_SetRange(CubeIO_RC, 15, CubeIO_ChannelUnipolar, 982, 2006);
+    cubeio_set_range(cubeio, CUBEIO_RC, 0, CUBEIO_CHANNEL_BIPOLAR, 982, 2006);
+    cubeio_set_range(cubeio, CUBEIO_RC, 1, CUBEIO_CHANNEL_BIPOLAR, 982, 2006);
+    cubeio_set_range(cubeio, CUBEIO_RC, 2, CUBEIO_CHANNEL_UNIPOLAR, 982, 2006);
+    cubeio_set_range(cubeio, CUBEIO_RC, 3, CUBEIO_CHANNEL_BIPOLAR, 982, 2006);
+    cubeio_set_range(cubeio, CUBEIO_RC, 4, CUBEIO_CHANNEL_UNIPOLAR, 982, 2006);
+    cubeio_set_range(cubeio, CUBEIO_RC, 5, CUBEIO_CHANNEL_UNIPOLAR, 982, 2006);
+    cubeio_set_range(cubeio, CUBEIO_RC, 6, CUBEIO_CHANNEL_UNIPOLAR, 982, 2006);
+    cubeio_set_range(cubeio, CUBEIO_RC, 7, CUBEIO_CHANNEL_UNIPOLAR, 982, 2006);
+    cubeio_set_range(cubeio, CUBEIO_RC, 8, CUBEIO_CHANNEL_UNIPOLAR, 982, 2006);
+    cubeio_set_range(cubeio, CUBEIO_RC, 9, CUBEIO_CHANNEL_UNIPOLAR, 982, 2006);
+    cubeio_set_range(cubeio, CUBEIO_RC, 9, CUBEIO_CHANNEL_UNIPOLAR, 982, 2006);
+    cubeio_set_range(cubeio, CUBEIO_RC, 10, CUBEIO_CHANNEL_UNIPOLAR, 982, 2006);
+    cubeio_set_range(cubeio, CUBEIO_RC, 11, CUBEIO_CHANNEL_UNIPOLAR, 982, 2006);
+    cubeio_set_range(cubeio, CUBEIO_RC, 12, CUBEIO_CHANNEL_UNIPOLAR, 982, 2006);
+    cubeio_set_range(cubeio, CUBEIO_RC, 13, CUBEIO_CHANNEL_UNIPOLAR, 982, 2006);
+    cubeio_set_range(cubeio, CUBEIO_RC, 14, CUBEIO_CHANNEL_UNIPOLAR, 982, 2006);
+    cubeio_set_range(cubeio, CUBEIO_RC, 15, CUBEIO_CHANNEL_UNIPOLAR, 982, 2006);
 
     return fspec_rv_ok;
 }
@@ -32,9 +29,9 @@ void cube_io_rc_exec(cube_io_rc_outputs_t *o)
 {
     double rc[16];
 
-    GPIO_Set(&gpio_fmu_pwm[2]);
+    gpio_set(&gpio_fmu_pwm[2]);
 
-    CubeIO_GetRC(rc);
+    cubeio_get_rc(cubeio, rc);
     o->rc_channel1 = rc[0];
     o->rc_channel2 = rc[1];
     o->rc_channel3 = rc[2];
@@ -53,5 +50,5 @@ void cube_io_rc_exec(cube_io_rc_outputs_t *o)
     o->rc_channel16 = rc[15];
 
     // For debug reset pin in CubeIO thread
-    // GPIO_Reset(&gpio_fmu_pwm[2]);
+    // gpio_reset(&gpio_fmu_pwm[2]);
 }
