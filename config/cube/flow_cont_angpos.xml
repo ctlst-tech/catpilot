@@ -9,7 +9,7 @@
             <i alias="desired_roll" type="core.type.f64"/>
             <i alias="desired_pitch" type="core.type.f64"/>
             <i alias="rc_desired_omega" type="core.type.v3f64"/>
-            <i alias="enable" type="core.type.f64"/>
+            <i alias="enable" type="core.type.bool"/>
         </inputs>
 
         <outputs>
@@ -79,6 +79,6 @@
 
     <link_outputs>
         <link alias="desired_omega">desired_omega/output</link>
-        <link alias="enabled">inputs/enable</link>
+        <link alias="enabled">pid_pitch/enabled</link>
     </link_outputs>
 </flow>

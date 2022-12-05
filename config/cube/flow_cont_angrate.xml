@@ -169,12 +169,18 @@
             <param alias="channel">5</param>
         </f>
 
+
+        <f name="arming_logic" by_spec="core.logical.and">
+            <in alias="input0">inputs/arming</in>
+            <in alias="input1">inputs/arming</in>
+        </f>
+
         <f name="io" by_spec="cube.io.pwm">
             <in alias="ch4">mixer/m4</in>
             <in alias="ch3">mixer/m3</in>
             <in alias="ch2">mixer/m2</in>
             <in alias="ch1">mixer/m1</in>
-            <in alias="arm">inputs/arming</in>
+            <in alias="arm">arming_logic/output</in>
             <in alias="ch8">pwm_probing_meander/output</in>
 
             <param alias="ch1_min">1000</param>
@@ -209,6 +215,6 @@
         <link alias="m2">mixer/m2</link>
         <link alias="m3">mixer/m3</link>
         <link alias="m4">mixer/m4</link>
-        <link alias="armed">inputs/arming</link>
+        <link alias="armed">arming_logic/output</link>
     </link_outputs>
 </flow>

@@ -4,7 +4,7 @@
     <spec name="nav_imu_alignment">
         <inputs>
             <i alias="omega" type="core.type.v3f64"/>
-            <i alias="start" type="core.type.bool"/>
+<!--            <i alias="start" type="core.type.bool"/>-->
         </inputs>
 
         <outputs>
