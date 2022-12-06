@@ -174,6 +174,11 @@ void SPI6_IRQHandler(void) {
     IRQ_Handler(SPI6_IRQn);
 }
 
+// TIM
+void TIM2_IRQHandler(void) {
+    IRQ_Handler(TIM2_IRQn);
+}
+
 // USART
 void USART1_IRQHandler(void) {
     IRQ_Handler(USART1_IRQn);

@@ -41,21 +41,27 @@ extern uint32_t rcc_system_clock;
 #define configUSE_MALLOC_FAILED_HOOK            1
 #define configUSE_DAEMON_TASK_STARTUP_HOOK      0
 
-/* Run time and task stats gathering related definitions. */
-#define configGENERATE_RUN_TIME_STATS           0
-#define configUSE_TRACE_FACILITY                0
-#define configUSE_STATS_FORMATTING_FUNCTIONS    0
-
 // POSIX implementation
 #define posixconfigENABLE_PTHREAD_COND_T 1
 #define posixconfigENABLE_PTHREAD_MUTEX_T 1
 #define posixconfigENABLE_PTHREAD_MUTEXATTR_T 1
 #define configUSE_POSIX_ERRNO 1
 
-// extern void Monitor_StartTimer(void);
-// extern uint32_t Monitor_GetCounter(void);
-// #define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS() Monitor_StartTimer()
-// #define portGET_RUN_TIME_COUNTER_VALUE() Monitor_GetCounter()
+/* Run time and task stats gathering related definitions. */
+#ifdef OS_MONITOR
+    extern void monitor_start_timer(void);
+    extern uint32_t monitor_get_counter(void);
+
+    #define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS() monitor_start_timer()
+    #define portGET_RUN_TIME_COUNTER_VALUE() monitor_get_counter()
+    #define configGENERATE_RUN_TIME_STATS           1
+    #define configUSE_TRACE_FACILITY                1
+    #define configUSE_STATS_FORMATTING_FUNCTIONS    1
+#else
+    #define configGENERATE_RUN_TIME_STATS           0
+    #define configUSE_TRACE_FACILITY                0
+    #define configUSE_STATS_FORMATTING_FUNCTIONS    0
+#endif
 
 /* Co-routine related definitions. */
 #define configUSE_CO_ROUTINES                   0

@@ -20,6 +20,7 @@ if (OS STREQUAL "freertos")
         freertos/osa/FreeRTOS-Plus-POSIX/include/portable
         freertos/usr/cli
         freertos/usr/misc
+        freertos/usr/monitor
         freertos/usr/service
     )
 
@@ -51,6 +52,7 @@ if (OS STREQUAL "freertos")
         freertos/usr/cli/cmd.c
         freertos/usr/cli/node.c
         freertos/usr/cli/service.c
+        freertos/usr/monitor/monitor.c
         freertos/usr/service/service.c
     )
 

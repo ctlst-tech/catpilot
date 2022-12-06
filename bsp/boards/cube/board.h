@@ -14,6 +14,9 @@ int board_init(char *hash, char *state);
 int board_fail(void);
 
 extern uint32_t rcc_system_clock;
+extern uint32_t *board_monitor_counter;
+
+extern exti_t exti_spi1_drdy1;
 
 extern gpio_t gpio_brick1_valid;
 extern gpio_t gpio_brick2_valid;
@@ -66,7 +69,11 @@ extern gpio_t gpio_usart3_tx;
 extern gpio_t gpio_usart3_rx;
 extern gpio_t gpio_fmu_pwm[6];
 
-extern exti_t exti_spi1_drdy1;
+extern sdio_t sdio;
+extern spi_t spi1;
+extern spi_t spi4;
+
+extern tim_t tim2;
 
 extern usart_t usart2;
 extern usart_t usart3;
@@ -74,11 +81,6 @@ extern usart_t usart4;
 extern usart_t usart6;
 extern usart_t usart7;
 extern usart_t usart8;
-
-extern spi_t spi1;
-extern spi_t spi4;
-
-extern sdio_t sdio;
 
 extern icm20649_t *icm20649;
 extern icm20602_t *icm20602;

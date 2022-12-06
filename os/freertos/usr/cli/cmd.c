@@ -5,7 +5,7 @@ char git_state[32];
 
 extern int log_print(int argc, char **argv);
 
-char logo[] = "\0033\0143" 
+char logo[] = "\003\014" 
     "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n"
     "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n"
     "FFFFFFFFFFFFFFFFFFFFE       FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n"
@@ -41,7 +41,7 @@ int version(int argc, char **argv) {
 }
 
 int clear(int argc, char **argv) {
-    printf("\0033\014\n");
+    printf("\003\014\n");
     return 0;
 }
 

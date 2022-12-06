@@ -55,6 +55,7 @@ if (MCU_FAMILY STREQUAL "stm32")
             boards/${BOARD}/cfg/ics_cfg.c
             boards/${BOARD}/cfg/sdio_cfg.c
             boards/${BOARD}/cfg/spi_cfg.c
+            boards/${BOARD}/cfg/tim_cfg.c
             boards/${BOARD}/cfg/usart_cfg.c
             boards/${BOARD}/startup/init.c
         )

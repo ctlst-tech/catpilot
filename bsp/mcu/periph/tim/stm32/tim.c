@@ -35,12 +35,14 @@ void tim_stop(tim_t *cfg) {
 }
 
 uint32_t tim_get_tick(tim_t *cfg) {
-    return (cfg->p.counter) * (cfg->counter_scaler_us);
+    return (cfg->counter_scaled);
 }
 
 void tim_handler(void *area) {
     tim_t *cfg = (tim_t *)area;
     HAL_TIM_IRQHandler(&cfg->init);
+    cfg->p.counter++;
+    cfg->counter_scaled = cfg->p.counter * cfg->scaler_us;
 }
 
 static int tim_id_init(tim_t *cfg) {

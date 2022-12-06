@@ -21,7 +21,8 @@ typedef struct {
 
 typedef struct {
     TIM_HandleTypeDef init;
-    uint32_t counter_scaler_us;
+    uint32_t scaler_us;
+    uint32_t counter_scaled;
     int irq_priority;
     tim_private_t p;
 } tim_t;

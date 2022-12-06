@@ -9,6 +9,14 @@ typedef char *caddr_t;
 int heap_used;
 int heap_total;
 
+int heap_get_total(void) {
+    return heap_total;
+}
+
+int heap_get_used(void) {
+    return heap_used;
+}
+
 caddr_t _sbrk(int incr) {
     static char *heap_end;
     char *prev_heap_end;

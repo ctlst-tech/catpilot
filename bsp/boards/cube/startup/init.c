@@ -7,14 +7,17 @@
 #include "log.h"
 #include "periph.h"
 #include "cli.h"
+#include "os.h"
 
 int board_clock_init(void);
+int board_monitor_init(void);
 int board_cli_init(void *dev, char *hash, char *state);
 int board_periph_init(void);
 int board_fs_init(void);
 int board_services_start(void);
 
 uint32_t rcc_system_clock = 400000000;
+uint32_t *board_monitor_counter;
 static FATFS fs;
 
 void board_start_thread(void *param);
@@ -23,6 +26,7 @@ extern void *catpilot(void *param);
 int board_start(void) {
     HAL_Init();
     board_clock_init();
+    board_monitor_init();
     xTaskCreate(board_start_thread, "board_start_thread", 100, NULL, 3, NULL);
     vTaskStartScheduler();
     return 0;
@@ -153,6 +157,17 @@ int board_clock_init(void) {
     while (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct)) {
     }
 
+    return 0;
+}
+
+int board_monitor_init(void) {
+    #ifdef OS_MONITOR
+        if(tim_init(&tim2)) {
+            return -1;
+        }
+        board_monitor_counter = &tim2.counter_scaled;
+        tim_start(&tim2);
+    #endif
     return 0;
 }
 
