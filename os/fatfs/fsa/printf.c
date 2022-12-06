@@ -943,7 +943,7 @@ int _getchar(void) {
 
 int fprintf_(struct file *stream, const char *format, ...) {
   va_list va;
-  char buf[128];
+  char buf[256];
   int16_t len, i;
   va_start(va, format);
   len = vsnprintf_(buf, sizeof(buf), format, va);
