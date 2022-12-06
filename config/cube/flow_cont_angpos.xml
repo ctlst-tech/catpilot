@@ -5,11 +5,11 @@
         <inputs>
             <i alias="roll" type="core.type.f64"/>
             <i alias="pitch" type="core.type.f64"/>
-            <i alias="gain" type="core.type.f64"/>
             <i alias="desired_roll" type="core.type.f64"/>
             <i alias="desired_pitch" type="core.type.f64"/>
             <i alias="rc_desired_omega" type="core.type.v3f64"/>
             <i alias="enable" type="core.type.bool"/>
+            <i alias="pids_gain" type="core.type.f64"/>
         </inputs>
 
         <outputs>
@@ -55,12 +55,12 @@
 
         <f name="pid_multed_roll" by_spec="core.math.mul">
             <in alias="input0">pid_roll/output</in>
-            <in alias="input1">inputs/gain</in>
+            <in alias="input1">inputs/pids_gain</in>
         </f>
 
         <f name="pid_multed_pitch" by_spec="core.math.mul">
             <in alias="input0">pid_pitch/output</in>
-            <in alias="input1">inputs/gain</in>
+            <in alias="input1">inputs/pids_gain</in>
         </f>
 
         <f name="desired_auto_omega" by_spec="core.math.vector3f64">

@@ -44,26 +44,30 @@
             <out alias="desired_roll, desired_pitch, desired_omega">control_bus/rc/$alias</out>
             <out alias="direct, direct_collective">control_bus/rc/$alias</out>
             <out alias="enable_angrate, enable_angpos, arming">control_bus/rc/$alias</out>
+            <out alias="pid_gain_angrate, pid_gain_angpos">control_bus/rc/$alias</out>
         </connect>
     </task>
 
     <task type="flow" config="flow_cont_angpos.xml" name="cont_angpos" priority="5" clk_method="inp_upd" clk_input_path="nav_bus/roll">
         <connect>
-            <in alias="roll, pitch, gain">nav_bus/$alias</in>
+            <in alias="roll, pitch">nav_bus/$alias</in>
             <in alias="desired_roll, desired_pitch">control_bus/rc/$alias</in>
             <in alias="rc_desired_omega">control_bus/rc/desired_omega</in>
             <in alias="enable">control_bus/rc/enable_angpos</in>
+            <in alias="pids_gain">control_bus/rc/pid_gain_angpos</in>
             <out alias="desired_omega, enabled">control_bus/$alias</out>
         </connect>
     </task>
 
     <task type="flow" config="flow_cont_angrate.xml" name="cont_angrate" priority="6" clk_method="inp_upd" clk_input_path="nav_bus/omega">
         <connect>
-            <in alias="omega">nav_bus/$alias</in>
-            <in alias="desired_omega, pids_rate_gain_multiplier">control_bus/$alias</in>
+            <in alias="omega">nav_bus/omega</in>
+            <in alias="desired_omega">control_bus/desired_omega</in>
+
             <in alias="arming, direct">control_bus/rc/$alias</in>
             <in alias="collective">control_bus/rc/direct_collective</in>
-            <in alias="enable">control_bus/enable_angrate</in>
+            <in alias="pids_gain">control_bus/rc/pid_gain_angrate</in>
+            <in alias="enable">control_bus/rc/enable_angrate</in>
             <out alias="m1, m2, m3, m4, armed">control_bus/solution/$alias</out>
         </connect>
     </task>
