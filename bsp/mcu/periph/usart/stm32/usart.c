@@ -59,9 +59,9 @@ int usart_init(usart_t *cfg) {
         .dev = cfg
     };
 
-    char path[32]; 
+    char path[32];
     sprintf(path, "/dev/%s", cfg->name);
-    if(node_mount(path, &f_op) == NULL) {
+    if (node_mount(path, &f_op) == NULL) {
         return -1;
     }
 
@@ -212,9 +212,9 @@ int usart_set_speed(void *dev, uint32_t speed) {
     return 0;
 }
 
-uint32_t usart_get_speed(void *dev) { 
+uint32_t usart_get_speed(void *dev) {
     usart_t *cfg = (usart_t *)dev;
-    return (cfg->init.Init.BaudRate); 
+    return (cfg->init.Init.BaudRate);
 }
 
 void usart_read_task(void *cfg_ptr) {
@@ -226,7 +226,8 @@ void usart_read_task(void *cfg_ptr) {
         } else {
             cfg->p.error = SUCCESS;
         }
-        ring_buf_write(cfg->p.read_buf, buf, MIN(cfg->p.rx_count, cfg->buf_size));
+        ring_buf_write(cfg->p.read_buf, buf,
+                       MIN(cfg->p.rx_count, cfg->buf_size));
     }
 }
 
@@ -266,13 +267,15 @@ int usart_open(FILE *file, const char *path) {
         return -1;
     }
 
-    xTaskCreate(usart_read_task, cfg->name, 512, cfg, cfg->task_priority, NULL);
-    xTaskCreate(usart_write_task, cfg->name, 512, cfg, cfg->task_priority,
-                NULL);
+    char name[32];
+    snprintf(name, MAX_NAME_LEN, "%s_read_thread", cfg->name);
+    xTaskCreate(usart_read_task, name, 512, cfg, cfg->task_priority, NULL);
+    snprintf(name, MAX_NAME_LEN, "%s_wirte_thread", cfg->name);
+    xTaskCreate(usart_write_task, name, 512, cfg, cfg->task_priority, NULL);
 
     cfg->p.tasks_init = true;
     errno = 0;
-    
+
     return 0;
 }
 

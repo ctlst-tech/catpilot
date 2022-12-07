@@ -45,6 +45,10 @@ cubeio_t *cubeio_start(char *name, uint32_t period, uint32_t priority,
     if (dev->sync.iordy_semaphore == NULL) {
         return NULL;
     }
+    dev->sync.mutex = xSemaphoreCreateMutex();
+    if (dev->sync.mutex == NULL) {
+        return NULL;
+    }
 
     dev->state = CUBEIO_RESET;
 
@@ -104,6 +108,7 @@ static void cubeio_fsm(void *area) {
         case CUBEIO_OPERATION:
             dev->sync.now = xTaskGetTickCount() * portTICK_PERIOD_MS;
 
+            xSemaphoreTake(dev->sync.mutex, portMAX_DELAY);
             // Event handling
             if (cubeio_pop_event(dev, CUBEIO_SET_PWM)) {
                 for (int i = 0; i < dev->pwm_out.num_channels; i++) {
@@ -206,6 +211,7 @@ static void cubeio_fsm(void *area) {
             cubeio_write_regs(dev, PAGE_SETUP, PAGE_REG_SETUP_RC_PROTOCOLS, 2,
                               (uint16_t *)&rc_protocol);
 
+            xSemaphoreGive(dev->sync.mutex);
             xSemaphoreGive(dev->sync.iordy_semaphore);
             break;
 

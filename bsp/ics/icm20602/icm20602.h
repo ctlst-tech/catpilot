@@ -77,6 +77,7 @@ typedef struct {
 typedef struct {
     SemaphoreHandle_t drdy_sem;
     SemaphoreHandle_t measrdy_sem;
+    SemaphoreHandle_t mutex;
 } icm20602_sync_t;
 
 enum icm20602_state_t {

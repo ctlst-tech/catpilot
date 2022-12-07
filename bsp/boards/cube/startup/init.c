@@ -314,14 +314,14 @@ int board_fs_init(void) {
 }
 
 int board_services_start(void) {
-    icm20649 = icm20649_start("ICM20649", 2, 10, &spi1, &gpio_spi1_cs1,
+    icm20649 = icm20649_start("ICM20649", 2, 20, &spi1, &gpio_spi1_cs1,
                               &exti_spi1_drdy1);
-    icm20602 = icm20602_start("ICM20602", 2, 10, &spi4, &gpio_spi4_cs2, NULL);
+    icm20602 = icm20602_start("ICM20602", 2, 20, &spi4, &gpio_spi4_cs2, NULL);
     icm20948 =
-        icm20948_start("ICM20948", 2, 10, &spi4, &gpio_spi4_cs1, NULL, 0);
-    ms5611_1 = ms5611_start("MS5611", 100, 8, &spi1, &gpio_spi1_cs2);
+        icm20948_start("ICM20948", 2, 20, &spi4, &gpio_spi4_cs1, NULL, 0);
     // ms5611_2 = ms5611_start(&spi4, &gpio_spi4_cs3, 10, 8);
-    cubeio = cubeio_start("CUBEIO", 2, 9, &usart6);
+    cubeio = cubeio_start("CUBEIO", 2, 19, &usart6);
+    ms5611_1 = ms5611_start("MS5611", 100, 18, &spi1, &gpio_spi1_cs2);
     return 0;
 }
 

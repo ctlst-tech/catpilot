@@ -124,6 +124,7 @@ typedef struct {
 // Sync
 typedef struct {
     SemaphoreHandle_t iordy_semaphore;
+    SemaphoreHandle_t mutex;
     uint32_t now;
     uint32_t last_rc_read_ms;
     uint32_t last_status_read_ms;
