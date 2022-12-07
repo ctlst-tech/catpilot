@@ -17,24 +17,9 @@
     </spec>
 
     <functions>
-        <f name="initial_yaw" by_spec="core.source.constant">
-            <param alias="value">0.0</param>
-        </f>
-
-        <f name="concat_accels" by_spec="core.math.vector3f64">
-            <in alias="x">inputs/a/x</in>
-            <in alias="y">inputs/a/y</in>
-            <in alias="z">inputs/a/z</in>
-        </f>
 
         <f name="accel_horizon" by_spec="core.nav.att_from_accel">
-            <in alias="a">concat_accels/v</in>
-        </f>
-
-        <f name="initial_quat" by_spec="core.quat.from_euler">
-            <in alias="roll">accel_horizon/roll</in>
-            <in alias="pitch">accel_horizon/pitch</in>
-            <in alias="yaw">initial_yaw/output</in>
+            <in alias="a">inputs/a</in>
         </f>
 
         <f name="to_euler" by_spec="core.quat.to_euler">

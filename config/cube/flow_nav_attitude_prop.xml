@@ -6,7 +6,7 @@
             <i alias="omega_bias" type="core.type.v3f64"/>
             <i alias="q0" type="core.type.quat"/>
             <i alias="q" type="core.type.quat"/>
-<!--            <i alias="reset" type="core.type.bool"/>-->
+            <i alias="reset" type="core.type.bool"/>
         </inputs>
 
         <outputs>
@@ -44,7 +44,7 @@
             <in alias="omega">omega_biased/v</in>
             <in alias="q0">inputs/q0</in>
             <in alias="q">inputs/q</in>
-<!--            <in alias="reset">inputs/reset</in>-->
+            <in alias="reset">inputs/reset</in>
         </f>
 
         <f name="concat_accel" by_spec="core.math.vector3f64">
