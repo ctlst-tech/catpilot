@@ -9,7 +9,7 @@ extern uint32_t rcc_system_clock;
 #define configCPU_CLOCK_HZ			            ( ( unsigned long ) rcc_system_clock )
 #define configTICK_RATE_HZ			            ( ( TickType_t ) 1000 )
 #define configMAX_PRIORITIES                    32
-#define configMINIMAL_STACK_SIZE                2048
+#define configMINIMAL_STACK_SIZE                512
 #define configMAX_TASK_NAME_LEN                 24
 #define configUSE_16_BIT_TICKS                  0
 #define configIDLE_SHOULD_YIELD                 1
