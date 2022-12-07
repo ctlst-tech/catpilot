@@ -941,29 +941,21 @@ int _getchar(void) {
   return fgetc_(stdin);
 }
 
-int fprintf_(struct file *stream, const char *format, ...) {
-  va_list va;
-  char buf[256];
-  int16_t len, i;
-  va_start(va, format);
-  len = vsnprintf_(buf, sizeof(buf), format, va);
-  if (len > 0) {
-    for (i = 0; i < len; i++) {
-      fputc_(buf[i], stream);
-    }
-  }
-  va_end(va);
-  return len;
+void fputc_fct(char character, void *arg) {
+  struct file *stream = (struct file *)arg;
+  fputc_(character, stream);
 }
 
 int vfprintf_(struct file *stream, const char *format, va_list ap) {
-  char buf[128];
-  int16_t len, i;
-  len = vsnprintf_(buf, sizeof(buf), format, ap);
-  if (len > 0) {
-    for (i = 0; i < len; i++) {
-      fputc_(buf[i], stream);
-    }
-  }
-  return len;
+  const out_fct_wrap_type out_fct_wrap = { fputc_fct, stream };
+  const int rv = _vsnprintf(_out_fct, (char*)(uintptr_t)&out_fct_wrap, (size_t)-1, format, ap);
+  return rv;
+}
+
+int fprintf_(struct file *stream, const char *format, ...) {
+  va_list va;
+  va_start(va, format);
+  const int rv = vfprintf_(stream, format, va);
+  va_end(va);
+  return rv;
 }
