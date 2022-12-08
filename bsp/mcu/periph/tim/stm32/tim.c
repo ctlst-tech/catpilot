@@ -26,7 +26,7 @@ int tim_init(tim_t *cfg) {
 }
 
 void tim_start(tim_t *cfg) {
-    cfg->p.counter = 0;
+    cfg->counter = 0;
     HAL_TIM_Base_Start_IT(&cfg->init);
 }
 
@@ -41,8 +41,8 @@ uint32_t tim_get_tick(tim_t *cfg) {
 void tim_handler(void *area) {
     tim_t *cfg = (tim_t *)area;
     HAL_TIM_IRQHandler(&cfg->init);
-    cfg->p.counter++;
-    cfg->counter_scaled = cfg->p.counter * cfg->scaler_us;
+    cfg->counter++;
+    cfg->counter_scaled = cfg->counter * cfg->scaler_us;
 }
 
 static int tim_id_init(tim_t *cfg) {

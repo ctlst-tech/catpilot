@@ -15,7 +15,6 @@ enum tim_state_t {
 
 typedef struct {
     IRQn_Type id;
-    uint32_t counter;
     enum tim_state_t state;
 } tim_private_t;
 
@@ -23,6 +22,7 @@ typedef struct {
     TIM_HandleTypeDef init;
     uint32_t scaler_us;
     uint32_t counter_scaled;
+    uint32_t counter;
     int irq_priority;
     tim_private_t p;
 } tim_t;

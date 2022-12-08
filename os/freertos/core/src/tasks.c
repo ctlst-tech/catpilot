@@ -4699,7 +4699,7 @@ TaskStatus_t pxTaskStatusArray[30];
                                 /* sizeof( int ) == sizeof( long ) so a smaller
                                  * printf() library can be used. */
                                 sprintf( pcWriteBuffer, "\t%010.3f\t%u%%\t%u\r\n", 
-                                        ( float ) pxTaskStatusArray[ x ].ulRunTimeCounter / 1000.f, 
+                                        ( float ) pxTaskStatusArray[ x ].ulRunTimeCounter / 10.f, 
                                         ( unsigned int ) ulStatsAsPercentage, 
                                         ( unsigned int ) pxTaskStatusArray[ x ].uxCurrentPriority ); /*lint !e586 sprintf() allowed as this is compiled with many compilers and this is a utility function only - not part of the core kernel implementation. */
                             }
@@ -4718,7 +4718,7 @@ TaskStatus_t pxTaskStatusArray[30];
                                 /* sizeof( int ) == sizeof( long ) so a smaller
                                  * printf() library can be used. */
                                 sprintf( pcWriteBuffer, "\t%010.3f\t<1%%\t%u\r\n", 
-                                        ( float ) pxTaskStatusArray[ x ].ulRunTimeCounter / 1000.f,
+                                        ( float ) pxTaskStatusArray[ x ].ulRunTimeCounter / 10.f,
                                         ( unsigned int ) pxTaskStatusArray[ x ].uxCurrentPriority ); /*lint !e586 sprintf() allowed as this is compiled with many compilers and this is a utility function only - not part of the core kernel implementation. */
                             }
                         #endif

@@ -165,7 +165,7 @@ int board_monitor_init(void) {
         if(tim_init(&tim2)) {
             return -1;
         }
-        board_monitor_counter = &tim2.counter_scaled;
+        board_monitor_counter = &tim2.counter;
         tim_start(&tim2);
     #endif
     return 0;
