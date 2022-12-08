@@ -5,6 +5,7 @@
 // TELEM1
 usart_t usart2 = {
     .name = "ttyS0",
+    .alt_name = "TELEM1",
     .init = {
         .Instance = USART2,
         .Init = {
@@ -32,6 +33,7 @@ usart_t usart2 = {
 // TELEM2
 usart_t usart3 = {
     .name = "ttyS1",
+    .alt_name = "TELEM2",
     .init = {
         .Instance = USART3,
         .Init.BaudRate = 57600,
@@ -57,6 +59,7 @@ usart_t usart3 = {
 // GPS1
 usart_t usart4 = {
     .name = "ttyS2",
+    .alt_name = "GPS1",
     .init = {
         .Instance = UART4,
         .Init.BaudRate = 115200,
@@ -110,6 +113,7 @@ usart_t usart4 = {
 // IO
 usart_t usart6 = {
     .name = "ttyS3",
+    .alt_name = "IO",
     .init = {
         .Instance = USART6,
         .Init.BaudRate = 1500000,
@@ -161,6 +165,7 @@ usart_t usart6 = {
 // DBG
 usart_t usart7 = {
     .name = "ttyS4",
+    .alt_name = "DBG",
     .init = {
         .Instance = UART7,
         .Init.BaudRate = 115200,
@@ -186,6 +191,7 @@ usart_t usart7 = {
 // GPS2
 usart_t usart8 = {
     .name = "ttyS5",
+    .alt_name = "GPS",
     .init = {
         .Instance = UART8,
         .Init.BaudRate = 115200,
@@ -206,4 +212,13 @@ usart_t usart8 = {
     .irq_priority = 8,
     .task_priority = 8,
     .p = {0}
+};
+
+usart_t *usart[6] = {
+    &usart2,
+    &usart3,
+    &usart4,
+    &usart6,
+    &usart7,
+    &usart8,
 };

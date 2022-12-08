@@ -37,7 +37,8 @@ typedef struct {
 } usart_private_t;
 
 typedef struct {
-    const char name[10];
+    const char name[MAX_NAME_LEN];
+    const char alt_name[MAX_NAME_LEN];
     UART_HandleTypeDef init;
     dma_t dma_tx;
     dma_t dma_rx;

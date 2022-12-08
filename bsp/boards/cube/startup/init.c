@@ -1,17 +1,17 @@
 #include <pthread.h>
 
 #include "board.h"
+#include "cli.h"
 #include "core.h"
 #include "fatfs.h"
 #include "hal.h"
 #include "log.h"
-#include "periph.h"
-#include "cli.h"
 #include "os.h"
+#include "periph.h"
 
 int board_clock_init(void);
 int board_monitor_init(void);
-int board_cli_init(void *dev, char *hash, char *state);
+int board_cli_init(char *cli_port, char *baudrate, char *hash, char *state);
 int board_periph_init(void);
 int board_fs_init(void);
 int board_services_start(void);
@@ -32,8 +32,8 @@ int board_start(void) {
     return 0;
 }
 
-int board_init(char *hash, char *state) {
-    if (board_cli_init(&usart3, hash, state)) {
+int board_init(char *cli_port, char *baudrate, char *hash, char *state) {
+    if (board_cli_init(cli_port, baudrate, hash, state)) {
         return -1;
     }
     if (board_fs_init()) {
@@ -60,8 +60,24 @@ void board_start_thread(void *param) {
     pthread_exit(NULL);
 }
 
-int board_cli_init(void *dev, char *hash, char *state) {
-    usart_t *cli = (usart_t *)dev;
+int board_cli_init(char *cli_port, char *baudrate, char *hash, char *state) {
+    usart_t *cli = NULL;
+
+    int baudrate_cmd = atoi(baudrate);
+
+    for (int i = 0; i < BOARD_MAX_USART; i++) {
+        if (usart[i] != NULL) {
+            if (strncmp(cli_port, usart[i]->name, MAX_NAME_LEN) == 0 ||
+                strncmp(cli_port, usart[i]->alt_name, MAX_NAME_LEN) == 0) {
+                cli = usart[i];
+                cli->init.Init.BaudRate = baudrate_cmd;
+            }
+        }
+    }
+
+    if (cli == NULL) {
+        cli = &usart3;
+    }
 
     if (usart_init(cli)) {
         return -1;
@@ -161,13 +177,13 @@ int board_clock_init(void) {
 }
 
 int board_monitor_init(void) {
-    #ifdef OS_MONITOR
-        if(tim_init(&tim2)) {
-            return -1;
-        }
-        board_monitor_counter = &tim2.counter;
-        tim_start(&tim2);
-    #endif
+#ifdef OS_MONITOR
+    if (tim_init(&tim2)) {
+        return -1;
+    }
+    board_monitor_counter = &tim2.counter;
+    tim_start(&tim2);
+#endif
     return 0;
 }
 
