@@ -47,6 +47,5 @@ void cube_io_pwm_exec(const cube_io_pwm_inputs_t *i, const cube_io_pwm_params_t 
 
     cubeio_set_pwm(cubeio, 8, pwm);
 
-    // For debug reset pin in CubeIO thread
-    // gpio_reset(&gpio_fmu_pwm[1]);
+    gpio_reset(&gpio_fmu_pwm[1]);
 }
