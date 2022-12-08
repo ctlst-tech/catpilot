@@ -44,7 +44,7 @@
         </f>
 
         <f name="imu_reset" by_spec="core.logical.not">
-            <in alias="input">bias_calib_proto/filed</in>
+            <in alias="input">bias_calib_proto/filled</in>
         </f>
 
     </functions>
