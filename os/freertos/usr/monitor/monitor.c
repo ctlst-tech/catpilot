@@ -62,10 +62,8 @@ int monitor_commander(int argc, char **argv) {
                 break;
 
             case 'h':
-                monitor_print_help();
-                break;
-
             default:
+                monitor_print_help();
                 break;
         }
         optind++;

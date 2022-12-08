@@ -9,8 +9,10 @@
 #include "periph.h"
 #include "sd.h"
 
+#define BOARD_MAX_USART 6
+
 int board_start(void);
-int board_init(char *hash, char *state);
+int board_init(char *cli_port, char *baudrate, char *hash, char *state);
 int board_fail(void);
 
 extern uint32_t rcc_system_clock;
@@ -75,6 +77,7 @@ extern spi_t spi4;
 
 extern tim_t tim2;
 
+extern usart_t *usart[6];
 extern usart_t usart2;
 extern usart_t usart3;
 extern usart_t usart4;
