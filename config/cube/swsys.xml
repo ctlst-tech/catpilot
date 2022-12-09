@@ -72,7 +72,7 @@
         </connect>
     </task>
 
-    <task type="flow" config="flow_housekeeping.xml" name="housekeeping" priority="3" clk_method="timer" clk_period="100">
+    <task type="flow" config="flow_housekeeping.xml" name="housekeeping" priority="3" clk_method="timer" clk_period="50">
         <connect>
             <out alias="sine">gcu_bus/hk/sine</out>
         </connect>
