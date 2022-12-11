@@ -14,7 +14,6 @@ extern gpio_t gpio_fmu_pwm[6];
 
 #define CUBEIO_PKT_MAX_REGS 22
 #define CUBEIO_MAX_CHANNELS 16
-#define CUBEIO_MAX_INIT_TIME 100
 
 #pragma pack(push, 1)
 typedef struct {

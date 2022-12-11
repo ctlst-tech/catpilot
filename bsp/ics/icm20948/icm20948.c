@@ -74,7 +74,7 @@ icm20948_t *icm20948_start(char *name, uint32_t period, uint32_t priority,
         return NULL;
     }
 
-    xSemaphoreTake(dev->sync.measrdy_sem, ICM20948_MAX_INIT_TIME);
+    xSemaphoreTake(dev->sync.measrdy_sem, portMAX_DELAY);
 
     return dev;
 }
@@ -83,7 +83,6 @@ static void icm20948_fsm(void *area) {
     icm20948_t *dev = (icm20948_t *)area;
     switch (dev->state) {
         case ICM20948_RESET:
-            vTaskDelay(100);
             icm20948_write_reg(dev, BANK_0, PWR_MGMT_1, DEVICE_RESET);
             dev->state = ICM20948_RESET_WAIT;
             vTaskDelay(100);
@@ -141,6 +140,7 @@ static void icm20948_fsm(void *area) {
             break;
 
         case ICM20948_FAIL:
+            xSemaphoreGive(dev->sync.measrdy_sem);
             vTaskDelete(NULL);
             return;
 

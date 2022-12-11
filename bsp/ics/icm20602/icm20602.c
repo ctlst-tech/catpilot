@@ -71,7 +71,7 @@ icm20602_t *icm20602_start(char *name, uint32_t period, uint32_t priority,
         return NULL;
     }
 
-    xSemaphoreTake(dev->sync.measrdy_sem, ICM20602_MAX_INIT_TIME);
+    xSemaphoreTake(dev->sync.measrdy_sem, portMAX_DELAY);
 
     return dev;
 }
@@ -80,7 +80,6 @@ void icm20602_fsm(void *area) {
     icm20602_t *dev = (icm20602_t *)area;
     switch (dev->state) {
         case ICM20602_RESET:
-            vTaskDelay(100);
             icm20602_write_reg(dev, PWR_MGMT_1, DEVICE_RESET);
             dev->state = ICM20602_RESET_WAIT;
             vTaskDelay(100);
@@ -141,6 +140,7 @@ void icm20602_fsm(void *area) {
             break;
 
         case ICM20602_FAIL:
+            xSemaphoreGive(dev->sync.measrdy_sem);
             vTaskDelete(NULL);
             return;
 

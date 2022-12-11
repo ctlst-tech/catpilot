@@ -62,7 +62,7 @@ cubeio_t *cubeio_start(char *name, uint32_t period, uint32_t priority,
         return NULL;
     }
 
-    xSemaphoreTake(dev->sync.iordy_semaphore, CUBEIO_MAX_INIT_TIME);
+    xSemaphoreTake(dev->sync.iordy_semaphore, portMAX_DELAY);
 
     return dev;
 }
@@ -221,7 +221,8 @@ static void cubeio_fsm(void *area) {
             break;
 
         case CUBEIO_FAIL:
-            vTaskDelay(1000);
+            xSemaphoreGive(dev->sync.iordy_semaphore);
+            vTaskDelete(NULL);
             break;
     }
 }
