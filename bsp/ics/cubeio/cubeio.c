@@ -27,7 +27,7 @@ double cubeio_scale_input(uint16_t in, cubeio_range_cfg_t *cfg);
 // Public functions
 cubeio_t *cubeio_start(char *name, uint32_t period, uint32_t priority,
                        usart_t *usart) {
-    if (usart == NULL || name == NULL || period <= 0 || priority <= 0) {
+    if (usart == NULL || name == NULL || priority <= 0) {
         return NULL;
     }
 
@@ -49,6 +49,10 @@ cubeio_t *cubeio_start(char *name, uint32_t period, uint32_t priority,
     if (dev->sync.mutex == NULL) {
         return NULL;
     }
+    dev->sync.timeout_semaphore = xSemaphoreCreateBinary();
+    if (dev->sync.timeout_semaphore == NULL) {
+        return NULL;
+    }
 
     dev->state = CUBEIO_RESET;
 
@@ -58,7 +62,7 @@ cubeio_t *cubeio_start(char *name, uint32_t period, uint32_t priority,
         return NULL;
     }
 
-    xSemaphoreGive(dev->sync.iordy_semaphore);
+    xSemaphoreTake(dev->sync.iordy_semaphore, CUBEIO_MAX_INIT_TIME);
 
     return dev;
 }
@@ -106,6 +110,7 @@ static void cubeio_fsm(void *area) {
             break;
 
         case CUBEIO_OPERATION:
+            xSemaphoreTake(dev->sync.timeout_semaphore, 20);
             dev->sync.now = xTaskGetTickCount() * portTICK_PERIOD_MS;
 
             xSemaphoreTake(dev->sync.mutex, portMAX_DELAY);
@@ -118,7 +123,7 @@ static void cubeio_fsm(void *area) {
                 cubeio_write_regs(dev, PAGE_DIRECT_PWM, 0,
                                   dev->pwm_out.num_channels, dev->pwm_out.pwm);
                 // DEBUG
-                // gpio_reset(&gpio_fmu_pwm[1]);
+                gpio_reset(&gpio_fmu_pwm[1]);
             }
             if (cubeio_pop_event(dev, CUBEIO_SET_FAILSAFE_PWM)) {
                 for (int i = 0; i < CUBEIO_MAX_CHANNELS; i++) {
@@ -186,7 +191,7 @@ static void cubeio_fsm(void *area) {
                 dev->sync.last_rc_read_ms =
                     xTaskGetTickCount() * portTICK_PERIOD_MS;
                 // DEBUG
-                // gpio_reset(&gpio_fmu_pwm[2]);
+                gpio_reset(&gpio_fmu_pwm[2]);
             }
             if (dev->sync.now - dev->sync.last_status_read_ms > 50) {
                 cubeio_read_regs(dev, PAGE_STATUS, 0,
@@ -245,6 +250,7 @@ void cubeio_set_pwm(cubeio_t *dev, uint8_t channels, double *pwm) {
     dev->pwm_out.num_channels = MIN(channels, CUBEIO_MAX_CHANNELS);
     memcpy(dev->pwm, pwm, sizeof(dev->pwm));
     cubeio_push_event(dev, CUBEIO_SET_PWM);
+    xSemaphoreGive(dev->sync.timeout_semaphore);
 }
 
 void cubeio_set_failsafe_pwm(cubeio_t *dev, double pwm) {
@@ -311,11 +317,13 @@ int cubeio_get_safety_switch_state(cubeio_t *dev) {
 void cubeio_force_safety_on(cubeio_t *dev) {
     dev->page_reg_status.safety_forced_off = SAFETY_ON;
     cubeio_push_event(dev, CUBEIO_FORCE_SAFETY_ON);
+    xSemaphoreGive(dev->sync.timeout_semaphore);
 }
 
 void cubeio_force_safety_off(cubeio_t *dev) {
     dev->page_reg_status.safety_forced_off = SAFETY_OFF;
     cubeio_push_event(dev, CUBEIO_FORCE_SAFETY_OFF);
+    xSemaphoreGive(dev->sync.timeout_semaphore);
 }
 
 void cubeio_set_imu_heater_duty(cubeio_t *dev, uint8_t duty) {

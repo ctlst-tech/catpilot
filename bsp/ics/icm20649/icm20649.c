@@ -71,7 +71,7 @@ icm20649_t *icm20649_start(char *name, uint32_t period, uint32_t priority,
         return NULL;
     }
 
-    xSemaphoreTake(dev->sync.measrdy_sem, 0);
+    xSemaphoreTake(dev->sync.measrdy_sem, ICM20649_MAX_INIT_TIME);
 
     return dev;
 }

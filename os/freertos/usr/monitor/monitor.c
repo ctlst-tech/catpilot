@@ -42,8 +42,6 @@ static void monitor_print_mem_stat(void) {
 static void monitor_print_all(void) {
     monitor_print_thread_stat();
     monitor_print_mem_stat();
-    // debug
-    printf("counter = %d\n", *board_monitor_counter);
 }
 
 static void monitor_print_non_stop() {

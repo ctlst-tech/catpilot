@@ -13,6 +13,7 @@
 #include "service.h"
 
 #define MS5611_PROM_SIZE 8
+#define MS5611_MAX_INIT_TIME 100
 
 #pragma pack(push, 1)
 typedef struct {

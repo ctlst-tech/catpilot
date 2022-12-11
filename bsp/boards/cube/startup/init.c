@@ -335,9 +335,9 @@ int board_services_start(void) {
     icm20602 = icm20602_start("ICM20602", 2, 20, &spi4, &gpio_spi4_cs2, NULL);
     icm20948 =
         icm20948_start("ICM20948", 2, 20, &spi4, &gpio_spi4_cs1, NULL, 0);
-    // ms5611_2 = ms5611_start(&spi4, &gpio_spi4_cs3, 10, 8);
-    cubeio = cubeio_start("CUBEIO", 2, 19, &usart6);
-    ms5611_1 = ms5611_start("MS5611", 100, 18, &spi1, &gpio_spi1_cs2);
+    cubeio = cubeio_start("CUBEIO", 0, 19, &usart6);
+    ms5611_1 = ms5611_start("MS5611_INT", 100, 18, &spi1, &gpio_spi1_cs2);
+    ms5611_2 = ms5611_start("MS5611_EXT", 100, 18, &spi4, &gpio_spi4_cs3);
     return 0;
 }
 

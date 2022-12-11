@@ -46,7 +46,7 @@ ms5611_t *ms5611_start(const char *name, uint32_t period, uint32_t priority,
         return NULL;
     }
 
-    xSemaphoreTake(dev->sync.measrdy_sem, 0);
+    xSemaphoreTake(dev->sync.measrdy_sem, MS5611_MAX_INIT_TIME);
 
     return dev;
 }
@@ -63,7 +63,6 @@ void ms5611_fsm(void *area) {
 
         case MS5611_READ_CALIB:
             if (ms5611_read_calib(dev)) {
-                LOG_ERROR(dev->name, "Failed to read calibration values");
                 dev->attempt++;
             } else {
                 vTaskDelay(10);

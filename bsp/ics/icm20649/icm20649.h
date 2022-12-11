@@ -14,6 +14,7 @@
 
 #define ICM20649_FIFO_SIZE 4096
 #define ICM20649_FIFO_SAMPLES 342
+#define ICM20649_MAX_INIT_TIME 100
 
 #pragma pack(push, 1)
 typedef struct {

@@ -15,11 +15,3 @@ void cube_io_gpio_exec(const cube_io_gpio_inputs_t *i, cube_io_gpio_outputs_t *o
     }
 }
 
-void test_gpio5_set() {
-    gpio_set_state(&gpio_fmu_pwm[5], 1);
-}
-
-void test_gpio5_clear() {
-    gpio_set_state(&gpio_fmu_pwm[5], 0);
-}
-
