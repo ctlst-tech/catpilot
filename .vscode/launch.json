@@ -5,7 +5,7 @@
             "name": "PC_unix",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/posix/ctlst-fmuv5",
+            "program": "${workspaceFolder}/build/posix/catpilot",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

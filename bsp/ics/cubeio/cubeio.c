@@ -398,13 +398,14 @@ static int cubeio_read_regs(cubeio_t *dev, uint8_t page, uint8_t offset,
             continue;
         }
         if (get_pkt_code(&rx_pkt) != PKT_CODE_SUCCESS) {
-            LOG_ERROR(dev->name, "Bad code, 0x%X, 0x%X, %d", page, offset,
-                      count);
+            LOG_ERROR(dev->name,
+                      "Bad code, page = 0x%X, offset = 0x%X, count = %d", page,
+                      offset, count);
             rv = EINVAL;
             continue;
         }
         if (get_pkt_count(&rx_pkt) != count) {
-            LOG_ERROR(dev->name, "Bad count, %d, %d", count,
+            LOG_ERROR(dev->name, "Bad count, count = %d, pkt_size = %d", count,
                       get_pkt_size(&rx_pkt));
             rv = EINVAL;
             continue;

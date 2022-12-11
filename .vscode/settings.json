@@ -1,7 +1,9 @@
 {
     "cmake.setBuildTypeOnMultiConfig": true,
     "cmake.configureSettings": {
-        "BOARD": "cube"
+        "BOARD": "cube",
+        "CLI_PORT": "TELEM2",
+        "CLI_BAUDRATE": "57600"
     },
     "cortex-debug.armToolchainPath": "/usr/bin",
     "cortex-debug.openocdPath": "/usr/local/bin/openocd",
