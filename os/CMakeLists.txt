@@ -10,6 +10,7 @@ if (OS STREQUAL "freertos")
         freertos/core/inc
         freertos/inc
         freertos/osa
+        freertos/port
         freertos/osa/include
         freertos/osa/include/FreeRTOS_POSIX
         freertos/osa/include/FreeRTOS_POSIX/sys
