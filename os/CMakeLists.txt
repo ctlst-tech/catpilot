@@ -84,5 +84,6 @@ endif ()
 
 add_library(os-static STATIC ${OS_SRC})
 target_include_directories(os-static PUBLIC ${OS_INC})
-list(TRANSFORM OS_INC PREPEND "os/")
+
+list(TRANSFORM OS_INC PREPEND "catpilot/os/")
 set(OS_EXT_INC ${OS_INC} PARENT_SCOPE)
