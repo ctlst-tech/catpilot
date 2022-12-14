@@ -17,10 +17,8 @@ add_subdirectory(os)
 add_subdirectory(bsp)
 add_subdirectory(c-atom)
 
-include_directories(
-    ${OS_EXT_INC}
-    ${BSP_EXT_INC}
-)
+set(OS ${OS_EXT_INC} PARENT_SCOPE)
+set(BSP ${BSP_EXT_INC} PARENT_SCOPE)
 
 target_link_libraries(c-atom-static PUBLIC os-static)
 target_link_libraries(eswb-static PUBLIC os-static)

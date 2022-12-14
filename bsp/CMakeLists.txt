@@ -138,5 +138,5 @@ add_library(bsp-static STATIC ${BSP_SRC})
 target_include_directories(bsp-static PUBLIC ${BSP_INC})
 target_link_libraries(bsp-static os-static)
 
-list(TRANSFORM BSP_INC PREPEND "bsp/")
+list(TRANSFORM BSP_INC PREPEND "catpilot/bsp/")
 set(BSP_EXT_INC ${BSP_INC} PARENT_SCOPE)

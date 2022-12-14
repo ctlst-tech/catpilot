@@ -1,8 +1,6 @@
 #include <math.h>
 #include "cube_sensors_icm20948.h"
-#include "../../../../bsp/boards/cube/board.h"
-#include "../../../../bsp/ics/icm20649/icm20649.h"
-#include "../../../../bsp/mcu/periph/gpio/stm32/gpio.h"
+#include "board.h"
 
 #define deg2rad(d) ((d) * (M_PI / 180.0))
 

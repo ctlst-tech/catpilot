@@ -1,7 +1,5 @@
 #include "cube_io_pwm.h"
-#include "../../../../bsp/boards/cube/board.h"
-#include "../../../../bsp/mcu/periph/gpio/stm32/gpio.h"
-#include "../../../../bsp/ics/cubeio/cubeio.h"
+#include "board.h"
 
 fspec_rv_t cube_io_pwm_pre_exec_init(
         const cube_io_pwm_optional_inputs_flags_t *input_flags,

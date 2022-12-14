@@ -1,7 +1,5 @@
 #include "cube_io_gpio.h"
-#include "../../../../bsp/boards/cube/board.h"
-#include "../../../../bsp/ics/icm20649/icm20649.h"
-#include "../../../../bsp/mcu/periph/gpio/stm32/gpio.h"
+#include "board.h"
 
 void cube_io_gpio_exec(const cube_io_gpio_inputs_t *i, cube_io_gpio_outputs_t *o, const cube_io_gpio_params_t *p)
 {
