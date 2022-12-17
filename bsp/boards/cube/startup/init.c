@@ -20,13 +20,22 @@ uint32_t rcc_system_clock = 400000000;
 uint32_t *board_monitor_counter;
 static FATFS fs;
 
+typedef struct {
+    void *(*thread)(void *arg);
+    size_t stacksize;
+} main_thread_t;
+main_thread_t main_thread;
+
 void board_start_thread(void *param);
 
-int board_start(void *(*main_thread)(void *arg)) {
+int board_start(void *(*thread)(void *arg), size_t stacksize) {
     HAL_Init();
     board_clock_init();
     board_monitor_init();
-    xTaskCreate(board_start_thread, "board_start_thread", 100, main_thread, 3, NULL);
+    main_thread.thread = thread;
+    main_thread.stacksize = stacksize;
+    xTaskCreate(board_start_thread, "board_start_thread",
+                configMINIMAL_STACK_SIZE, &main_thread, 3, NULL);
     vTaskStartScheduler();
     return 0;
 }
@@ -48,14 +57,14 @@ int board_init(char *cli_port, char *baudrate, char *hash, char *state) {
 }
 
 void board_start_thread(void *param) {
-    void *main_thread = param;
+    main_thread_t *main_thread = (main_thread_t *)param;
     pthread_t tid;
     pthread_attr_t attr;
     int arg = 0;
 
     pthread_attr_init(&attr);
-    pthread_attr_setstacksize(&attr, 65535);
-    pthread_create(&tid, &attr, main_thread, &arg);
+    pthread_attr_setstacksize(&attr, main_thread->stacksize);
+    pthread_create(&tid, &attr, main_thread->thread, &arg);
     pthread_join(tid, NULL);
     pthread_exit(NULL);
 }
