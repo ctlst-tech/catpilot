@@ -11,7 +11,7 @@
 
 int board_clock_init(void);
 int board_monitor_init(void);
-int board_cli_init(char *cli_port, char *baudrate, char *hash, char *state);
+int board_cli_init(char *cli_port, char *baudrate);
 int board_periph_init(void);
 int board_fs_init(void);
 int board_services_start(void);
@@ -40,8 +40,8 @@ int board_start(void *(*thread)(void *arg), size_t stacksize) {
     return 0;
 }
 
-int board_init(char *cli_port, char *baudrate, char *hash, char *state) {
-    if (board_cli_init(cli_port, baudrate, hash, state)) {
+int board_init(char *cli_port, char *baudrate) {
+    if (board_cli_init(cli_port, baudrate)) {
         return -1;
     }
     if (board_fs_init()) {
@@ -69,7 +69,7 @@ void board_start_thread(void *param) {
     pthread_exit(NULL);
 }
 
-int board_cli_init(char *cli_port, char *baudrate, char *hash, char *state) {
+int board_cli_init(char *cli_port, char *baudrate) {
     usart_t *cli = NULL;
 
     int baudrate_cmd = atoi(baudrate);
@@ -103,7 +103,7 @@ int board_cli_init(char *cli_port, char *baudrate, char *hash, char *state) {
     if (cli_service_start(128, 1)) {
         return -1;
     }
-    if (cli_cmd_init(hash, state)) {
+    if (cli_cmd_init()) {
         return -1;
     }
 

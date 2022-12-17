@@ -44,7 +44,7 @@ struct cli_node *cli_cmd_find(char *cmd_name);
 int cli_service_start(int buf_size, int priority);
 int cli_cmd_execute(char *cmd);
 int cli_cmd_print(void);
-int cli_cmd_init(char *hash, char *state);
+int cli_cmd_init(void);
 
 #ifdef __cplusplus
 }
