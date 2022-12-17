@@ -19,10 +19,10 @@ if (OS STREQUAL "freertos")
         freertos/osa/include/private
         freertos/osa/FreeRTOS-Plus-POSIX/include
         freertos/osa/FreeRTOS-Plus-POSIX/include/portable
-        freertos/usr/cli
-        freertos/usr/misc
-        freertos/usr/monitor
-        freertos/usr/service
+        freertos/services/cli
+        freertos/services/misc
+        freertos/services/monitor
+        freertos/services/service
     )
 
     list(APPEND OS_SRC
@@ -47,14 +47,14 @@ if (OS STREQUAL "freertos")
         freertos/osa/FreeRTOS-Plus-POSIX/source/FreeRTOS_POSIX_unistd.c
         freertos/osa/FreeRTOS-Plus-POSIX/source/FreeRTOS_POSIX_utils.c
         freertos/port/port.c
-        freertos/usr/misc/bit.c
-        freertos/usr/misc/log.c
-        freertos/usr/misc/ring_buf.c
-        freertos/usr/cli/cmd.c
-        freertos/usr/cli/node.c
-        freertos/usr/cli/service.c
-        freertos/usr/monitor/monitor.c
-        freertos/usr/service/service.c
+        freertos/services/misc/bit.c
+        freertos/services/misc/log.c
+        freertos/services/misc/ring_buf.c
+        freertos/services/cli/cmd.c
+        freertos/services/cli/node.c
+        freertos/services/cli/service.c
+        freertos/services/monitor/monitor.c
+        freertos/services/service/service.c
     )
 
 else ()

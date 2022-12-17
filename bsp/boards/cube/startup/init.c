@@ -21,13 +21,12 @@ uint32_t *board_monitor_counter;
 static FATFS fs;
 
 void board_start_thread(void *param);
-extern void *catpilot(void *param);
 
-int board_start(void) {
+int board_start(void *(*main_thread)(void *arg)) {
     HAL_Init();
     board_clock_init();
     board_monitor_init();
-    xTaskCreate(board_start_thread, "board_start_thread", 100, NULL, 3, NULL);
+    xTaskCreate(board_start_thread, "board_start_thread", 100, main_thread, 3, NULL);
     vTaskStartScheduler();
     return 0;
 }
@@ -49,13 +48,14 @@ int board_init(char *cli_port, char *baudrate, char *hash, char *state) {
 }
 
 void board_start_thread(void *param) {
+    void *main_thread = param;
     pthread_t tid;
     pthread_attr_t attr;
     int arg = 0;
 
     pthread_attr_init(&attr);
     pthread_attr_setstacksize(&attr, 65535);
-    pthread_create(&tid, &attr, catpilot, &arg);
+    pthread_create(&tid, &attr, main_thread, &arg);
     pthread_join(tid, NULL);
     pthread_exit(NULL);
 }
