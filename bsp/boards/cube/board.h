@@ -11,7 +11,7 @@
 
 #define BOARD_MAX_USART 6
 
-int board_start(void);
+int board_start(void *(*thread)(void *arg), size_t stacksize);
 int board_init(char *cli_port, char *baudrate, char *hash, char *state);
 int board_fail(void);
 
