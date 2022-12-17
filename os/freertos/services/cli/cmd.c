@@ -1,8 +1,5 @@
 #include "cli.h"
 
-char git_hash[32];
-char git_state[32];
-
 extern int log_print(int argc, char **argv);
 
 char logo[] = "\003\014" 
@@ -35,8 +32,8 @@ int help(int argc, char **argv) {
 }
 
 int version(int argc, char **argv) {
-    printf("Commit hash: %s\n", git_hash);
-    printf("Commit state: %s\n", git_state);
+    printf("uas-catpilot %s%s\n", GIT_HASH_UAS, GIT_STATE_UAS);
+    printf("catpilot %s%s\n", GIT_HASH_CATPILOT, GIT_STATE_CATPILOT);
     return 0;
 }
 
@@ -45,10 +42,9 @@ int clear(int argc, char **argv) {
     return 0;
 }
 
-int cli_cmd_init(char *hash, char *state) {
+int cli_cmd_init(void) {
     printf("%s", logo);
-    strncpy(git_hash, hash, 32);
-    strncpy(git_state, state, 32);
+
     if(cli_cmd_reg("help", help) == NULL) {
         return -1;
     }
