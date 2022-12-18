@@ -4,7 +4,7 @@ Catpilot is an open-source library for drone autopilots. It is part of the gener
 # Project structure
 - bsp - drivers and high abstraction layer to work with a specific autopilot
 - [c-atom](https://github.com/ctlst-tech/c-atom) - framework for embedded systems
-- f_specs - description of common atomic functions
+- f_specs - description of common atomic functions for specific board
 - os - operating systems and POSIX implementations
 
 ![image](doc/gen_struct_diag.jpg)
