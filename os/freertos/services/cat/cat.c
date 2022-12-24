@@ -7,15 +7,21 @@ static void cat_print_help(void) {
 }
 
 static void cat_print_file_content(const char *path) {
-    int fd = open(path, O_WRONLY);
+    int fd = open(path, O_RDONLY);
 
     if (fd < 0) {
         printf("%s\n", strerror(errno));
         return;
     }
 
-    read(fd, buffer, sizeof(buffer));
-    printf("%s\n", buffer);
+    int len = read(fd, buffer, sizeof(buffer));
+    if (len < 0) {
+        printf("%s\n", strerror(errno));
+        return;
+    }
+
+    write(1, buffer, len);
+    close(fd);
 }
 
 int cat_commander(int argc, char **argv) {

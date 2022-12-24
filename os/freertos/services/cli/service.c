@@ -34,6 +34,8 @@ void *cli_echo(void *arg) {
                 if (cli->cmd_len > 0) {
                     cli->cmd_len--;
                 }
+            } else if (cli->rbuf[i] < 32) {
+                break;
             } else {
                 cli->wbuf[cli->wlen] = cli->rbuf[i];
                 cli->wlen++;
