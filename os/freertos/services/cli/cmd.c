@@ -46,19 +46,19 @@ int clear(int argc, char **argv) {
 int cli_cmd_init(void) {
     printf("%s", logo);
 
-    if(cli_cmd_reg("help", help) == NULL) {
-        return -1;
-    }
-    if(cli_cmd_reg("version", version) == NULL) {
+    if(cli_cmd_reg("cat", cat_commander) == NULL) {
         return -1;
     }
     if(cli_cmd_reg("clear", clear) == NULL) {
         return -1;
     }
+    if(cli_cmd_reg("help", help) == NULL) {
+        return -1;
+    }
     if(cli_cmd_reg("log", log_print) == NULL) {
         return -1;
     }
-    if(cli_cmd_reg("cat", cat_commander) == NULL) {
+    if(cli_cmd_reg("version", version) == NULL) {
         return -1;
     }
     return 0;

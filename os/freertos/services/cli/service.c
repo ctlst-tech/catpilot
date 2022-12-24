@@ -28,6 +28,12 @@ void *cli_echo(void *arg) {
                 pthread_cond_broadcast(&cli->cond);
                 pthread_mutex_unlock(&cli->mutex);
                 cli->cmd_len = 0;
+            } else if (cli->rbuf[i] == '\b') {
+                cli->wbuf[cli->wlen] = cli->rbuf[i];
+                cli->wlen++;
+                if (cli->cmd_len > 0) {
+                    cli->cmd_len--;
+                }
             } else {
                 cli->wbuf[cli->wlen] = cli->rbuf[i];
                 cli->wlen++;
