@@ -101,7 +101,6 @@ int open(const char *pathname, int flags) {
     rv = files[fd]->node->f_op.open(files[fd], relative_pathname);
 
     if (rv) {
-        errno = EIO;
         fd_delete(fd);
     } else {
         errno = 0;
@@ -423,4 +422,45 @@ int std_stream_init(const char *stream, void *dev,
     }
 
     return 0;
+}
+
+int mkdir(const char *pathname, mode_t mode) {
+    int fd, rv;
+
+    struct node *node = node_find(pathname, NODE_MODE_NEAREST_PATH);
+    errno = 0;
+
+    if (node == NULL || node->f_op.mkdir == NULL) {
+        errno = ENOENT;
+        return -1;
+    }
+
+    char *relative_pathname = strstr(pathname, node->name) + strlen(node->name);
+    while ((*relative_pathname) == '/' && (*relative_pathname) != '\0') {
+        relative_pathname++;
+    }
+    rv = node->f_op.mkdir(relative_pathname, mode);
+
+    return rv;
+}
+
+int rmdir(const char *pathname) {
+    int fd, rv;
+
+    struct node *node = node_find(pathname, NODE_MODE_NEAREST_PATH);
+    errno = 0;
+
+    if (node == NULL || node->f_op.rmdir == NULL) {
+        errno = ENOENT;
+        return -1;
+    }
+
+    char *relative_pathname = strstr(pathname, node->name) + strlen(node->name);
+    while ((*relative_pathname) == '/' && (*relative_pathname) != '\0') {
+        relative_pathname++;
+    }
+
+    rv = node->f_op.rmdir(relative_pathname);
+
+    return rv;
 }

@@ -310,6 +310,8 @@ static int board_sd_card_init(void) {
                                    .read = fatfs_read,
                                    .close = fatfs_close,
                                    .fsync = fatfs_syncfs,
+                                   .mkdir = fatfs_mkdir,
+                                   .rmdir = fatfs_rmdir,
                                    .dev = &sdio};
     char name[] = "SDCARD";
     if (sdcard_start(name, &sdio) == NULL) {

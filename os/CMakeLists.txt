@@ -19,6 +19,7 @@ if (OS STREQUAL "freertos")
         freertos/osa/include/private
         freertos/osa/FreeRTOS-Plus-POSIX/include
         freertos/osa/FreeRTOS-Plus-POSIX/include/portable
+        freertos/services/cat
         freertos/services/cli
         freertos/services/misc
         freertos/services/monitor
@@ -50,6 +51,7 @@ if (OS STREQUAL "freertos")
         freertos/services/misc/bit.c
         freertos/services/misc/log.c
         freertos/services/misc/ring_buf.c
+        freertos/services/cat/cat.c
         freertos/services/cli/cmd.c
         freertos/services/cli/node.c
         freertos/services/cli/service.c

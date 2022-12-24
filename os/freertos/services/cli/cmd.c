@@ -1,5 +1,6 @@
 #include "cli.h"
 
+extern int cat_commander(int argc, char **argv);
 extern int log_print(int argc, char **argv);
 
 char logo[] = "\003\014" 
@@ -55,6 +56,9 @@ int cli_cmd_init(void) {
         return -1;
     }
     if(cli_cmd_reg("log", log_print) == NULL) {
+        return -1;
+    }
+    if(cli_cmd_reg("cat", cat_commander) == NULL) {
         return -1;
     }
     return 0;

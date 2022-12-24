@@ -17,7 +17,6 @@ extern "C" {
 #define MAX_NAME_LEN 32
 #define EOF -1
 
-extern int errno;
 extern struct file *files[MAX_FILES];
 
 typedef off_t fpos_t;
@@ -60,9 +59,6 @@ void   clearerr(FILE *stream);
 void   sync(void);
 int    mkdir(const char *pathname, mode_t mode);
 int    rmdir(const char *pathname);
-char  *dirname(char *str);
-int    rename(const char *oldpath, const char *newpath);
-char  *getcwd(char *pathname, int len);
 
 int std_stream_init(const char *stream, void *dev,
                     int (*dev_open)(struct file *file, const char *path),
