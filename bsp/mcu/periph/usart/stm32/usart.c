@@ -270,7 +270,7 @@ int usart_open(FILE *file, const char *path) {
     char name[32];
     snprintf(name, MAX_NAME_LEN, "%s_read_thread", cfg->name);
     xTaskCreate(usart_read_task, name, 512, cfg, cfg->task_priority, NULL);
-    snprintf(name, MAX_NAME_LEN, "%s_wirte_thread", cfg->name);
+    snprintf(name, MAX_NAME_LEN, "%s_write_thread", cfg->name);
     xTaskCreate(usart_write_task, name, 512, cfg, cfg->task_priority, NULL);
 
     cfg->p.tasks_init = true;
