@@ -6,6 +6,7 @@ var_rtcm_frame = VectorTypeRef(vector_type_name='core.type.vector_u8', size=Para
 Function(
     name='ublox.protocol.rx_framing',
     title="ublox GNSS protocol frame decoding",
+    has_pre_exec_init_call=True,
     parameters=[
         Parameter(
             name='ubx_frame_size',
@@ -20,6 +21,13 @@ Function(
             value_type='core.type.u16',
             tunable=False,
             default=128,
+        ),
+        Parameter(
+            name='baudrate',
+            title='Baudrate',
+            value_type='core.type.u32',
+            tunable=False,
+            default=115200,
         )
     ],
     # inputs=[
@@ -55,17 +63,28 @@ Function(
             value_type='core.type.u32',
         ),
     ],
-    state=[        
+    state=[
+        Variable(
+            name='fd',
+            title='File descriptor',
+            value_type='core.type.i32',
+        ),
+        Variable(
+            name='rx_buf',
+            title='rx_buffer',
+            value_type=VectorTypeRef(vector_type_name='core.type.vector_u8', size=256),
+        ),
+        Variable(
+            name='rx_buf_index',
+            title='Processed bytes in rx_buf',
+            value_type='core.type.u32',
+        ),
         Variable(
             name='ubx_buf',
             title='UBX accumulation buffer',
             value_type=var_ubx_frame,
         ),
-        Variable(
-            name='ubx_buf_len',
-            title='Bytes in ubx_buf',
-            value_type='core.type.u32',
-        ),
+
         Variable(
             name='ubx_rx_state',
             title='UBX Frame parsing state',
@@ -76,11 +95,7 @@ Function(
             title='RTCM accumulation buffer',
             value_type=var_rtcm_frame
         ),
-        Variable(
-            name='rtcm_buf_len',
-            title='Bytes in rtcm_buf',
-            value_type='core.type.u32'
-        ),
+
         Variable(
             name='ubx_rx_bytes_cnt',
             title='UBX RX bytes counter',
