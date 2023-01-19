@@ -56,7 +56,7 @@ if (OS STREQUAL "freertos")
         freertos/services/monitor/monitor.c
         freertos/services/service/service.c
     )
-elseif (OS STREQUAL "linux")
+elseif (OS STREQUAL "posix")
     # OS specific sources
 else ()
     message(FATAL_ERROR "Operation system is not selected!")
@@ -79,7 +79,7 @@ if (FS STREQUAL "fatfs")
         fatfs/fsa/stdio.c
         fatfs/port/diskio.c
     )
-elseif (FS STREQUAL "linux")
+elseif (FS STREQUAL "posix")
     # FS specific sources
 else ()
     message(FATAL_ERROR "File system is not selected!")

@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 
+add_subdirectory(c-atom)
+
 if (NOT ${MCU_FAMILY} MATCHES "host")
     # FIXME
     include_directories(
@@ -15,12 +17,11 @@ if (NOT ${MCU_FAMILY} MATCHES "host")
     )
     add_subdirectory(bsp)
     add_subdirectory(os)
+    target_link_libraries(c-atom-static PUBLIC os-static)
+    target_link_libraries(eswb-static PUBLIC os-static)
 endif()
 
-add_subdirectory(c-atom)
 
 set(OS ${OS_EXT_INC} PARENT_SCOPE)
 set(BSP ${BSP_EXT_INC} PARENT_SCOPE)
 
-target_link_libraries(c-atom-static PUBLIC os-static)
-target_link_libraries(eswb-static PUBLIC os-static)
