@@ -80,15 +80,24 @@ Function(
             value_type='core.type.u32',
         ),
         Variable(
+            name='rx_state',
+            title='Frame parsing state',
+            value_type='core.type.u32'
+        ),
+        Variable(
+            name='rx_bytes_cnt',
+            title='UBX RX bytes counter',
+            value_type='core.type.u32'
+        ),
+        Variable(
+            name='rx_unframed_bytes_cnt',
+            title='Bytes within non recognized frame',
+            value_type='core.type.u32'
+        ),
+        Variable(
             name='ubx_buf',
             title='UBX accumulation buffer',
             value_type=var_ubx_frame,
-        ),
-
-        Variable(
-            name='ubx_rx_state',
-            title='UBX Frame parsing state',
-            value_type='core.type.u32'
         ),
         Variable(
             name='rtcm_buf',
@@ -96,11 +105,6 @@ Function(
             value_type=var_rtcm_frame
         ),
 
-        Variable(
-            name='ubx_rx_bytes_cnt',
-            title='UBX RX bytes counter',
-            value_type='core.type.u32'
-        ),
         Variable(
             name='ubx_err_crc_cnt',
             title='UBX CRC errors counters',
@@ -111,11 +115,7 @@ Function(
             title='UBX Good frames counter',
             value_type='core.type.u32'
         ),
-        Variable(
-            name='rtcm_rx_bytes_cnt',
-            title='RTCM RX bytes counter',
-            value_type='core.type.u32'
-        ),
+
         Variable(
             name='rtcm_err_crc_cnt',
             title='RTCM CRC errors counters',
