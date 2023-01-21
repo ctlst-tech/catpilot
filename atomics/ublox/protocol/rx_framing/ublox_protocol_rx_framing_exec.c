@@ -2,6 +2,9 @@
 #include <sys/fcntl.h>
 #include <unistd.h>
 
+
+#include <pthread.h> // FIXME debug only
+
 #include "ublox_protocol_rx_framing.h"
 
 fspec_rv_t ublox_protocol_rx_framing_pre_exec_init(
@@ -81,6 +84,9 @@ static unsigned ubx_process(ublox_protocol_rx_framing_state_t *s, ublox_protocol
 #   define UBX_PAYLOAD_BEGIN_OFFSET(buf__) ((buf__) + sizeof(*ubx_hdr))
 #   define UBX_PAYLOAD_END_OFFSET(buf__,pl__) (UBX_PAYLOAD_BEGIN_OFFSET(buf__) + (pl__))
 
+    char pn[16];
+    pthread_getname_np(pthread_self(), pn, sizeof(pn));
+
     do {
         c = s->rx_buf.vector[s->rx_buf_index];
 
@@ -152,7 +158,8 @@ static unsigned ubx_process(ublox_protocol_rx_framing_state_t *s, ublox_protocol
                         out_update_cmd->ubx_frame_updated = 1;
                         s->ubx_frame_cnt++;
 
-                        printf("UBX. got frame %02X %02X len == %d | rx_bytes % 6d; frame_cnt % 4d; crc_err %d; unframed_bytes % 6d;\n",
+                        printf("%s || UBX. got frame %02X %02X len == %d | rx_bytes % 6d; frame_cnt % 4d; crc_err %d; unframed_bytes % 6d;\n",
+                               pn,
                                ubx_hdr->cls, ubx_hdr->id, ubx_hdr->len,
                                s->rx_bytes_cnt, s->ubx_frame_cnt, s->ubx_err_crc_cnt,
                                s->rx_unframed_bytes_cnt);
@@ -179,7 +186,8 @@ static unsigned ubx_process(ublox_protocol_rx_framing_state_t *s, ublox_protocol
                     s->rtcm_frame_cnt++;
                     s->rx_state = RESET;
 
-                    printf("RTCM. len_total=%d  len_payload=%d | rx_bytes % 6d; frame_cnt % 4d; crc_err %d; unframed_bytes % 6d;\n",
+                    printf("%s || RTCM. len_total=%d  len_payload=%d | rx_bytes % 6d; frame_cnt % 4d; crc_err %d; unframed_bytes % 6d;\n",
+                           pn,
                            s->rtcm_buf.curr_len,
                            swap_bytes(rtcm_hdr->len),
                            s->rx_bytes_cnt, s->rtcm_frame_cnt, s->ubx_err_crc_cnt,
