@@ -117,7 +117,7 @@ static void ist8310_fsm(void *area) {
 
 void ist8310_get_meas_non_block(ist8310_t *dev, void *ptr) {
     xSemaphoreTake(dev->sync.mutex, portMAX_DELAY);
-    memcpy(ptr, (void *)&dev, sizeof(ist8310_meas_t));
+    memcpy(ptr, (void *)&dev->meas, sizeof(ist8310_meas_t));
     xSemaphoreGive(dev->sync.mutex);
 }
 

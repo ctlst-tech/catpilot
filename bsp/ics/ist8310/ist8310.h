@@ -20,7 +20,6 @@ typedef struct {
     float mag_x;
     float mag_y;
     float mag_z;
-    uint32_t dt;
 } ist8310_meas_t;
 
 typedef struct {

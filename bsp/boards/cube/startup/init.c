@@ -351,7 +351,7 @@ int board_services_start(void) {
     cubeio = cubeio_start("CUBEIO", 0, 19, &usart6);
     ms5611_1 = ms5611_start("MS5611_INT", 100, 17, &spi1, &gpio_spi1_cs2);
     ms5611_2 = ms5611_start("MS5611_EXT", 100, 17, &spi4, &gpio_spi4_cs3);
-    ist8310 = ist8310_start("IST8310_EXT", 20, 17, &i2c2);
+    ist8310 = ist8310_start("IST8310_EXT", 100, 17, &i2c2);
     return 0;
 }
 
