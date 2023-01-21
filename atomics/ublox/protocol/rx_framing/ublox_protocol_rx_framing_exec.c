@@ -11,7 +11,7 @@ fspec_rv_t ublox_protocol_rx_framing_pre_exec_init(
 {
     struct termios 	termios_p;
 
-    s->fd = open("/dev/cu.usbmodem2101", O_RDWR);
+    s->fd = open(p->serial_path, O_RDWR);
     if (s->fd < 0) {
         return fspec_rv_system_err;
     }

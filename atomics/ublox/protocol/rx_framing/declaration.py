@@ -23,6 +23,12 @@ Function(
             default=128,
         ),
         Parameter(
+            name='serial_path',
+            title='Device path',
+            value_type='core.type.str',
+            tunable=False,
+        ),
+        Parameter(
             name='baudrate',
             title='Baudrate',
             value_type='core.type.u32',
