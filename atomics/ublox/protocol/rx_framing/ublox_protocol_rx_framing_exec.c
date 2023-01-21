@@ -179,7 +179,8 @@ static unsigned ubx_process(ublox_protocol_rx_framing_state_t *s, ublox_protocol
                     s->rtcm_frame_cnt++;
                     s->rx_state = RESET;
 
-                    printf("RTCM. got frame len == %d | rx_bytes % 6d; frame_cnt % 4d; crc_err %d; unframed_bytes % 6d;\n",
+                    printf("RTCM. len_total=%d  len_payload=%d | rx_bytes % 6d; frame_cnt % 4d; crc_err %d; unframed_bytes % 6d;\n",
+                           s->rtcm_buf.curr_len,
                            swap_bytes(rtcm_hdr->len),
                            s->rx_bytes_cnt, s->rtcm_frame_cnt, s->ubx_err_crc_cnt,
                            s->rx_unframed_bytes_cnt);
