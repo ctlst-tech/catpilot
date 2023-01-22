@@ -191,7 +191,7 @@ usart_t usart7 = {
 // GPS2
 usart_t usart8 = {
     .name = "ttyS5",
-    .alt_name = "GPS",
+    .alt_name = "GPS2",
     .init = {
         .Instance = UART8,
         .Init.BaudRate = 115200,
