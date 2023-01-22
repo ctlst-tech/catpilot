@@ -24,12 +24,12 @@ typedef struct {
 
 typedef struct {
     uint8_t STAT1;
-    uint8_t DATAXH;
     uint8_t DATAXL;
-    uint8_t DATAYH;
+    uint8_t DATAXH;
     uint8_t DATAYL;
-    uint8_t DATAZH;
+    uint8_t DATAYH;
     uint8_t DATAZL;
+    uint8_t DATAZH;
 } ist8310_raw_t;
 
 typedef struct {

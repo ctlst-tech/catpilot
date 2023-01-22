@@ -126,6 +126,17 @@ void ist8310_get_meas_block(ist8310_t *dev, void *ptr) {
     ist8310_get_meas_non_block(dev, ptr);
 }
 
+void ist8310_stat(ist8310_t *dev) {
+    if (dev == NULL || dev->state != IST8310_READ) {
+        return;
+    }
+    printf("\n");
+    printf("Statistics:\n");
+    printf("mag_x = %.3f [G]\n", dev->meas.mag_x);
+    printf("mag_y = %.3f [G]\n", dev->meas.mag_y);
+    printf("mag_z = %.3f [G]\n", dev->meas.mag_z);
+}
+
 // Private functions
 static uint8_t ist8310_read_reg(ist8310_t *dev, uint8_t reg) {
     uint8_t buf[2];
@@ -162,12 +173,12 @@ static void ist8310_read_meas(ist8310_t *dev) {
 
 static int ist8310_process_meas(ist8310_t *dev) {
     if (dev->raw.STAT1 & DRDY) {
-        dev->meas.mag_x =
-            s_msb_lsb_16(dev->raw.DATAXH, dev->raw.DATAXL) * dev->param.mag_scale;
-        dev->meas.mag_y =
-            s_msb_lsb_16(dev->raw.DATAYH, dev->raw.DATAYL) * dev->param.mag_scale;
-        dev->meas.mag_z =
-            s_msb_lsb_16(dev->raw.DATAZH, dev->raw.DATAZL) * dev->param.mag_scale;
+        dev->meas.mag_x = s_msb_lsb_16(dev->raw.DATAXH, dev->raw.DATAXL) *
+                          dev->param.mag_scale;
+        dev->meas.mag_y = s_msb_lsb_16(dev->raw.DATAYH, dev->raw.DATAYL) *
+                          dev->param.mag_scale;
+        dev->meas.mag_z = s_msb_lsb_16(dev->raw.DATAZH, dev->raw.DATAZL) *
+                          dev->param.mag_scale;
     } else {
         return -1;
     }
