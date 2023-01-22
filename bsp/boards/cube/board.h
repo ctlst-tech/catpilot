@@ -66,13 +66,15 @@ extern gpio_t gpio_usart4_tx;
 extern gpio_t gpio_usart4_rx;
 extern gpio_t gpio_usart8_tx;
 extern gpio_t gpio_usart8_rx;
-extern gpio_t gpio_i2c2_scl;
-extern gpio_t gpio_i2c2_sda;
 extern gpio_t gpio_usart2_tx;
 extern gpio_t gpio_usart2_rx;
 extern gpio_t gpio_usart3_tx;
 extern gpio_t gpio_usart3_rx;
 extern gpio_t gpio_fmu_pwm[6];
+extern gpio_t gpio_i2c1_scl;
+extern gpio_t gpio_i2c1_sda;
+extern gpio_t gpio_i2c2_scl;
+extern gpio_t gpio_i2c2_sda;
 
 extern sdio_t sdio;
 extern spi_t spi1;
@@ -88,6 +90,7 @@ extern usart_t usart6;
 extern usart_t usart7;
 extern usart_t usart8;
 
+extern i2c_t i2c1;
 extern i2c_t i2c2;
 
 extern icm20649_t *icm20649;
