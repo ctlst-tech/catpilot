@@ -300,6 +300,14 @@ int board_periph_init(void) {
         LOG_ERROR("SPI4", "Initialization failed");
         return -1;
     }
+    if (i2c_init(&i2c1)) {
+        LOG_ERROR("I2C1", "Initialization failed");
+        return -1;
+    }
+    if (i2c_init(&i2c2)) {
+        LOG_ERROR("I2C2", "Initialization failed");
+        return -1;
+    }
     LOG_INFO("BOARD", "Initialization successful");
     return 0;
 }
@@ -345,8 +353,9 @@ int board_services_start(void) {
     icm20948 =
         icm20948_start("ICM20948", 2, 20, &spi4, &gpio_spi4_cs1, NULL, 0);
     cubeio = cubeio_start("CUBEIO", 0, 19, &usart6);
-    ms5611_1 = ms5611_start("MS5611_INT", 100, 18, &spi1, &gpio_spi1_cs2);
-    ms5611_2 = ms5611_start("MS5611_EXT", 100, 18, &spi4, &gpio_spi4_cs3);
+    ms5611_1 = ms5611_start("MS5611_INT", 100, 17, &spi1, &gpio_spi1_cs2);
+    ms5611_2 = ms5611_start("MS5611_EXT", 100, 17, &spi4, &gpio_spi4_cs3);
+    ist8310 = ist8310_start("IST8310_EXT", 100, 17, &i2c1);
     return 0;
 }
 

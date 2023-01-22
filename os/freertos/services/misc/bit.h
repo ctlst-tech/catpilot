@@ -13,6 +13,7 @@
 #define BIT7 (1 << 7)
 
 uint16_t msb_lsb_16(uint8_t msb, uint8_t lsb);
+int16_t s_msb_lsb_16(uint8_t msb, uint8_t lsb);
 uint32_t get_num_from_mask(uint32_t reg);
 uint32_t get_mask_from_num(uint32_t num);
 

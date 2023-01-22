@@ -67,6 +67,7 @@ list(APPEND BSP_SRC
     mcu/periph/dma/${MCU_FAMILY}/dma.c
     mcu/periph/exti/${MCU_FAMILY}/exti.c
     mcu/periph/gpio/${MCU_FAMILY}/gpio.c
+    mcu/periph/i2c/${MCU_FAMILY}/i2c.c
     mcu/periph/irq/${MCU_FAMILY}/irq.c
     mcu/periph/sdio/${MCU_FAMILY}/sdio.c
     mcu/periph/spi/${MCU_FAMILY}/spi.c
