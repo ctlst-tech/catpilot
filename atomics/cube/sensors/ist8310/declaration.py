@@ -10,17 +10,17 @@ Function(
     outputs=[
         Output(
             name='magx',
-            title='X-axis component',
+            title='X-axis magnetic induction',
             value_type='core.type.f64'
         ),
         Output(
             name='magy',
-            title='Y-axis component',
+            title='Y-axis magnetic induction',
             value_type='core.type.f64'
         ),
         Output(
             name='magz',
-            title='Z-axis component',
+            title='Z-axis magnetic induction',
             value_type='core.type.f64'
         ),
     ],
