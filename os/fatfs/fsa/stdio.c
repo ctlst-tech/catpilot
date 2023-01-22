@@ -87,6 +87,7 @@ int open(const char *pathname, int flags) {
     fd = fd_new();
 
     if (fd_check(fd)) {
+        errno = ENOENT;
         return -1;
     }
 
@@ -101,8 +102,11 @@ int open(const char *pathname, int flags) {
     rv = files[fd]->node->f_op.open(files[fd], relative_pathname);
 
     if (rv) {
-        errno = EIO;
+        if (errno == 0) {
+            errno = EIO;
+        }
         fd_delete(fd);
+        rv = -1;
     } else {
         errno = 0;
         rv = fd;
