@@ -1,5 +1,4 @@
 #include <sys/termios.h>
-#include <sys/fcntl.h>
 #include <unistd.h>
 
 
@@ -61,7 +60,7 @@ uint16_t ubx_calc_crc(const uint8_t *buf, size_t n) {
     uint8_t ck_a = 0;
     uint8_t ck_b = 0;
 
-    for (int i = 0; i < n; i++) {
+    for (size_t i = 0; i < n; i++) {
         ck_a = ck_a + buf[i];
         ck_b = ck_b + ck_a;
     }
