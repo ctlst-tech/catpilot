@@ -14,7 +14,7 @@ uint32_t monitor_get_counter(void) {
     return (*board_monitor_counter);
 }
 
-static char stat_buffer[1024];
+static char stat_buffer[8192];
 
 static void monitor_print_help(void) {
     printf(
