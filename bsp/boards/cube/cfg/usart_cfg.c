@@ -183,7 +183,7 @@ usart_t usart7 = {
     .gpio_rx = &gpio_usart7_rx,
     .timeout = portMAX_DELAY,
     .buf_size = 1024,
-    .irq_priority = 9,
+    .irq_priority = 11,
     .task_priority = 1,
     .p = {0}
 };
@@ -202,8 +202,36 @@ usart_t usart8 = {
         .Init.StopBits = UART_STOPBITS_1,
         .Init.WordLength = UART_WORDLENGTH_8B
     },
-    .dma_tx = {0},
-    .dma_rx = {0},
+    .dma_tx = {
+        .init = {
+            .Instance = DMA2_Stream4,
+            .Init.Request = DMA_REQUEST_UART8_TX,
+            .Init.Direction = DMA_MEMORY_TO_PERIPH,
+            .Init.PeriphInc = DMA_PINC_DISABLE,
+            .Init.MemInc = DMA_MINC_ENABLE,
+            .Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE,
+            .Init.MemDataAlignment = DMA_MDATAALIGN_BYTE,
+            .Init.Mode = DMA_NORMAL,
+            .Init.Priority = DMA_PRIORITY_LOW,
+            .Init.FIFOMode = DMA_FIFOMODE_DISABLE
+        },
+        .irq_priority = 8
+    },
+    .dma_rx = {
+        .init = {
+            .Instance = DMA2_Stream5,
+            .Init.Request = DMA_REQUEST_UART8_RX,
+            .Init.Direction = DMA_PERIPH_TO_MEMORY,
+            .Init.PeriphInc = DMA_PINC_DISABLE,
+            .Init.MemInc = DMA_MINC_ENABLE,
+            .Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE,
+            .Init.MemDataAlignment = DMA_MDATAALIGN_BYTE,
+            .Init.Mode = DMA_NORMAL,
+            .Init.Priority = DMA_PRIORITY_LOW,
+            .Init.FIFOMode = DMA_FIFOMODE_DISABLE
+        },
+        .irq_priority = 8
+    },
     .mode = USART_IDLE,
     .gpio_tx = &gpio_usart8_tx,
     .gpio_rx = &gpio_usart8_rx,
