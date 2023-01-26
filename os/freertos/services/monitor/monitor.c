@@ -14,7 +14,8 @@ uint32_t monitor_get_counter(void) {
     return (*board_monitor_counter);
 }
 
-static char stat_buffer[8192];
+static char monitor_stat_buffer[configMAX_TASK_STATUS_ARRAY_SIZE *
+                                configMAX_TASK_STATUS_STRING_LEGNTH];
 
 static void monitor_print_help(void) {
     printf(
@@ -25,8 +26,8 @@ static void monitor_print_help(void) {
 
 static void monitor_print_thread_stat(void) {
     printf("------------------------ Threads ------------------------\n");
-    vTaskGetRunTimeStats(stat_buffer);
-    printf("%s", stat_buffer);
+    vTaskGetRunTimeStats(monitor_stat_buffer);
+    printf("%s", monitor_stat_buffer);
 }
 
 static void monitor_print_mem_stat(void) {

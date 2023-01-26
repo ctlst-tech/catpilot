@@ -12,13 +12,17 @@ MEMORY
 
 ENTRY(Reset_Handler)
 
-_HeapStart = ORIGIN(AXI_SRAM);
-_HeapSize = LENGTH(AXI_SRAM);
-_HeapLimit = ORIGIN(AXI_SRAM) + _HeapSize;
+_HeapAXIStart = ORIGIN(AXI_SRAM);
+_HeapAXISize = LENGTH(AXI_SRAM);
+_HeapAXILimit = ORIGIN(AXI_SRAM) + _HeapAXISize;
 
-_HeapExtraStart = ORIGIN(DTCM_RAM);
-_HeapExtraSize = LENGTH(DTCM_RAM);
-_HeapExtraLimit = ORIGIN(DTCM_RAM) + _HeapExtraSize;
+_HeapDTCMStart = ORIGIN(DTCM_RAM);
+_HeapDTCMSize = LENGTH(DTCM_RAM);
+_HeapDTCMLimit = ORIGIN(DTCM_RAM) + _HeapDTCMSize;
+
+_HeapSRAM123Start = ORIGIN(SRAM_123);
+_HeapSRAM123Size = LENGTH(SRAM_123);
+_HeapSRAM123Limit = ORIGIN(SRAM_123) + _HeapSRAM123Size;
 
 _estack = ORIGIN(DTCM_RAM) + LENGTH(DTCM_RAM);
 
@@ -97,7 +101,7 @@ SECTIONS
         PROVIDE ( end = . );
         PROVIDE ( _end = . );
         _start_heap = .;
-        . = _HeapSize - _ebss;
+        . = _HeapAXISize - _ebss;
         . = ALIGN(8);
     } > AXI_SRAM
 
