@@ -30,9 +30,11 @@ struct cli_service {
     char *rbuf;
     char *wbuf;
     char *cmd;
+    char *cmd_prev;
     int rlen;
     int wlen;
     int cmd_len;
+    int cmd_prev_len;
     pthread_mutex_t mutex;
     pthread_cond_t cond;
 };
