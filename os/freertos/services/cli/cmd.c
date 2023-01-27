@@ -28,6 +28,11 @@ int clear(int argc, char **argv) {
     return 0;
 }
 
+int serial_bridge(int argc, char **argv) {
+    // path_to_device baudrate
+    return 0;
+}
+
 int cli_cmd_init(void) {
     printf("%s", logo);
 
@@ -41,6 +46,9 @@ int cli_cmd_init(void) {
         return -1;
     }
     if(cli_cmd_reg("log", log_print) == NULL) {
+        return -1;
+    }
+    if(cli_cmd_reg("serial_bridge", serial_bridge) == NULL) {
         return -1;
     }
     return 0;
