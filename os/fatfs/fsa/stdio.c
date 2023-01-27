@@ -428,3 +428,25 @@ int std_stream_init(const char *stream, void *dev,
 
     return 0;
 }
+
+extern struct node null_node;
+
+int std_stream_deinit(const char *stream) {
+    int fd;
+    if (!strcmp(stream, "stdin")) {
+        fd = 0;
+    } else if (!strcmp(stream, "stdout")) {
+        fd = 1;
+    } else if (!strcmp(stream, "stderr")) {
+        fd = 2;
+    } else {
+        return -1;
+    }
+
+    if (files[fd] == NULL) {
+        return -1;
+    }
+
+    files[fd]->node = &null_node;
+    return 0;
+}
