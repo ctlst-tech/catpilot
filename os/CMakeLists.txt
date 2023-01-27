@@ -22,6 +22,7 @@ if (OS STREQUAL "freertos")
         freertos/services/cli
         freertos/services/misc
         freertos/services/monitor
+        freertos/services/serial_bridge
         freertos/services/service
     )
 
@@ -54,6 +55,7 @@ if (OS STREQUAL "freertos")
         freertos/services/cli/node.c
         freertos/services/cli/service.c
         freertos/services/monitor/monitor.c
+        freertos/services/serial_bridge/serial_bridge.c
         freertos/services/service/service.c
     )
 elseif (OS STREQUAL "posix")
@@ -75,6 +77,7 @@ if (FS STREQUAL "fatfs")
         fatfs/core/ffunicode.c
         fatfs/fsa/fatfs.c
         fatfs/fsa/node.c
+        fatfs/fsa/null.c
         fatfs/fsa/printf.c
         fatfs/fsa/stdio.c
         fatfs/port/diskio.c

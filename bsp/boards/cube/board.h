@@ -14,6 +14,7 @@
 
 int board_start(void *(*thread)(void *arg), size_t stacksize);
 int board_init(char *cli_port, char *baudrate);
+void board_debug_mode(void);
 int board_fail(void);
 
 extern uint32_t rcc_system_clock;

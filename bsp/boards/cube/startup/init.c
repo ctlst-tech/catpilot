@@ -8,6 +8,7 @@
 #include "log.h"
 #include "os.h"
 #include "periph.h"
+#include "serial_bridge.h"
 
 int board_clock_init(void);
 int board_monitor_init(void);
@@ -54,6 +55,12 @@ int board_init(char *cli_port, char *baudrate) {
         return -1;
     }
     return 0;
+}
+
+void board_debug_mode(void) {
+    while(1) {
+        sleep(1);
+    }
 }
 
 void board_start_thread(void *param) {
@@ -347,6 +354,7 @@ int board_fs_init(void) {
 }
 
 int board_services_start(void) {
+    serial_bridge_start(15, 1024);
     icm20649 = icm20649_start("ICM20649", 2, 20, &spi1, &gpio_spi1_cs1,
                               &exti_spi1_drdy1);
     icm20602 = icm20602_start("ICM20602", 2, 20, &spi4, &gpio_spi4_cs2, NULL);
