@@ -19,12 +19,41 @@ typedef char *caddr_t;
 int heap_used;
 int heap_total;
 
-int heap_get_total(void) {
+static unsigned allocations_num = 0;
+static unsigned allocated_bytes = 0;
+static unsigned prev_allocations_num = 0;
+static unsigned prev_allocated_bytes = 0;
+
+
+unsigned heap_get_total(void) {
     return heap_total;
 }
 
-int heap_get_used(void) {
+unsigned heap_get_used(void) {
     return heap_used;
+}
+
+static unsigned heap_get_allocations_num_from_prev_call(void) {
+    unsigned rv = allocations_num - prev_allocations_num;
+    prev_allocations_num = allocations_num;
+    return rv;
+}
+
+static unsigned heap_get_allocated_bytes_from_prev_call(void) {
+    unsigned rv = allocated_bytes - prev_allocated_bytes;
+    prev_allocated_bytes = allocated_bytes;
+    return rv;
+}
+
+void heap_allocation_stat_init(void) {
+    prev_allocations_num = allocations_num;
+    prev_allocated_bytes = allocated_bytes;
+}
+
+void heap_allocation_stat_from_prev_call(const char *header) {
+    printf("%s: allocs %u, bytes %u, bytes_total %u\n", header,
+           heap_get_allocations_num_from_prev_call(),
+           heap_get_allocated_bytes_from_prev_call(), allocated_bytes);
 }
 
 caddr_t _sbrk(int incr) {
@@ -59,6 +88,9 @@ caddr_t _sbrk(int incr) {
     }
     heap_used += incr;
     heap_end += incr;
+
+    allocated_bytes += incr;
+    allocations_num++;
 
     return (caddr_t)prev_heap_end;
 }
