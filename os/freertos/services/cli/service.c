@@ -55,8 +55,10 @@ void *cli_echo(void *arg) {
             } else {
                 cli->wbuf[cli->wlen] = cli->rbuf[i];
                 cli->wlen++;
-                cli->cmd[cli->cmd_len] = cli->rbuf[i];
-                cli->cmd_len++;
+                if(cli->cmd_len < cli->buf_size) {
+                    cli->cmd[cli->cmd_len] = cli->rbuf[i];
+                    cli->cmd_len++;
+                }
             }
         }
 
