@@ -87,7 +87,7 @@ typedef struct {
 } reg_cfg_t;
 
 static const reg_cfg_t reg_cfg[SIZE_REG_CFG] = {
-    {CNTL2,     0, 0},
+    {CNTL2,     0, SRST},
     {CNTL3,     X_16BIT | Y_16BIT | Z_16BIT, 0},
     {AVGCNTL,   Y_16TIMES_S | XZ_16TIMES_S, Y_16TIMES_C | XZ_16TIMES_C},
     {PDCNTL,    PULSE_NORMAL, 0}
