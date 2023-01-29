@@ -107,7 +107,7 @@ int board_cli_init(char *cli_port, char *baudrate) {
     if (std_stream_init("stderr", cli, usart_open, usart_write, usart_read)) {
         return -1;
     }
-    if (cli_service_start(128, 1)) {
+    if (cli_service_start(CLI_MAX_CMD_LENGTH, 1)) {
         return -1;
     }
     if (cli_cmd_init()) {
