@@ -413,7 +413,7 @@ int std_stream_init(const char *stream, void *dev,
         return -1;
     }
 
-    strncpy(stream_name, stream, sizeof(stream_name));
+    strncpy(stream_name, stream, sizeof(stream_name) - 1);
     snprintf(stream_path, sizeof(stream_path), "/dev/%s", stream_name);
 
     if (node_mount(stream_path, &f_op) == NULL) {

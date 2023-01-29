@@ -10,7 +10,10 @@ i2c_t i2c1 = {
             .DualAddressMode = I2C_DUALADDRESS_DISABLE,
             .GeneralCallMode = I2C_GENERALCALL_DISABLE,
             .NoStretchMode = I2C_NOSTRETCH_DISABLE,
-            .Timing = 0x6000030D
+            .Timing = 0x00602173,
+            .OwnAddress1 = 0,
+            .OwnAddress2 = 0,
+            .OwnAddress2Masks = I2C_OA2_NOMASK,
         },
     },
     .dma_tx = {
@@ -45,7 +48,7 @@ i2c_t i2c1 = {
     },
     .scl = &gpio_i2c1_scl,
     .sda = &gpio_i2c1_sda,
-    .timeout = 20,
+    .timeout = 10,
     .irq_priority = 9,
     .p = {0}
 };
@@ -58,7 +61,7 @@ i2c_t i2c2 = {
             .DualAddressMode = I2C_DUALADDRESS_DISABLE,
             .GeneralCallMode = I2C_GENERALCALL_DISABLE,
             .NoStretchMode = I2C_NOSTRETCH_DISABLE,
-            .Timing = 0x6000030D
+            .Timing = 0x00602173
         },
     },
     .dma_tx = {
@@ -93,7 +96,7 @@ i2c_t i2c2 = {
     },
     .scl = &gpio_i2c2_scl,
     .sda = &gpio_i2c2_sda,
-    .timeout = 20,
+    .timeout = 10,
     .irq_priority = 9,
     .p = {0}
 };

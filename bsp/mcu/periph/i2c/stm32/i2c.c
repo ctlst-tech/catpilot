@@ -41,6 +41,13 @@ int i2c_init(i2c_t *cfg) {
     if ((rv = HAL_I2C_Init(&cfg->init))) {
         return rv;
     }
+    if ((rv = HAL_I2CEx_ConfigAnalogFilter(&cfg->init,
+                                           I2C_ANALOGFILTER_ENABLE))) {
+        return rv;
+    }
+    if ((rv = HAL_I2CEx_ConfigDigitalFilter(&cfg->init, 0))) {
+        return rv;
+    }
     if ((rv = irq_init(cfg->p.ev_id, cfg->irq_priority, i2c_ev_handler, cfg))) {
         return rv;
     }
@@ -82,7 +89,7 @@ int i2c_transmit(i2c_t *cfg, uint8_t address, uint8_t *pdata, uint16_t length) {
 
     HAL_I2C_Master_Transmit_DMA(&cfg->init, address, pdata, length);
 
-    if (xSemaphoreTake(cfg->p.sem, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
+    if (rv == HAL_OK && !xSemaphoreTake(cfg->p.sem, pdMS_TO_TICKS(cfg->timeout))) {
         rv = ETIMEDOUT;
     } else {
         rv = 0;
@@ -110,7 +117,7 @@ int i2c_receive(i2c_t *cfg, uint8_t address, uint8_t *pdata, uint16_t length) {
 
     HAL_I2C_Master_Receive_DMA(&cfg->init, address, pdata, length);
 
-    if (xSemaphoreTake(cfg->p.sem, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
+    if (rv == HAL_OK && !xSemaphoreTake(cfg->p.sem, pdMS_TO_TICKS(cfg->timeout))) {
         rv = ETIMEDOUT;
     } else {
         rv = 0;
@@ -126,6 +133,12 @@ void i2c_ev_handler(void *area) {
     i2c_t *cfg = (i2c_t *)area;
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     HAL_I2C_EV_IRQHandler(&cfg->init);
+    if (cfg->init.State == HAL_I2C_STATE_READY) {
+        xSemaphoreGiveFromISR(cfg->p.sem, &xHigherPriorityTaskWoken);
+        if (xHigherPriorityTaskWoken == pdTRUE) {
+            portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+        }
+    }
 }
 
 void i2c_er_handler(void *area) {
@@ -138,13 +151,6 @@ void i2c_dma_tx_handler(void *area) {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
     HAL_DMA_IRQHandler(&cfg->dma_tx.init);
-
-    if (cfg->dma_tx.init.State == HAL_DMA_STATE_READY) {
-        xSemaphoreGiveFromISR(cfg->p.sem, &xHigherPriorityTaskWoken);
-        if (xHigherPriorityTaskWoken == pdTRUE) {
-            portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-        }
-    }
 }
 
 void i2c_dma_rx_handler(void *area) {
@@ -153,12 +159,6 @@ void i2c_dma_rx_handler(void *area) {
 
     HAL_DMA_IRQHandler(&cfg->dma_rx.init);
 
-    if (cfg->dma_rx.init.State == HAL_DMA_STATE_READY) {
-        xSemaphoreGiveFromISR(cfg->p.sem, &xHigherPriorityTaskWoken);
-        if (xHigherPriorityTaskWoken == pdTRUE) {
-            portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-        }
-    }
 }
 
 static int i2c_id_init(i2c_t *cfg) {

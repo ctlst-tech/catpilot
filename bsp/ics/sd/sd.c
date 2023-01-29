@@ -10,7 +10,7 @@ sdcard_t *sdcard_start(char *name, sdio_t *sdio) {
 
     sdcard.sdio = sdio;
     dev = &sdcard;
-    strncpy(sdcard.name, name, MAX_NAME_LEN);
+    strncpy(sdcard.name, name, MAX_NAME_LEN - 1);
 
     return &sdcard;
 }

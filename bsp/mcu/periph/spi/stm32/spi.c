@@ -91,7 +91,7 @@ int spi_transmit(spi_t *cfg, uint8_t *pdata, uint16_t length) {
 
     HAL_SPI_Transmit_DMA(&cfg->init, pdata, length);
 
-    if (!xSemaphoreTake(cfg->p.sem, pdMS_TO_TICKS(cfg->timeout))) {
+    if (rv == HAL_OK && !xSemaphoreTake(cfg->p.sem, pdMS_TO_TICKS(cfg->timeout))) {
         rv = ETIMEDOUT;
     } else {
         rv = 0;
@@ -120,7 +120,7 @@ int spi_receive(spi_t *cfg, uint8_t *pdata, uint16_t length) {
 
     HAL_SPI_Receive_DMA(&cfg->init, pdata, length);
 
-    if (!xSemaphoreTake(cfg->p.sem, pdMS_TO_TICKS(cfg->timeout))) {
+    if (rv == HAL_OK && !xSemaphoreTake(cfg->p.sem, pdMS_TO_TICKS(cfg->timeout))) {
         rv = ETIMEDOUT;
     } else {
         rv = 0;
@@ -148,9 +148,9 @@ int spi_transmit_receive(spi_t *cfg, uint8_t *tdata, uint8_t *rdata,
 
     cfg->p.state = SPI_TRANSMIT_RECEIVE;
 
-    HAL_SPI_TransmitReceive_DMA(&cfg->init, tdata, rdata, length);
+    rv = HAL_SPI_TransmitReceive_DMA(&cfg->init, tdata, rdata, length);
 
-    if (!xSemaphoreTake(cfg->p.sem, pdMS_TO_TICKS(cfg->timeout))) {
+    if (rv == HAL_OK && !xSemaphoreTake(cfg->p.sem, pdMS_TO_TICKS(cfg->timeout))) {
         rv = ETIMEDOUT;
     } else {
         rv = 0;

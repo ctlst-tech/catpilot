@@ -81,8 +81,8 @@ static serial_bridge_t *serial_bridge_init(const char *src_path, int src_fd,
         return NULL;
     }
 
-    strncpy(bridge->src_path, src_path, MAX_NAME_LEN);
-    strncpy(bridge->dst_path, dst_path, MAX_NAME_LEN);
+    strncpy(bridge->src_path, src_path, MAX_NAME_LEN - 1);
+    strncpy(bridge->dst_path, dst_path, MAX_NAME_LEN - 1);
     bridge->src_fd = src_fd;
     bridge->dst_fd = dst_fd;
     bridge->buf_size = buf_size;
@@ -108,8 +108,8 @@ int serial_bridge_commander(int argc, char **argv) {
 
     char path1[MAX_NAME_LEN];
     char path2[MAX_NAME_LEN];
-    strncpy(path1, argv[1], MAX_NAME_LEN);
-    strncpy(path2, argv[2], MAX_NAME_LEN);
+    strncpy(path1, argv[1], MAX_NAME_LEN - 1);
+    strncpy(path2, argv[2], MAX_NAME_LEN - 1);
     if (strstr(path1, "/dev/ttyS") == NULL ||
         strstr(path2, "/dev/ttyS") == NULL) {
         printf(

@@ -26,7 +26,7 @@ ist8310_t *ist8310_start(char *name, uint32_t period, uint32_t priority,
         return NULL;
     }
 
-    strncpy(dev->name, name, MAX_NAME_LEN);
+    strncpy(dev->name, name, MAX_NAME_LEN - 1);
 
     dev->interface.i2c = i2c;
 
@@ -58,7 +58,7 @@ static void ist8310_fsm(void *area) {
     switch (dev->state) {
         case IST8310_RESET:
             ist8310_write_reg(dev, CNTL2, SRST);
-            vTaskDelay(20);
+            vTaskDelay(50);
             dev->state = IST8310_RESET_WAIT;
             break;
 
@@ -69,8 +69,6 @@ static void ist8310_fsm(void *area) {
                 dev->state = IST8310_CONF;
                 LOG_DEBUG(dev->name, "Device available");
             } else {
-                LOG_ERROR(dev->name,
-                          "Wrong default registers values after reset");
                 dev->state = IST8310_RESET;
                 dev->attempt++;
                 if (dev->attempt > 5) {
@@ -144,9 +142,10 @@ static uint8_t ist8310_read_reg(ist8310_t *dev, uint8_t reg) {
     buf[0] = (ADDRESS << 1) | READ;
     buf[1] = reg;
 
-    i2c_transmit(dev->interface.i2c, buf[0], &buf[1], 1);
-    i2c_receive(dev->interface.i2c, buf[0], &buf[1], 1);
-
+    int rv = i2c_transmit(dev->interface.i2c, buf[0], &buf[1], 1);
+    // printf("Write buf 0x%X rv = %d\n", buf[1], rv);
+    rv = i2c_receive(dev->interface.i2c, buf[0], &buf[1], 1);
+    // printf("Read buf 0x%X rv = %d\n", buf[1], rv);
     return buf[1];
 }
 
