@@ -27,6 +27,8 @@ int heap_get_used(void) {
     return heap_used;
 }
 
+static int bulk_data;
+
 caddr_t _sbrk(int incr) {
     static char *heap_end;
     static char *limit;
@@ -38,6 +40,10 @@ caddr_t _sbrk(int incr) {
                     //  (int)((char *)&_HeapSRAM123Limit - (char *)&_HeapSRAM123Start);
         limit = (char *)&_HeapAXILimit;
         heap_used += (int)((char *)&_end - (char *)&_HeapAXIStart);
+    }
+
+    if (incr > 1024) {
+        bulk_data++;
     }
 
     char *prev_heap_end = heap_end;
