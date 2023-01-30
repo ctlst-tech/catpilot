@@ -33,12 +33,13 @@ void *cli_echo(void *arg) {
                     cli->cmd_prev_len = cli->cmd_len;
                 }
                 cli->cmd_len = 0;
-            } else if (cli->rbuf[i] == '\b' || cli->rbuf[i] == 0x7F || (!strncmp("\033[3~", cli->rbuf[i], 4))) {
-                cli->wbuf[cli->wlen] = cli->rbuf[i];
+            } else if (cli->rbuf[i] == '\b' || cli->rbuf[i] == 0x7F ||
+                       (!strncmp("\033[3~", cli->rbuf[i], 4))) {
+                cli->wbuf[cli->wlen] = '\b';
                 cli->wlen++;
                 cli->wbuf[cli->wlen] = ' ';
                 cli->wlen++;
-                cli->wbuf[cli->wlen] = cli->rbuf[i];
+                cli->wbuf[cli->wlen] = '\b';
                 cli->wlen++;
                 if (cli->cmd_len > 0) {
                     cli->cmd_len--;
@@ -55,7 +56,7 @@ void *cli_echo(void *arg) {
             } else {
                 cli->wbuf[cli->wlen] = cli->rbuf[i];
                 cli->wlen++;
-                if(cli->cmd_len < cli->buf_size) {
+                if (cli->cmd_len < cli->buf_size) {
                     cli->cmd[cli->cmd_len] = cli->rbuf[i];
                     cli->cmd_len++;
                 }
