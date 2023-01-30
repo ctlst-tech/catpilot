@@ -47,10 +47,10 @@ int system_commander(int argc, char **argv) {
     }
     if (!strncmp("start", argv[1], MAX_NAME_LEN)) {
         if (board_get_app_status()) {
-            printf("Application is already running");
+            printf("Application is already running\n");
         } else {
             board_run_app();
-            printf("Application launched");
+            printf("Application launched\n");
         }
     } else if (!strncmp("reset", argv[1], MAX_NAME_LEN)) {
         board_reset();

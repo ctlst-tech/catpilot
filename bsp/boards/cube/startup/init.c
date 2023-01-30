@@ -31,9 +31,9 @@ main_thread_t main_thread;
 void board_start_thread(void *param);
 
 #ifdef MAINTENANCE_MODE
-    int board_app_status = 0;
+int board_app_status = 0;
 #else
-    int board_app_status = 1;
+int board_app_status = 1;
 #endif
 
 int board_get_app_status(void) {
@@ -80,7 +80,7 @@ int board_init(char *cli_port, char *baudrate) {
 }
 
 void board_debug_mode(void) {
-    while(1) {
+    while (1) {
         if (board_app_status) {
             break;
         }
@@ -99,6 +99,26 @@ void board_start_thread(void *param) {
     pthread_create(&tid, &attr, main_thread->thread, &arg);
     pthread_join(tid, NULL);
     pthread_exit(NULL);
+}
+
+const char *board_get_tty_name(char *path) {
+    for (int i = 0; i < BOARD_MAX_USART; i++) {
+        if (usart[i] != NULL) {
+            if (strncmp(path, usart[i]->name, MAX_NAME_LEN) == 0 ||
+                strncmp(path, usart[i]->alt_name, MAX_NAME_LEN) == 0) {
+                return usart[i]->name;
+            }
+        }
+    }
+    return NULL;
+}
+
+void board_print_tty_name(void) {
+    for (int i = 0; i < BOARD_MAX_USART; i++) {
+        if (usart[i] != NULL) {
+            printf("%s: %s\n", usart[i]->name, usart[i]->alt_name);
+        }
+    }
 }
 
 int board_cli_init(char *cli_port, char *baudrate) {
