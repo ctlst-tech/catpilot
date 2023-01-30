@@ -19,6 +19,7 @@ int board_services_start(void);
 
 uint32_t rcc_system_clock = 400000000;
 uint32_t *board_monitor_counter;
+
 static FATFS fs;
 
 typedef struct {
@@ -28,6 +29,24 @@ typedef struct {
 main_thread_t main_thread;
 
 void board_start_thread(void *param);
+
+#ifdef MAINTENANCE_MODE
+    int board_app_status = 0;
+#else
+    int board_app_status = 1;
+#endif
+
+int board_get_app_status(void) {
+    return board_app_status;
+}
+
+void board_run_app(void) {
+    board_app_status = 1;
+}
+
+void board_reset(void) {
+    NVIC_SystemReset();
+}
 
 int board_start(void *(*thread)(void *arg), size_t stacksize) {
     HAL_Init();
@@ -54,11 +73,17 @@ int board_init(char *cli_port, char *baudrate) {
     if (board_services_start()) {
         return -1;
     }
+    if (!board_app_status) {
+        board_debug_mode();
+    }
     return 0;
 }
 
 void board_debug_mode(void) {
     while(1) {
+        if (board_app_status) {
+            break;
+        }
         sleep(1);
     }
 }
