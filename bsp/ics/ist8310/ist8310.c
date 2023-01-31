@@ -142,10 +142,8 @@ static uint8_t ist8310_read_reg(ist8310_t *dev, uint8_t reg) {
     buf[0] = (ADDRESS << 1) | READ;
     buf[1] = reg;
 
-    int rv = i2c_transmit(dev->interface.i2c, buf[0], &buf[1], 1);
-    // printf("Write buf 0x%X rv = %d\n", buf[1], rv);
-    rv = i2c_receive(dev->interface.i2c, buf[0], &buf[1], 1);
-    // printf("Read buf 0x%X rv = %d\n", buf[1], rv);
+    i2c_transmit(dev->interface.i2c, buf[0], &buf[1], 1);
+    i2c_receive(dev->interface.i2c, buf[0], &buf[1], 1);
     return buf[1];
 }
 

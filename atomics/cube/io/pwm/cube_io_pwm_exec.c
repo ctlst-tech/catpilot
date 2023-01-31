@@ -26,11 +26,11 @@ void cube_io_pwm_exec(const cube_io_pwm_inputs_t *i, const cube_io_pwm_params_t 
 
     gpio_set(&gpio_fmu_pwm[1]);
 
-    if(i->arm && !state->arm_passed) {
+    if (i->arm) {
         cubeio_force_safety_off(cubeio);
         state->arm_passed = TRUE;
         state->disarm_passed = FALSE;
-    } else if (!i->arm && !state->disarm_passed){
+    } else {
         cubeio_force_safety_on(cubeio);
         state->arm_passed = FALSE;
         state->disarm_passed = TRUE;

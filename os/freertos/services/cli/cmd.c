@@ -2,6 +2,10 @@
 
 extern int log_print(int argc, char **argv);
 
+extern void board_reset(void);
+extern int board_get_app_status(void);
+extern void board_run_app(void);
+
 const char logo[] = "\003\014\n"
     "               __        _ __      __         |\\---/|                 \n"
     "   _________ _/ /_____  (_) /___  / /_        | ,_, |                 \n"
@@ -28,6 +32,35 @@ int clear(int argc, char **argv) {
     return 0;
 }
 
+void system_help(void) {
+    printf(
+        "Usage: system [options]\n"
+        "Options:\n"
+        "\tstart\tRun application\n"
+        "\treset\tReset board\n");
+}
+
+int system_commander(int argc, char **argv) {
+    if (argc != 2) {
+        system_help();
+        return 0;
+    }
+    if (!strncmp("start", argv[1], MAX_NAME_LEN)) {
+        if (board_get_app_status()) {
+            printf("Application is already running\n");
+        } else {
+            board_run_app();
+            printf("Application launched\n");
+        }
+    } else if (!strncmp("reset", argv[1], MAX_NAME_LEN)) {
+        board_reset();
+    } else {
+        system_help();
+        return 0;
+    }
+    return 0;
+}
+
 int cli_cmd_init(void) {
     printf("%s", logo);
 
@@ -41,6 +74,9 @@ int cli_cmd_init(void) {
         return -1;
     }
     if (cli_cmd_reg("log", log_print) == NULL) {
+        return -1;
+    }
+    if (cli_cmd_reg("system", system_commander) == NULL) {
         return -1;
     }
     return 0;
