@@ -258,10 +258,10 @@ int board_gpio_init(void) {
 
     gpio_reset(&gpio_sensors_en);
     gpio_set(&gpio_periph_en);
-    vTaskDelay(1);
+    vTaskDelay(20);
     gpio_set(&gpio_sensors_en);
     gpio_reset(&gpio_periph_en);
-    vTaskDelay(1);
+    vTaskDelay(20);
 
     if (gpio_init(&gpio_fmu_pwm[0])) {
         return -1;
