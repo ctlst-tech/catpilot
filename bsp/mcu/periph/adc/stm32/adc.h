@@ -19,6 +19,11 @@ typedef struct {
 typedef struct {
     IRQn_Type id;
     uint16_t raw[ADC_MAX_CHANNELS];
+    float meas[ADC_MAX_CHANNELS];
+    float max[ADC_MAX_CHANNELS];
+    float min[ADC_MAX_CHANNELS];
+    SemaphoreHandle_t sem;
+    SemaphoreHandle_t mutex;
 } adc_private_t;
 
 typedef struct {
@@ -30,7 +35,10 @@ typedef struct {
 } adc_t;
 
 int adc_init(adc_t *cfg);
-uint32_t adc_get_raw(adc_t *cfg, uint8_t channel);
 float adc_get_volt(adc_t *cfg, uint8_t channel);
+float adc_get_volt_max(adc_t *cfg, uint8_t channel);
+float adc_get_volt_min(adc_t *cfg, uint8_t channel);
+int adc_reset_stat(adc_t *adc);
+int adc_reset_stat_channel(adc_t *adc, uint8_t channel);
 
 #endif  // ADC_H
