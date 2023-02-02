@@ -102,4 +102,6 @@ extern ms5611_t *ms5611_1;
 extern ms5611_t *ms5611_2;
 extern ist8310_t *ist8310;
 
+extern adc_t adc1;
+
 #endif  // BOARD_H

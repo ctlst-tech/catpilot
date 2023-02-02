@@ -18,7 +18,7 @@ typedef struct {
 
 typedef struct {
     IRQn_Type id;
-    uint32_t raw[ADC_MAX_CHANNELS];
+    uint16_t raw[ADC_MAX_CHANNELS];
 } adc_private_t;
 
 typedef struct {
@@ -31,6 +31,6 @@ typedef struct {
 
 int adc_init(adc_t *cfg);
 uint32_t adc_get_raw(adc_t *cfg, uint8_t channel);
-double adc_get_volt(adc_t *cfg, uint8_t channel);
+float adc_get_volt(adc_t *cfg, uint8_t channel);
 
 #endif  // ADC_H

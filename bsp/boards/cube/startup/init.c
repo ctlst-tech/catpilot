@@ -48,6 +48,13 @@ void board_reset(void) {
     NVIC_SystemReset();
 }
 
+int board_get_voltage(float *buf, int length) {
+    for (int i = 0; i < length; i++) {
+        buf[i] = adc_get_volt(&adc1, i);
+    }
+    return 0;
+}
+
 int board_start(void *(*thread)(void *arg), size_t stacksize) {
     HAL_Init();
     board_clock_init();
@@ -302,6 +309,25 @@ int board_gpio_init(void) {
     if (gpio_init(&gpio_spi4_cs4)) {
         return -1;
     }
+    if (gpio_init(&gpio_adc_inp4)) {
+        return -1;
+    }
+    if (gpio_init(&gpio_adc_inp8)) {
+        return -1;
+    }
+    if (gpio_init(&gpio_adc_inp13)) {
+        return -1;
+    }
+    if (gpio_init(&gpio_adc_inp14)) {
+        return -1;
+    }
+    if (gpio_init(&gpio_adc_inp15)) {
+        return -1;
+    }
+    if (gpio_init(&gpio_adc_inp18)) {
+        return -1;
+    }
+
     gpio_set(&gpio_spi1_cs1);
     gpio_set(&gpio_spi1_cs2);
     gpio_set(&gpio_spi2_cs1);
@@ -363,6 +389,10 @@ int board_periph_init(void) {
     }
     if (i2c_init(&i2c2)) {
         LOG_ERROR("I2C2", "Initialization failed");
+        return -1;
+    }
+    if (adc_init(&adc1)) {
+        LOG_ERROR("ADC1", "Initialization failed");
         return -1;
     }
     LOG_INFO("BOARD", "Initialization successful");

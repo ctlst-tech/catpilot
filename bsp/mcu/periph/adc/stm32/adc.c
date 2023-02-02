@@ -56,11 +56,11 @@ uint32_t adc_get_raw(adc_t *cfg, uint8_t channel) {
     return (cfg->p.raw[channel]);
 }
 
-double adc_get_volt(adc_t *cfg, uint8_t channel) {
+float adc_get_volt(adc_t *cfg, uint8_t channel) {
     if (channel > ADC_MAX_CHANNELS) {
         return (__UINT32_MAX__);
     }
-    return ((double)cfg->p.raw[channel] / 0xFFFF * 3.3);
+    return ((float)cfg->p.raw[channel] / 0xFFFF * 3.3);
 }
 
 static int adc_id_init(adc_t *cfg) {
