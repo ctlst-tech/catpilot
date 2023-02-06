@@ -468,6 +468,8 @@ int rmdir(const char *pathname) {
     rv = node->f_op.rmdir(relative_pathname);
 
     return rv;
+}
+
 extern struct node null_node;
 
 int std_stream_deinit(const char *stream) {
