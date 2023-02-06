@@ -3,21 +3,12 @@
 extern int cat_commander(int argc, char **argv);
 extern int log_print(int argc, char **argv);
 
-char logo[] = "\003\014" 
-    "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n"
-    "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n"
-    "FFFFFFFFFFFFFFFFFFFFE       FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n"
-    "FFFFFFFF#             EFF  FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n"
-    "FFFFFF    EFFFFFFFF FFFF  FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n"
-    "FFFFF  FF  FFFFFE    EF  FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n"
-    "FFFFE FFE      4FFF FF  FFFFFFE       EFE        F  FFFFE       FFF         FFFF\n"
-    "FFFF     EFF FE  FFFF  FFFFFFF  FFFFFFFFFFFF  FFFF  FFFFF   FFFFFFFFFF  FFFFFFFF\n"
-    "FFFF   EFFFFFF   FFE  FFFFFFFF  FFFFFFFFFFFF  FFFF  FFFFFEEEEE   FFFFF  FFFFFFFF\n"
-    "FFFFFFFFFFFF   FFFE  FFFFFFFFFF       FFFFFF  FFFFF     FF       FFFFF  FFFFFFFF\n"
-    "FFFFFFFFFF   FFFFF  FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n"
-    "FFFFFFFFF          FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFFFFFFFFFF\n"
-    "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n"
-    "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n"
+extern void board_reset(void);
+extern int board_get_app_status(void);
+extern void board_run_app(void);
+
+char logo[] =
+    "\003\014\n"
     "               __        _ __      __      \n"
     "   _________ _/ /_____  (_) /___  / /_     \n"
     "  / ___/ __ `/ __/ __ \\/ / / __ \\/ __/   \n"
@@ -25,7 +16,6 @@ char logo[] = "\003\014"
     " \\___/\\__,_/\\__/ .___/_/_/\\____/\\__/  \n"
     "              /_/                          \n"
     "                                           \n";
-
 
 int help(int argc, char **argv) {
     cli_cmd_print();
@@ -43,19 +33,54 @@ int clear(int argc, char **argv) {
     return 0;
 }
 
+void system_help(void) {
+    printf(
+        "Usage: system [options]\n"
+        "Options:\n"
+        "\tstart\tRun application\n"
+        "\treset\tReset board\n");
+}
+
+int system_commander(int argc, char **argv) {
+    if (argc != 2) {
+        system_help();
+        return 0;
+    }
+    if (!strncmp("start", argv[1], MAX_NAME_LEN)) {
+        if (board_get_app_status()) {
+            printf("Application is already running\n");
+        } else {
+            board_run_app();
+            printf("Application launched\n");
+        }
+    } else if (!strncmp("reset", argv[1], MAX_NAME_LEN)) {
+        board_reset();
+    } else {
+        system_help();
+        return 0;
+    }
+    return 0;
+}
+
 int cli_cmd_init(void) {
     printf("%s", logo);
 
     if(cli_cmd_reg("cat", cat_commander) == NULL) {
         return -1;
     }
-    if(cli_cmd_reg("clear", clear) == NULL) {
+    if (cli_cmd_reg("help", help) == NULL) {
         return -1;
     }
-    if(cli_cmd_reg("help", help) == NULL) {
+    if (cli_cmd_reg("version", version) == NULL) {
         return -1;
     }
-    if(cli_cmd_reg("log", log_print) == NULL) {
+    if (cli_cmd_reg("clear", clear) == NULL) {
+        return -1;
+    }
+    if (cli_cmd_reg("log", log_print) == NULL) {
+        return -1;
+    }
+    if (cli_cmd_reg("system", system_commander) == NULL) {
         return -1;
     }
     if(cli_cmd_reg("version", version) == NULL) {

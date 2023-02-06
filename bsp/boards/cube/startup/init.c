@@ -8,6 +8,7 @@
 #include "log.h"
 #include "os.h"
 #include "periph.h"
+#include "serial_bridge.h"
 
 int board_clock_init(void);
 int board_monitor_init(void);
@@ -18,6 +19,7 @@ int board_services_start(void);
 
 uint32_t rcc_system_clock = 400000000;
 uint32_t *board_monitor_counter;
+
 static FATFS fs;
 
 typedef struct {
@@ -27,6 +29,31 @@ typedef struct {
 main_thread_t main_thread;
 
 void board_start_thread(void *param);
+
+#ifdef MAINTENANCE_MODE
+int board_app_status = 0;
+#else
+int board_app_status = 1;
+#endif
+
+int board_get_app_status(void) {
+    return board_app_status;
+}
+
+void board_run_app(void) {
+    board_app_status = 1;
+}
+
+void board_reset(void) {
+    NVIC_SystemReset();
+}
+
+int board_get_voltage(float *buf, int length) {
+    for (int i = 0; i < length; i++) {
+        buf[i] = adc_get_volt(&adc1, i);
+    }
+    return 0;
+}
 
 int board_start(void *(*thread)(void *arg), size_t stacksize) {
     HAL_Init();
@@ -53,7 +80,19 @@ int board_init(char *cli_port, char *baudrate) {
     if (board_services_start()) {
         return -1;
     }
+    if (!board_app_status) {
+        board_debug_mode();
+    }
     return 0;
+}
+
+void board_debug_mode(void) {
+    while (1) {
+        if (board_app_status) {
+            break;
+        }
+        sleep(1);
+    }
 }
 
 void board_start_thread(void *param) {
@@ -67,6 +106,26 @@ void board_start_thread(void *param) {
     pthread_create(&tid, &attr, main_thread->thread, &arg);
     pthread_join(tid, NULL);
     pthread_exit(NULL);
+}
+
+const char *board_get_tty_name(char *path) {
+    for (int i = 0; i < BOARD_MAX_USART; i++) {
+        if (usart[i] != NULL) {
+            if (strncmp(path, usart[i]->name, MAX_NAME_LEN) == 0 ||
+                strncmp(path, usart[i]->alt_name, MAX_NAME_LEN) == 0) {
+                return usart[i]->name;
+            }
+        }
+    }
+    return NULL;
+}
+
+void board_print_tty_name(void) {
+    for (int i = 0; i < BOARD_MAX_USART; i++) {
+        if (usart[i] != NULL) {
+            printf("%s: %s\n", usart[i]->name, usart[i]->alt_name);
+        }
+    }
 }
 
 int board_cli_init(char *cli_port, char *baudrate) {
@@ -100,7 +159,7 @@ int board_cli_init(char *cli_port, char *baudrate) {
     if (std_stream_init("stderr", cli, usart_open, usart_write, usart_read)) {
         return -1;
     }
-    if (cli_service_start(128, 1)) {
+    if (cli_service_start(CLI_MAX_CMD_LENGTH, 1)) {
         return -1;
     }
     if (cli_cmd_init()) {
@@ -203,8 +262,13 @@ int board_gpio_init(void) {
     if (gpio_init(&gpio_sensors_en)) {
         return -1;
     }
-    gpio_reset(&gpio_periph_en);
+
+    gpio_reset(&gpio_sensors_en);
+    gpio_set(&gpio_periph_en);
+    vTaskDelay(1);
     gpio_set(&gpio_sensors_en);
+    gpio_reset(&gpio_periph_en);
+    vTaskDelay(1);
 
     if (gpio_init(&gpio_fmu_pwm[0])) {
         return -1;
@@ -245,6 +309,25 @@ int board_gpio_init(void) {
     if (gpio_init(&gpio_spi4_cs4)) {
         return -1;
     }
+    if (gpio_init(&gpio_adc_inp4)) {
+        return -1;
+    }
+    if (gpio_init(&gpio_adc_inp8)) {
+        return -1;
+    }
+    if (gpio_init(&gpio_adc_inp13)) {
+        return -1;
+    }
+    if (gpio_init(&gpio_adc_inp14)) {
+        return -1;
+    }
+    if (gpio_init(&gpio_adc_inp15)) {
+        return -1;
+    }
+    if (gpio_init(&gpio_adc_inp18)) {
+        return -1;
+    }
+
     gpio_set(&gpio_spi1_cs1);
     gpio_set(&gpio_spi1_cs2);
     gpio_set(&gpio_spi2_cs1);
@@ -300,6 +383,18 @@ int board_periph_init(void) {
         LOG_ERROR("SPI4", "Initialization failed");
         return -1;
     }
+    if (i2c_init(&i2c1)) {
+        LOG_ERROR("I2C1", "Initialization failed");
+        return -1;
+    }
+    if (i2c_init(&i2c2)) {
+        LOG_ERROR("I2C2", "Initialization failed");
+        return -1;
+    }
+    if (adc_init(&adc1)) {
+        LOG_ERROR("ADC1", "Initialization failed");
+        return -1;
+    }
     LOG_INFO("BOARD", "Initialization successful");
     return 0;
 }
@@ -341,14 +436,16 @@ int board_fs_init(void) {
 }
 
 int board_services_start(void) {
+    serial_bridge_start(15, 1024);
     icm20649 = icm20649_start("ICM20649", 2, 20, &spi1, &gpio_spi1_cs1,
                               &exti_spi1_drdy1);
     icm20602 = icm20602_start("ICM20602", 2, 20, &spi4, &gpio_spi4_cs2, NULL);
     icm20948 =
         icm20948_start("ICM20948", 2, 20, &spi4, &gpio_spi4_cs1, NULL, 0);
     cubeio = cubeio_start("CUBEIO", 0, 19, &usart6);
-    ms5611_1 = ms5611_start("MS5611_INT", 100, 18, &spi1, &gpio_spi1_cs2);
-    ms5611_2 = ms5611_start("MS5611_EXT", 100, 18, &spi4, &gpio_spi4_cs3);
+    ms5611_1 = ms5611_start("MS5611_INT", 100, 17, &spi1, &gpio_spi1_cs2);
+    ms5611_2 = ms5611_start("MS5611_EXT", 100, 17, &spi4, &gpio_spi4_cs3);
+    ist8310 = ist8310_start("IST8310_EXT", 100, 17, &i2c1);
     return 0;
 }
 

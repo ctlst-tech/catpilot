@@ -37,7 +37,7 @@ cubeio_t *cubeio_start(char *name, uint32_t period, uint32_t priority,
         return NULL;
     }
 
-    strncpy(dev->name, name, MAX_NAME_LEN);
+    strncpy(dev->name, name, MAX_NAME_LEN - 1);
 
     dev->interface.usart = usart;
 

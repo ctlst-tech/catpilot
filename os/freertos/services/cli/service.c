@@ -15,6 +15,7 @@ void *cli_echo(void *arg) {
     }
 
     cli->cmd_len = 0;
+    cli->cmd_prev_len = 0;
 
     while (1) {
         cli->rlen = 0;
@@ -28,20 +29,38 @@ void *cli_echo(void *arg) {
                 pthread_mutex_lock(&cli->mutex);
                 pthread_cond_broadcast(&cli->cond);
                 pthread_mutex_unlock(&cli->mutex);
+                if (cli->cmd_len != 0) {
+                    strncpy(cli->cmd_prev, cli->cmd, cli->cmd_len);
+                    cli->cmd_prev_len = cli->cmd_len;
+                }
                 cli->cmd_len = 0;
-            } else if (cli->rbuf[i] == '\b') {
-                cli->wbuf[cli->wlen] = cli->rbuf[i];
+            } else if (cli->rbuf[i] == '\b' || cli->rbuf[i] == 0x7F ||
+                       (!strncmp("\033[3~", cli->rbuf[i], 4))) {
+                cli->wbuf[cli->wlen] = '\b';
+                cli->wlen++;
+                cli->wbuf[cli->wlen] = ' ';
+                cli->wlen++;
+                cli->wbuf[cli->wlen] = '\b';
                 cli->wlen++;
                 if (cli->cmd_len > 0) {
                     cli->cmd_len--;
                 }
-            } else if (cli->rbuf[i] < 32) {
+            } else if (!strncmp(cli->rbuf, "\033[A", cli->rlen) &&
+                       cli->cmd_len == 0) {
+                strncpy(cli->wbuf, cli->cmd_prev, cli->cmd_prev_len);
+                strncpy(cli->cmd, cli->cmd_prev, cli->cmd_prev_len);
+                cli->wlen = cli->cmd_prev_len;
+                cli->cmd_len = cli->cmd_prev_len;
+                break;
+            } else if (cli->rbuf[i] < ' ' || cli->rbuf[i] > 127) {
                 break;
             } else {
                 cli->wbuf[cli->wlen] = cli->rbuf[i];
                 cli->wlen++;
-                cli->cmd[cli->cmd_len] = cli->rbuf[i];
-                cli->cmd_len++;
+                if (cli->cmd_len < cli->buf_size) {
+                    cli->cmd[cli->cmd_len] = cli->rbuf[i];
+                    cli->cmd_len++;
+                }
             }
         }
 
@@ -100,6 +119,11 @@ int cli_service_start(int buf_size, int priority) {
 
     cli->cmd = calloc(cli->buf_size, sizeof(char));
     if (cli->cmd == NULL) {
+        return -1;
+    }
+
+    cli->cmd_prev = calloc(cli->buf_size, sizeof(char));
+    if (cli->cmd_prev == NULL) {
         return -1;
     }
 

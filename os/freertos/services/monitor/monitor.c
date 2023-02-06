@@ -4,6 +4,8 @@ extern uint32_t *board_monitor_counter;
 extern int heap_get_total(void);
 extern int heap_get_used(void);
 
+int board_get_voltage(float *buf, int length);
+
 void monitor_start_timer(void) {
     if (cli_cmd_reg("monitor", monitor_commander) == NULL) {
         return;
@@ -14,7 +16,8 @@ uint32_t monitor_get_counter(void) {
     return (*board_monitor_counter);
 }
 
-static char stat_buffer[1024];
+static char monitor_stat_buffer[configMAX_TASK_STATUS_ARRAY_SIZE *
+                                configMAX_TASK_STATUS_STRING_LEGNTH];
 
 static void monitor_print_help(void) {
     printf(
@@ -25,8 +28,8 @@ static void monitor_print_help(void) {
 
 static void monitor_print_thread_stat(void) {
     printf("------------------------ Threads ------------------------\n");
-    vTaskGetRunTimeStats(stat_buffer);
-    printf("%s", stat_buffer);
+    vTaskGetRunTimeStats(monitor_stat_buffer);
+    printf("%s", monitor_stat_buffer);
 }
 
 static void monitor_print_mem_stat(void) {
@@ -39,9 +42,23 @@ static void monitor_print_mem_stat(void) {
     printf("Free RAM\t\t%d\n", free);
 }
 
+static void monitor_print_volt_stat(void) {
+    float voltages[6];
+    board_get_voltage(voltages, 6);
+    printf("----------------------- Voltages ------------------------\n");
+    printf("BATTERY1_VOLTAGE\t%lf\n", voltages[0]);
+    printf("BATTERY1_CURRENT\t%lf\n", voltages[1]);
+    printf("BATTERY2_VOLTAGE\t%lf\n", voltages[3]);
+    printf("BATTERY2_CURRENT\t%lf\n", voltages[4]);
+    printf("VDD_5V_SENS\t\t%lf\n", voltages[2]);
+    printf("PRESSURE_SENS\t\t%lf\n", voltages[5]);
+}
+
 static void monitor_print_all(void) {
     monitor_print_thread_stat();
     monitor_print_mem_stat();
+    monitor_print_volt_stat();
+    printf("---------------------------------------------------------\n\n");
 }
 
 static void monitor_print_non_stop() {

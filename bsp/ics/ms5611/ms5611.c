@@ -29,7 +29,7 @@ ms5611_t *ms5611_start(const char *name, uint32_t period, uint32_t priority,
         return NULL;
     }
 
-    strncpy(dev->name, name, MAX_NAME_LEN);
+    strncpy(dev->name, name, MAX_NAME_LEN - 1);
     dev->interface.spi = spi;
     dev->interface.cs = cs;
 

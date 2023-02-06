@@ -38,13 +38,13 @@ set(MCU_FLAGS "-mcpu=cortex-m7 -mlittle-endian -mfloat-abi=hard -mthumb -mno-una
 set(COMMON_FLAGS "${MCU_FLAGS} -Wall -Wextra  -fdata-sections -ffunction-sections -Wl,--gc-sections -Wno-unused-variable -Wno-unused-function -Wno-unused-parameter -Wno-missing-braces")
 set(LINKER_FLAGS "${LINK_MAP_CREATION_FLAG} --specs=nosys.specs -specs=nano.specs ${MCU_FLAGS} -Wl,--start-group -lgcc -lc -lg -Wl,--end-group -Wl,--gc-sections -u _printf_float -T ${LINKER_SCRIPT}")
 
-if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-    add_definitions(-DDEBUG)
-    set(CMAKE_C_FLAGS_INIT "${COMMON_FLAGS} -O0 -g2")
-    set(CMAKE_CXX_FLAGS_INIT "${COMMON_FLAGS} -O0 -g2")
-    set(CMAKE_EXE_LINKER_FLAGS_INIT "${LINKER_FLAGS} -O0 -g2")
-else ()
-    set(CMAKE_C_FLAGS_INIT "${COMMON_FLAGS} -O3 -g0")
-    set(CMAKE_CXX_FLAGS_INIT "${COMMON_FLAGS} -O3 -g0")
-    set(CMAKE_EXE_LINKER_FLAGS_INIT "${LINKER_FLAGS} -O3 -g0")
-endif ()
+set(CMAKE_C_COMPILER_WORKS TRUE)
+set(CMAKE_CXX_COMPILER_WORKS TRUE)
+
+set(CMAKE_C_FLAGS_DEBUG "-O0 -g2 ${COMMON_FLAGS}")
+set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g2 ${COMMON_FLAGS}")
+
+set(CMAKE_C_FLAGS_RELEASE "-O3 -DNDEBUG ${COMMON_FLAGS}")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG ${COMMON_FLAGS}")
+
+set(CMAKE_EXE_LINKER_FLAGS_INIT "${LINKER_FLAGS} -O0")

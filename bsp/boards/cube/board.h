@@ -5,6 +5,7 @@
 #include "icm20602.h"
 #include "icm20649.h"
 #include "icm20948.h"
+#include "ist8310.h"
 #include "ms5611.h"
 #include "periph.h"
 #include "sd.h"
@@ -13,6 +14,7 @@
 
 int board_start(void *(*thread)(void *arg), size_t stacksize);
 int board_init(char *cli_port, char *baudrate);
+void board_debug_mode(void);
 int board_fail(void);
 
 extern uint32_t rcc_system_clock;
@@ -70,6 +72,10 @@ extern gpio_t gpio_usart2_rx;
 extern gpio_t gpio_usart3_tx;
 extern gpio_t gpio_usart3_rx;
 extern gpio_t gpio_fmu_pwm[6];
+extern gpio_t gpio_i2c1_scl;
+extern gpio_t gpio_i2c1_sda;
+extern gpio_t gpio_i2c2_scl;
+extern gpio_t gpio_i2c2_sda;
 
 extern sdio_t sdio;
 extern spi_t spi1;
@@ -85,11 +91,17 @@ extern usart_t usart6;
 extern usart_t usart7;
 extern usart_t usart8;
 
+extern i2c_t i2c1;
+extern i2c_t i2c2;
+
 extern icm20649_t *icm20649;
 extern icm20602_t *icm20602;
 extern icm20948_t *icm20948;
 extern cubeio_t *cubeio;
 extern ms5611_t *ms5611_1;
 extern ms5611_t *ms5611_2;
+extern ist8310_t *ist8310;
+
+extern adc_t adc1;
 
 #endif  // BOARD_H

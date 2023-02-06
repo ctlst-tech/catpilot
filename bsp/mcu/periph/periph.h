@@ -5,6 +5,7 @@
 #include "dma.h"
 #include "exti.h"
 #include "gpio.h"
+#include "i2c.h"
 #include "irq.h"
 #include "sdio.h"
 #include "spi.h"
