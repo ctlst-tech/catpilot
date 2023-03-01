@@ -83,8 +83,5 @@ int cli_cmd_init(void) {
     if (cli_cmd_reg("system", system_commander) == NULL) {
         return -1;
     }
-    if(cli_cmd_reg("version", version) == NULL) {
-        return -1;
-    }
     return 0;
 }
