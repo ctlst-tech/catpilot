@@ -87,6 +87,7 @@ int open(const char *pathname, int flags) {
     fd = fd_new();
 
     if (fd_check(fd)) {
+        errno = ENOENT;
         return -1;
     }
 
@@ -101,8 +102,11 @@ int open(const char *pathname, int flags) {
     rv = files[fd]->node->f_op.open(files[fd], relative_pathname);
 
     if (rv) {
-        errno = EIO;
+        if (errno == 0) {
+            errno = EIO;
+        }
         fd_delete(fd);
+        rv = -1;
     } else {
         errno = 0;
         rv = fd;
@@ -409,7 +413,7 @@ int std_stream_init(const char *stream, void *dev,
         return -1;
     }
 
-    strncpy(stream_name, stream, sizeof(stream_name));
+    strncpy(stream_name, stream, sizeof(stream_name) - 1);
     snprintf(stream_path, sizeof(stream_path), "/dev/%s", stream_name);
 
     if (node_mount(stream_path, &f_op) == NULL) {
@@ -422,5 +426,27 @@ int std_stream_init(const char *stream, void *dev,
         return -1;
     }
 
+    return 0;
+}
+
+extern struct node null_node;
+
+int std_stream_deinit(const char *stream) {
+    int fd;
+    if (!strcmp(stream, "stdin")) {
+        fd = 0;
+    } else if (!strcmp(stream, "stdout")) {
+        fd = 1;
+    } else if (!strcmp(stream, "stderr")) {
+        fd = 2;
+    } else {
+        return -1;
+    }
+
+    if (files[fd] == NULL) {
+        return -1;
+    }
+
+    files[fd]->node = &null_node;
     return 0;
 }

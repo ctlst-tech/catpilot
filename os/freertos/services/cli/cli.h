@@ -16,6 +16,7 @@ extern "C" {
 
 #define CLI_MAX_ARGS 10
 #define CLI_MAX_NAME_LENGTH 64
+#define CLI_MAX_CMD_LENGTH 256
 #define CLI_GET_TOKEN_DEFAULT 0
 #define CLI_GET_TOKEN_REPLACE_SPACE 1
 
@@ -30,9 +31,11 @@ struct cli_service {
     char *rbuf;
     char *wbuf;
     char *cmd;
+    char *cmd_prev;
     int rlen;
     int wlen;
     int cmd_len;
+    int cmd_prev_len;
     pthread_mutex_t mutex;
     pthread_cond_t cond;
 };

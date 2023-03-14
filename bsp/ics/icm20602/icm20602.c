@@ -37,7 +37,7 @@ icm20602_t *icm20602_start(char *name, uint32_t period, uint32_t priority,
         return NULL;
     }
 
-    strncpy(dev->name, name, MAX_NAME_LEN);
+    strncpy(dev->name, name, MAX_NAME_LEN - 1);
 
     dev->interface.spi = spi;
     dev->interface.cs = cs;
@@ -114,11 +114,12 @@ void icm20602_fsm(void *area) {
                 LOG_INFO(dev->name, "Initialization successful");
                 dev->state = ICM20602_FIFO_READ;
             } else {
-                LOG_ERROR(dev->name, "Failed configuration, retrying...");
+                LOG_WARN(dev->name, "Failed configuration, retrying");
                 dev->attempt++;
                 if (dev->attempt > 5) {
                     dev->state = ICM20602_RESET;
-                    LOG_ERROR(dev->name, "Failed configuration, reset...");
+                    LOG_ERROR(dev->name, "Failed configuration");
+                    LOG_ERROR(dev->name, "Fatal error");
                     dev->attempt = 0;
                 }
             }
@@ -251,13 +252,13 @@ static int icm20602_configure(icm20602_t *dev) {
         orig_val = icm20602_read_reg(dev, reg_cfg[i].reg);
 
         if ((orig_val & reg_cfg[i].setbits) != reg_cfg[i].setbits) {
-            LOG_ERROR(dev->name, "0x%02x: 0x%02x (0x%02x not set)",
+            LOG_WARN(dev->name, "0x%02x: 0x%02x (0x%02x not set)",
                       (uint8_t)reg_cfg[i].reg, orig_val, reg_cfg[i].setbits);
             rv = 0;
         }
 
         if ((orig_val & reg_cfg[i].clearbits) != 0) {
-            LOG_ERROR(dev->name, "0x%02x: 0x%02x (0x%02x not cleared)",
+            LOG_WARN(dev->name, "0x%02x: 0x%02x (0x%02x not cleared)",
                       (uint8_t)reg_cfg[i].reg, orig_val, reg_cfg[i].clearbits);
             rv = 0;
         }

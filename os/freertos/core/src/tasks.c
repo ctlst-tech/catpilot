@@ -4610,7 +4610,7 @@ static void prvResetNextTaskUnblockTime( void )
 
 #if ( ( configGENERATE_RUN_TIME_STATS == 1 ) && ( configUSE_STATS_FORMATTING_FUNCTIONS > 0 ) && ( configSUPPORT_DYNAMIC_ALLOCATION == 1 ) )
 
-TaskStatus_t pxTaskStatusArray[30];
+    static TaskStatus_t pxTaskStatusArray[configMAX_TASK_STATUS_ARRAY_SIZE];
 
     void vTaskGetRunTimeStats( char * pcWriteBuffer )
     {
@@ -4654,6 +4654,11 @@ TaskStatus_t pxTaskStatusArray[30];
         /* Take a snapshot of the number of tasks in case it changes while this
          * function is executing. */
         uxArraySize = uxCurrentNumberOfTasks;
+
+        if (uxArraySize > configMAX_TASK_STATUS_ARRAY_SIZE) {
+            sprintf( pcWriteBuffer, "%s", "Task status array overflow!\n" );
+            return;
+        }
 
         /* Allocate an array index for each task.  NOTE!  If
          * configSUPPORT_DYNAMIC_ALLOCATION is set to 0 then pvPortMalloc() will

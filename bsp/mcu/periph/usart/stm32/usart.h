@@ -30,6 +30,10 @@ typedef struct {
     int tx_count;
     ring_buf_t *write_buf;
     ring_buf_t *read_buf;
+
+    uint8_t *dma_rx_buf;
+    uint8_t *dma_tx_buf;
+
     int error;
     bool periph_init;
     bool tasks_init;

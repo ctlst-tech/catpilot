@@ -70,6 +70,7 @@ int std_stream_init(const char *stream, void *dev,
                                          size_t count),
                     ssize_t (*dev_read)(struct file *file, char *buf,
                                         size_t count));
+int std_stream_deinit(const char *stream);
 
 #include <printf.h>
 

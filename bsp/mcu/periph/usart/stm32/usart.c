@@ -82,6 +82,12 @@ int usart_init(usart_t *cfg) {
         cfg->p.rx_sem = xSemaphoreCreateBinary();
     }
 
+    cfg->p.read_buf = ring_buf_init(cfg->buf_size);
+    cfg->p.write_buf = ring_buf_init(cfg->buf_size);
+
+    cfg->p.dma_rx_buf = calloc(cfg->buf_size, sizeof(uint8_t));
+    cfg->p.dma_tx_buf = calloc(cfg->buf_size, sizeof(uint8_t));
+
     cfg->p.periph_init = true;
     return rv;
 }
@@ -219,7 +225,7 @@ uint32_t usart_get_speed(void *dev) {
 
 void usart_read_task(void *cfg_ptr) {
     usart_t *cfg = (usart_t *)cfg_ptr;
-    uint8_t *buf = calloc(cfg->buf_size, sizeof(uint8_t));
+    uint8_t *buf = cfg->p.dma_rx_buf;
     while (1) {
         if (usart_receive(cfg, buf, cfg->buf_size)) {
             cfg->p.error = ERROR;
@@ -233,7 +239,7 @@ void usart_read_task(void *cfg_ptr) {
 
 void usart_write_task(void *cfg_ptr) {
     usart_t *cfg = (usart_t *)cfg_ptr;
-    uint8_t *buf = calloc(cfg->buf_size, sizeof(uint8_t));
+    uint8_t *buf = cfg->p.dma_tx_buf;
     uint16_t length;
     while (1) {
         length = ring_buf_read(cfg->p.write_buf, buf, cfg->buf_size);
@@ -259,9 +265,6 @@ int usart_open(FILE *file, const char *path) {
         return -1;
     }
 
-    cfg->p.read_buf = ring_buf_init(cfg->buf_size);
-    cfg->p.write_buf = ring_buf_init(cfg->buf_size);
-
     if (cfg->p.read_buf == NULL || cfg->p.write_buf == NULL) {
         errno = ENOMEM;
         return -1;
@@ -269,9 +272,9 @@ int usart_open(FILE *file, const char *path) {
 
     char name[32];
     snprintf(name, MAX_NAME_LEN, "%s_read_thread", cfg->name);
-    xTaskCreate(usart_read_task, name, 512, cfg, cfg->task_priority, NULL);
+    xTaskCreate(usart_read_task, name, 128, cfg, cfg->task_priority, NULL);
     snprintf(name, MAX_NAME_LEN, "%s_wirte_thread", cfg->name);
-    xTaskCreate(usart_write_task, name, 512, cfg, cfg->task_priority, NULL);
+    xTaskCreate(usart_write_task, name, 128, cfg, cfg->task_priority, NULL);
 
     cfg->p.tasks_init = true;
     errno = 0;

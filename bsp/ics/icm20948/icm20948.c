@@ -39,7 +39,7 @@ icm20948_t *icm20948_start(char *name, uint32_t period, uint32_t priority,
         return NULL;
     }
 
-    strncpy(dev->name, name, MAX_NAME_LEN);
+    strncpy(dev->name, name, MAX_NAME_LEN - 1);
 
     dev->interface.spi = spi;
     dev->interface.cs = cs;
@@ -114,11 +114,12 @@ static void icm20948_fsm(void *area) {
                 LOG_INFO(dev->name, "Initialization successful");
                 dev->state = ICM20948_FIFO_READ;
             } else {
-                LOG_ERROR(dev->name, "Failed configuration, retrying...");
+                LOG_WARN(dev->name, "Failed configuration, retrying");
                 dev->attempt++;
                 if (dev->attempt > 5) {
                     dev->state = ICM20948_RESET;
-                    LOG_ERROR(dev->name, "Failed configuration, reset...");
+                    LOG_ERROR(dev->name, "Failed configuration");
+                    LOG_ERROR(dev->name, "Fatal error");
                     dev->attempt = 0;
                 }
             }
@@ -166,7 +167,7 @@ void icm20948_drdy_handler(void *area) {
 
 void icm20948_get_meas_non_block(icm20948_t *dev, void *ptr) {
     xSemaphoreTake(dev->sync.mutex, portMAX_DELAY);
-    memcpy(ptr, (void *)&dev, sizeof(icm20948_meas_t));
+    memcpy(ptr, (void *)dev, sizeof(icm20948_meas_t));
     xSemaphoreGive(dev->sync.mutex);
 }
 
@@ -267,14 +268,14 @@ static int icm20948_configure(icm20948_t *dev) {
 
         if ((orig_val & bank_0_reg_cfg[i].setbits) !=
             bank_0_reg_cfg[i].setbits) {
-            LOG_ERROR(dev->name, "0x%02x: 0x%02x (0x%02x not set)",
+            LOG_WARN(dev->name, "0x%02x: 0x%02x (0x%02x not set)",
                       (uint8_t)bank_0_reg_cfg[i].reg, orig_val,
                       bank_0_reg_cfg[i].setbits);
             rv = 0;
         }
 
         if ((orig_val & bank_0_reg_cfg[i].clearbits) != 0) {
-            LOG_ERROR(dev->name, "0x%02x: 0x%02x (0x%02x not cleared)",
+            LOG_WARN(dev->name, "0x%02x: 0x%02x (0x%02x not cleared)",
                       (uint8_t)bank_0_reg_cfg[i].reg, orig_val,
                       bank_0_reg_cfg[i].clearbits);
             rv = 0;
@@ -294,14 +295,14 @@ static int icm20948_configure(icm20948_t *dev) {
 
         if ((orig_val & bank_2_reg_cfg[i].setbits) !=
             bank_2_reg_cfg[i].setbits) {
-            LOG_ERROR(dev->name, "0x%02x: 0x%02x (0x%02x not set)",
+            LOG_WARN(dev->name, "0x%02x: 0x%02x (0x%02x not set)",
                       (uint8_t)bank_2_reg_cfg[i].reg, orig_val,
                       bank_2_reg_cfg[i].setbits);
             rv = 0;
         }
 
         if ((orig_val & bank_2_reg_cfg[i].clearbits) != 0) {
-            LOG_ERROR(dev->name, "0x%02x: 0x%02x (0x%02x not cleared)",
+            LOG_WARN(dev->name, "0x%02x: 0x%02x (0x%02x not cleared)",
                       (uint8_t)bank_2_reg_cfg[i].reg, orig_val,
                       bank_2_reg_cfg[i].clearbits);
             rv = 0;
@@ -330,14 +331,14 @@ static int icm20948_configure(icm20948_t *dev) {
 
         if ((orig_val & bank_3_reg_cfg[i].setbits) !=
             bank_3_reg_cfg[i].setbits) {
-            LOG_ERROR(dev->name, "0x%02x: 0x%02x (0x%02x not set)",
+            LOG_WARN(dev->name, "0x%02x: 0x%02x (0x%02x not set)",
                       (uint8_t)bank_3_reg_cfg[i].reg, orig_val,
                       bank_3_reg_cfg[i].setbits);
             rv = 0;
         }
 
         if ((orig_val & bank_3_reg_cfg[i].clearbits) != 0) {
-            LOG_ERROR(dev->name, "0x%02x: 0x%02x (0x%02x not cleared)",
+            LOG_WARN(dev->name, "0x%02x: 0x%02x (0x%02x not cleared)",
                       (uint8_t)bank_3_reg_cfg[i].reg, orig_val,
                       bank_3_reg_cfg[i].clearbits);
             rv = 0;

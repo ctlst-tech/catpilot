@@ -43,24 +43,69 @@ int adc_init(adc_t *cfg) {
             }
         }
     }
-    
+
+    cfg->p.mutex = xSemaphoreCreateMutex();
+    if (cfg->p.mutex == NULL) {
+        return -1;
+    }
+    cfg->p.sem = xSemaphoreCreateBinary();
+    if (cfg->p.sem == NULL) {
+        return -1;
+    }
+    xSemaphoreTake(cfg->p.sem, 0);
+
     rv = HAL_ADC_Start_DMA(&cfg->init, (uint32_t *)cfg->p.raw, length);
+    xSemaphoreTake(cfg->p.sem, portMAX_DELAY);
+    adc_reset_stat(cfg);
 
     return rv;
 }
 
-uint32_t adc_get_raw(adc_t *cfg, uint8_t channel) {
-    if (channel > ADC_MAX_CHANNELS) {
-        return (__UINT32_MAX__);
+float adc_get_volt(adc_t *cfg, uint8_t channel) {
+    float rv = -1.0;
+    xSemaphoreTake(cfg->p.mutex, portMAX_DELAY);
+    if (channel < ADC_MAX_CHANNELS) {
+        rv = cfg->p.meas[channel];
     }
-    return (cfg->p.raw[channel]);
+    xSemaphoreGive(cfg->p.mutex);
+    return rv;
 }
 
-double adc_get_volt(adc_t *cfg, uint8_t channel) {
-    if (channel > ADC_MAX_CHANNELS) {
-        return (__UINT32_MAX__);
+float adc_get_volt_max(adc_t *cfg, uint8_t channel) {
+    float rv = -1.0;
+    xSemaphoreTake(cfg->p.mutex, portMAX_DELAY);
+    if (channel < ADC_MAX_CHANNELS) {
+        rv = cfg->p.max[channel];
     }
-    return ((double)cfg->p.raw[channel] / 0xFFFF * 3.3);
+    xSemaphoreGive(cfg->p.mutex);
+    return rv;
+}
+
+float adc_get_volt_min(adc_t *cfg, uint8_t channel) {
+    float rv = -1.0;
+    xSemaphoreTake(cfg->p.mutex, portMAX_DELAY);
+    if (channel < ADC_MAX_CHANNELS) {
+        rv = cfg->p.min[channel];
+    }
+    xSemaphoreGive(cfg->p.mutex);
+    return rv;
+}
+
+int adc_reset_stat_channel(adc_t *cfg, uint8_t channel) {
+    xSemaphoreTake(cfg->p.mutex, portMAX_DELAY);
+    if (channel < ADC_MAX_CHANNELS) {
+        cfg->p.max[channel] = cfg->p.meas[channel];
+        cfg->p.min[channel] = cfg->p.meas[channel];
+    }
+    xSemaphoreGive(cfg->p.mutex);
+    return 0;
+}
+
+int adc_reset_stat(adc_t *cfg) {
+    for (int i = 0; i < ADC_MAX_CHANNELS; i++) {
+        adc_reset_stat_channel(cfg, i);
+    }
+    return 0;
 }
 
 static int adc_id_init(adc_t *cfg) {
@@ -101,5 +146,24 @@ void adc_handler(void *area) {
 
 void adc_dma_handler(void *area) {
     adc_t *cfg = (adc_t *)area;
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+
     HAL_DMA_IRQHandler(&cfg->dma.init);
+
+    if (xSemaphoreTakeFromISR(cfg->p.mutex, &xHigherPriorityTaskWoken)) {
+        for (int i = 0; i < ADC_MAX_CHANNELS; i++) {
+            cfg->p.meas[i] = (float)cfg->p.raw[i] / 0xFFFF * 3.3;
+            if (cfg->p.meas[i] > cfg->p.max[i]) {
+                cfg->p.max[i] = cfg->p.meas[i];
+            }
+            if (cfg->p.meas[i] < cfg->p.min[i]) {
+                cfg->p.min[i] = cfg->p.meas[i];
+            }
+        }
+        xSemaphoreGiveFromISR(cfg->p.mutex, &xHigherPriorityTaskWoken);
+    }
+    xSemaphoreGiveFromISR(cfg->p.sem, &xHigherPriorityTaskWoken);
+    if (xHigherPriorityTaskWoken == pdTRUE) {
+        portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+    }
 }
