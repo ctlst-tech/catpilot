@@ -57,6 +57,7 @@ int    ferror(FILE *stream);
 void   perror(const char *s);
 void   clearerr(FILE *stream);
 void   sync(void);
+int    fsync(int fileno);
 int    mkdir(const char *pathname, mode_t mode);
 int    rmdir(const char *pathname);
 
