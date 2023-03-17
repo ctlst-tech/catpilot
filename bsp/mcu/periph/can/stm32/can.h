@@ -20,7 +20,6 @@ typedef struct {
     IRQn_Type it1_id;
     SemaphoreHandle_t sem;
     SemaphoreHandle_t mutex;
-    SemaphoreHandle_t cs_mutex;
     enum can_state_t state;
     ring_buf_t *read_buf;
     ring_buf_t *write_buf;
@@ -40,7 +39,7 @@ typedef struct {
 } can_t;
 
 int can_init(can_t *cfg);
-int can_transmit(can_t *cfg, uint8_t *pdata, uint16_t length);
-int can_receive(can_t *cfg, uint8_t *pdata, uint16_t length);
+int can_transmit(can_t *cfg, uint32_t id, uint8_t *pdata, uint16_t length);
+int can_receive(can_t *cfg, uint32_t *id, uint8_t *pdata, uint16_t length);
 
 #endif  // CAN_H
