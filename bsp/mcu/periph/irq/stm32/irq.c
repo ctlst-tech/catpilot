@@ -50,6 +50,23 @@ void ADC3_IRQHandler(void) {
     IRQ_Handler(ADC3_IRQn);
 }
 
+// CAN
+void FDCAN1_IT0_IRQHandler(void) {
+    IRQ_Handler(FDCAN1_IT0_IRQn);
+}
+
+void FDCAN1_IT1_IRQHandler(void) {
+    IRQ_Handler(FDCAN1_IT1_IRQn);
+}
+
+void FDCAN2_IT0_IRQHandler(void) {
+    IRQ_Handler(FDCAN2_IT0_IRQn);
+}
+
+void FDCAN2_IT1_IRQHandler(void) {
+    IRQ_Handler(FDCAN2_IT1_IRQn);
+}
+
 // DMA
 void DMA1_Stream0_IRQHandler(void) {
     IRQ_Handler(DMA1_Stream0_IRQn);
