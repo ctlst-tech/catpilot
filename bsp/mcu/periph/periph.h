@@ -2,6 +2,7 @@
 #define PERIPH_H
 
 #include "adc.h"
+#include "can.h"
 #include "dma.h"
 #include "exti.h"
 #include "gpio.h"

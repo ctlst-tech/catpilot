@@ -28,6 +28,7 @@ if (MCU_FAMILY STREQUAL "stm32")
             mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_dma.c
             mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_dma_ex.c
             mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_exti.c
+            mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_fdcan.c
             mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_flash.c
             mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_flash_ex.c
             mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_gpio.c
@@ -49,6 +50,7 @@ if (MCU_FAMILY STREQUAL "stm32")
         )
         list(APPEND BSP_SRC
             boards/${BOARD}/cfg/adc_cfg.c
+            boards/${BOARD}/cfg/can_cfg.c
             boards/${BOARD}/cfg/exti_cfg.c
             boards/${BOARD}/cfg/gpio_cfg.c
             boards/${BOARD}/cfg/i2c_cfg.c
@@ -64,6 +66,7 @@ endif()
 
 list(APPEND BSP_SRC
     mcu/periph/adc/${MCU_FAMILY}/adc.c
+    mcu/periph/can/${MCU_FAMILY}/can.c
     mcu/periph/dma/${MCU_FAMILY}/dma.c
     mcu/periph/exti/${MCU_FAMILY}/exti.c
     mcu/periph/gpio/${MCU_FAMILY}/gpio.c
@@ -78,6 +81,7 @@ list(APPEND BSP_SRC
 list(APPEND BSP_INC
     mcu/periph
     mcu/periph/adc/${MCU_FAMILY}
+    mcu/periph/can/${MCU_FAMILY}
     mcu/periph/dma/${MCU_FAMILY}
     mcu/periph/exti/${MCU_FAMILY}
     mcu/periph/gpio/${MCU_FAMILY}

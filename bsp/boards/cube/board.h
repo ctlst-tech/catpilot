@@ -76,6 +76,10 @@ extern gpio_t gpio_i2c1_scl;
 extern gpio_t gpio_i2c1_sda;
 extern gpio_t gpio_i2c2_scl;
 extern gpio_t gpio_i2c2_sda;
+extern gpio_t gpio_can1_tx;
+extern gpio_t gpio_can1_rx;
+extern gpio_t gpio_can2_tx;
+extern gpio_t gpio_can2_rx;
 
 extern sdio_t sdio;
 extern spi_t spi1;
@@ -103,5 +107,8 @@ extern ms5611_t *ms5611_2;
 extern ist8310_t *ist8310;
 
 extern adc_t adc1;
+
+extern can_t can1;
+extern can_t can2;
 
 #endif  // BOARD_H
