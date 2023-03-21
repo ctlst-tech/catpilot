@@ -2,8 +2,11 @@
 
 static int can_id_init(can_t *cfg);
 static int can_clock_init(can_t *cfg);
-static uint32_t can_length_to_dlc(uint32_t length);
-static uint32_t can_dlc_to_length(uint32_t dlc);
+static uint32_t can_length_to_hal(uint32_t length);
+static uint32_t can_length_from_hal(uint32_t dlc);
+static uint32_t can_id_type_to_hal(uint32_t id);
+static uint32_t can_frame_type_to_hal(uint32_t frame_type);
+static uint32_t can_frame_type_from_hal(uint32_t frame_type);
 void can_it_handler(void *area);
 
 int can_init(can_t *cfg) {
@@ -51,36 +54,21 @@ int can_init(can_t *cfg) {
     if ((rv = HAL_FDCAN_Start(&cfg->init))) {
         return rv;
     }
-    if ((rv = HAL_FDCAN_ActivateNotification(&cfg->init, FDCAN_IT_TX_COMPLETE | FDCAN_IT_RX_BUFFER_NEW_MESSAGE, FDCAN_TX_BUFFER0))) {
+    if ((rv = HAL_FDCAN_ActivateNotification(&cfg->init,
+                                             FDCAN_IT_TX_COMPLETE |
+                                                 FDCAN_IT_RX_FIFO0_NEW_MESSAGE |
+                                                 FDCAN_IT_RX_FIFO1_NEW_MESSAGE,
+                                             0xFFFFFFFF))) {
         return rv;
     }
-    // struct file_operations f_op = {.open = can_open,
-    //                                .write = can_write,
-    //                                .read = can_read,
-    //                                .close = can_close,
-    //                                .dev = cfg};
-
-    // char path[32];
-    // sprintf(path, "/dev/%s", cfg->name);
-    // if (node_mount(path, &f_op) == NULL) {
-    //     return -1;
-    // }
-
-    // cfg->p.read_buf = ring_buf_init(cfg->buf_size);
-    // cfg->p.write_buf = ring_buf_init(cfg->buf_size);
-
-    // cfg->p.dma_rx_buf = calloc(cfg->buf_size, sizeof(uint8_t));
-    // cfg->p.dma_tx_buf = calloc(cfg->buf_size, sizeof(uint8_t));
-
-    // cfg->p.periph_init = true;
 
     return rv;
 }
 
-int can_transmit(can_t *cfg, uint32_t id, uint8_t *pdata, uint16_t length) {
+int can_transmit(can_t *cfg, can_header_t *header, uint8_t *pdata) {
     int rv = 0;
 
-    if (length == 0 || length > 8 || pdata == NULL || id > 0xFFF) {
+    if (cfg == NULL || pdata == NULL || header == NULL || header->size > 8) {
         return EINVAL;
     }
 
@@ -88,20 +76,42 @@ int can_transmit(can_t *cfg, uint32_t id, uint8_t *pdata, uint16_t length) {
         return ETIMEDOUT;
     }
 
+    xSemaphoreTake(cfg->p.sem, 0);
+
     cfg->p.state = CAN_TRANSMIT;
 
-    FDCAN_TxHeaderTypeDef msg_header;
-    msg_header.Identifier = id;
-    msg_header.IdType = FDCAN_STANDARD_ID;
-    msg_header.TxFrameType = FDCAN_DATA_FRAME;
-    msg_header.DataLength = can_length_to_dlc(length);
-    msg_header.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
-    msg_header.BitRateSwitch = FDCAN_BRS_ON;
-    msg_header.FDFormat = FDCAN_CLASSIC_CAN;
-    msg_header.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
-    msg_header.MessageMarker = 0x00;
+    FDCAN_TxHeaderTypeDef hal_header;
+    hal_header.Identifier = header->id;
+    hal_header.IdType = can_id_type_to_hal(header->id);
+    hal_header.TxFrameType = can_frame_type_to_hal(header->frame_type);
+    hal_header.DataLength = can_length_to_hal(header->size);
+    hal_header.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
+    hal_header.BitRateSwitch = FDCAN_BRS_ON;
+    hal_header.FDFormat = FDCAN_CLASSIC_CAN;
+    hal_header.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
+    hal_header.MessageMarker = 0x00;
 
-    rv = HAL_FDCAN_AddMessageToTxFifoQ(&cfg->init, &msg_header, pdata);
+    rv = HAL_FDCAN_AddMessageToTxFifoQ(&cfg->init, &hal_header, pdata);
+
+    if (rv == HAL_OK) {
+        if (cfg->verbosity == CAN_VERBOSITY_HIGH) {
+            can_print_info(cfg, header, pdata);
+        }
+    } else {
+        if (cfg->verbosity > CAN_VERBOSITY_OFF) {
+            printf("Interface = %s\n", cfg->name);
+            printf("Tx Error = %d\n\n", cfg->init.ErrorCode);
+        }
+    }
+
+    if (rv == HAL_OK &&
+        !xSemaphoreTake(cfg->p.sem, pdMS_TO_TICKS(cfg->timeout))) {
+        if (cfg->verbosity > CAN_VERBOSITY_OFF) {
+            printf("Interface = %s\n", cfg->name);
+            printf("Timeout = %d\n\n", cfg->timeout);
+        }
+        rv = ETIMEDOUT;
+    }
 
     cfg->p.state = CAN_FREE;
     xSemaphoreGive(cfg->p.mutex);
@@ -109,10 +119,10 @@ int can_transmit(can_t *cfg, uint32_t id, uint8_t *pdata, uint16_t length) {
     return rv;
 }
 
-int can_receive(can_t *cfg, uint32_t *id, uint8_t *pdata, uint16_t length) {
+int can_receive(can_t *cfg, can_header_t *header, uint8_t *pdata) {
     int rv = 0;
 
-    if (length == 0 || pdata == NULL) {
+    if (cfg == NULL || pdata == NULL || header == NULL) {
         return EINVAL;
     }
 
@@ -122,11 +132,22 @@ int can_receive(can_t *cfg, uint32_t *id, uint8_t *pdata, uint16_t length) {
 
     cfg->p.state = CAN_RECEIVE;
 
-    FDCAN_RxHeaderTypeDef msg_header;
-    uint8_t msg_data[8];
-    rv = HAL_FDCAN_GetRxMessage(&cfg->init, FDCAN_RX_FIFO0, &msg_header, msg_data);
-    memcpy(pdata, msg_data, can_dlc_to_length(msg_header.DataLength));
-    *id = msg_header.Identifier & 0x7FF;
+    FDCAN_RxHeaderTypeDef hal_header;
+    rv = HAL_FDCAN_GetRxMessage(&cfg->init, FDCAN_RX_FIFO0, &hal_header, pdata);
+
+    if (rv == HAL_OK) {
+        header->id = hal_header.Identifier;
+        header->frame_type = can_frame_type_from_hal(hal_header.RxFrameType);
+        header->size = can_length_from_hal(hal_header.DataLength);
+        if (cfg->verbosity == CAN_VERBOSITY_HIGH) {
+            can_print_info(cfg, header, pdata);
+        }
+    } else {
+        if (cfg->verbosity > CAN_VERBOSITY_OFF) {
+            printf("Interface = %s\n", cfg->name);
+            printf("Rx Error = %d\n\n", cfg->init.ErrorCode);
+        }
+    }
 
     cfg->p.state = CAN_FREE;
     xSemaphoreGive(cfg->p.mutex);
@@ -134,101 +155,30 @@ int can_receive(can_t *cfg, uint32_t *id, uint8_t *pdata, uint16_t length) {
     return rv;
 }
 
-// void can_read_task(void *cfg_ptr) {
-//     can_t *cfg = (can_t *)cfg_ptr;
-//     uint8_t *buf = cfg->p.dma_rx_buf;
-//     while (1) {
-//         if (can_receive(cfg, buf, cfg->buf_size)) {
-//             cfg->p.error = ERROR;
-//         } else {
-//             cfg->p.error = SUCCESS;
-//         }
-//         ring_buf_write(cfg->p.read_buf, buf,
-//                        MIN(cfg->p.rx_count, cfg->buf_size));
-//     }
-// }
-
-// void can_write_task(void *cfg_ptr) {
-//     can_t *cfg = (can_t *)cfg_ptr;
-//     uint8_t *buf = cfg->p.dma_tx_buf;
-//     uint16_t length;
-//     while (1) {
-//         length = ring_buf_read(cfg->p.write_buf, buf, cfg->buf_size);
-//         if (can_transmit(cfg, buf, length)) {
-//             cfg->p.error = ERROR;
-//         } else {
-//             cfg->p.error = SUCCESS;
-//         }
-//     }
-// }
-
-// int can_open(FILE *file, const char *path) {
-//     can_t *cfg = (can_t *)file->node->f_op.dev;
-
-//     errno = 0;
-
-//     if (cfg->p.tasks_init) {
-//         return 0;
-//     }
-
-//     if (cfg->buf_size <= 0) {
-//         errno = EINVAL;
-//         return -1;
-//     }
-
-//     if (cfg->p.read_buf == NULL || cfg->p.write_buf == NULL) {
-//         errno = ENOMEM;
-//         return -1;
-//     }
-
-//     char name[32];
-//     snprintf(name, MAX_NAME_LEN, "%s_read_thread", cfg->name);
-//     xTaskCreate(can_read_task, name, 128, cfg, cfg->task_priority, NULL);
-//     snprintf(name, MAX_NAME_LEN, "%s_wirte_thread", cfg->name);
-//     xTaskCreate(can_write_task, name, 128, cfg, cfg->task_priority, NULL);
-
-//     cfg->p.tasks_init = true;
-//     errno = 0;
-
-//     return 0;
-// }
-
-// ssize_t can_write(FILE *file, const char *buf, size_t count) {
-//     ssize_t rv;
-//     errno = 0;
-//     can_t *cfg = (can_t *)file->node->f_op.dev;
-
-//     rv = ring_buf_write(cfg->p.write_buf, (uint8_t *)buf, count);
-//     if (cfg->p.error) {
-//         errno = EPROTO;
-//         return -1;
-//     }
-//     return rv;
-// }
-
-// ssize_t can_read(FILE *file, char *buf, size_t count) {
-//     ssize_t rv;
-//     errno = 0;
-//     can_t *cfg = (can_t *)file->node->f_op.dev;
-
-//     rv = ring_buf_read(cfg->p.read_buf, (uint8_t *)buf, count);
-//     if (cfg->p.error) {
-//         errno = EPROTO;
-//         return -1;
-//     }
-//     return rv;
-// }
-
-// int can_close(FILE *file) {
-//     (void)file;
-//     errno = 0;
-//     return 0;
-// }
-
+void can_print_info(can_t *cfg, can_header_t *header, uint8_t *pdata) {
+    printf("Interface = %s\n", cfg->name);
+    printf("ID = 0x%X\n", header->id);
+    printf("Frame type = 0x%X\n", header->frame_type);
+    printf("Msg size = 0x%X\n", header->size);
+    printf("Data = ", header->size);
+    for (uint32_t i = 0; i < header->size; i++) {
+        printf("0x%X ", pdata[i]);
+    }
+    printf("\n\n");
+}
 
 void can_it_handler(void *area) {
     can_t *cfg = (can_t *)area;
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+
     HAL_FDCAN_IRQHandler(&cfg->init);
+
+    if (cfg->p.state == CAN_TRANSMIT && cfg->init.ErrorCode == 0) {
+        xSemaphoreGiveFromISR(cfg->p.sem, &xHigherPriorityTaskWoken);
+        if (xHigherPriorityTaskWoken == pdTRUE) {
+            portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+        }
+    }
 }
 
 static int can_id_init(can_t *cfg) {
@@ -247,7 +197,7 @@ static int can_id_init(can_t *cfg) {
     return 0;
 }
 
-static uint32_t can_length_to_dlc(uint32_t length) {
+static uint32_t can_length_to_hal(uint32_t length) {
     uint32_t rv = 0;
     switch (length) {
         case 0:
@@ -283,7 +233,7 @@ static uint32_t can_length_to_dlc(uint32_t length) {
     return rv;
 }
 
-static uint32_t can_dlc_to_length(uint32_t dlc) {
+static uint32_t can_length_from_hal(uint32_t dlc) {
     uint32_t rv = 0;
     switch (dlc) {
         case FDCAN_DLC_BYTES_0:
@@ -317,6 +267,27 @@ static uint32_t can_dlc_to_length(uint32_t dlc) {
             rv = 0;
     }
     return rv;
+}
+
+static uint32_t can_id_type_to_hal(uint32_t id) {
+    if (id > 0x7FF && id < (0x1 << 29)) {
+        return FDCAN_EXTENDED_ID;
+    }
+    return FDCAN_STANDARD_ID;
+}
+
+static uint32_t can_frame_type_to_hal(uint32_t frame_type) {
+    if (frame_type == CAN_REMOTE_FRAME) {
+        return FDCAN_REMOTE_FRAME;
+    }
+    return FDCAN_DATA_FRAME;
+}
+
+static uint32_t can_frame_type_from_hal(uint32_t frame_type) {
+    if (frame_type == FDCAN_REMOTE_FRAME) {
+        return CAN_REMOTE_FRAME;
+    }
+    return CAN_DATA_FRAME;
 }
 
 static int can_clock_init(can_t *cfg) {

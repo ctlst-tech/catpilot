@@ -4,6 +4,7 @@
 
 can_t can1 = {
     .name = "can1",
+    .alt_name = "CAN1",
     .init = {
         .Instance = FDCAN1,
         .Init = {
@@ -42,11 +43,13 @@ can_t can1 = {
     .buf_size = 256,
     .irq_priority = 10,
     .task_priority = 2,
+    .verbosity = CAN_VERBOSITY_HIGH,
     .p = {0}
 };
 
 can_t can2 = {
     .name = "can2",
+    .alt_name = "CAN2",
     .init = {
         .Instance = FDCAN2,
         .Init = {
@@ -85,5 +88,6 @@ can_t can2 = {
     .buf_size = 256,
     .irq_priority = 10,
     .task_priority = 2,
+    .verbosity = CAN_VERBOSITY_HIGH,
     .p = {0}
 };

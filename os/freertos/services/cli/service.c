@@ -34,7 +34,7 @@ void *cli_echo(void *arg) {
                 }
                 cli->cmd_len = 0;
             } else if (cli->rbuf[i] == '\b' || cli->rbuf[i] == 0x7F ||
-                       (!strncmp("\033[3~", cli->rbuf[i], 4))) {
+                       (!strncmp("\033[3~", &cli->rbuf[i], 4))) {
                 cli->wbuf[cli->wlen] = '\b';
                 cli->wlen++;
                 cli->wbuf[cli->wlen] = ' ';
