@@ -20,8 +20,6 @@ int board_fail(void);
 extern uint32_t rcc_system_clock;
 extern uint32_t *board_monitor_counter;
 
-extern exti_t exti_spi1_drdy1;
-
 extern gpio_t gpio_brick1_valid;
 extern gpio_t gpio_brick2_valid;
 extern gpio_t gpio_usb_valid;

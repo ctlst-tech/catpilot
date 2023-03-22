@@ -10,8 +10,6 @@
 #include "periph.h"
 #include "service.h"
 
-extern gpio_t gpio_fmu_pwm[6];
-
 #define CUBEIO_PKT_MAX_REGS 22
 #define CUBEIO_MAX_CHANNELS 16
 

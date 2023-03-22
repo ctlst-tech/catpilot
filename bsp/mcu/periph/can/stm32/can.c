@@ -45,12 +45,15 @@ int can_init(can_t *cfg) {
         return rv;
     }
 
+    cfg->p.mutex = xSemaphoreCreateMutex();
     if (cfg->p.mutex == NULL) {
-        cfg->p.mutex = xSemaphoreCreateMutex();
+        return -1;
     }
+    cfg->p.sem = xSemaphoreCreateBinary();
     if (cfg->p.sem == NULL) {
-        cfg->p.sem = xSemaphoreCreateBinary();
+        return -1;
     }
+
     if ((rv = HAL_FDCAN_Start(&cfg->init))) {
         return rv;
     }

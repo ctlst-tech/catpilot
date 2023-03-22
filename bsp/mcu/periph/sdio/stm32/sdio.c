@@ -46,11 +46,13 @@ int sdio_init(sdio_t *cfg) {
     if ((rv = irq_enable(cfg->p.id))) {
         return rv;
     }
+    cfg->p.mutex = xSemaphoreCreateMutex();
     if (cfg->p.mutex == NULL) {
-        cfg->p.mutex = xSemaphoreCreateMutex();
+        return -1;
     }
+    cfg->p.sem = xSemaphoreCreateBinary();
     if (cfg->p.sem == NULL) {
-        cfg->p.sem = xSemaphoreCreateBinary();
+        return -1;
     }
 
     return rv;
@@ -185,7 +187,7 @@ void sdio_handler(void *area) {
     sdio_t *cfg = (sdio_t *)area;
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     HAL_SD_IRQHandler(&cfg->init);
-    if(cfg->init.State == HAL_SD_STATE_READY) {
+    if (cfg->init.State == HAL_SD_STATE_READY) {
         xSemaphoreGiveFromISR(cfg->p.sem, &xHigherPriorityTaskWoken);
         if (xHigherPriorityTaskWoken == pdTRUE) {
             portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
@@ -194,7 +196,7 @@ void sdio_handler(void *area) {
 }
 
 void HAL_SD_ErrorCallback(SD_HandleTypeDef *hsd) {
-    while (1);
+    // TODO: add handler
 }
 
 static int sdio_id_init(sdio_t *cfg) {

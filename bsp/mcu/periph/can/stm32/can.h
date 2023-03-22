@@ -9,8 +9,8 @@
 #include "hal.h"
 #include "ring_buf.h"
 
-#define CAN_VERBOSITY_OFF  0
-#define CAN_VERBOSITY_LOW  1
+#define CAN_VERBOSITY_OFF 0
+#define CAN_VERBOSITY_LOW 1
 #define CAN_VERBOSITY_HIGH 2
 
 enum can_state_t {
