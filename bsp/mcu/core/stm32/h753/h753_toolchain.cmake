@@ -33,10 +33,37 @@ if (UNIX)
     set(LINKER_SCRIPT       ${CMAKE_CURRENT_SOURCE_DIR}/catpilot/bsp/mcu/core/stm32/h753/ld/linker_stm32h753.ld)
 endif ()
 
-set(MCU_FLAGS "-mcpu=cortex-m7 -mlittle-endian -mfloat-abi=hard -mthumb -mno-unaligned-access")
+string(CONCAT MCU_FLAGS
+    "-mcpu=cortex-m7 "
+    "-mlittle-endian "
+    "-mfloat-abi=hard "
+    "-mthumb "
+    "-mno-unaligned-access")
 
-set(COMMON_FLAGS "${MCU_FLAGS} -Wall -Wextra  -fdata-sections -ffunction-sections -Wl,--gc-sections -Wno-unused-variable -Wno-unused-function -Wno-unused-parameter -Wno-missing-braces")
-set(LINKER_FLAGS "${LINK_MAP_CREATION_FLAG} --specs=nosys.specs -specs=nano.specs ${MCU_FLAGS} -Wl,--start-group -lgcc -lc -lg -Wl,--end-group -Wl,--gc-sections -u _printf_float -T ${LINKER_SCRIPT}")
+string(CONCAT COMMON_FLAGS
+    "${MCU_FLAGS} "
+    # "-Werror -pedantic-errors "
+    "-Wall -Wextra "
+    "-Wpedantic "
+    "-Wcast-align "
+    "-Wcast-qual "
+    "-Wduplicated-branches "
+    "-Wduplicated-cond "
+    "-Wfloat-equal "
+    "-Wlogical-op "
+    "-Wredundant-decls "
+    "-Wsign-conversion "
+    "-Wconversion "
+    "-fdata-sections -ffunction-sections -Wl,--gc-sections "
+    "-Wno-unused-variable -Wno-unused-function -Wno-unused-parameter -Wno-missing-braces "
+)
+
+string(CONCAT LINKER_FLAGS
+    "${LINK_MAP_CREATION_FLAG} "
+    "--specs=nosys.specs -specs=nano.specs "
+    "${MCU_FLAGS} "
+    "-Wl,--start-group -lgcc -lc -lg -Wl,--end-group "
+    "-Wl,--gc-sections -u _printf_float -T ${LINKER_SCRIPT}")
 
 set(CMAKE_C_COMPILER_WORKS TRUE)
 set(CMAKE_CXX_COMPILER_WORKS TRUE)
@@ -47,4 +74,4 @@ set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g2 ${COMMON_FLAGS}")
 set(CMAKE_C_FLAGS_RELEASE "-O3 -DNDEBUG ${COMMON_FLAGS}")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG ${COMMON_FLAGS}")
 
-set(CMAKE_EXE_LINKER_FLAGS_INIT "${LINKER_FLAGS} -O0")
+set(CMAKE_EXE_LINKER_FLAGS_INIT "${LINKER_FLAGS} -O3")
