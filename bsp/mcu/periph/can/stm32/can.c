@@ -7,6 +7,7 @@ static uint32_t can_length_from_hal(uint32_t dlc);
 static uint32_t can_id_type_to_hal(uint32_t id);
 static uint32_t can_frame_type_to_hal(uint32_t frame_type);
 static uint32_t can_frame_type_from_hal(uint32_t frame_type);
+static int can_start_service(can_t *cfg);
 void can_it_handler(void *area);
 
 int can_init(can_t *cfg) {
@@ -45,12 +46,28 @@ int can_init(can_t *cfg) {
         return rv;
     }
 
-    cfg->p.mutex = xSemaphoreCreateMutex();
-    if (cfg->p.mutex == NULL) {
+    cfg->p.tx_mutex = xSemaphoreCreateMutex();
+    if (cfg->p.tx_mutex == NULL) {
         return -1;
     }
-    cfg->p.sem = xSemaphoreCreateBinary();
-    if (cfg->p.sem == NULL) {
+    cfg->p.tx_sem = xSemaphoreCreateBinary();
+    if (cfg->p.tx_sem == NULL) {
+        return -1;
+    }
+    cfg->p.rx_mutex = xSemaphoreCreateMutex();
+    if (cfg->p.rx_mutex == NULL) {
+        return -1;
+    }
+    cfg->p.rx_sem = xSemaphoreCreateBinary();
+    if (cfg->p.rx_sem == NULL) {
+        return -1;
+    }
+    cfg->p.channel_mutex = xSemaphoreCreateMutex();
+    if (cfg->p.channel_mutex == NULL) {
+        return -1;
+    }
+    cfg->p.tx_queue = xQueueCreate(cfg->queue_size, sizeof(can_frame_t));
+    if (cfg->p.tx_queue == NULL) {
         return -1;
     }
 
@@ -65,6 +82,28 @@ int can_init(can_t *cfg) {
         return rv;
     }
 
+    xSemaphoreTake(cfg->p.rx_sem, 0);
+
+    if (can_start_service(cfg)) {
+        errno = ENXIO;
+        return -1;
+    }
+
+    struct file_operations f_op = {.open = can_open,
+                                   .write = can_write,
+                                   .read = can_read,
+                                   .close = can_close,
+                                   .ioctl = can_ioctl,
+                                   .dev = cfg};
+
+    char path[32];
+    sprintf(path, "/dev/%s", cfg->name);
+    if (node_mount(path, &f_op) == NULL) {
+        return -1;
+    }
+
+    cfg->p.periph_init = true;
+
     return rv;
 }
 
@@ -75,11 +114,11 @@ int can_transmit(can_t *cfg, can_header_t *header, uint8_t *pdata) {
         return EINVAL;
     }
 
-    if (!xSemaphoreTake(cfg->p.mutex, pdMS_TO_TICKS(cfg->timeout))) {
+    if (!xSemaphoreTake(cfg->p.tx_mutex, pdMS_TO_TICKS(cfg->timeout))) {
         return ETIMEDOUT;
     }
 
-    xSemaphoreTake(cfg->p.sem, 0);
+    xSemaphoreTake(cfg->p.tx_sem, 0);
 
     cfg->p.state = CAN_TRANSMIT;
 
@@ -108,7 +147,7 @@ int can_transmit(can_t *cfg, can_header_t *header, uint8_t *pdata) {
     }
 
     if (rv == HAL_OK &&
-        !xSemaphoreTake(cfg->p.sem, pdMS_TO_TICKS(cfg->timeout))) {
+        !xSemaphoreTake(cfg->p.tx_sem, pdMS_TO_TICKS(cfg->timeout))) {
         if (cfg->verbosity > CAN_VERBOSITY_OFF) {
             printf("Interface = %s\n", cfg->name);
             printf("Timeout = %d\n\n", cfg->timeout);
@@ -117,7 +156,7 @@ int can_transmit(can_t *cfg, can_header_t *header, uint8_t *pdata) {
     }
 
     cfg->p.state = CAN_FREE;
-    xSemaphoreGive(cfg->p.mutex);
+    xSemaphoreGive(cfg->p.tx_mutex);
 
     return rv;
 }
@@ -129,36 +168,191 @@ int can_receive(can_t *cfg, can_header_t *header, uint8_t *pdata) {
         return EINVAL;
     }
 
-    if (!xSemaphoreTake(cfg->p.mutex, pdMS_TO_TICKS(cfg->timeout))) {
+    if (!xSemaphoreTake(cfg->p.rx_mutex, pdMS_TO_TICKS(cfg->timeout))) {
         return ETIMEDOUT;
     }
 
     cfg->p.state = CAN_RECEIVE;
 
-    FDCAN_RxHeaderTypeDef hal_header;
-    rv = HAL_FDCAN_GetRxMessage(&cfg->init, FDCAN_RX_FIFO0, &hal_header, pdata);
-
-    if (rv == HAL_OK) {
-        header->id = hal_header.Identifier;
-        header->frame_type = can_frame_type_from_hal(hal_header.RxFrameType);
-        header->size = can_length_from_hal(hal_header.DataLength);
-        if (cfg->verbosity == CAN_VERBOSITY_HIGH) {
-            can_print_info(cfg, header, pdata);
-        }
-    } else {
+    if (!xSemaphoreTake(cfg->p.rx_sem, pdMS_TO_TICKS(cfg->timeout))) {
         if (cfg->verbosity > CAN_VERBOSITY_OFF) {
             printf("Interface = %s\n", cfg->name);
-            printf("Rx Error = %d\n\n", cfg->init.ErrorCode);
+            printf("Timeout = %d\n\n", cfg->timeout);
+        }
+        rv = ETIMEDOUT;
+    } else {
+        FDCAN_RxHeaderTypeDef hal_header;
+        rv = HAL_FDCAN_GetRxMessage(&cfg->init, FDCAN_RX_FIFO0, &hal_header,
+                                    pdata);
+
+        if (rv == HAL_OK) {
+            header->id = hal_header.Identifier;
+            header->frame_type =
+                can_frame_type_from_hal(hal_header.RxFrameType);
+            header->size = can_length_from_hal(hal_header.DataLength);
+            if (cfg->verbosity == CAN_VERBOSITY_HIGH) {
+                can_print_info(cfg, header, pdata);
+            }
+        } else {
+            if (cfg->verbosity > CAN_VERBOSITY_OFF) {
+                printf("Interface = %s\n", cfg->name);
+                printf("Rx Error = %d\n\n", cfg->init.ErrorCode);
+            }
         }
     }
 
     cfg->p.state = CAN_FREE;
-    xSemaphoreGive(cfg->p.mutex);
+    xSemaphoreGive(cfg->p.rx_mutex);
 
     return rv;
 }
 
+void can_write_thread(void *dev) {
+    can_t *cfg = (can_t *)dev;
+    while (1) {
+        can_frame_t frame = {0};
+        xQueueReceive(cfg->p.tx_queue, &frame, portMAX_DELAY);
+        can_transmit(cfg, &frame.header, frame.data);
+    }
+}
+
+void can_read_thread(void *dev) {
+    can_t *cfg = (can_t *)dev;
+    while (1) {
+        can_frame_t frame = {0};
+        if (!can_receive(cfg, &frame.header, frame.data)) {
+            for (int i = 0; i < CAN_MAX_CHANNELS && cfg->p.channel[i] != NULL;
+                 i++) {
+                if (cfg->p.channel[i]->id == frame.header.id) {
+                    xQueueSend(cfg->p.channel[i]->rx_queue, &frame,
+                               portMAX_DELAY);
+                }
+            }
+        }
+    }
+}
+
+int can_open(FILE *file, const char *path) {
+    int rv = 0;
+    can_t *cfg = (can_t *)file->node->f_op.dev;
+
+    errno = 0;
+
+    if (!cfg->p.periph_init) {
+        errno = EPERM;
+        return -1;
+    }
+
+    can_channel_t *channel = calloc(sizeof(can_channel_t), sizeof(uint8_t));
+    if (channel == NULL) {
+        errno = ENOMEM;
+        return -1;
+    }
+
+    channel->can = cfg;
+    channel->tx_queue = cfg->p.tx_queue;
+    channel->rx_queue = xQueueCreate(cfg->queue_size, sizeof(can_frame_t));
+    if (cfg->p.tx_queue == NULL) {
+        errno = ENOMEM;
+        return -1;
+    }
+    file->private_data = channel;
+
+    static uint32_t id = 0x01;
+    xSemaphoreTake(cfg->p.channel_mutex, portMAX_DELAY);
+    int i = 0;
+    while (cfg->p.channel[i] != NULL) {
+        if (i > CAN_MAX_CHANNELS) {
+            break;
+        }
+        i++;
+    }
+    if (i < CAN_MAX_CHANNELS) {
+        channel->id = id++;
+        cfg->p.channel[i] = channel;
+    } else {
+        errno = ENOMEM;
+        rv = -1;
+    }
+    xSemaphoreGive(cfg->p.channel_mutex);
+
+    return rv;
+}
+
+ssize_t can_write(FILE *file, const char *buf, size_t count) {
+    ssize_t rv;
+    can_channel_t *dev = (can_channel_t *)file->private_data;
+
+    errno = 0;
+
+    if (count > 8) {
+        errno = EMSGSIZE;
+        return -1;
+    }
+
+    can_frame_t frame = {
+        .channel = dev,
+        .header = {.frame_type = CAN_DATA_FRAME, .id = dev->id, .size = count},
+        .data = {0}};
+
+    memcpy(frame.data, buf, count);
+    xQueueSend(dev->tx_queue, &frame, portMAX_DELAY);
+    rv = count;
+
+    return rv;
+}
+
+ssize_t can_read(FILE *file, char *buf, size_t count) {
+    can_channel_t *dev = (can_channel_t *)file->private_data;
+
+    errno = 0;
+
+    if (count > 8) {
+        errno = EMSGSIZE;
+        return -1;
+    }
+
+    can_frame_t frame = {0};
+
+    xQueueReceive(dev->rx_queue, &frame, portMAX_DELAY);
+    memcpy(buf, frame.data, frame.header.size);
+
+    return frame.header.size;
+}
+
+int can_close(FILE *file) {
+    errno = ENOSYS;
+    return -1;
+}
+
+int can_ioctl_set_id(FILE *file, va_list args) {
+    uint32_t id;
+    id = va_arg(args, uint32_t);
+    can_channel_t *channel = (can_channel_t *)file->private_data;
+    channel->id = id;
+    return 0;
+}
+
+int can_ioctl(FILE *file, int request, va_list args) {
+    ssize_t rv;
+    can_channel_t *dev = (can_channel_t *)file->private_data;
+
+    errno = 0;
+
+    switch (request) {
+        case CAN_IOCTL_SET_ID:
+            can_ioctl_set_id(file, args);
+            break;
+        default:
+            errno = ENOENT;
+            return -1;
+    }
+
+    return 0;
+}
+
 void can_print_info(can_t *cfg, can_header_t *header, uint8_t *pdata) {
+    printf("State = %d\n", cfg->p.state);
     printf("Interface = %s\n", cfg->name);
     printf("ID = 0x%X\n", header->id);
     printf("Frame type = 0x%X\n", header->frame_type);
@@ -174,14 +368,37 @@ void can_it_handler(void *area) {
     can_t *cfg = (can_t *)area;
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
-    HAL_FDCAN_IRQHandler(&cfg->init);
+    uint32_t ir = cfg->init.Instance->IR;
 
-    if (cfg->p.state == CAN_TRANSMIT && cfg->init.ErrorCode == 0) {
-        xSemaphoreGiveFromISR(cfg->p.sem, &xHigherPriorityTaskWoken);
+    if (ir & FDCAN_IR_TC) {
+        cfg->init.Instance->IR = FDCAN_IR_TC & FDCAN_IR_MASK;
+        xSemaphoreGiveFromISR(cfg->p.tx_sem, &xHigherPriorityTaskWoken);
+        if (xHigherPriorityTaskWoken == pdTRUE) {
+            portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+        }
+    } else if (ir & (FDCAN_IR_RF0N | FDCAN_IR_RF1N)) {
+        cfg->init.Instance->IR =
+            (FDCAN_IR_RF0N | FDCAN_IR_RF1N) & FDCAN_IR_MASK;
+        xSemaphoreGiveFromISR(cfg->p.rx_sem, &xHigherPriorityTaskWoken);
         if (xHigherPriorityTaskWoken == pdTRUE) {
             portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
         }
     }
+}
+
+static int can_start_service(can_t *cfg) {
+    char name[32];
+    snprintf(name, MAX_NAME_LEN, "%s_read_thread", cfg->name);
+    if (!xTaskCreate(can_read_thread, name, configMINIMAL_STACK_SIZE, cfg,
+                     cfg->task_priority, NULL)) {
+        return -1;
+    }
+    snprintf(name, MAX_NAME_LEN, "%s_write_thread", cfg->name);
+    if (!xTaskCreate(can_write_thread, name, configMINIMAL_STACK_SIZE, cfg,
+                     cfg->task_priority, NULL)) {
+        return -1;
+    }
+    return 0;
 }
 
 static int can_id_init(can_t *cfg) {

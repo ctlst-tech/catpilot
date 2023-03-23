@@ -39,10 +39,10 @@ can_t can1 = {
     },
     .tx = &gpio_can1_tx,
     .rx = &gpio_can1_rx,
-    .timeout = 20,
-    .buf_size = 256,
+    .timeout = portMAX_DELAY,
+    .queue_size = 64,
     .irq_priority = 10,
-    .task_priority = 2,
+    .task_priority = 10,
     .verbosity = CAN_VERBOSITY_HIGH,
     .p = {0}
 };
@@ -84,10 +84,10 @@ can_t can2 = {
     },
     .tx = &gpio_can2_tx,
     .rx = &gpio_can2_rx,
-    .timeout = 20,
-    .buf_size = 256,
+    .timeout = portMAX_DELAY,
+    .queue_size = 64,
     .irq_priority = 10,
-    .task_priority = 2,
+    .task_priority = 10,
     .verbosity = CAN_VERBOSITY_HIGH,
     .p = {0}
 };

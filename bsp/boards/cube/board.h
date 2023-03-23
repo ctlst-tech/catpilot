@@ -17,7 +17,6 @@ int board_init(char *cli_port, char *baudrate);
 void board_debug_mode(void);
 int board_fail(void);
 
-extern uint32_t rcc_system_clock;
 extern uint32_t *board_monitor_counter;
 
 extern gpio_t gpio_brick1_valid;
