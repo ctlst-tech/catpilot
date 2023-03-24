@@ -258,7 +258,7 @@ int can_open(FILE *file, const char *path) {
     }
     file->private_data = channel;
 
-    static uint32_t id = CAN_DEFAULT_START_ID;
+    static uint32_t id = CAN_DEFAULT_TX_MSG_ID;
     xSemaphoreTake(cfg->p.channel_mutex, portMAX_DELAY);
     int i = 0;
     while (cfg->p.channel[i] != NULL) {
@@ -269,7 +269,7 @@ int can_open(FILE *file, const char *path) {
     }
     if (i < CAN_MAX_CHANNELS) {
         channel->id = id++;
-        channel->id_filter = CAN_DEFAULT_ID_FILTER_MAST;
+        channel->id_filter = CAN_DEFAULT_RX_FILTER_ID;
         cfg->p.channel[i] = channel;
     } else {
         errno = ENOMEM;
