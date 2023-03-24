@@ -223,7 +223,7 @@ void can_read_thread(void *dev) {
         if (!can_receive(cfg, &frame.header, frame.data)) {
             for (int i = 0; i < CAN_MAX_CHANNELS && cfg->p.channel[i] != NULL;
                  i++) {
-                if (cfg->p.channel[i]->id == frame.header.id) {
+                if (cfg->p.channel[i]->id_filter & frame.header.id) {
                     xQueueSend(cfg->p.channel[i]->rx_queue, &frame,
                                portMAX_DELAY);
                 }
@@ -258,7 +258,7 @@ int can_open(FILE *file, const char *path) {
     }
     file->private_data = channel;
 
-    static uint32_t id = 0x01;
+    static uint32_t id = CAN_DEFAULT_START_ID;
     xSemaphoreTake(cfg->p.channel_mutex, portMAX_DELAY);
     int i = 0;
     while (cfg->p.channel[i] != NULL) {
@@ -269,6 +269,7 @@ int can_open(FILE *file, const char *path) {
     }
     if (i < CAN_MAX_CHANNELS) {
         channel->id = id++;
+        channel->id_filter = CAN_DEFAULT_ID_FILTER_MAST;
         cfg->p.channel[i] = channel;
     } else {
         errno = ENOMEM;
@@ -325,30 +326,39 @@ int can_close(FILE *file) {
     return -1;
 }
 
-int can_ioctl_set_id(FILE *file, va_list args) {
-    uint32_t id;
-    id = va_arg(args, uint32_t);
+static int can_ioctl_set_rx_filter_id(FILE *file, va_list args) {
+    uint32_t id_filter = va_arg(args, uint32_t);
+    can_channel_t *channel = (can_channel_t *)file->private_data;
+    channel->id_filter = id_filter;
+    return 0;
+}
+
+static int can_ioctl_set_tx_msg_id(FILE *file, va_list args) {
+    uint32_t id = va_arg(args, uint32_t);
     can_channel_t *channel = (can_channel_t *)file->private_data;
     channel->id = id;
     return 0;
 }
 
 int can_ioctl(FILE *file, int request, va_list args) {
-    ssize_t rv;
+    int rv = 0;
     can_channel_t *dev = (can_channel_t *)file->private_data;
 
     errno = 0;
 
     switch (request) {
-        case CAN_IOCTL_SET_ID:
-            can_ioctl_set_id(file, args);
+        case CAN_IOCTL_SET_TX_MSG_ID:
+            can_ioctl_set_tx_msg_id(file, args);
+            break;
+        case CAN_IOCTL_SET_RX_FILTER_ID:
+            can_ioctl_set_rx_filter_id(file, args);
             break;
         default:
             errno = ENOENT;
-            return -1;
+            rv = -1;
     }
 
-    return 0;
+    return rv;
 }
 
 void can_print_info(can_t *cfg, can_header_t *header, uint8_t *pdata) {

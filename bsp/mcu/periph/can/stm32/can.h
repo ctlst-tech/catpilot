@@ -10,7 +10,11 @@
 #include "hal.h"
 #include "ring_buf.h"
 
-#define CAN_IOCTL_SET_ID 0x01
+#define CAN_IOCTL_SET_TX_MSG_ID 0x01
+#define CAN_IOCTL_SET_RX_FILTER_ID 0x02
+
+#define CAN_DEFAULT_START_ID 0x00
+#define CAN_DEFAULT_ID_FILTER_MAST 0x1FFFFFFF
 
 #define CAN_VERBOSITY_OFF 0
 #define CAN_VERBOSITY_LOW 1
@@ -39,6 +43,7 @@ typedef struct {
     void *can;
     char *channel_name;
     uint32_t id;
+    uint32_t id_filter;
     QueueHandle_t tx_queue;
     QueueHandle_t rx_queue;
 } can_channel_t;
