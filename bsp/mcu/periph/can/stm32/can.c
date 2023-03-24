@@ -308,17 +308,14 @@ ssize_t can_read(FILE *file, char *buf, size_t count) {
 
     errno = 0;
 
-    if (count > 8) {
-        errno = EMSGSIZE;
-        return -1;
-    }
-
     can_frame_t frame = {0};
 
     xQueueReceive(dev->rx_queue, &frame, portMAX_DELAY);
-    memcpy(buf, frame.data, frame.header.size);
 
-    return frame.header.size;
+    memcpy(buf, &frame.header, sizeof(frame.header));
+    memcpy(buf + sizeof(frame.header), frame.data, frame.header.size);
+
+    return sizeof(frame.header) + (int)frame.header.size;
 }
 
 int can_close(FILE *file) {
