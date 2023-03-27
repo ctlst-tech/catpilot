@@ -43,7 +43,7 @@ can_t can1 = {
     .queue_size = 64,
     .irq_priority = 10,
     .task_priority = 10,
-    .verbosity = CAN_VERBOSITY_HIGH,
+    .verbosity = CAN_VERBOSITY_OFF,
     .p = {0}
 };
 
@@ -88,6 +88,6 @@ can_t can2 = {
     .queue_size = 64,
     .irq_priority = 10,
     .task_priority = 10,
-    .verbosity = CAN_VERBOSITY_HIGH,
+    .verbosity = CAN_VERBOSITY_OFF,
     .p = {0}
 };

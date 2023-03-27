@@ -1,4 +1,5 @@
 #include <pthread.h>
+#include <sys/ioctl.h>
 
 #include "board.h"
 #include "cli.h"
@@ -10,64 +11,75 @@
 #include "periph.h"
 #include "serial_bridge.h"
 
-int board_clock_init(void);
-int board_monitor_init(void);
-int board_cli_init(char *cli_port, char *baudrate);
-int board_periph_init(void);
-int board_fs_init(void);
-int board_services_start(void);
+typedef struct {
+    int (*callback)(void);
+    size_t stacksize;
+    char *cli_port;
+    char *cli_baudrate;
+} board_settings_t;
 
-uint32_t rcc_system_clock = 400000000;
-uint32_t *board_monitor_counter;
+// Threads
+void board_start_thread(void *param);
+void *board_thread(void *arg);
 
+// Private functions
+static int board_clock_init(void);
+static int board_monitor_init(void);
+static int board_init(char *cli_port, char *baudrate);
+static int board_cli_init(char *cli_port, char *baudrate);
+static int board_fs_init(void);
+static int board_periph_init(void);
+static int board_gpio_init(void);
+static int board_services_start(void);
+
+// Private data
+static board_settings_t board_settings;
 static FATFS fs;
 
-typedef struct {
-    void *(*thread)(void *arg);
-    size_t stacksize;
-} main_thread_t;
-main_thread_t main_thread;
+// External functions
+extern int board_get_app_status(void);
+extern int board_run_app(void);
 
-void board_start_thread(void *param);
-
-#ifdef MAINTENANCE_MODE
-int board_app_status = 0;
-#else
-int board_app_status = 1;
-#endif
-
-int board_get_app_status(void) {
-    return board_app_status;
-}
-
-void board_run_app(void) {
-    board_app_status = 1;
-}
-
-void board_reset(void) {
-    NVIC_SystemReset();
-}
-
-int board_get_voltage(float *buf, int length) {
-    for (int i = 0; i < length; i++) {
-        buf[i] = adc_get_volt(&adc1, i);
-    }
-    return 0;
-}
-
-int board_start(void *(*thread)(void *arg), size_t stacksize) {
+int board_start(int (*callback)(void), size_t stacksize, char *cli_port,
+                char *cli_baudrate) {
     HAL_Init();
     board_clock_init();
     board_monitor_init();
-    main_thread.thread = thread;
-    main_thread.stacksize = stacksize;
+    board_settings.callback = callback;
+    board_settings.stacksize = stacksize;
+    board_settings.cli_port = cli_port;
+    board_settings.cli_baudrate = cli_baudrate;
     xTaskCreate(board_start_thread, "board_start_thread",
-                configMINIMAL_STACK_SIZE, &main_thread, 3, NULL);
+                configMINIMAL_STACK_SIZE, &board_settings, 3, NULL);
     vTaskStartScheduler();
     return 0;
 }
 
-int board_init(char *cli_port, char *baudrate) {
+void board_start_thread(void *param) {
+    board_settings_t *board_setting = (board_settings_t *)param;
+    pthread_t tid;
+    pthread_attr_t attr;
+    pthread_attr_init(&attr);
+    pthread_attr_setstacksize(&attr, board_setting->stacksize);
+    pthread_create(&tid, &attr, board_thread, param);
+    pthread_join(tid, NULL);
+    pthread_exit(NULL);
+}
+
+void *board_thread(void *arg) {
+    board_settings_t *board_settings = (board_settings_t *)arg;
+    if (board_init(board_settings->cli_port, board_settings->cli_baudrate)) {
+        LOG_ERROR("BOARD", "Board initialization failed");
+        pthread_exit(NULL);
+    }
+    if (board_settings->callback()) {
+        LOG_ERROR("BOARD", "Application error");
+        pthread_exit(NULL);
+    }
+    return NULL;
+}
+
+static int board_init(char *cli_port, char *baudrate) {
     if (board_cli_init(cli_port, baudrate)) {
         return -1;
     }
@@ -80,52 +92,13 @@ int board_init(char *cli_port, char *baudrate) {
     if (board_services_start()) {
         return -1;
     }
-    if (!board_app_status) {
-        board_debug_mode();
-    }
-    return 0;
-}
-
-void board_debug_mode(void) {
-    while (1) {
-        if (board_app_status) {
-            break;
-        }
+#ifndef MAINTENANCE_MODE
+    board_run_app();
+#endif
+    while (!board_get_app_status()) {
         sleep(1);
     }
-}
-
-void board_start_thread(void *param) {
-    main_thread_t *main_thread = (main_thread_t *)param;
-    pthread_t tid;
-    pthread_attr_t attr;
-    int arg = 0;
-
-    pthread_attr_init(&attr);
-    pthread_attr_setstacksize(&attr, main_thread->stacksize);
-    pthread_create(&tid, &attr, main_thread->thread, &arg);
-    pthread_join(tid, NULL);
-    pthread_exit(NULL);
-}
-
-const char *board_get_tty_name(char *path) {
-    for (int i = 0; i < BOARD_MAX_USART; i++) {
-        if (usart[i] != NULL) {
-            if (strncmp(path, usart[i]->name, MAX_NAME_LEN) == 0 ||
-                strncmp(path, usart[i]->alt_name, MAX_NAME_LEN) == 0) {
-                return usart[i]->name;
-            }
-        }
-    }
-    return NULL;
-}
-
-void board_print_tty_name(void) {
-    for (int i = 0; i < BOARD_MAX_USART; i++) {
-        if (usart[i] != NULL) {
-            printf("%s: %s\n", usart[i]->name, usart[i]->alt_name);
-        }
-    }
+    return 0;
 }
 
 int board_cli_init(char *cli_port, char *baudrate) {
@@ -138,15 +111,13 @@ int board_cli_init(char *cli_port, char *baudrate) {
             if (strncmp(cli_port, usart[i]->name, MAX_NAME_LEN) == 0 ||
                 strncmp(cli_port, usart[i]->alt_name, MAX_NAME_LEN) == 0) {
                 cli = usart[i];
-                cli->init.Init.BaudRate = baudrate_cmd;
+                cli->init.Init.BaudRate = (uint32_t)baudrate_cmd;
             }
         }
     }
-
     if (cli == NULL) {
         cli = &usart3;
     }
-
     if (usart_init(cli)) {
         return -1;
     }
@@ -165,19 +136,10 @@ int board_cli_init(char *cli_port, char *baudrate) {
     if (cli_cmd_init()) {
         return -1;
     }
-
     return 0;
 }
 
-void HAL_Delay(uint32_t Delay) {
-    vTaskDelay(Delay);
-}
-
-uint32_t HAL_GetTick(void) {
-    return xTaskGetTickCount();
-}
-
-int board_clock_init(void) {
+static int board_clock_init(void) {
     RCC_OscInitTypeDef RCC_OscInitStruct = {0};
     RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
     RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
@@ -245,7 +207,7 @@ int board_clock_init(void) {
     return 0;
 }
 
-int board_monitor_init(void) {
+static int board_monitor_init(void) {
 #ifdef OS_MONITOR
     if (tim_init(&tim2)) {
         return -1;
@@ -256,7 +218,7 @@ int board_monitor_init(void) {
     return 0;
 }
 
-int board_gpio_init(void) {
+static int board_gpio_init(void) {
     if (gpio_init(&gpio_periph_en)) {
         return -1;
     }
@@ -347,7 +309,7 @@ int board_gpio_init(void) {
     return 0;
 }
 
-int board_periph_init(void) {
+static int board_periph_init(void) {
     if (board_gpio_init()) {
         LOG_ERROR("GPIO", "Initialization failed");
         return -1;
@@ -431,7 +393,7 @@ static int board_sd_card_init(void) {
     return 0;
 }
 
-int board_fs_init(void) {
+static int board_fs_init(void) {
     if (sdio_init(&sdio)) {
         LOG_ERROR("SDIO", "Initialization failed");
         return -1;
@@ -442,7 +404,7 @@ int board_fs_init(void) {
     return 0;
 }
 
-int board_services_start(void) {
+static int board_services_start(void) {
     serial_bridge_start(15, 1024);
     icm20649 = icm20649_start("ICM20649", 2, 20, &spi1, &gpio_spi1_cs1,
                               &exti_spi1_drdy1);
@@ -454,12 +416,4 @@ int board_services_start(void) {
     ms5611_2 = ms5611_start("MS5611_EXT", 100, 17, &spi4, &gpio_spi4_cs3);
     ist8310 = ist8310_start("IST8310_EXT", 100, 17, &i2c1);
     return 0;
-}
-
-int board_fail(void) {
-    LOG_ERROR("BOARD", "Fatal error");
-    while (1) {
-        vTaskDelay(1000);
-    }
-    return -1;
 }

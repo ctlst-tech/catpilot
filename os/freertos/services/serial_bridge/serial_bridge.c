@@ -4,7 +4,7 @@ static int serial_bridge_priority;
 static int serial_bridge_buf_size;
 
 extern const char *board_get_tty_name(char *path);
-void board_print_tty_name(void);
+extern void board_print_tty_name(void);
 
 typedef struct {
     char src_path[MAX_NAME_LEN];
