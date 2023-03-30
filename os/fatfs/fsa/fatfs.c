@@ -134,7 +134,7 @@ int fatfs_open(struct file *file, const char *path) {
         if (flags & O_TRUNC) {
             fatfs_modes |= FA_CREATE_ALWAYS;
         } else {
-            fatfs_modes |= FA_OPEN_ALWAYS;
+            fatfs_modes |= FA_CREATE_NEW;
         }
     }
 

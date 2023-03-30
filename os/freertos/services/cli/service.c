@@ -5,6 +5,7 @@ static char inv[2] = "# ";
 
 void *cli_echo(void *arg) {
     struct cli_service *cli = (struct cli_service *)arg;
+    pthread_setname_np((char *)__func__);
 
     if (write(1, nl, sizeof(nl)) < 0) {
         return NULL;
@@ -34,7 +35,7 @@ void *cli_echo(void *arg) {
                 }
                 cli->cmd_len = 0;
             } else if (cli->rbuf[i] == '\b' || cli->rbuf[i] == 0x7F ||
-                       (!strncmp("\033[3~", cli->rbuf[i], 4))) {
+                       (!strncmp("\033[3~", &cli->rbuf[i], 4))) {
                 cli->wbuf[cli->wlen] = '\b';
                 cli->wlen++;
                 cli->wbuf[cli->wlen] = ' ';
@@ -70,6 +71,7 @@ void *cli_echo(void *arg) {
 void *cli_invoker(void *arg) {
     int rv;
     struct cli_service *cli = (struct cli_service *)arg;
+    pthread_setname_np((char *)__func__);
 
     while (1) {
         pthread_mutex_lock(&cli->mutex);

@@ -6,8 +6,8 @@ find_package(Catch2 REQUIRED)
 
 set(CLI_SRC
     cli.cpp
-    ../usr/cli/cli.h
-    ../usr/cli/node.c
+    ../services/cli/cli.h
+    ../services/cli/node.c
 )
 
 add_executable(cli ${CLI_SRC})

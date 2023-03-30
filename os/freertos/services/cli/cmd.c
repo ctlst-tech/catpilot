@@ -1,5 +1,6 @@
 #include "cli.h"
 
+extern int cat_commander(int argc, char **argv);
 extern int log_print(int argc, char **argv);
 
 extern void board_reset(void);
@@ -64,6 +65,9 @@ int system_commander(int argc, char **argv) {
 int cli_cmd_init(void) {
     printf("%s", logo);
 
+    if(cli_cmd_reg("cat", cat_commander) == NULL) {
+        return -1;
+    }
     if (cli_cmd_reg("help", help) == NULL) {
         return -1;
     }

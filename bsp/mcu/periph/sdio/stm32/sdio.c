@@ -194,7 +194,7 @@ void sdio_handler(void *area) {
 }
 
 void HAL_SD_ErrorCallback(SD_HandleTypeDef *hsd) {
-    while (1);
+    // while (1);
 }
 
 static int sdio_id_init(sdio_t *cfg) {
