@@ -12,10 +12,8 @@
 
 #define BOARD_MAX_USART 6
 
-int board_start(void *(*thread)(void *arg), size_t stacksize);
-int board_init(char *cli_port, char *baudrate);
-void board_debug_mode(void);
-int board_fail(void);
+int board_start(int (*callback)(void), size_t stacksize, char *cli_port,
+                char *cli_baudrate);
 
 extern uint32_t *board_monitor_counter;
 

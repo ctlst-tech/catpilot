@@ -60,6 +60,7 @@ if (MCU_FAMILY STREQUAL "stm32")
             boards/${BOARD}/cfg/tim_cfg.c
             boards/${BOARD}/cfg/usart_cfg.c
             boards/${BOARD}/startup/init.c
+            boards/${BOARD}/external.c
         )
     endif()
 endif()
