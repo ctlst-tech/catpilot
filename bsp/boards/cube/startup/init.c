@@ -237,6 +237,7 @@ int board_clock_init(void) {
     PeriphClkInitStruct.UsbClockSelection = RCC_USBCLKSOURCE_PLL3;
     PeriphClkInitStruct.AdcClockSelection = RCC_ADCCLKSOURCE_PLL2;
     PeriphClkInitStruct.SdmmcClockSelection = RCC_SDMMCCLKSOURCE_PLL;
+    PeriphClkInitStruct.FdcanClockSelection = RCC_FDCANCLKSOURCE_PLL;
 
     while (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct)) {
     }
@@ -393,6 +394,14 @@ int board_periph_init(void) {
     }
     if (adc_init(&adc1)) {
         LOG_ERROR("ADC1", "Initialization failed");
+        return -1;
+    }
+    if (can_init(&can1)) {
+        LOG_ERROR("CAN1", "Initialization failed");
+        return -1;
+    }
+    if (can_init(&can2)) {
+        LOG_ERROR("CAN2", "Initialization failed");
         return -1;
     }
     LOG_INFO("BOARD", "Initialization successful");

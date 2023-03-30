@@ -51,13 +51,11 @@ int usart_init(usart_t *cfg) {
         return rv;
     }
 
-    struct file_operations f_op = {
-        .open = usart_open,
-        .write = usart_write,
-        .read = usart_read,
-        .close = usart_close,
-        .dev = cfg
-    };
+    struct file_operations f_op = {.open = usart_open,
+                                   .write = usart_write,
+                                   .read = usart_read,
+                                   .close = usart_close,
+                                   .dev = cfg};
 
     char path[32];
     sprintf(path, "/dev/%s", cfg->name);
@@ -65,28 +63,43 @@ int usart_init(usart_t *cfg) {
         return -1;
     }
 
+    cfg->p.rx_sem = xSemaphoreCreateBinary();
     if (cfg->p.rx_sem == NULL) {
-        cfg->p.rx_sem = xSemaphoreCreateBinary();
+        return -1;
     }
-
+    cfg->p.tx_mutex = xSemaphoreCreateMutex();
     if (cfg->p.tx_mutex == NULL) {
-        cfg->p.tx_mutex = xSemaphoreCreateMutex();
+        return -1;
     }
+    cfg->p.rx_mutex = xSemaphoreCreateMutex();
     if (cfg->p.rx_mutex == NULL) {
-        cfg->p.rx_mutex = xSemaphoreCreateMutex();
+        return -1;
     }
+    cfg->p.tx_sem = xSemaphoreCreateBinary();
     if (cfg->p.tx_sem == NULL) {
-        cfg->p.tx_sem = xSemaphoreCreateBinary();
+        return -1;
     }
+    cfg->p.rx_sem = xSemaphoreCreateBinary();
     if (cfg->p.rx_sem == NULL) {
-        cfg->p.rx_sem = xSemaphoreCreateBinary();
+        return -1;
     }
 
     cfg->p.read_buf = ring_buf_init(cfg->buf_size);
+    if (cfg->p.read_buf == NULL) {
+        return -1;
+    }
     cfg->p.write_buf = ring_buf_init(cfg->buf_size);
-
+    if (cfg->p.write_buf == NULL) {
+        return -1;
+    }
     cfg->p.dma_rx_buf = calloc(cfg->buf_size, sizeof(uint8_t));
+    if (cfg->p.dma_rx_buf == NULL) {
+        return -1;
+    }
     cfg->p.dma_tx_buf = calloc(cfg->buf_size, sizeof(uint8_t));
+    if (cfg->p.dma_tx_buf == NULL) {
+        return -1;
+    }
 
     cfg->p.periph_init = true;
     return rv;
@@ -108,15 +121,14 @@ int usart_transmit(usart_t *cfg, uint8_t *pdata, uint16_t length) {
     cfg->p.tx_count = 0;
 
     if (cfg->p.use_dma) {
-        HAL_UART_Transmit_DMA(&cfg->init, pdata, length);
+        rv = HAL_UART_Transmit_DMA(&cfg->init, pdata, length);
     } else {
-        HAL_UART_Transmit_IT(&cfg->init, pdata, length);
+        rv = HAL_UART_Transmit_IT(&cfg->init, pdata, length);
     }
 
-    if (xSemaphoreTake(cfg->p.tx_sem, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
+    if (rv == HAL_OK &&
+        !xSemaphoreTake(cfg->p.tx_sem, pdMS_TO_TICKS(cfg->timeout))) {
         rv = ETIMEDOUT;
-    } else {
-        rv = 0;
     }
 
     cfg->p.tx_state = USART_FREE;
@@ -146,15 +158,14 @@ int usart_receive(usart_t *cfg, uint8_t *pdata, uint16_t length) {
         SET_BIT(cfg->init.Instance->CR1, USART_CR1_IDLEIE);
     }
     if (cfg->p.use_dma) {
-        HAL_UART_Receive_DMA(&cfg->init, pdata, length);
+        rv = HAL_UART_Receive_DMA(&cfg->init, pdata, length);
     } else {
-        HAL_UART_Receive_IT(&cfg->init, pdata, length);
+        rv = HAL_UART_Receive_IT(&cfg->init, pdata, length);
     }
 
-    if (xSemaphoreTake(cfg->p.rx_sem, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
+    if (rv == HAL_OK &&
+        !xSemaphoreTake(cfg->p.rx_sem, pdMS_TO_TICKS(cfg->timeout))) {
         rv = ETIMEDOUT;
-    } else {
-        rv = 0;
     }
 
     cfg->p.rx_state = USART_FREE;
@@ -188,17 +199,16 @@ int usart_transmit_receive(usart_t *cfg, uint8_t *tx_pdata, uint8_t *rx_pdata,
     SET_BIT(cfg->init.Instance->CR1, USART_CR1_IDLEIE);
 
     if (cfg->p.use_dma) {
-        HAL_UART_Receive_DMA(&cfg->init, rx_pdata, rx_length);
-        HAL_UART_Transmit_DMA(&cfg->init, tx_pdata, tx_length);
+        rv = HAL_UART_Receive_DMA(&cfg->init, rx_pdata, rx_length);
+        rv |= HAL_UART_Transmit_DMA(&cfg->init, tx_pdata, tx_length);
     } else {
-        HAL_UART_Receive_IT(&cfg->init, rx_pdata, rx_length);
-        HAL_UART_Transmit_IT(&cfg->init, tx_pdata, tx_length);
+        rv = HAL_UART_Receive_IT(&cfg->init, rx_pdata, rx_length);
+        rv |= HAL_UART_Transmit_IT(&cfg->init, tx_pdata, tx_length);
     }
 
-    if (xSemaphoreTake(cfg->p.rx_sem, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
+    if (rv == HAL_OK &&
+        !xSemaphoreTake(cfg->p.rx_sem, pdMS_TO_TICKS(cfg->timeout))) {
         rv = ETIMEDOUT;
-    } else {
-        rv = 0;
     }
 
     cfg->p.tx_state = USART_FREE;

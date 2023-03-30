@@ -151,6 +151,27 @@ ssize_t read(int fd, void *buf, size_t count) {
     return rv;
 }
 
+int ioctl(int fd, int request, ...) {
+    int rv;
+    errno = 0;
+
+    if (fd_check(fd)) {
+        return -1;
+    }
+
+    if (files[fd] == NULL || files[fd]->node->f_op.ioctl == NULL) {
+        errno = ENOENT;
+        return -1;
+    }
+
+    va_list args;
+    va_start(args, request);
+    rv = files[fd]->node->f_op.ioctl(files[fd], request, args);
+    va_end(args);
+
+    return rv;
+}
+
 int close(int fd) {
     int rv;
     errno = 0;

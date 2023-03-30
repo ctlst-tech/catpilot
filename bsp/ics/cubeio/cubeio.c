@@ -24,6 +24,9 @@ void cubeio_update_safety_options(cubeio_t *dev);
 uint16_t cubeio_scale_output(double out, cubeio_range_cfg_t *cfg);
 double cubeio_scale_input(uint16_t in, cubeio_range_cfg_t *cfg);
 
+#warning GPIO_FMU_DEBUG
+extern gpio_t gpio_fmu_pwm[6];
+
 // Public functions
 cubeio_t *cubeio_start(char *name, uint32_t period, uint32_t priority,
                        usart_t *usart) {
@@ -504,7 +507,7 @@ uint16_t cubeio_scale_output(double out, cubeio_range_cfg_t *cfg) {
 }
 
 double cubeio_scale_input(uint16_t in, cubeio_range_cfg_t *cfg) {
-    double rv;
+    double rv = 0.0;
     if (in < cfg->min || in > cfg->max) {
         rv = 0;
     } else if (cfg->type == CUBEIO_CHANNEL_UNIPOLAR) {

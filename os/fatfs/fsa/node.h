@@ -6,6 +6,7 @@ extern "C" {
 #endif
 
 #include <sys/types.h>
+#include <stdarg.h>
 
 #define NODE_MAX_NAME_LENGTH 64
 #define NODE_MODE_NEAREST_PATH 0
@@ -22,7 +23,7 @@ struct file_operations {
     ssize_t (*write)(struct file *file, const char *buf, size_t count);
     ssize_t (*read)(struct file *file, char *buf, size_t count);
     int (*close)(struct file *file);
-    int (*ioctl)(struct file *file, unsigned int data);
+    int (*ioctl)(struct file *file, int request, va_list args);
     int (*flush)(struct file *file);
     int (*fsync)(struct file *file);
     int (*mkdir)(const char *path, mode_t mode);

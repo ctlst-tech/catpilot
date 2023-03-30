@@ -49,15 +49,17 @@ int spi_init(spi_t *cfg) {
     if ((rv = irq_enable(cfg->p.id))) {
         return rv;
     }
-
+    cfg->p.mutex = xSemaphoreCreateMutex();
     if (cfg->p.mutex == NULL) {
-        cfg->p.mutex = xSemaphoreCreateMutex();
+        return -1;
     }
+    cfg->p.cs_mutex = xSemaphoreCreateMutex();
     if (cfg->p.cs_mutex == NULL) {
-        cfg->p.cs_mutex = xSemaphoreCreateMutex();
+        return -1;
     }
+    cfg->p.sem = xSemaphoreCreateBinary();
     if (cfg->p.sem == NULL) {
-        cfg->p.sem = xSemaphoreCreateBinary();
+        return -1;
     }
     return rv;
 }
@@ -89,12 +91,11 @@ int spi_transmit(spi_t *cfg, uint8_t *pdata, uint16_t length) {
 
     cfg->p.state = SPI_TRANSMIT;
 
-    HAL_SPI_Transmit_DMA(&cfg->init, pdata, length);
+    rv = HAL_SPI_Transmit_DMA(&cfg->init, pdata, length);
 
-    if (rv == HAL_OK && !xSemaphoreTake(cfg->p.sem, pdMS_TO_TICKS(cfg->timeout))) {
+    if (rv == HAL_OK &&
+        !xSemaphoreTake(cfg->p.sem, pdMS_TO_TICKS(cfg->timeout))) {
         rv = ETIMEDOUT;
-    } else {
-        rv = 0;
     }
 
     cfg->p.state = SPI_FREE;
@@ -118,12 +119,11 @@ int spi_receive(spi_t *cfg, uint8_t *pdata, uint16_t length) {
 
     cfg->p.state = SPI_RECEIVE;
 
-    HAL_SPI_Receive_DMA(&cfg->init, pdata, length);
+    rv = HAL_SPI_Receive_DMA(&cfg->init, pdata, length);
 
-    if (rv == HAL_OK && !xSemaphoreTake(cfg->p.sem, pdMS_TO_TICKS(cfg->timeout))) {
+    if (rv == HAL_OK &&
+        !xSemaphoreTake(cfg->p.sem, pdMS_TO_TICKS(cfg->timeout))) {
         rv = ETIMEDOUT;
-    } else {
-        rv = 0;
     }
 
     cfg->p.state = SPI_FREE;
@@ -150,10 +150,9 @@ int spi_transmit_receive(spi_t *cfg, uint8_t *tdata, uint8_t *rdata,
 
     rv = HAL_SPI_TransmitReceive_DMA(&cfg->init, tdata, rdata, length);
 
-    if (rv == HAL_OK && !xSemaphoreTake(cfg->p.sem, pdMS_TO_TICKS(cfg->timeout))) {
+    if (rv == HAL_OK &&
+        !xSemaphoreTake(cfg->p.sem, pdMS_TO_TICKS(cfg->timeout))) {
         rv = ETIMEDOUT;
-    } else {
-        rv = 0;
     }
 
     cfg->p.state = SPI_FREE;
@@ -179,14 +178,12 @@ void spi_it_handler(void *area) {
 void spi_dma_tx_handler(void *area) {
     spi_t *cfg = (spi_t *)area;
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-
     HAL_DMA_IRQHandler(&cfg->dma_tx.init);
 }
 
 void spi_dma_rx_handler(void *area) {
     spi_t *cfg = (spi_t *)area;
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-
     HAL_DMA_IRQHandler(&cfg->dma_rx.init);
 }
 
