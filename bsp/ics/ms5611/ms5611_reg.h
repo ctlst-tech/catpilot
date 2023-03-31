@@ -19,7 +19,7 @@ type_t CMD_MS5611_CONVERT_D2_OSR4096    = 0x58;
 type_t CMD_MS5611_READ_ADC              = 0x00;
 type_t CMD_MS5611_PROM_ADDR             = 0xA0;
 
-uint16_t crc4(uint16_t *data) {
+uint16_t crc4(const uint16_t *data) {
     uint16_t n_rem = 0;
     uint8_t n_bit;
 

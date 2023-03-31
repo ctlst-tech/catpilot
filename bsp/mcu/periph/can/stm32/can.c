@@ -258,7 +258,6 @@ int can_open(FILE *file, const char *path) {
     }
     file->private_data = channel;
 
-    static uint32_t id = CAN_DEFAULT_TX_MSG_ID;
     xSemaphoreTake(cfg->p.channel_mutex, portMAX_DELAY);
     int i = 0;
     while (cfg->p.channel[i] != NULL) {
@@ -268,6 +267,7 @@ int can_open(FILE *file, const char *path) {
         i++;
     }
     if (i < CAN_MAX_CHANNELS) {
+        static uint32_t id = CAN_DEFAULT_TX_MSG_ID;
         channel->id = id++;
         channel->id_filter = CAN_DEFAULT_RX_FILTER_ID;
         cfg->p.channel[i] = channel;
@@ -311,11 +311,9 @@ ssize_t can_read(FILE *file, char *buf, size_t count) {
     can_frame_t frame = {0};
 
     xQueueReceive(dev->rx_queue, &frame, portMAX_DELAY);
+    memcpy(buf, frame.data, frame.header.size);
 
-    memcpy(buf, &frame.header, sizeof(frame.header));
-    memcpy(buf + sizeof(frame.header), frame.data, frame.header.size);
-
-    return sizeof(frame.header) + (int)frame.header.size;
+    return sizeof(frame.header) + (ssize_t)frame.header.size;
 }
 
 int can_close(FILE *file) {
@@ -364,7 +362,7 @@ void can_print_info(can_t *cfg, can_header_t *header, uint8_t *pdata) {
     printf("ID = 0x%X\n", header->id);
     printf("Frame type = 0x%X\n", header->frame_type);
     printf("Msg size = 0x%X\n", header->size);
-    printf("Data = ", header->size);
+    printf("Data = %u\n", header->size);
     for (uint32_t i = 0; i < header->size; i++) {
         printf("0x%X ", pdata[i]);
     }

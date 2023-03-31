@@ -1,6 +1,5 @@
 #include "cli.h"
 
-struct cli_node *cli_cmd_find(char *cmd_name);
 char *cli_cmd_get_token(char *cmd, size_t *rv_length, char **parse_context,
                         int mode);
 

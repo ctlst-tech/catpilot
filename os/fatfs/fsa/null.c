@@ -25,7 +25,7 @@ int null_close(struct file *file) {
     return 0;
 }
 
-int null_ioctl(struct file *file, unsigned int data) {
+int null_ioctl(struct file *file, int request, va_list args) {
     return 0;
 }
 
