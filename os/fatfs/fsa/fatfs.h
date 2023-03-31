@@ -9,6 +9,7 @@ ssize_t fatfs_write(struct file *file, const char *buf, size_t count);
 ssize_t fatfs_read(struct file *file, char *buf, size_t count);
 int fatfs_close(struct file *file);
 int fatfs_syncfs(struct file *file);
+int fatfs_lseek(struct file *file, off_t offset, int whence);
 int64_t fatfs_getfree(void);
 int64_t fatfs_gettotal(void);
 int fatfs_mkdir(const char *pathname, mode_t mode);

@@ -86,6 +86,9 @@ static int board_init(char *cli_port, char *baudrate) {
     if (board_fs_init()) {
         return -1;
     }
+    if (log_init("log", "/fs/logs", LOG_TO_FILE, 2048)) {
+        return -1;
+    }
     if (board_periph_init()) {
         return -1;
     }
@@ -378,6 +381,7 @@ static int board_sd_card_init(void) {
                                    .fsync = fatfs_syncfs,
                                    .mkdir = fatfs_mkdir,
                                    .rmdir = fatfs_rmdir,
+                                   .lseek = fatfs_lseek,
                                    .dev = &sdio};
     char name[] = "SDCARD";
     if (sdcard_start(name, &sdio) == NULL) {

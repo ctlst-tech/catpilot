@@ -10,6 +10,10 @@
 
 #undef strerror_r
 
+#define FATFS_SEEK_SET 0
+#define FATFS_SEEK_CUR 1
+#define FATFS_SEEK_END 2
+
 FIL *stream_to_fatfs(FILE *stream) {
     if (stream == NULL || stream->private_data == NULL) {
         return NULL;
@@ -271,6 +275,48 @@ int fatfs_syncfs(struct file *file) {
     }
 
     res = f_sync(fh);
+
+    if (res != FR_OK) {
+        errno = fatfs_to_errno(res);
+        return -1;
+    }
+
+    return 0;
+}
+
+int fatfs_lseek(struct file *file, off_t offset, int whence) {
+    FIL *fh;
+    FRESULT res;
+
+    errno = 0;
+
+    if (file == NULL) {
+        return -1;
+    }
+
+    fh = stream_to_fatfs(file);
+
+    if (fh == NULL) {
+        errno = EBADF;
+        return -1;
+    }
+
+    switch (whence) {
+        case FATFS_SEEK_SET:
+            break;
+
+        case FATFS_SEEK_CUR:
+            break;
+
+        case FATFS_SEEK_END:
+            offset = f_size(fh);
+            break;
+
+        default:
+            break;
+    }
+
+    res = f_lseek(fh, offset);
 
     if (res != FR_OK) {
         errno = fatfs_to_errno(res);
