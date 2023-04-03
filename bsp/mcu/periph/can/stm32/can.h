@@ -75,7 +75,8 @@ typedef struct {
     FDCAN_HandleTypeDef init;
     gpio_t *tx;
     gpio_t *rx;
-    int timeout;
+    int tx_timeout;
+    int rx_timeout;
     int irq_priority;
     int task_priority;
     int queue_size;

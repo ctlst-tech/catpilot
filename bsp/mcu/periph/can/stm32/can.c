@@ -114,7 +114,7 @@ int can_transmit(can_t *cfg, can_header_t *header, uint8_t *pdata) {
         return EINVAL;
     }
 
-    if (!xSemaphoreTake(cfg->p.tx_mutex, pdMS_TO_TICKS(cfg->timeout))) {
+    if (!xSemaphoreTake(cfg->p.tx_mutex, pdMS_TO_TICKS(cfg->tx_timeout))) {
         return ETIMEDOUT;
     }
 
@@ -147,10 +147,10 @@ int can_transmit(can_t *cfg, can_header_t *header, uint8_t *pdata) {
     }
 
     if (rv == HAL_OK &&
-        !xSemaphoreTake(cfg->p.tx_sem, pdMS_TO_TICKS(cfg->timeout))) {
+        !xSemaphoreTake(cfg->p.tx_sem, pdMS_TO_TICKS(cfg->tx_timeout))) {
         if (cfg->verbosity > CAN_VERBOSITY_OFF) {
             printf("Interface = %s\n", cfg->name);
-            printf("Timeout = %d\n\n", cfg->timeout);
+            printf("Timeout = %d\n\n", cfg->tx_timeout);
         }
         rv = ETIMEDOUT;
     }
@@ -168,16 +168,16 @@ int can_receive(can_t *cfg, can_header_t *header, uint8_t *pdata) {
         return EINVAL;
     }
 
-    if (!xSemaphoreTake(cfg->p.rx_mutex, pdMS_TO_TICKS(cfg->timeout))) {
+    if (!xSemaphoreTake(cfg->p.rx_mutex, pdMS_TO_TICKS(cfg->rx_timeout))) {
         return ETIMEDOUT;
     }
 
     cfg->p.state = CAN_RECEIVE;
 
-    if (!xSemaphoreTake(cfg->p.rx_sem, pdMS_TO_TICKS(cfg->timeout))) {
+    if (!xSemaphoreTake(cfg->p.rx_sem, pdMS_TO_TICKS(cfg->rx_timeout))) {
         if (cfg->verbosity > CAN_VERBOSITY_OFF) {
             printf("Interface = %s\n", cfg->name);
-            printf("Timeout = %d\n\n", cfg->timeout);
+            printf("Timeout = %d\n\n", cfg->rx_timeout);
         }
         rv = ETIMEDOUT;
     } else {
@@ -357,7 +357,20 @@ int can_ioctl(FILE *file, int request, va_list args) {
 }
 
 void can_print_info(can_t *cfg, can_header_t *header, uint8_t *pdata) {
-    printf("State = %d\n", cfg->p.state);
+    printf("State = ");
+    switch (cfg->p.state) {
+        case CAN_FREE:
+        case CAN_RECEIVE:
+            printf("Receive");
+            break;
+        case CAN_TRANSMIT:
+            printf("Transmit");
+            break;
+        default:
+            printf("Unknown state");
+            break;
+    }
+    printf("\n");
     printf("Interface = %s\n", cfg->name);
     printf("ID = 0x%X\n", header->id);
     printf("Frame type = 0x%X\n", header->frame_type);
