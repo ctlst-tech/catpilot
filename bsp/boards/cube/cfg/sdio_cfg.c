@@ -17,5 +17,5 @@ sdio_t sdio = {
     .init.Init.HardwareFlowControl = SDMMC_HARDWARE_FLOW_CONTROL_DISABLE,
     .init.Init.ClockDiv = 2,
     .irq_priority = 11,
-    .timeout = 1000
+    .timeout = portMAX_DELAY
 };

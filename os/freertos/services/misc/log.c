@@ -100,7 +100,7 @@ void log_module(uint8_t msg_type, const char *module, const char *s, ...) {
 
     if (log.type == LOG_TO_FILE) {
         write(log.fd, string, length);
-        sync();
+        fsync(log.fd);
     } else {
         if (strlen(string) > log.buf_size - log.offset) {
             printf("Log buffer overflow!\n");
@@ -123,6 +123,7 @@ int log_print(int argc, char **argv) {
                 write(1, log.buf, rb);
             }
         } while ((size_t)rb == log.buf_size);
+        lseek(log.fd, 0, SEEK_END);
     } else {
         write(1, log.buf, log.offset);
     }

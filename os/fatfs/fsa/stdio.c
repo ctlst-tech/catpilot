@@ -371,7 +371,7 @@ int fsync(int fileno) {
     return 0;
 }
 
-off_t  lseek(int fd, off_t offset, int whence) {
+off_t lseek(int fd, off_t offset, int whence) {
     FILE *stream;
     errno = 0;
 

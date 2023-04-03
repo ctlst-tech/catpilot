@@ -89,6 +89,10 @@ int sdio_read_blocks(sdio_t *cfg, uint8_t *pdata, uint32_t address,
         rv = ETIMEDOUT;
     }
 
+    if (cfg->init.ErrorCode) {
+        rv |= cfg->init.ErrorCode;
+    }
+
 free:
     cfg->p.state = SDIO_FREE;
     xSemaphoreGive(cfg->p.mutex);
@@ -127,6 +131,10 @@ int sdio_write_blocks(sdio_t *cfg, uint8_t *pdata, uint32_t address,
         rv = ETIMEDOUT;
     }
 
+    if (cfg->init.ErrorCode) {
+        rv |= cfg->init.ErrorCode;
+    }
+
 free:
     cfg->p.state = SDIO_FREE;
     xSemaphoreGive(cfg->p.mutex);
@@ -137,15 +145,10 @@ free:
 int sdio_check_status_with_timeout(sdio_t *cfg, uint32_t timeout) {
     uint32_t status;
     uint32_t start = xTaskGetTickCount();
-    uint32_t dt;
-
-    dt = xTaskGetTickCount() - start;
-
-    if (dt > 100) {
-        vTaskDelay(0);
-    }
+    uint32_t dt = 0;
 
     while (dt < timeout) {
+        dt = xTaskGetTickCount() - start;
         status = HAL_SD_GetCardState(&cfg->init);
         if (status == HAL_SD_CARD_TRANSFER) {
             return 0;
