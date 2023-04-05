@@ -70,13 +70,13 @@ void *board_thread(void *arg) {
     board_settings_t *board_settings = (board_settings_t *)arg;
     if (board_init(board_settings->cli_port, board_settings->cli_baudrate)) {
         LOG_ERROR("BOARD", "Board initialization failed");
-        pthread_exit(NULL);
     }
     if (board_settings->callback()) {
         LOG_ERROR("BOARD", "Application error");
-        pthread_exit(NULL);
     }
-    return NULL;
+    while (1) {
+        sleep(1);
+    }
 }
 
 static int board_init(char *cli_port, char *baudrate) {
@@ -86,7 +86,7 @@ static int board_init(char *cli_port, char *baudrate) {
     if (board_fs_init()) {
         return -1;
     }
-    if (log_init("log", "/fs/logs", LOG_TO_FILE, 2048)) {
+    if (log_init("log", "/fs/logs", LOG_TO_FILE, 512)) {
         return -1;
     }
     if (board_periph_init()) {
