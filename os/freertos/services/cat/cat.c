@@ -20,7 +20,7 @@ static void cat_print_file_content(const char *path) {
         return;
     }
 
-    write(1, buffer, len);
+    printf("%s", buffer);
     close(fd);
 }
 

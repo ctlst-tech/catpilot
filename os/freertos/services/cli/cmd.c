@@ -1,5 +1,6 @@
 #include "cli.h"
 
+extern int file_commander(int argc, char **argv);
 extern int cat_commander(int argc, char **argv);
 extern int log_print(int argc, char **argv);
 
@@ -81,6 +82,9 @@ int cli_cmd_init(void) {
         return -1;
     }
     if (cli_cmd_reg("system", system_commander) == NULL) {
+        return -1;
+    }
+    if (cli_cmd_reg("file", file_commander) == NULL) {
         return -1;
     }
     return 0;

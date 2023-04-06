@@ -6,7 +6,6 @@ if (OS STREQUAL "freertos")
     list(APPEND OS_INC
         freertos
         freertos/cfg
-        freertos/cli
         freertos/core/inc
         freertos/inc
         freertos/osa
@@ -21,6 +20,7 @@ if (OS STREQUAL "freertos")
         freertos/osa/FreeRTOS-Plus-POSIX/include/portable
         freertos/services/cat
         freertos/services/cli
+        freertos/services/file
         freertos/services/misc
         freertos/services/monitor
         freertos/services/serial_bridge
@@ -56,6 +56,7 @@ if (OS STREQUAL "freertos")
         freertos/services/cli/cmd.c
         freertos/services/cli/node.c
         freertos/services/cli/service.c
+        freertos/services/file/file.c
         freertos/services/monitor/monitor.c
         freertos/services/serial_bridge/serial_bridge.c
         freertos/services/service/service.c
