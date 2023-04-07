@@ -26,9 +26,14 @@ static void file_operation(const char *operation, const char *path,
     }
 
     int fd_file = open(path, flags);
-    int fd_port = open(port, O_RDWR);
+    if (fd_file < 0) {
+        printf("%s\n", strerror(errno));
+        return;
+    }
 
-    if (fd_file < 0 || fd_port < 0) {
+    int fd_port = open(port, O_RDWR);
+    if (fd_port < 0) {
+        close(fd_file);
         printf("%s\n", strerror(errno));
         return;
     }
@@ -46,21 +51,24 @@ static void file_operation(const char *operation, const char *path,
         } while ((size_t)rb == sizeof(buf));
         lseek(fd_file, 0, SEEK_END);
     } else {
-        uint32_t start = xTaskGetTickCount();
-        uint32_t now = xTaskGetTickCount();
+        ioctl(fd_port, 0, portMAX_DELAY);
         do {
-            now = xTaskGetTickCount();
             rb = read(fd_port, buf, sizeof(buf));
             if (rb > 0) {
                 write(fd_file, buf, rb);
                 fsync(fd_file);
                 lseek(fd_file, 0, SEEK_END);
             } else {
-                printf("%s\n", strerror(errno));
+                if (errno != ETIMEDOUT) {
+                    printf("%s\n", strerror(errno));
+                }
             }
-        } while (now - start < 5000);
-        close(fd_file);
+            ioctl(fd_port, 0, FILE_UPLOAD_TIMEOUT_MS);
+        } while (rb > 0);
+        ioctl(fd_port, 0, portMAX_DELAY);
     }
+    close(fd_file);
+    close(fd_port);
 }
 
 int file_commander(int argc, char **argv) {

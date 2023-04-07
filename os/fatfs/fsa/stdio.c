@@ -47,6 +47,8 @@ const char *sys_errlist[] = {"OK",
                              "Bad Message",
                              NULL};
 
+const char sys_errtimedout[] = "Connection timed out";
+
 int fd_new(void) {
     int rv = -1;
     for (int i = 0; i < MAX_FILES; i++) {
@@ -394,7 +396,16 @@ off_t lseek(int fd, off_t offset, int whence) {
 }
 
 char *strerror(int errnum) {
-    return ((char *)sys_errlist[errnum]);
+    const char *ptr = NULL;
+
+    if (errnum >= 0 && errnum < EBADMSG) {
+        ptr = sys_errlist[errno];
+    } else if (errnum == ETIMEDOUT) {
+        ptr = sys_errtimedout;
+    } else {
+        ptr = sys_errlist[EBADMSG];
+    }
+    return (ptr);
 }
 
 void perror(const char *s) {
@@ -402,6 +413,8 @@ void perror(const char *s) {
 
     if (errno >= 0 && errno < EBADMSG) {
         ptr = sys_errlist[errno];
+    } else if (errno == ETIMEDOUT) {
+        ptr = sys_errtimedout;
     } else {
         ptr = sys_errlist[EBADMSG];
     }

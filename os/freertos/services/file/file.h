@@ -4,6 +4,7 @@
 #include <errno.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <sys/ioctl.h>
 
 #include "cli.h"
 #include "os.h"
@@ -13,6 +14,8 @@ extern "C" {
 #endif
 
 int file_commander(int argc, char **argv);
+
+#define FILE_UPLOAD_TIMEOUT_MS 2000
 
 #ifdef __cplusplus
 }
