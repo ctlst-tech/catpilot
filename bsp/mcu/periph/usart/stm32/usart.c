@@ -55,6 +55,7 @@ int usart_init(usart_t *cfg) {
                                    .write = usart_write,
                                    .read = usart_read,
                                    .close = usart_close,
+                                   .ioctl = usart_ioctl,
                                    .dev = cfg};
 
     char path[32];
@@ -127,7 +128,7 @@ int usart_transmit(usart_t *cfg, uint8_t *pdata, uint16_t length) {
     }
 
     if (rv == HAL_OK &&
-        !xSemaphoreTake(cfg->p.tx_sem, pdMS_TO_TICKS(cfg->timeout))) {
+        !xSemaphoreTake(cfg->p.tx_sem, pdMS_TO_TICKS(cfg->tx_rx_timeout))) {
         rv = ETIMEDOUT;
     }
 
@@ -164,7 +165,7 @@ int usart_receive(usart_t *cfg, uint8_t *pdata, uint16_t length) {
     }
 
     if (rv == HAL_OK &&
-        !xSemaphoreTake(cfg->p.rx_sem, pdMS_TO_TICKS(cfg->timeout))) {
+        !xSemaphoreTake(cfg->p.rx_sem, pdMS_TO_TICKS(cfg->tx_rx_timeout))) {
         rv = ETIMEDOUT;
     }
 
@@ -207,7 +208,7 @@ int usart_transmit_receive(usart_t *cfg, uint8_t *tx_pdata, uint8_t *rx_pdata,
     }
 
     if (rv == HAL_OK &&
-        !xSemaphoreTake(cfg->p.rx_sem, pdMS_TO_TICKS(cfg->timeout))) {
+        !xSemaphoreTake(cfg->p.rx_sem, pdMS_TO_TICKS(cfg->tx_rx_timeout))) {
         rv = ETIMEDOUT;
     }
 
@@ -310,7 +311,11 @@ ssize_t usart_read(FILE *file, char *buf, size_t count) {
     errno = 0;
     usart_t *cfg = (usart_t *)file->node->f_op.dev;
 
-    rv = ring_buf_read(cfg->p.read_buf, (uint8_t *)buf, count);
+    rv = ring_buf_read_timeout(cfg->p.read_buf, (uint8_t *)buf, count, cfg->read_timeout);
+    if (rv < 0) {
+        errno = ETIMEDOUT;
+        return -1;
+    }
     if (cfg->p.error) {
         errno = EPROTO;
         return -1;
@@ -322,6 +327,31 @@ int usart_close(FILE *file) {
     (void)file;
     errno = 0;
     return 0;
+}
+
+static int usart_ioctl_set_read_timeout(FILE *file, va_list args) {
+    uint32_t read_timeout = va_arg(args, uint32_t);
+    usart_t *dev = (usart_t *)file->node->f_op.dev;
+    dev->read_timeout = read_timeout;
+    return 0;
+}
+
+int usart_ioctl(FILE *file, int request, va_list args) {
+    int rv = 0;
+    usart_t *dev = (usart_t *)file->node->f_op.dev;
+
+    errno = 0;
+
+    switch (request) {
+        case USART_IOCTL_SET_READ_TIMEOUT:
+            usart_ioctl_set_read_timeout(file, args);
+            break;
+        default:
+            errno = ENOENT;
+            rv = -1;
+    }
+
+    return rv;
 }
 
 void usart_handler(void *area) {

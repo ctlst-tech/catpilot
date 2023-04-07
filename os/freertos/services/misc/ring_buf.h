@@ -28,5 +28,7 @@ uint16_t ring_buf_get_data_size(ring_buf_t *ring_buf);
 uint16_t ring_buf_get_free_size(ring_buf_t *ring_buf);
 int ring_buf_write(ring_buf_t *ring_buf, uint8_t *buf, uint16_t length);
 int ring_buf_read(ring_buf_t *ring_buf, uint8_t *buf, uint16_t length);
+int ring_buf_read_timeout(ring_buf_t *ring_buf, uint8_t *buf, uint32_t length,
+                          uint32_t timeout);
 
 #endif  // RING_BUF_H
