@@ -267,6 +267,11 @@ int usart_open(FILE *file, const char *path) {
 
     errno = 0;
 
+    if (cfg->p.port_open && !cfg->p.stdio) {
+        errno = EACCES;
+        return -1;
+    }
+
     if (cfg->p.tasks_init) {
         return 0;
     }
@@ -281,13 +286,15 @@ int usart_open(FILE *file, const char *path) {
         return -1;
     }
 
+    cfg->p.tasks_init = true;
+    cfg->p.port_open = true;
+
     char name[32];
     snprintf(name, MAX_NAME_LEN, "%s_read_thread", cfg->name);
     xTaskCreate(usart_read_task, name, 512, cfg, cfg->task_priority, NULL);
     snprintf(name, MAX_NAME_LEN, "%s_write_thread", cfg->name);
     xTaskCreate(usart_write_task, name, 512, cfg, cfg->task_priority, NULL);
 
-    cfg->p.tasks_init = true;
     errno = 0;
 
     return 0;
@@ -311,7 +318,8 @@ ssize_t usart_read(FILE *file, char *buf, size_t count) {
     errno = 0;
     usart_t *cfg = (usart_t *)file->node->f_op.dev;
 
-    rv = ring_buf_read_timeout(cfg->p.read_buf, (uint8_t *)buf, count, cfg->read_timeout);
+    rv = ring_buf_read_timeout(cfg->p.read_buf, (uint8_t *)buf, count,
+                               cfg->read_timeout);
     if (rv < 0) {
         errno = ETIMEDOUT;
         return -1;
@@ -324,8 +332,13 @@ ssize_t usart_read(FILE *file, char *buf, size_t count) {
 }
 
 int usart_close(FILE *file) {
-    (void)file;
+    usart_t *cfg = file->node->f_op.dev;
     errno = 0;
+    if (cfg->p.port_open) {
+        cfg->p.port_open = false;
+    } else {
+        errno = ENOENT;
+    }
     return 0;
 }
 

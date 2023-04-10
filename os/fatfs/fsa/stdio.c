@@ -443,7 +443,7 @@ int std_stream_init(const char *stream, void *dev,
                                          size_t count),
                     ssize_t (*dev_read)(struct file *file, char *buf,
                                         size_t count)) {
-    int fd;
+    int fd, flags;
     char stream_name[16];
     char stream_path[16];
     struct file_operations f_op = {0};
@@ -458,8 +458,10 @@ int std_stream_init(const char *stream, void *dev,
 
     if (!strcmp(stream, "stdin")) {
         f_op.read = dev_read;
+        flags = O_RDONLY;
     } else if (!strcmp(stream, "stdout") || !strcmp(stream, "stderr")) {
         f_op.write = dev_write;
+        flags = O_WRONLY;
     } else {
         return -1;
     }
@@ -471,7 +473,7 @@ int std_stream_init(const char *stream, void *dev,
         return -1;
     }
 
-    fd = open((const char *)stream_path, O_RDONLY);
+    fd = open((const char *)stream_path, flags);
 
     if (fd < 0) {
         return -1;

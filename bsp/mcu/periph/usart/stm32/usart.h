@@ -39,7 +39,9 @@ typedef struct {
     int error;
     bool periph_init;
     bool tasks_init;
+    bool port_open;
     bool use_dma;
+    bool stdio;
 } usart_private_t;
 
 typedef struct {

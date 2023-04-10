@@ -33,8 +33,8 @@ static void file_operation(const char *operation, const char *path,
 
     int fd_port = open(port, O_RDWR);
     if (fd_port < 0) {
-        close(fd_file);
         printf("%s\n", strerror(errno));
+        close(fd_file);
         return;
     }
 
