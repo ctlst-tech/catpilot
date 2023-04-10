@@ -24,6 +24,10 @@ const char *board_get_tty_name(char *path) {
     return NULL;
 }
 
+const char *board_get_cli_tty_name(void) {
+    return board_get_tty_name(CLI_PORT);
+}
+
 void board_print_tty_name(void) {
     for (int i = 0; i < BOARD_MAX_USART; i++) {
         if (usart[i] != NULL) {

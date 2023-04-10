@@ -442,7 +442,8 @@ int std_stream_init(const char *stream, void *dev,
                     ssize_t (*dev_write)(struct file *file, const char *buf,
                                          size_t count),
                     ssize_t (*dev_read)(struct file *file, char *buf,
-                                        size_t count)) {
+                                        size_t count),
+                    int (*dev_close)(struct file *file)) {
     int fd, flags;
     char stream_name[16];
     char stream_path[16];
@@ -454,6 +455,7 @@ int std_stream_init(const char *stream, void *dev,
     }
 
     f_op.open = dev_open;
+    f_op.close = dev_close;
     f_op.dev = dev;
 
     if (!strcmp(stream, "stdin")) {

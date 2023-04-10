@@ -125,13 +125,13 @@ int board_cli_init(char *cli_port, char *baudrate) {
         return -1;
     }
     cli->p.stdio = true;
-    if (std_stream_init("stdin", cli, usart_open, usart_write, usart_read)) {
+    if (std_stream_init("stdin", cli, usart_open, usart_write, usart_read, usart_close)) {
         return -1;
     }
-    if (std_stream_init("stdout", cli, usart_open, usart_write, usart_read)) {
+    if (std_stream_init("stdout", cli, usart_open, usart_write, usart_read, usart_close)) {
         return -1;
     }
-    if (std_stream_init("stderr", cli, usart_open, usart_write, usart_read)) {
+    if (std_stream_init("stderr", cli, usart_open, usart_write, usart_read, usart_close)) {
         return -1;
     }
     cli->p.stdio = false;

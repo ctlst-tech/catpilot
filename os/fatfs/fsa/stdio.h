@@ -66,7 +66,8 @@ int std_stream_init(const char *stream, void *dev,
                     ssize_t (*dev_write)(struct file *file, const char *buf,
                                          size_t count),
                     ssize_t (*dev_read)(struct file *file, char *buf,
-                                        size_t count));
+                                        size_t count),
+                    int (*dev_close)(struct file *file));
 int std_stream_deinit(const char *stream);
 
 #include <printf.h>
