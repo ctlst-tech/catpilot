@@ -293,10 +293,12 @@ ssize_t can_write(FILE *file, const char *buf, size_t count) {
 
     can_frame_t frame = {
         .channel = dev,
-        .header = {.frame_type = CAN_DATA_FRAME, .id = dev->id, .size = count},
+        .header = {.frame_type = dev->type, .id = dev->id, .size = count},
         .data = {0}};
 
-    memcpy(frame.data, buf, count);
+    if (dev->type == CAN_DATA_FRAME) {
+        memcpy(frame.data, buf, count);
+    }
     xQueueSend(dev->tx_queue, &frame, portMAX_DELAY);
     rv = count;
 
@@ -321,6 +323,13 @@ int can_close(FILE *file) {
     return -1;
 }
 
+static int can_ioctl_set_tx_msg_id(FILE *file, va_list args) {
+    uint32_t id = va_arg(args, uint32_t);
+    can_channel_t *channel = (can_channel_t *)file->private_data;
+    channel->id = id;
+    return 0;
+}
+
 static int can_ioctl_set_rx_filter_id(FILE *file, va_list args) {
     uint32_t id_filter = va_arg(args, uint32_t);
     can_channel_t *channel = (can_channel_t *)file->private_data;
@@ -328,10 +337,10 @@ static int can_ioctl_set_rx_filter_id(FILE *file, va_list args) {
     return 0;
 }
 
-static int can_ioctl_set_tx_msg_id(FILE *file, va_list args) {
-    uint32_t id = va_arg(args, uint32_t);
+static int can_ioctl_set_msg_type(FILE *file, va_list args) {
+    uint32_t type = va_arg(args, uint32_t);
     can_channel_t *channel = (can_channel_t *)file->private_data;
-    channel->id = id;
+    channel->type = type;
     return 0;
 }
 
@@ -344,6 +353,9 @@ int can_ioctl(FILE *file, int request, va_list args) {
     switch (request) {
         case CAN_IOCTL_SET_TX_MSG_ID:
             can_ioctl_set_tx_msg_id(file, args);
+            break;
+        case CAN_IOCTL_SET_TX_MSG_TYPE:
+            can_ioctl_set_msg_type(file, args);
             break;
         case CAN_IOCTL_SET_RX_FILTER_ID:
             can_ioctl_set_rx_filter_id(file, args);

@@ -2,6 +2,7 @@
 #define FSPEC_ODRIVE_PROTOCOL_MSG_H
 
 #define ODRIVE_GET_CMD_ID(axis, cmd) (axis * 0x20 + cmd)
+#define ODRIVE_GET_AXIS_MASK(axis) (axis * 0x20 + 0x1F)
 
 #define ODRIVE_GET_VERSION 0x000
 #define ODRIVE_HEARTBEAT 0x001
