@@ -125,13 +125,16 @@ int board_cli_init(char *cli_port, char *baudrate) {
         return -1;
     }
     cli->p.stdio = true;
-    if (std_stream_init("stdin", cli, usart_open, usart_write, usart_read, usart_close)) {
+    if (std_stream_init("stdin", cli, usart_open, usart_write, usart_read,
+                        usart_close)) {
         return -1;
     }
-    if (std_stream_init("stdout", cli, usart_open, usart_write, usart_read, usart_close)) {
+    if (std_stream_init("stdout", cli, usart_open, usart_write, usart_read,
+                        usart_close)) {
         return -1;
     }
-    if (std_stream_init("stderr", cli, usart_open, usart_write, usart_read, usart_close)) {
+    if (std_stream_init("stderr", cli, usart_open, usart_write, usart_read,
+                        usart_close)) {
         return -1;
     }
     cli->p.stdio = false;
@@ -204,7 +207,7 @@ static int board_clock_init(void) {
     PeriphClkInitStruct.UsbClockSelection = RCC_USBCLKSOURCE_PLL3;
     PeriphClkInitStruct.AdcClockSelection = RCC_ADCCLKSOURCE_PLL2;
     PeriphClkInitStruct.SdmmcClockSelection = RCC_SDMMCCLKSOURCE_PLL;
-    PeriphClkInitStruct.FdcanClockSelection = RCC_FDCANCLKSOURCE_PLL;
+    PeriphClkInitStruct.FdcanClockSelection = RCC_FDCANCLKSOURCE_HSE;
 
     while (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct)) {
     }

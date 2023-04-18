@@ -74,11 +74,17 @@ int can_init(can_t *cfg) {
     if ((rv = HAL_FDCAN_Start(&cfg->init))) {
         return rv;
     }
-    if ((rv = HAL_FDCAN_ActivateNotification(&cfg->init,
-                                             FDCAN_IT_TX_COMPLETE |
-                                                 FDCAN_IT_RX_FIFO0_NEW_MESSAGE |
-                                                 FDCAN_IT_RX_FIFO1_NEW_MESSAGE,
-                                             0xFFFFFFFF))) {
+    if ((rv = HAL_FDCAN_ActivateNotification(
+             &cfg->init,
+             FDCAN_IT_TX_COMPLETE | FDCAN_IT_RX_FIFO0_NEW_MESSAGE |
+                 FDCAN_IT_RX_FIFO1_NEW_MESSAGE |
+                 FDCAN_IT_RX_FIFO0_MESSAGE_LOST | FDCAN_IT_RX_FIFO0_FULL |
+                 FDCAN_IT_RX_FIFO0_WATERMARK | FDCAN_IT_RX_FIFO1_MESSAGE_LOST |
+                 FDCAN_IT_RX_FIFO1_FULL | FDCAN_IT_RX_FIFO1_WATERMARK |
+                 FDCAN_IT_ARB_PROTOCOL_ERROR | FDCAN_IT_DATA_PROTOCOL_ERROR |
+                 FDCAN_IT_ERROR_LOGGING_OVERFLOW | FDCAN_IT_ERROR_WARNING |
+                 FDCAN_IT_ERROR_PASSIVE,
+             0xFFFFFFFF))) {
         return rv;
     }
 
@@ -223,9 +229,16 @@ void can_read_thread(void *dev) {
         if (!can_receive(cfg, &frame.header, frame.data)) {
             for (int i = 0; i < CAN_MAX_CHANNELS && cfg->p.channel[i] != NULL;
                  i++) {
-                if (cfg->p.channel[i]->id_filter & frame.header.id) {
-                    xQueueSend(cfg->p.channel[i]->rx_queue, &frame,
-                               portMAX_DELAY);
+                if (cfg->p.channel[i]->id_filter_low <= frame.header.id &&
+                    cfg->p.channel[i]->id_filter_high >= frame.header.id) {
+                    if (!xQueueSend(cfg->p.channel[i]->rx_queue, &frame, 0)) {
+                        if (cfg->verbosity == CAN_VERBOSITY_HIGH) {
+                            printf("Interface = %s\n", cfg->name);
+                            printf("Rx queue is full\n\n");
+                        }
+                        xQueueReceive(cfg->p.channel[i]->rx_queue, &frame,
+                                      portMAX_DELAY);
+                    };
                 }
             }
         }
@@ -269,7 +282,8 @@ int can_open(FILE *file, const char *path) {
     if (i < CAN_MAX_CHANNELS) {
         static uint32_t id = CAN_DEFAULT_TX_MSG_ID;
         channel->id = id++;
-        channel->id_filter = CAN_DEFAULT_RX_FILTER_ID;
+        channel->id_filter_low = 0;
+        channel->id_filter_high = CAN_DEFAULT_RX_FILTER_ID;
         cfg->p.channel[i] = channel;
     } else {
         errno = ENOMEM;
@@ -333,7 +347,22 @@ static int can_ioctl_set_tx_msg_id(FILE *file, va_list args) {
 static int can_ioctl_set_rx_filter_id(FILE *file, va_list args) {
     uint32_t id_filter = va_arg(args, uint32_t);
     can_channel_t *channel = (can_channel_t *)file->private_data;
-    channel->id_filter = id_filter;
+    channel->id_filter_low = 0;
+    channel->id_filter_high = id_filter;
+    return 0;
+}
+
+static int can_ioctl_set_rx_filter_id_low(FILE *file, va_list args) {
+    uint32_t id_filter = va_arg(args, uint32_t);
+    can_channel_t *channel = (can_channel_t *)file->private_data;
+    channel->id_filter_low = id_filter;
+    return 0;
+}
+
+static int can_ioctl_set_rx_filter_id_high(FILE *file, va_list args) {
+    uint32_t id_filter = va_arg(args, uint32_t);
+    can_channel_t *channel = (can_channel_t *)file->private_data;
+    channel->id_filter_high = id_filter;
     return 0;
 }
 
@@ -359,6 +388,12 @@ int can_ioctl(FILE *file, int request, va_list args) {
             break;
         case CAN_IOCTL_SET_RX_FILTER_ID:
             can_ioctl_set_rx_filter_id(file, args);
+            break;
+        case CAN_IOCTL_SET_RX_FILTER_ID_LOW:
+            can_ioctl_set_rx_filter_id_low(file, args);
+            break;
+        case CAN_IOCTL_SET_RX_FILTER_ID_HIGH:
+            can_ioctl_set_rx_filter_id_high(file, args);
             break;
         default:
             errno = ENOENT;
@@ -413,6 +448,8 @@ void can_it_handler(void *area) {
         if (xHigherPriorityTaskWoken == pdTRUE) {
             portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
         }
+    } else {
+        HAL_FDCAN_IRQHandler(&cfg->init);
     }
 }
 
