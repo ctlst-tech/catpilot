@@ -7,8 +7,8 @@ Function(
     ),
     parameters=[
         Parameter(
-            name='can_ch',
-            title='CAN cort',
+            name='can_if',
+            title='CAN interface',
             value_type='core.type.str',
             tunable=False,
         ),
@@ -22,15 +22,20 @@ Function(
     description=None,
     inputs=[
         Input(
-            name='input',
-            title='Input',
+            name='pos',
+            title='Input pos',
             value_type='core.type.f64'
         )
     ],
     outputs=[
         Output(
-            name='output',
-            title='Output',
+            name='vol',
+            title='Voltage',
+            value_type='core.type.f64'
+        ),
+        Output(
+            name='cur',
+            title='Current',
             value_type='core.type.f64'
         )
     ],
@@ -41,8 +46,13 @@ Function(
             value_type='core.type.u32'
         ),
         Variable(
-            name='fd',
-            title='File Descriptor',
+            name='main_ch',
+            title='File descriptor',
+            value_type='core.type.i32'
+        ),
+        Variable(
+            name='tm_ch',
+            title='File descriptor',
             value_type='core.type.i32'
         ),
     ],

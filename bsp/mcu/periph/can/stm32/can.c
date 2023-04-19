@@ -347,7 +347,7 @@ static int can_ioctl_set_tx_msg_id(FILE *file, va_list args) {
 static int can_ioctl_set_rx_filter_id(FILE *file, va_list args) {
     uint32_t id_filter = va_arg(args, uint32_t);
     can_channel_t *channel = (can_channel_t *)file->private_data;
-    channel->id_filter_low = 0;
+    channel->id_filter_low = id_filter;
     channel->id_filter_high = id_filter;
     return 0;
 }
