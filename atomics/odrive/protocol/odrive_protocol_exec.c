@@ -65,10 +65,9 @@ void odrive_protocol_fsm(const odrive_protocol_inputs_t *i,
             state->state = ODRIVE_UPDATE;
             break;
         case ODRIVE_UPDATE:;
+            gpio_toggle(&gpio_fmu_pwm[2]);
             uint8_t heartbeat[8] = {0};
-            odrive_read(state->main_ch,
-                        ODRIVE_GET_CMD_ID(p->axis, ODRIVE_HEARTBEAT), heartbeat,
-                        sizeof(heartbeat));
+            read(state->main_ch, heartbeat, sizeof(heartbeat));
             uint32_t pos = i->pos * 1000;
             odrive_write(
                 state->main_ch,

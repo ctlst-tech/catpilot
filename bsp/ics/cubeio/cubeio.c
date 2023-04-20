@@ -194,7 +194,7 @@ static void cubeio_fsm(void *area) {
                 dev->sync.last_rc_read_ms =
                     xTaskGetTickCount() * portTICK_PERIOD_MS;
                 // DEBUG
-                gpio_reset(&gpio_fmu_pwm[2]);
+                // gpio_reset(&gpio_fmu_pwm[2]);
             }
             if (dev->sync.now - dev->sync.last_status_read_ms > 50) {
                 cubeio_read_regs(dev, PAGE_STATUS, 0,
