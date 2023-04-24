@@ -63,6 +63,10 @@ if (OS STREQUAL "freertos")
     )
 elseif (OS STREQUAL "posix")
     # OS specific sources
+elseif (OS STREQUAL "qnx")
+    list(APPEND OS_SRC
+        qnx/string.c
+    )
 else ()
     message(FATAL_ERROR "Operation system is not selected!")
 endif ()
@@ -86,6 +90,8 @@ if (FS STREQUAL "fatfs")
         fatfs/port/diskio.c
     )
 elseif (FS STREQUAL "posix")
+    # FS specific sources
+elseif (FS STREQUAL "qnx")
     # FS specific sources
 else ()
     message(FATAL_ERROR "File system is not selected!")
