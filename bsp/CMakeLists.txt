@@ -63,37 +63,44 @@ if (MCU_FAMILY STREQUAL "stm32")
             boards/${BOARD}/external.c
         )
     endif()
+
+    list(APPEND BSP_SRC
+        mcu/periph/adc/${MCU_FAMILY}/adc.c
+        mcu/periph/can/${MCU_FAMILY}/can.c
+        mcu/periph/dma/${MCU_FAMILY}/dma.c
+        mcu/periph/exti/${MCU_FAMILY}/exti.c
+        mcu/periph/gpio/${MCU_FAMILY}/gpio.c
+        mcu/periph/i2c/${MCU_FAMILY}/i2c.c
+        mcu/periph/irq/${MCU_FAMILY}/irq.c
+        mcu/periph/sdio/${MCU_FAMILY}/sdio.c
+        mcu/periph/spi/${MCU_FAMILY}/spi.c
+        mcu/periph/tim/${MCU_FAMILY}/tim.c
+        mcu/periph/usart/${MCU_FAMILY}/usart.c
+    )
+
+    list(APPEND BSP_INC
+        mcu/periph
+        mcu/periph/adc/${MCU_FAMILY}
+        mcu/periph/can/${MCU_FAMILY}
+        mcu/periph/dma/${MCU_FAMILY}
+        mcu/periph/exti/${MCU_FAMILY}
+        mcu/periph/gpio/${MCU_FAMILY}
+        mcu/periph/i2c/${MCU_FAMILY}
+        mcu/periph/irq/${MCU_FAMILY}
+        mcu/periph/sdio/${MCU_FAMILY}
+        mcu/periph/spi/${MCU_FAMILY}
+        mcu/periph/tim/${MCU_FAMILY}
+        mcu/periph/usart/${MCU_FAMILY}
+        mcu/periph/usb/${MCU_FAMILY}
+    )
+elseif (MCU_FAMILY STREQUAL "zynq")
+    list(APPEND BSP_SRC
+        mcu/periph/spi/${MCU_FAMILY}/spiplr.c
+    )
+    list(APPEND BSP_INC 
+        mcu/periph/spi/${MCU_FAMILY}
+    )
 endif()
-
-list(APPEND BSP_SRC
-    mcu/periph/adc/${MCU_FAMILY}/adc.c
-    mcu/periph/can/${MCU_FAMILY}/can.c
-    mcu/periph/dma/${MCU_FAMILY}/dma.c
-    mcu/periph/exti/${MCU_FAMILY}/exti.c
-    mcu/periph/gpio/${MCU_FAMILY}/gpio.c
-    mcu/periph/i2c/${MCU_FAMILY}/i2c.c
-    mcu/periph/irq/${MCU_FAMILY}/irq.c
-    mcu/periph/sdio/${MCU_FAMILY}/sdio.c
-    mcu/periph/spi/${MCU_FAMILY}/spi.c
-    mcu/periph/tim/${MCU_FAMILY}/tim.c
-    mcu/periph/usart/${MCU_FAMILY}/usart.c
-)
-
-list(APPEND BSP_INC
-    mcu/periph
-    mcu/periph/adc/${MCU_FAMILY}
-    mcu/periph/can/${MCU_FAMILY}
-    mcu/periph/dma/${MCU_FAMILY}
-    mcu/periph/exti/${MCU_FAMILY}
-    mcu/periph/gpio/${MCU_FAMILY}
-    mcu/periph/i2c/${MCU_FAMILY}
-    mcu/periph/irq/${MCU_FAMILY}
-    mcu/periph/sdio/${MCU_FAMILY}
-    mcu/periph/spi/${MCU_FAMILY}
-    mcu/periph/tim/${MCU_FAMILY}
-    mcu/periph/usart/${MCU_FAMILY}
-    mcu/periph/usb/${MCU_FAMILY}
-)
 
 if (IC_CUBEIO STREQUAL "ON")
     list(APPEND BSP_SRC ics/cubeio/cubeio.c)

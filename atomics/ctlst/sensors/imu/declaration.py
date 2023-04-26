@@ -6,6 +6,7 @@ Function(
         en='imu'
     ),
     has_pre_exec_init_call=True,
+    custom_cmakefile=True,
     parameters=[
         Parameter(
             name='freq',
