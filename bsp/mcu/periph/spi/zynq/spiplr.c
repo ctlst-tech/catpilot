@@ -159,7 +159,7 @@ int spi_plr_custom_trans(spiplr_instance_t *i, uint32_t *inb, int n,
     WRITE_REG(i->base + SPIPLR_CNT_OFF, SPIPLR_CNT_CR_START);
     while (!(READ_REG(i->base + SPIPLR_STAT_OFF) & SPIPLR_STAT_CR_RDY)) {
         if (j-- <= 0) {
-            err(__func__, "SPIPLR_STAT_CR_RDY hang recovery");
+            error( "SPIPLR_STAT_CR_RDY hang recovery");
             break;
         }
     }
