@@ -11,20 +11,18 @@
 #include "error.h"
 #include "spiplr.h"
 
-#define atomic_dbg_msg(txt, ...) error(__func__, txt, ##__VA_ARGS__)
-
 static void ctlst_sensors_imu_update(ctlst_sensors_imu_t *imu);
 static void ctlst_sensors_imu_process(ctlst_sensors_imu_outputs_t *o,
                                       ctlst_sensors_imu_t *imu);
 static void ctlst_sensors_imu_print(ctlst_sensors_imu_outputs_t *o,
                                     ctlst_sensors_imu_t *imu);
 
-ctlst_sensors_imu_t *imu = NULL;
+static ctlst_sensors_imu_t *imu = NULL;
 
 void *ctlst_sensors_imu_exec_service(void *arg) {
     ctlst_sensors_imu_t *c = (ctlst_sensors_imu_t *)arg;
     if (ThreadCtl(_NTO_TCTL_IO, 0) == -1) {
-        atomic_dbg_msg("ThreadCtl failed");
+        dbg_msg("ThreadCtl failed");
         return NULL;
     }
 
@@ -55,7 +53,7 @@ void *ctlst_sensors_imu_exec_service(void *arg) {
             MsgReceive_r(c->sync.chid, &c->sync.p, sizeof(struct _pulse), NULL);
         if (c->sync.rcvid > 0) continue;
         if (c->sync.rcvid < 0) {
-            atomic_dbg_msg("MsgReceive failed");
+            dbg_msg("MsgReceive failed");
             return NULL;
         }
 
@@ -71,7 +69,7 @@ void *ctlst_sensors_imu_exec_service(void *arg) {
                 break;
 
             default:
-                atomic_dbg_msg("Unknown code");
+                dbg_msg("Unknown code");
                 break;
         }
     }
@@ -80,7 +78,7 @@ void *ctlst_sensors_imu_exec_service(void *arg) {
 fspec_rv_t ctlst_sensors_imu_pre_exec_init(const ctlst_sensors_imu_params_t *p,
                                            ctlst_sensors_imu_state_t *state) {
     if (imu != NULL) {
-        atomic_dbg_msg("ctlst.sensors.imu exists");
+        dbg_msg("ctlst.sensors.imu module exists");
         return fspec_rv_exists;
     }
     imu = calloc(sizeof(ctlst_sensors_imu_t), sizeof(char));
@@ -116,7 +114,7 @@ fspec_rv_t ctlst_sensors_imu_pre_exec_init(const ctlst_sensors_imu_params_t *p,
 
 exit_fail:
     free(imu);
-    atomic_dbg_msg("ctlst_sensors_imu_pre_exec_init failed");
+    dbg_msg("ctlst_sensors_imu_pre_exec_init failed");
     return fspec_rv_system_err;
 }
 
