@@ -428,8 +428,7 @@ int fcnav_get_data(sens_onboard_adc_data_t *adc_data,
 
     adc_data->Gx = TWOS_CONVERT16((gyro_x_reading >> 10) & (0xFFFF));
     adc_data->Gy = TWOS_CONVERT16((gyro_y_reading >> 10) & (0xFFFF));
-    adc_data->Gz =
-        TWOS_CONVERT16((gyro_z_reading >> 10) & (0xFFFF));
+    adc_data->Gz = TWOS_CONVERT16((gyro_z_reading >> 10) & (0xFFFF));
 
     get_gyro_errs_and_report(gyro_x_reading, &stat->x, "X rate");
     get_gyro_errs_and_report(gyro_y_reading, &stat->y, "Y rate");

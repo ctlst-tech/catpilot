@@ -15,7 +15,6 @@
 typedef struct {
     struct {
         uint32_t freq;
-        uint32_t prio_delta;
         uint32_t period_us;
     } cfg;
     struct {

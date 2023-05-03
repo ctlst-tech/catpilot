@@ -15,13 +15,6 @@ Function(
             tunable=False,
             default=500
         ),
-        Parameter(
-            name='prio_delta',
-            title='Thread priority delta',
-            value_type='core.type.u32',
-            tunable=False,
-            default=0,
-        ),
     ],
     inputs=[],
     outputs=[
@@ -66,7 +59,5 @@ Function(
     parameter_constraints=[
         ParameterValue('freq') >= 1,
         ParameterValue('freq') <= 500,
-        ParameterValue('prio_delta') >= 0,
-        ParameterValue('prio_delta') <= 50,
     ]
 )

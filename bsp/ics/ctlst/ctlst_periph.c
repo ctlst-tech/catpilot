@@ -46,7 +46,7 @@ int fc_dxrs450_interact(int cs, int dummy_cs, uint64_t req, uint32_t *resp) {
     tx.resp = ADXRS450_REG_READ(cs, ADXRS450_REG_ADDRESS_TEM);
 
     fcnav_spi_trans((uint32_t *)&tx, sizeof(tx) / sizeof(uint32_t),
-                     (uint32_t *)&rx);
+                    (uint32_t *)&rx);
 
     tresp = SPI_PDC_EXTRACT_DWORD(rx.resp);
 

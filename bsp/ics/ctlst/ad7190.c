@@ -8,14 +8,12 @@
 #include <unistd.h>
 
 #include "ctlst_default.h"
+#include "ctlst_nav.h"
 #include "devices_common.h"
 #include "sens_spi.h"
 #include "spi_pdc.h"
 
-#include "ctlst_nav.h"
-
-#define AD7190_TRANS_DUMMY() \
-    DEFAULT_TRANS_DUMMY() /*SPI_PDC_TRANS_DUMMY(7)*/
+#define AD7190_TRANS_DUMMY() DEFAULT_TRANS_DUMMY()
 #define ONES_SEQ_LNG 7
 
 int at7190_reset(int cs, int dummy_cs) {
@@ -140,8 +138,8 @@ int ad7190_start(int cs, int dcs, int baro_fix) {
     ad7190_write_register(cs, dcs, AD7190_ADDR_REG_CFG, reg_cfg);
     ad7190_read_register(cs, dcs, AD7190_ADDR_REG_CFG, &out);
     if (reg_cfg != AD7190_MASK_LSB(out)) {
-        error("AD7190_ADDR_REG_CFG set == %08X, but read == %08X",
-            reg_cfg, out);
+        error("AD7190_ADDR_REG_CFG set == %08X, but read == %08X", reg_cfg,
+              out);
         rv = EIO;
     }
 
@@ -149,8 +147,8 @@ int ad7190_start(int cs, int dcs, int baro_fix) {
     ad7190_read_register(cs, dcs, AD7190_ADDR_REG_MODE, &out);
 
     if (reg_mode != AD7190_MASK_LSB(out)) {
-        error("AD7190_ADDR_REG_MODE set == %08X, but read == %08X",
-            reg_mode, out);
+        error("AD7190_ADDR_REG_MODE set == %08X, but read == %08X", reg_mode,
+              out);
         rv = EIO;
     }
 
@@ -163,11 +161,11 @@ int ad7190_start_and_report(int cs, int dcs, int baro_fix) {
     rv = ad7190_start(cs, dcs, baro_fix);
     switch (rv) {
         default:
-            error( "AD7190 unknown failure");
+            error("AD7190 unknown failure");
             error("AD7190 unknown failure");
             break;
         case EIO:
-            error( "AD7190 setup communication failure");
+            error("AD7190 setup communication failure");
             error("AD7190 setup communication failure");
 
             break;

@@ -31,12 +31,6 @@ void *ctlst_sensors_imu_exec_service(void *arg) {
     struct sched_param param = {0};
     int policy = 0;
     pthread_getschedparam(pthread_self(), &policy, &param);
-    param.sched_curpriority = (param.sched_priority += c->cfg.prio_delta);
-    int rv = pthread_setschedparam(pthread_self(), policy, &param);
-    if (rv != EOK) {
-        atomic_dbg_msg("pthread_setschedparam failed");
-        return NULL;
-    }
 
     c->sync.chid = ChannelCreate_r(0);
     c->sync.coid = ConnectAttach_r(0, 0, c->sync.chid, 0, 0);
@@ -94,7 +88,6 @@ fspec_rv_t ctlst_sensors_imu_pre_exec_init(const ctlst_sensors_imu_params_t *p,
         return fspec_rv_no_memory;
     }
     imu->cfg.freq = p->freq;
-    imu->cfg.prio_delta = p->prio_delta;
     imu->cfg.period_us = 1000000 / p->freq;
 
     int rv = pthread_mutex_init(&imu->sync.mutex, NULL);
