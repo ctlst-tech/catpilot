@@ -48,6 +48,56 @@ Function(
             title='Z-axis angular rate',
             value_type='core.type.f64'
         ),
+        Output(
+            name='pstat',
+            title='Static pressure',
+            value_type='core.type.f64'
+        ),
+        Output(
+            name='pdiff',
+            title='Diff pressure',
+            value_type='core.type.f64'
+        ),
+        Output(
+            name='pdyn',
+            title='Dynamic pressure',
+            value_type='core.type.f64'
+        ),
+        Output(
+            name='tadc',
+            title='ADC temperature',
+            value_type='core.type.f64'
+        ),
+        Output(
+            name='tax',
+            title='X-axis accel temperature',
+            value_type='core.type.f64'
+        ),
+        Output(
+            name='tay',
+            title='Y-axis accel temperature',
+            value_type='core.type.f64'
+        ),
+        Output(
+            name='taz',
+            title='Z-axis accel temperature',
+            value_type='core.type.f64'
+        ),
+        Output(
+            name='twx',
+            title='X-axis gyro temperature',
+            value_type='core.type.f64'
+        ),
+        Output(
+            name='twy',
+            title='Y-axis gyro temperature',
+            value_type='core.type.f64'
+        ),
+        Output(
+            name='twz',
+            title='Z-axis gyro temperature',
+            value_type='core.type.f64'
+        ),
     ],
     state=[
         Variable(

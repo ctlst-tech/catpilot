@@ -18,6 +18,7 @@ static void ctlst_sensors_imu_print(ctlst_sensors_imu_outputs_t *o,
                                     ctlst_sensors_imu_t *imu);
 
 static ctlst_sensors_imu_t *imu = NULL;
+extern sens_spi_device_config_t cfg;
 
 void *ctlst_sensors_imu_exec_service(void *arg) {
     ctlst_sensors_imu_t *c = (ctlst_sensors_imu_t *)arg;
@@ -144,26 +145,31 @@ static void ctlst_sensors_imu_process(ctlst_sensors_imu_outputs_t *o,
     pthread_mutex_lock(&imu->sync.mutex);
     pthread_cond_wait(&imu->sync.cond, &imu->sync.mutex);
 
-    o->ax = OFFSET_AND_SCALE_DIR(imu->adc_data.Ax, ADIS1600X_OFFSET,
-                                 ADIS16006_SCALE, DIRECTION_FORWARD);
-    o->ay = OFFSET_AND_SCALE_DIR(imu->adc_data.Ay, ADIS1600X_OFFSET,
-                                 ADIS16006_SCALE, DIRECTION_FORWARD);
-    o->az = OFFSET_AND_SCALE_DIR(imu->adc_data.Az, ADIS1600X_OFFSET,
-                                 ADIS16006_SCALE, DIRECTION_REVERSED);
+    o->ax = OFFSET_AND_SCALE_DIR(imu->adc_data.Ax, cfg.accel_offset,
+                                 cfg.accel_scale, cfg.dir_ax);
+    o->ay = OFFSET_AND_SCALE_DIR(imu->adc_data.Ay, cfg.accel_offset,
+                                 cfg.accel_scale, cfg.dir_ay);
+    o->az = OFFSET_AND_SCALE_DIR(imu->adc_data.Az, cfg.accel_offset,
+                                 cfg.accel_scale, cfg.dir_az);
 
-    o->wx = OFFSET_AND_SCALE_DIR(imu->adc_data.Gx, 0, ADXRS450_SCALE,
-                                 DIRECTION_FORWARD);
-    o->wy = OFFSET_AND_SCALE_DIR(imu->adc_data.Gy, 0, ADXRS450_SCALE,
-                                 DIRECTION_REVERSED);
-    o->wz = OFFSET_AND_SCALE_DIR(imu->adc_data.Gz, 0, ADXRS450_SCALE,
-                                 DIRECTION_FORWARD);
+    o->wx = OFFSET_AND_SCALE_DIR(imu->adc_data.Gx, cfg.gyro_offset,
+                                 cfg.gyro_scale, cfg.dir_gx);
+    o->wy = OFFSET_AND_SCALE_DIR(imu->adc_data.Gy, cfg.gyro_offset,
+                                 cfg.gyro_scale, cfg.dir_gy);
+    o->wz = OFFSET_AND_SCALE_DIR(imu->adc_data.Gz, cfg.gyro_offset,
+                                 cfg.gyro_scale, cfg.dir_gz);
 
-    o->wx = OFFSET_AND_SCALE_DIR(imu->adc_data.Gx, 0, ADXRS450_SCALE,
-                                 DIRECTION_FORWARD);
-    o->wy = OFFSET_AND_SCALE_DIR(imu->adc_data.Gy, 0, ADXRS450_SCALE,
-                                 DIRECTION_REVERSED);
-    o->wz = OFFSET_AND_SCALE_DIR(imu->adc_data.Gz, 0, ADXRS450_SCALE,
-                                 DIRECTION_FORWARD);
+    o->pstat = OFFSET_AND_SCALE(imu->adc_data.Pstat, cfg.pabs_offset, cfg.pabs_scale);
+    o->pdiff = OFFSET_AND_SCALE(imu->adc_data.Pdiff, cfg.pdiff_offset, cfg.pdiff_scale);
+    o->pdyn = OFFSET_AND_SCALE(imu->adc_data.Pdyn, cfg.pabs_offset, cfg.pabs_scale);
+
+    o->tadc = OFFSET_AND_SCALE(imu->adc_data.PadcT, T_OFFSET, T_SCALE) - 273;
+    o->tax = OFFSET_AND_SCALE(imu->adc_data.TAx, cfg.accel_temp_offset, cfg.accel_temp_scale);
+    o->tay = OFFSET_AND_SCALE(imu->adc_data.TAy, cfg.accel_temp_offset, cfg.accel_temp_scale);
+    o->taz = OFFSET_AND_SCALE(imu->adc_data.TAz, cfg.accel_temp_offset, cfg.accel_temp_scale);
+    o->twx = OFFSET_AND_SCALE(imu->adc_data.TGx, cfg.gyro_temp_offset, cfg.gyro_temp_scale);
+    o->twy = OFFSET_AND_SCALE(imu->adc_data.TGy, cfg.gyro_temp_offset, cfg.gyro_temp_scale);
+    o->twz = OFFSET_AND_SCALE(imu->adc_data.TGz, cfg.gyro_temp_offset, cfg.gyro_temp_scale);
 
     pthread_mutex_unlock(&imu->sync.mutex);
 }

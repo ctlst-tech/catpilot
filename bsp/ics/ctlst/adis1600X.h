@@ -19,6 +19,6 @@
 #define ADIS1600X_OFFSET 2048.0F
 
 #define ADIS1600X_TEMP_SCALE ( 0.25 ) 
-#define ADIS1600X_TEMP__OFFSET ( 0 )
+#define ADIS1600X_TEMP_OFFSET ( 0 )
 
 #endif /*ADIS1600X_H_*/

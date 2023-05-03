@@ -557,7 +557,7 @@ sens_spi_device_config_t cfg = {
     .accel_scale = ADIS16006_SCALE,
 
     .accel_temp_scale = ADIS1600X_TEMP_SCALE,
-    .accel_temp_offset = ADIS1600X_TEMP__OFFSET,
+    .accel_temp_offset = ADIS1600X_TEMP_OFFSET,
 
     .pabs_scale = PABS_SCALE,
     .pabs_offset = PABS_OFFSET,
