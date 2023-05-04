@@ -152,6 +152,7 @@ if (IC_CTLST STREQUAL "ON")
     list(APPEND BSP_SRC ics/ctlst/ad7190.c)
     list(APPEND BSP_SRC ics/ctlst/ctlst_periph.c)
     list(APPEND BSP_SRC ics/ctlst/ctlst_nav.c)
+    list(APPEND BSP_SRC ics/ctlst/ad7606b.c)
     list(APPEND BSP_INC ics/ctlst)
 endif ()
 
