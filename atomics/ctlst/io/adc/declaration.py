@@ -9,13 +9,6 @@ Function(
     custom_cmakefile=True,
     parameters=[
         Parameter(
-            name='adc',
-            title='ADC number',
-            value_type='core.type.u32',
-            tunable=False,
-            default=0
-        ),
-        Parameter(
             name='channel',
             title='Channel number',
             value_type='core.type.u32',
