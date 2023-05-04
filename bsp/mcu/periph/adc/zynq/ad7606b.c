@@ -1,6 +1,5 @@
 #include "ad7606b.h"
 
-#include <f/ferrors.h>
 #include <hw/inout.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -13,7 +12,7 @@
 int adc_ad7606b_init(ad7606b_instance_t *i, uintptr_t phys_base) {
     i->base = mmap_device_io(AD7606B_REG_MAP_SIZE, phys_base);
     if (i->base == NULL) {
-        dbg_msg("mmap_device_io failed\n");
+        perror("mmap_device_io failed\n");
         return -1;
     }
     i->phys_base = phys_base;

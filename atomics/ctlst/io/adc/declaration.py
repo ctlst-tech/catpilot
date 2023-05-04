@@ -32,14 +32,14 @@ Function(
         Parameter(
             name='bias',
             title='Bias',
-            value_type='core.type.i32',
+            value_type='core.type.f64',
             tunable=False,
             default=0
         ),
         Parameter(
             name='scale',
             title='Scale',
-            value_type='core.type.i32',
+            value_type='core.type.f64',
             tunable=False,
             default=0
         ),

@@ -1,6 +1,5 @@
 #include "spiplr.h"
 
-#include <f/ferrors.h>
 #include <hw/inout.h>
 #include <stddef.h>
 #include <stdint.h>

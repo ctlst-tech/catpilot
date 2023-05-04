@@ -96,9 +96,11 @@ if (MCU_FAMILY STREQUAL "stm32")
 elseif (MCU_FAMILY STREQUAL "zynq")
     list(APPEND BSP_SRC
         mcu/periph/spi/${MCU_FAMILY}/spiplr.c
+        mcu/periph/adc/${MCU_FAMILY}/ad7606b.c
     )
     list(APPEND BSP_INC 
         mcu/periph/spi/${MCU_FAMILY}
+        mcu/periph/adc/${MCU_FAMILY}
     )
 endif()
 
@@ -152,7 +154,6 @@ if (IC_CTLST STREQUAL "ON")
     list(APPEND BSP_SRC ics/ctlst/ad7190.c)
     list(APPEND BSP_SRC ics/ctlst/ctlst_periph.c)
     list(APPEND BSP_SRC ics/ctlst/ctlst_nav.c)
-    list(APPEND BSP_SRC ics/ctlst/ad7606b.c)
     list(APPEND BSP_INC ics/ctlst)
 endif ()
 
