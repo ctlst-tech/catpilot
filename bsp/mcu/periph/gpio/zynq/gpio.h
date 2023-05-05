@@ -46,14 +46,14 @@
 
 #define PWM_ENABLE_POS  1
 
-typedef struct {
-    uintptr_t base;
-    uintptr_t phys_base;
-} gpio_instance_t;
+#define GPIO_PINS   16
 
-int gpio_init(gpio_instance_t *i, uintptr_t phys_base);
-int gpio_set_discrete_mode(gpio_instance_t *i, uint32_t channel);
-int gpio_set_output_value(gpio_instance_t *i, uint32_t channel, uint32_t value);
-int gpio_get_output_value(gpio_instance_t *i, uint32_t channel, uint32_t *value);
+int gpio_init(uint32_t channel);
+int gpio_set_discrete_mode(uint32_t channel);
+int gpio_set_pwm_mode(uint32_t channel);
+int gpio_set_output_value(uint32_t channel, uint32_t value);
+int gpio_get_output_value(uint32_t channel, uint32_t *value);
+int gpio_set_period(uint32_t channel, uint32_t period);
+int gpio_set_width(uint32_t channel, uint32_t width);
 
 #endif //  GPIO_MAP

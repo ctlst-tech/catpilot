@@ -25,7 +25,7 @@ Function(
             name='max',
             title='Channel max PWM',
             value_type='core.type.u32',
-            default=700,
+            default=2000,
         ),
         Parameter(
             name='period',
@@ -43,7 +43,7 @@ Function(
     inputs=[
         Input(
             name='input',
-            title='Duty',
+            title='Input',
             value_type='core.type.f64',
             mandatory=False,
         ),
