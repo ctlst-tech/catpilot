@@ -39,21 +39,36 @@
 #define PHASE_CTRL_REG_OFF          0x10
 #define PHASE_STATUS_REG_OFF        0x14
 
-#define OUT_MUX_PIN_OFF         0x0
-#define OUT_MUX_DISCRETE_MODE   0x1
-#define OUT_MUX_PWM_MODE        0x2
-#define OUT_MUX_PHASE_MODE      0x3
+#define PIN_SOURCE_REG_ADDR                   0x0
+#define AGLITCH_FILTER_SETUP_ADDR             0x1
+#define PWM_ESTIMATOR_CTRL_ADDR               0x2
+#define PHASE_ESTIMATOR_CTRL_ADDR             0x3
+#define PH_EST_ALL_TOOTH_NUM_ADDR             0x4
+#define PH_EST_ABS_TOOTH_NUM_ADDR             0x5
+#define PH_EST_LOG2_PHASE_STEP_TOOTH_NUM_ADDR 0x6
+
+#define IN_OUT_MUX_PIN_OFF         0x0
+#define IN_OUT_MUX_DISCRETE_MODE   0x1
+#define IN_OUT_MUX_PWM_MODE        0x2
+#define IN_OUT_MUX_PHASE_MODE      0x3
 
 #define PWM_ENABLE_POS  1
 
 #define GPIO_PINS   16
 
 int gpio_init(uint32_t channel);
-int gpio_set_discrete_mode(uint32_t channel);
-int gpio_set_pwm_mode(uint32_t channel);
+int gpio_set_discrete_mode_out(uint32_t channel);
+int gpio_set_pwm_mode_out(uint32_t channel);
+int gpio_set_phase_mode_out(uint32_t channel);
+int gpio_set_discrete_mode_in(uint32_t channel);
+int gpio_set_pwm_mode_in(uint32_t channel);
+int gpio_set_phase_mode_in(uint32_t channel);
 int gpio_set_output_value(uint32_t channel, uint32_t value);
 int gpio_get_output_value(uint32_t channel, uint32_t *value);
 int gpio_set_period(uint32_t channel, uint32_t period);
 int gpio_set_width(uint32_t channel, uint32_t width);
+int gpio_get_period(uint32_t channel, uint32_t *period);
+int gpio_get_width(uint32_t channel, uint32_t *width);
+int gpio_get_input_value(uint32_t channel, uint32_t *value);
 
 #endif //  GPIO_MAP

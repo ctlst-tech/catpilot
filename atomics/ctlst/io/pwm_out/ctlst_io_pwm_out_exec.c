@@ -7,7 +7,7 @@ fspec_rv_t ctlst_io_pwm_out_pre_exec_init(
     if (gpio_init(p->channel)) {
         return fspec_rv_invarg;
     }
-    if (gpio_set_pwm_mode(p->channel)) {
+    if (gpio_set_pwm_mode_out(p->channel)) {
         return fspec_rv_invarg;
     }
     if (gpio_set_period(p->channel, p->period)) {

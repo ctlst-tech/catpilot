@@ -1,22 +1,20 @@
-#include <malloc.h>
-
-#include "ctlst_io_gpio.h"
+#include "ctlst_io_gpio_out.h"
 #include "gpio.h"
 
-fspec_rv_t ctlst_io_gpio_pre_exec_init(
-    const ctlst_io_gpio_optional_inputs_flags_t *input_flags,
-    const ctlst_io_gpio_params_t *p) {
+fspec_rv_t ctlst_io_gpio_out_pre_exec_init(
+    const ctlst_io_gpio_out_optional_inputs_flags_t *input_flags,
+    const ctlst_io_gpio_out_params_t *p) {
     if (gpio_init(p->channel)) {
         return fspec_rv_system_err;
     }
-    if (gpio_set_discrete_mode(p->channel)) {
+    if (gpio_set_discrete_mode_out(p->channel)) {
         return fspec_rv_system_err;
     }
     return fspec_rv_ok;
 }
 
-void ctlst_io_gpio_exec(const ctlst_io_gpio_inputs_t *i,
-                        const ctlst_io_gpio_params_t *p) {
+void ctlst_io_gpio_out_exec(const ctlst_io_gpio_out_inputs_t *i,
+                            const ctlst_io_gpio_out_params_t *p) {
     if (i->optional_inputs_flags.input_bool) {
         gpio_set_output_value(p->channel, !i->input_bool);
     }

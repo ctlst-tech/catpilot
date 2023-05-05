@@ -1,9 +1,9 @@
 from fspeclib import *
 
 Function(
-    name='ctlst.io.gpio',
+    name='ctlst.io.gpio_out',
     title=LocalizedString(
-        en='gpio'
+        en='gpio_out'
     ),
     has_pre_exec_init_call=True,
     custom_cmakefile=True,

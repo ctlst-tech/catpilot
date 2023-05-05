@@ -43,7 +43,7 @@ Function(
     inputs=[
         Input(
             name='input',
-            title='Input',
+            title='Duty',
             value_type='core.type.f64',
             mandatory=False,
         ),

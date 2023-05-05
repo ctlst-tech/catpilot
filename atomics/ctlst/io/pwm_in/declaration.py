@@ -28,12 +28,6 @@ Function(
             default=700,
         ),
         Parameter(
-            name='period',
-            title='PWM period us',
-            value_type='core.type.u32',
-            default=1000,
-        ),
-        Parameter(
             name='bipolar',
             title='Bipolar mode enable',
             value_type='core.type.bool',
@@ -43,8 +37,13 @@ Function(
     inputs=[],
     outputs=[
         Output(
-            name='output',
-            title='Output',
+            name='period',
+            title='Period in microseconds',
+            value_type='core.type.u32'
+        ),
+        Output(
+            name='duty',
+            title='Duty',
             value_type='core.type.f64'
         )],
     state=[],
