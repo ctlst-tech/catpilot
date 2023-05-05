@@ -17,17 +17,16 @@ fspec_rv_t ctlst_io_pwm_in_pre_exec_init(const ctlst_io_pwm_in_params_t *p) {
 
 void ctlst_io_pwm_in_exec(ctlst_io_pwm_in_outputs_t *o,
                           const ctlst_io_pwm_in_params_t *p) {
-    
     uint32_t width = 0;
     double duty = 0;
     gpio_get_period(p->channel, &o->period);
-    gpio_get_width(p->channel, &duty);
+    gpio_get_width(p->channel, &width);
     if (p->bipolar) {
         duty = (2 * (width - p->min) / (double)(p->max - p->min) - 1.0);
         duty = SAT(duty, 1.0, -1.0);
     } else {
-        duty = (width - p->min) / (double)(p->max - p->min);
-        duty= SAT(duty, 1.0, 0.0);
+        duty = (int)(width - p->min) / (double)(p->max - p->min);
+        duty = SAT(duty, 1.0, 0.0);
     }
     o->duty = duty;
 }

@@ -31,7 +31,7 @@
 #define BYTES_IN_REG 4
 #define PIN_BYTE_RANGE PIN_REG_AMOUNT * BYTES_IN_REG
 
-//regs of OUTPUT SETUP REG
+// OUTPUT SETUP REG
 #define OUTPUT_MUX_REG_OFF          0x0
 #define DISCRETE_OUT_STATUS_REG_OFF 0x4
 #define PWM_CTRL_REG_OFF            0x8
@@ -39,13 +39,14 @@
 #define PHASE_CTRL_REG_OFF          0x10
 #define PHASE_STATUS_REG_OFF        0x14
 
-#define PIN_SOURCE_REG_ADDR                   0x0
-#define AGLITCH_FILTER_SETUP_ADDR             0x1
-#define PWM_ESTIMATOR_CTRL_ADDR               0x2
-#define PHASE_ESTIMATOR_CTRL_ADDR             0x3
-#define PH_EST_ALL_TOOTH_NUM_ADDR             0x4
-#define PH_EST_ABS_TOOTH_NUM_ADDR             0x5
-#define PH_EST_LOG2_PHASE_STEP_TOOTH_NUM_ADDR 0x6
+// INPUT SETUP REG
+#define PIN_SOURCE_REG_OFF                   0x0
+#define AGLITCH_FILTER_SETUP_OFF             0x4
+#define PWM_ESTIMATOR_CTRL_OFF               0x8
+#define PHASE_ESTIMATOR_CTRL_OFF             0xC
+#define PH_EST_ALL_TOOTH_NUM_OFF             0x10
+#define PH_EST_ABS_TOOTH_NUM_OFF             0x14
+#define PH_EST_LOG2_PHASE_STEP_TOOTH_NUM_OFF 0x18
 
 #define IN_OUT_MUX_PIN_OFF         0x0
 #define IN_OUT_MUX_DISCRETE_MODE   0x1

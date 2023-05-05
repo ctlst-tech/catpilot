@@ -62,7 +62,7 @@ int gpio_set_discrete_mode_out(uint32_t channel) {
     if (gpio_check(channel)) {
         return -1;
     }
-    WRITE_REG(gpio->base + OUT_SETUP_OFF + channel * sizeof(uint32_t),
+    WRITE_REG(gpio->base + OUT_SETUP_OFF + channel * sizeof(uint32_t) * 8,
               IN_OUT_MUX_DISCRETE_MODE);
     return 0;
 }
@@ -71,8 +71,11 @@ int gpio_set_pwm_mode_out(uint32_t channel) {
     if (gpio_check(channel)) {
         return -1;
     }
-    WRITE_REG(gpio->base + OUT_SETUP_OFF + channel * sizeof(uint32_t),
+    WRITE_REG(gpio->base + OUT_SETUP_OFF + channel * sizeof(uint32_t) * 8,
               IN_OUT_MUX_PWM_MODE);
+    WRITE_REG(gpio->base + OUT_SETUP_OFF + channel * sizeof(uint32_t) * 8 +
+                  PWM_CTRL_REG_OFF,
+              1);
     return 0;
 }
 
@@ -80,7 +83,7 @@ int gpio_set_phase_mode_out(uint32_t channel) {
     if (gpio_check(channel)) {
         return -1;
     }
-    WRITE_REG(gpio->base + OUT_SETUP_OFF + channel * sizeof(uint32_t),
+    WRITE_REG(gpio->base + OUT_SETUP_OFF + channel * sizeof(uint32_t) * 8,
               IN_OUT_MUX_PHASE_MODE);
     return 0;
 }
@@ -89,7 +92,7 @@ int gpio_set_discrete_mode_in(uint32_t channel) {
     if (gpio_check(channel)) {
         return -1;
     }
-    WRITE_REG(gpio->base + INPUT_SETUP_OFF + channel * sizeof(uint32_t),
+    WRITE_REG(gpio->base + INPUT_SETUP_OFF + channel * sizeof(uint32_t) * 8,
               IN_OUT_MUX_DISCRETE_MODE);
     return 0;
 }
@@ -98,8 +101,11 @@ int gpio_set_pwm_mode_in(uint32_t channel) {
     if (gpio_check(channel)) {
         return -1;
     }
-    WRITE_REG(gpio->base + INPUT_SETUP_OFF + channel * sizeof(uint32_t),
+    WRITE_REG(gpio->base + INPUT_SETUP_OFF + channel * sizeof(uint32_t) * 8,
               IN_OUT_MUX_PWM_MODE);
+    WRITE_REG(gpio->base + INPUT_SETUP_OFF + channel * sizeof(uint32_t) * 8 +
+                  PWM_ESTIMATOR_CTRL_OFF,
+              1);
     return 0;
 }
 
@@ -107,7 +113,7 @@ int gpio_set_phase_mode_in(uint32_t channel) {
     if (gpio_check(channel)) {
         return -1;
     }
-    WRITE_REG(gpio->base + INPUT_SETUP_OFF + channel * sizeof(uint32_t),
+    WRITE_REG(gpio->base + INPUT_SETUP_OFF + channel * sizeof(uint32_t) * 8,
               IN_OUT_MUX_PHASE_MODE);
     return 0;
 }
@@ -116,7 +122,7 @@ int gpio_set_output_value(uint32_t channel, uint32_t value) {
     if (gpio_check(channel)) {
         return -1;
     }
-    WRITE_REG(gpio->base + OUT_VALUE_OFF + channel * sizeof(uint32_t), value);
+    WRITE_REG(gpio->base + OUT_VALUE_OFF + channel * sizeof(uint32_t) * 8, value);
     return 0;
 }
 
@@ -124,7 +130,7 @@ int gpio_get_output_value(uint32_t channel, uint32_t *value) {
     if (gpio_check(channel)) {
         return -1;
     }
-    *value = READ_REG(gpio->base + OUT_VALUE_OFF + channel * sizeof(uint32_t));
+    *value = READ_REG(gpio->base + OUT_VALUE_OFF + channel * sizeof(uint32_t) * 8);
     return 0;
 }
 
@@ -132,8 +138,8 @@ int gpio_set_period(uint32_t channel, uint32_t period) {
     if (gpio_check(channel)) {
         return -1;
     }
-    // printf("set period = %u\n", period * MCK_US_TO_TICKS);
-    WRITE_REG(gpio->base + OUT_VALUE_OFF + channel * sizeof(uint32_t),
+    printf("set period = %u\n", period * MCK_US_TO_TICKS);
+    WRITE_REG(gpio->base + OUT_VALUE_OFF + channel * sizeof(uint32_t) * 8,
               period * MCK_US_TO_TICKS);
     return 0;
 }
@@ -142,8 +148,8 @@ int gpio_set_width(uint32_t channel, uint32_t width) {
     if (gpio_check(channel)) {
         return -1;
     }
-    // printf("set width = %u\n", width * MCK_US_TO_TICKS);
-    WRITE_REG(gpio->base + OUT_VALUE_OFF + channel * sizeof(uint32_t) +
+    printf("set width = %u\n", width * MCK_US_TO_TICKS);
+    WRITE_REG(gpio->base + OUT_VALUE_OFF + channel * sizeof(uint32_t) * 8 +
                   sizeof(uint32_t),
               width * MCK_US_TO_TICKS);
     return 0;
@@ -154,8 +160,8 @@ int gpio_get_width(uint32_t channel, uint32_t *width) {
         return -1;
     }
     *width = READ_REG(gpio->base + INPUT_VALUE_OFF +
-                      channel * sizeof(uint32_t) + sizeof(uint32_t));
-    printf("get width = %u\n", *width * MCK_US_TO_TICKS);
+                      channel * sizeof(uint32_t) * 8 + sizeof(uint32_t));
+    printf("get width = %u\n", *width / MCK_US_TO_TICKS);
     *width /= MCK_US_TO_TICKS;
     return 0;
 }
@@ -165,8 +171,8 @@ int gpio_get_period(uint32_t channel, uint32_t *period) {
         return -1;
     }
     *period =
-        READ_REG(gpio->base + INPUT_VALUE_OFF + channel * sizeof(uint32_t));
-    printf("get period = %u\n", *period * MCK_US_TO_TICKS);
+        READ_REG(gpio->base + INPUT_VALUE_OFF + channel * sizeof(uint32_t) * 8);
+    printf("get period = %u\n", *period / MCK_US_TO_TICKS);
     *period /= MCK_US_TO_TICKS;
     return 0;
 }
@@ -176,6 +182,6 @@ int gpio_get_input_value(uint32_t channel, uint32_t *value) {
         return -1;
     }
     *value =
-        READ_REG(gpio->base + INPUT_VALUE_OFF + channel * sizeof(uint32_t));
+        READ_REG(gpio->base + INPUT_VALUE_OFF + channel * sizeof(uint32_t) * 8);
     return 0;
 }
