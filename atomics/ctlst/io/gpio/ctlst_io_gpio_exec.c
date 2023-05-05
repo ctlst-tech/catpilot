@@ -30,10 +30,10 @@ void ctlst_io_gpio_exec(const ctlst_io_gpio_inputs_t *i,
     //     return;
     // }
     if (i->optional_inputs_flags.input_bool) {
-        gpio_set_output_value(gpio, p->channel, i->input_bool);
+        gpio_set_output_value(gpio, p->channel, !i->input_bool);
     }
     if (i->optional_inputs_flags.input_float) {
-        gpio_set_output_value(gpio, p->channel, i->input_float > 0.5 ? 1 : 0);
+        gpio_set_output_value(gpio, p->channel, i->input_float > 0.5 ? 0 : 1);
     } else {
         uint32_t value[1];
         gpio_get_output_value(gpio, p->channel, value);
