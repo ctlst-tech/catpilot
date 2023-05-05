@@ -95,12 +95,14 @@ if (MCU_FAMILY STREQUAL "stm32")
     )
 elseif (MCU_FAMILY STREQUAL "zynq")
     list(APPEND BSP_SRC
-        mcu/periph/spi/${MCU_FAMILY}/spiplr.c
         mcu/periph/adc/${MCU_FAMILY}/ad7606b.c
+        mcu/periph/gpio/${MCU_FAMILY}/gpio.c
+        mcu/periph/spi/${MCU_FAMILY}/spiplr.c
     )
     list(APPEND BSP_INC 
-        mcu/periph/spi/${MCU_FAMILY}
         mcu/periph/adc/${MCU_FAMILY}
+        mcu/periph/gpio/${MCU_FAMILY}
+        mcu/periph/spi/${MCU_FAMILY}
     )
 endif()
 

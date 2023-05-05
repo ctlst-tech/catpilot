@@ -16,13 +16,6 @@ Function(
             default=0
         ),
         Parameter(
-            name='period',
-            title='Period',
-            value_type='core.type.u32',
-            tunable=False,
-            default=0
-        ),
-        Parameter(
             name='bias',
             title='Bias',
             value_type='core.type.f64',
@@ -45,8 +38,6 @@ Function(
             value_type='core.type.f64'
         ),
     ],
-    state=[
-    ],
-    parameter_constraints=[
-    ]
+    state=[],
+    parameter_constraints=[]
 )
