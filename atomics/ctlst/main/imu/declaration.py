@@ -1,7 +1,7 @@
 from fspeclib import *
 
 Function(
-    name='ctlst.sensors.imu',
+    name='ctlst.main.imu',
     title=LocalizedString(
         en='imu'
     ),

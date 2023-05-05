@@ -5,23 +5,23 @@
 #include <sys/siginfo.h>
 #include <unistd.h>
 
-#include "ctlst_sensors.h"
-#include "ctlst_sensors_imu.h"
-#include "ctlst_sensors_imu_data_types.h"
+#include "ctlst_main.h"
+#include "ctlst_main_imu.h"
+#include "ctlst_main_imu_data_types.h"
 #include "error.h"
 #include "spiplr.h"
 
-static void ctlst_sensors_imu_update(ctlst_sensors_imu_t *imu);
-static void ctlst_sensors_imu_process(ctlst_sensors_imu_outputs_t *o,
-                                      ctlst_sensors_imu_t *imu);
-static void ctlst_sensors_imu_print(ctlst_sensors_imu_outputs_t *o,
-                                    ctlst_sensors_imu_t *imu);
+static void ctlst_main_imu_update(ctlst_main_imu_t *imu);
+static void ctlst_main_imu_process(ctlst_main_imu_outputs_t *o,
+                                      ctlst_main_imu_t *imu);
+static void ctlst_main_imu_print(ctlst_main_imu_outputs_t *o,
+                                    ctlst_main_imu_t *imu);
 
-static ctlst_sensors_imu_t *imu = NULL;
+static ctlst_main_imu_t *imu = NULL;
 extern sens_spi_device_config_t cfg;
 
-void *ctlst_sensors_imu_exec_service(void *arg) {
-    ctlst_sensors_imu_t *c = (ctlst_sensors_imu_t *)arg;
+void *ctlst_main_imu_exec_service(void *arg) {
+    ctlst_main_imu_t *c = (ctlst_main_imu_t *)arg;
     if (ThreadCtl(_NTO_TCTL_IO, 0) == -1) {
         dbg_msg("ThreadCtl failed");
         return NULL;
@@ -62,7 +62,7 @@ void *ctlst_sensors_imu_exec_service(void *arg) {
             case PULSE_CODE_UPDATE_POLLER_IRQ:
                 fcnav_read_status();
                 fcnav_reset_status();
-                ctlst_sensors_imu_update(c);
+                ctlst_main_imu_update(c);
                 fcnav_irq_cnt_mon();
                 if (c->sync.intr_id > 0) {
                     InterruptUnmask(SPIPLR_IRQ, c->sync.intr_id);
@@ -76,13 +76,13 @@ void *ctlst_sensors_imu_exec_service(void *arg) {
     }
 }
 
-fspec_rv_t ctlst_sensors_imu_pre_exec_init(const ctlst_sensors_imu_params_t *p,
-                                           ctlst_sensors_imu_state_t *state) {
+fspec_rv_t ctlst_main_imu_pre_exec_init(const ctlst_main_imu_params_t *p,
+                                           ctlst_main_imu_state_t *state) {
     if (imu != NULL) {
         dbg_msg("ctlst.sensors.imu module exists");
         return fspec_rv_exists;
     }
-    imu = calloc(sizeof(ctlst_sensors_imu_t), sizeof(char));
+    imu = calloc(sizeof(ctlst_main_imu_t), sizeof(char));
     if (imu == NULL) {
         return fspec_rv_no_memory;
     }
@@ -103,7 +103,7 @@ fspec_rv_t ctlst_sensors_imu_pre_exec_init(const ctlst_sensors_imu_params_t *p,
         goto exit_fail;
     }
 
-    rv = pthread_create(NULL, NULL, ctlst_sensors_imu_exec_service, imu);
+    rv = pthread_create(NULL, NULL, ctlst_main_imu_exec_service, imu);
     if (rv != EOK) {
         goto exit_fail;
     }
@@ -115,19 +115,19 @@ fspec_rv_t ctlst_sensors_imu_pre_exec_init(const ctlst_sensors_imu_params_t *p,
 
 exit_fail:
     free(imu);
-    dbg_msg("ctlst_sensors_imu_pre_exec_init failed");
+    dbg_msg("ctlst_main_imu_pre_exec_init failed");
     return fspec_rv_system_err;
 }
 
-void ctlst_sensors_imu_exec(ctlst_sensors_imu_outputs_t *o,
-                            const ctlst_sensors_imu_params_t *p,
-                            ctlst_sensors_imu_state_t *state) {
-    ctlst_sensors_imu_process(o, imu);
-    // ctlst_sensors_imu_print(o, imu);
+void ctlst_main_imu_exec(ctlst_main_imu_outputs_t *o,
+                            const ctlst_main_imu_params_t *p,
+                            ctlst_main_imu_state_t *state) {
+    ctlst_main_imu_process(o, imu);
+    // ctlst_main_imu_print(o, imu);
     return;
 }
 
-static void ctlst_sensors_imu_update(ctlst_sensors_imu_t *imu) {
+static void ctlst_main_imu_update(ctlst_main_imu_t *imu) {
     pthread_mutex_lock(&imu->sync.mutex);
     ssd_fcnav_raw_to_adc_data(NULL, &imu->adc_data);
     pthread_mutex_unlock(&imu->sync.mutex);
@@ -140,8 +140,8 @@ static void ctlst_sensors_imu_update(ctlst_sensors_imu_t *imu) {
 #define OFFSET_AND_SCALE_DIR(val, off, scale, dir) \
     ((((val) - (off)) * (scale)) * dir)
 
-static void ctlst_sensors_imu_process(ctlst_sensors_imu_outputs_t *o,
-                                      ctlst_sensors_imu_t *imu) {
+static void ctlst_main_imu_process(ctlst_main_imu_outputs_t *o,
+                                      ctlst_main_imu_t *imu) {
     pthread_mutex_lock(&imu->sync.mutex);
     pthread_cond_wait(&imu->sync.cond, &imu->sync.mutex);
 
@@ -174,8 +174,8 @@ static void ctlst_sensors_imu_process(ctlst_sensors_imu_outputs_t *o,
     pthread_mutex_unlock(&imu->sync.mutex);
 }
 
-static void ctlst_sensors_imu_print(ctlst_sensors_imu_outputs_t *o,
-                                    ctlst_sensors_imu_t *imu) {
+static void ctlst_main_imu_print(ctlst_main_imu_outputs_t *o,
+                                    ctlst_main_imu_t *imu) {
     pthread_mutex_lock(&imu->sync.mutex);
     printf("\n");
     printf("Ax = %f\n", o->ax);

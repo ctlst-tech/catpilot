@@ -3,9 +3,9 @@
 #include <sys/siginfo.h>
 #include <unistd.h>
 
-#include "ctlst_sensors_imu.h"
+#include "ctlst_main_imu.h"
 #include "spiplr.h"
-#include "ctlst_sensors.h"
+#include "ctlst_main.h"
 
 #define PULSE_CODE_UPDATE_TIMER 4
 #define PULSE_CODE_UPDATE_POLLER_IRQ 5
@@ -33,4 +33,4 @@ typedef struct {
         int irq_spiplr_cnt;
     } sync;
     sens_onboard_adc_data_t adc_data;
-} ctlst_sensors_imu_t;
+} ctlst_main_imu_t;

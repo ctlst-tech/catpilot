@@ -1,5 +1,5 @@
-#ifndef CTLST_SENSORS_H
-#define CTLST_SENSORS_H
+#ifndef CTLST_MAIN_H
+#define CTLST_MAIN_H
 
 #include "ad7190.h"
 #include "adis1600X.h"
@@ -11,4 +11,4 @@
 #include "ctlst_nav.h"
 #include "spi_pdc.h"
 
-#endif // CTLST_SENSORS_H
+#endif // CTLST_MAIN_H
