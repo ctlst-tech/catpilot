@@ -48,6 +48,7 @@
 #define PH_EST_ABS_TOOTH_NUM_OFF             0x14
 #define PH_EST_LOG2_PHASE_STEP_TOOTH_NUM_OFF 0x18
 
+// OUTPUT_MUX_REG / PIN_SOURCE_REG
 #define IN_OUT_MUX_PIN_OFF         0x0
 #define IN_OUT_MUX_DISCRETE_MODE   0x1
 #define IN_OUT_MUX_PWM_MODE        0x2
