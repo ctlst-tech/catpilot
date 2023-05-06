@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#define SPIPLR_BASE_ADDR                    0x43C70000  // TODO TBD
+#define SPIPLR_BASE_ADDR                    0x43C80000  // TODO TBD
 #define SPIPLR_IRQ                          68          // TODO TBD
 
 #define SPIPLR_CNT_OFF                      0x0000      /// Control register offset
