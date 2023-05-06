@@ -56,7 +56,7 @@
 
 #define PWM_ENABLE_POS  1
 
-#define GPIO_PINS   16
+#define GPIO_PINS   28
 
 int gpio_init(uint32_t channel);
 int gpio_set_discrete_mode_out(uint32_t channel);
