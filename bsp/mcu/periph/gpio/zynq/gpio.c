@@ -138,7 +138,7 @@ int gpio_set_period(uint32_t channel, uint32_t period) {
     if (gpio_check(channel)) {
         return -1;
     }
-    printf("set period = %u\n", period * MCK_US_TO_TICKS);
+    // printf("set period = %u\n", period * MCK_US_TO_TICKS);
     WRITE_REG(gpio->base + OUT_VALUE_OFF + CH_OFF(channel),
               period * MCK_US_TO_TICKS);
     return 0;
@@ -148,7 +148,7 @@ int gpio_set_width(uint32_t channel, uint32_t width) {
     if (gpio_check(channel)) {
         return -1;
     }
-    printf("set width = %u\n", width * MCK_US_TO_TICKS);
+    // printf("set width = %u\n", width * MCK_US_TO_TICKS);
     WRITE_REG(gpio->base + OUT_VALUE_OFF + CH_OFF(channel) + sizeof(uint32_t),
               width * MCK_US_TO_TICKS);
     return 0;
@@ -160,7 +160,7 @@ int gpio_get_width(uint32_t channel, uint32_t *width) {
     }
     *width = READ_REG(gpio->base + INPUT_VALUE_OFF + CH_OFF(channel) +
                       sizeof(uint32_t));
-    printf("get width = %u\n", *width / MCK_US_TO_TICKS);
+    // printf("get width = %u\n", *width / MCK_US_TO_TICKS);
     *width /= MCK_US_TO_TICKS;
     return 0;
 }
@@ -170,7 +170,7 @@ int gpio_get_period(uint32_t channel, uint32_t *period) {
         return -1;
     }
     *period = READ_REG(gpio->base + INPUT_VALUE_OFF + CH_OFF(channel));
-    printf("get period = %u\n", *period / MCK_US_TO_TICKS);
+    // printf("get period = %u\n", *period / MCK_US_TO_TICKS);
     *period /= MCK_US_TO_TICKS;
     return 0;
 }
