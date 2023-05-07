@@ -71,7 +71,8 @@ int gpio_set_pwm_mode_out(uint32_t channel);
 int gpio_set_phase_mode_out(uint32_t channel);
 int gpio_set_discrete_mode_in(uint32_t channel);
 int gpio_set_pwm_mode_in(uint32_t channel);
-int gpio_set_phase_mode_in(uint32_t channel);
+int gpio_set_phase_mode_in(uint32_t channel, uint32_t total, uint32_t missing,
+                           uint32_t step);
 int gpio_set_output_value(uint32_t channel, uint32_t value);
 int gpio_get_output_value(uint32_t channel, uint32_t *value);
 int gpio_set_period(uint32_t channel, uint32_t period);
@@ -79,5 +80,4 @@ int gpio_set_width(uint32_t channel, uint32_t width);
 int gpio_get_period(uint32_t channel, uint32_t *period);
 int gpio_get_width(uint32_t channel, uint32_t *width);
 int gpio_get_input_value(uint32_t channel, uint32_t *value);
-
-#endif //  GPIO_MAP
+#endif  // GPIO_MAP
