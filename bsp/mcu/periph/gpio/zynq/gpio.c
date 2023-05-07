@@ -45,15 +45,15 @@ int gpio_init(uint32_t channel) {
             return -1;
         }
     }
-    if (channels[channel]) {
-        return -1;
-    }
+    // if (channels[channel]) {
+    //     return -1;
+    // }
     channels[channel] = 1;
     return 0;
 }
 
 static int gpio_check(uint32_t channel) {
-    if (gpio == NULL || channel >= GPIO_PINS || channels[channel] == 0) {
+    if (gpio == NULL || channel >= GPIO_PINS) {
         return -1;
     }
     return 0;

@@ -3,12 +3,11 @@
 
 #include <stdint.h>
 
-//global adresses
 #define IO_BASE_ADDR            0x43C90000
 #define SDPU_BASE_ADDR          0x43C91000
 #define DMA_BASE_ADDR           0x43C91800
 
-//addresses of IO
+// IO_BASE
 #define PIN_SETUP_BASE_ADDR     0x43C90000
 #define OUT_SETUP_BASE_ADDR     0x43C90200
 #define OUT_VALUE_BASE_ADDR     0x43C90400
@@ -17,6 +16,7 @@
 #define INPUT_SETUP_BASE_ADDR   0x43C90A00
 #define INPUT_VALUE_BASE_ADDR   0x43C90C00
 
+// OFFSETS
 #define PIN_SETUP_OFF     0x000
 #define OUT_SETUP_OFF     0x200
 #define OUT_VALUE_OFF     0x400
@@ -30,6 +30,11 @@
 #define PIN_REG_AMOUNT 8
 #define BYTES_IN_REG 4
 #define PIN_BYTE_RANGE PIN_REG_AMOUNT * BYTES_IN_REG
+
+// PIN_SETUP_BASE_ADDR
+#define IO_ADDR_OFF 0x00
+#define FDIO_SETUP_ADDR 0x04
+#define CPS_FI_SETUP_ADDR 0x08
 
 // OUTPUT SETUP REG
 #define OUTPUT_MUX_REG_OFF          0x0
