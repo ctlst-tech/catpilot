@@ -31,10 +31,10 @@
 #define BYTES_IN_REG 4
 #define PIN_BYTE_RANGE PIN_REG_AMOUNT * BYTES_IN_REG
 
-// PIN_SETUP_BASE_ADDR
-#define IO_ADDR_OFF 0x00
-#define FDIO_SETUP_ADDR 0x04
-#define CPS_FI_SETUP_ADDR 0x08
+// PIN SETUP REG
+#define IO_OFF                      0x00
+#define FDIO_SETUP_OFF              0x04
+#define CPS_FI_SETUP_OFF            0x08
 
 // OUTPUT SETUP REG
 #define OUTPUT_MUX_REG_OFF          0x0
@@ -61,7 +61,9 @@
 
 #define PWM_ENABLE_POS  1
 
-#define GPIO_PINS   28
+#define GPIO_PINS 16
+#define GPIO_INPUT_OUTPUT_MAX 4
+#define GPIO_INPUT_OUTPUT_OFF 12
 
 int gpio_init(uint32_t channel);
 int gpio_set_discrete_mode_out(uint32_t channel);

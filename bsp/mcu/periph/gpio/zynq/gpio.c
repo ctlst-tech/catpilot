@@ -12,7 +12,12 @@
 
 #define WRITE_REG(__r, __d) out32((__r), (__d))
 #define READ_REG(r) in32(r)
-#define CH_OFF(ch) ((ch * sizeof(uint32_t) * 8))
+#define CH_OFF(ch) ((ch * PIN_REG_AMOUNT * BYTES_IN_REG))
+
+static int gpio_check_output(uint32_t channel);
+static int gpio_check_input(uint32_t channel);
+static int gpio_add_output(uint32_t channel);
+static int gpio_add_input(uint32_t channel);
 
 typedef struct {
     uintptr_t base;
@@ -20,7 +25,7 @@ typedef struct {
 } gpio_instance_t;
 
 static gpio_instance_t *gpio = NULL;
-static uint8_t channels[GPIO_PINS] = {0};
+static uint32_t channels = 0;
 
 int gpio_init(uint32_t channel) {
     if (channel >= GPIO_PINS) {
@@ -45,22 +50,73 @@ int gpio_init(uint32_t channel) {
             return -1;
         }
     }
-    // if (channels[channel]) {
-    //     return -1;
-    // }
-    channels[channel] = 1;
     return 0;
 }
 
-static int gpio_check(uint32_t channel) {
+static int gpio_check_common(uint32_t channel) {
     if (gpio == NULL || channel >= GPIO_PINS) {
         return -1;
     }
     return 0;
 }
 
+static int gpio_check_output(uint32_t channel) {
+    if (gpio_check_common(channel)) {
+        return -1;
+    }
+    if (channels & (1 << channel)) {
+        return -1;
+    }
+    if (channel >= GPIO_INPUT_OUTPUT_OFF &&
+        (channels & (1 << channel) << GPIO_PINS)) {
+        return -1;
+    }
+    return 0;
+}
+
+static int gpio_check_input(uint32_t channel) {
+    if (gpio_check_common(channel)) {
+        return -1;
+    }
+    if (channels & (1 << channel) << GPIO_PINS) {
+        return -1;
+    }
+    if (channel >= GPIO_INPUT_OUTPUT_OFF && (channels & (1 << channel))) {
+        return -1;
+    }
+    return 0;
+}
+
+static int gpio_add_output(uint32_t channel) {
+    if (gpio_check_output(channel)) {
+        return -1;
+    }
+    if (channel >= GPIO_INPUT_OUTPUT_OFF) {
+        uint32_t reg = 0;
+        reg = READ_REG(gpio->base + IO_OFF + FDIO_SETUP_OFF);
+        WRITE_REG(gpio->base + IO_OFF + FDIO_SETUP_OFF,
+                  ~(1 << (channel - GPIO_INPUT_OUTPUT_OFF)) & reg);
+    }
+    channels |= 1 << channel;
+    return 0;
+}
+
+static int gpio_add_input(uint32_t channel) {
+    if (gpio_check_input(channel)) {
+        return -1;
+    }
+    if (channel >= GPIO_INPUT_OUTPUT_OFF) {
+        uint32_t reg = 0;
+        reg = READ_REG(gpio->base + IO_OFF + FDIO_SETUP_OFF);
+        WRITE_REG(gpio->base + IO_OFF + FDIO_SETUP_OFF,
+                  (1 << (channel - GPIO_INPUT_OUTPUT_OFF)) | 0xF);
+    }
+    channels |= (1 << channel) << GPIO_PINS;
+    return 0;
+}
+
 int gpio_set_discrete_mode_out(uint32_t channel) {
-    if (gpio_check(channel)) {
+    if (gpio_add_output(channel)) {
         return -1;
     }
     WRITE_REG(gpio->base + OUT_SETUP_OFF + CH_OFF(channel),
@@ -69,7 +125,7 @@ int gpio_set_discrete_mode_out(uint32_t channel) {
 }
 
 int gpio_set_pwm_mode_out(uint32_t channel) {
-    if (gpio_check(channel)) {
+    if (gpio_add_output(channel)) {
         return -1;
     }
     WRITE_REG(gpio->base + OUT_SETUP_OFF + CH_OFF(channel),
@@ -80,7 +136,7 @@ int gpio_set_pwm_mode_out(uint32_t channel) {
 }
 
 int gpio_set_phase_mode_out(uint32_t channel) {
-    if (gpio_check(channel)) {
+    if (gpio_add_output(channel)) {
         return -1;
     }
     WRITE_REG(gpio->base + OUT_SETUP_OFF + CH_OFF(channel),
@@ -89,7 +145,7 @@ int gpio_set_phase_mode_out(uint32_t channel) {
 }
 
 int gpio_set_discrete_mode_in(uint32_t channel) {
-    if (gpio_check(channel)) {
+    if (gpio_add_input(channel)) {
         return -1;
     }
     WRITE_REG(gpio->base + INPUT_SETUP_OFF + CH_OFF(channel),
@@ -98,7 +154,7 @@ int gpio_set_discrete_mode_in(uint32_t channel) {
 }
 
 int gpio_set_pwm_mode_in(uint32_t channel) {
-    if (gpio_check(channel)) {
+    if (gpio_add_input(channel)) {
         return -1;
     }
     WRITE_REG(gpio->base + INPUT_SETUP_OFF + CH_OFF(channel),
@@ -110,7 +166,7 @@ int gpio_set_pwm_mode_in(uint32_t channel) {
 }
 
 int gpio_set_phase_mode_in(uint32_t channel) {
-    if (gpio_check(channel)) {
+    if (gpio_add_input(channel)) {
         return -1;
     }
     WRITE_REG(gpio->base + INPUT_SETUP_OFF + CH_OFF(channel),
@@ -119,7 +175,7 @@ int gpio_set_phase_mode_in(uint32_t channel) {
 }
 
 int gpio_set_output_value(uint32_t channel, uint32_t value) {
-    if (gpio_check(channel)) {
+    if (!gpio_check_output(channel)) {
         return -1;
     }
     WRITE_REG(gpio->base + OUT_VALUE_OFF + CH_OFF(channel), value);
@@ -127,7 +183,7 @@ int gpio_set_output_value(uint32_t channel, uint32_t value) {
 }
 
 int gpio_get_output_value(uint32_t channel, uint32_t *value) {
-    if (gpio_check(channel)) {
+    if (!gpio_check_output(channel)) {
         return -1;
     }
     *value = READ_REG(gpio->base + OUT_VALUE_OFF + CH_OFF(channel));
@@ -135,7 +191,7 @@ int gpio_get_output_value(uint32_t channel, uint32_t *value) {
 }
 
 int gpio_set_period(uint32_t channel, uint32_t period) {
-    if (gpio_check(channel)) {
+    if (!gpio_check_output(channel)) {
         return -1;
     }
     // printf("set period = %u\n", period * MCK_US_TO_TICKS);
@@ -145,7 +201,7 @@ int gpio_set_period(uint32_t channel, uint32_t period) {
 }
 
 int gpio_set_width(uint32_t channel, uint32_t width) {
-    if (gpio_check(channel)) {
+    if (!gpio_check_output(channel)) {
         return -1;
     }
     // printf("set width = %u\n", width * MCK_US_TO_TICKS);
@@ -155,7 +211,7 @@ int gpio_set_width(uint32_t channel, uint32_t width) {
 }
 
 int gpio_get_width(uint32_t channel, uint32_t *width) {
-    if (gpio_check(channel)) {
+    if (!gpio_check_input(channel)) {
         return -1;
     }
     *width = READ_REG(gpio->base + INPUT_VALUE_OFF + CH_OFF(channel) +
@@ -166,7 +222,7 @@ int gpio_get_width(uint32_t channel, uint32_t *width) {
 }
 
 int gpio_get_period(uint32_t channel, uint32_t *period) {
-    if (gpio_check(channel)) {
+    if (!gpio_check_input(channel)) {
         return -1;
     }
     *period = READ_REG(gpio->base + INPUT_VALUE_OFF + CH_OFF(channel));
@@ -176,7 +232,7 @@ int gpio_get_period(uint32_t channel, uint32_t *period) {
 }
 
 int gpio_get_input_value(uint32_t channel, uint32_t *value) {
-    if (gpio_check(channel)) {
+    if (!gpio_check_input(channel)) {
         return -1;
     }
     *value = READ_REG(gpio->base + INPUT_VALUE_OFF + CH_OFF(channel));
