@@ -59,6 +59,12 @@
 #define IN_OUT_MUX_PWM_MODE        0x2
 #define IN_OUT_MUX_PHASE_MODE      0x3
 
+// PHASE CTRL REG
+#define PHASE_GEN_ENABLE_POS        0x0
+#define PHASE_GEN_INV_OUTPUT_POS    0x1
+#define PHASE_GEN_TIME_MODE_POS     0x2
+#define PHASE_GEN_CHN_NUM_START_POS 0x8
+
 #define PWM_ENABLE_POS  1
 
 #define GPIO_PINS 16
@@ -80,4 +86,7 @@ int gpio_set_width(uint32_t channel, uint32_t width);
 int gpio_get_period(uint32_t channel, uint32_t *period);
 int gpio_get_width(uint32_t channel, uint32_t *width);
 int gpio_get_input_value(uint32_t channel, uint32_t *value);
+int gpio_get_tooth(uint32_t channel, uint32_t *tooth);
+int gpio_get_phase_step(uint32_t channel, uint32_t *step);
+
 #endif  // GPIO_MAP

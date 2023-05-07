@@ -55,6 +55,7 @@ int gpio_init(uint32_t channel) {
 
 static int gpio_check_common(uint32_t channel) {
     if (gpio == NULL || channel >= GPIO_PINS) {
+        printf("gpio_check_common failed\n");
         return -1;
     }
     return 0;
@@ -89,6 +90,7 @@ static int gpio_check_input(uint32_t channel) {
 
 static int gpio_add_output(uint32_t channel) {
     if (gpio_check_output(channel)) {
+        printf("channel is already reserved\n");
         return -1;
     }
     if (channel >= GPIO_INPUT_OUTPUT_OFF) {
@@ -103,6 +105,7 @@ static int gpio_add_output(uint32_t channel) {
 
 static int gpio_add_input(uint32_t channel) {
     if (gpio_check_input(channel)) {
+        printf("channel is already reserved\n");
         return -1;
     }
     if (channel >= GPIO_INPUT_OUTPUT_OFF) {
@@ -195,7 +198,6 @@ int gpio_set_period(uint32_t channel, uint32_t period) {
     if (!gpio_check_output(channel)) {
         return -1;
     }
-    // printf("set period = %u\n", period * MCK_US_TO_TICKS);
     WRITE_REG(OUT_VALUE_OFF + CH_OFF(channel), period * MCK_US_TO_TICKS);
     return 0;
 }
@@ -204,19 +206,8 @@ int gpio_set_width(uint32_t channel, uint32_t width) {
     if (!gpio_check_output(channel)) {
         return -1;
     }
-    // printf("set width = %u\n", width * MCK_US_TO_TICKS);
     WRITE_REG(OUT_VALUE_OFF + CH_OFF(channel) + sizeof(uint32_t),
               width * MCK_US_TO_TICKS);
-    return 0;
-}
-
-int gpio_get_width(uint32_t channel, uint32_t *width) {
-    if (!gpio_check_input(channel)) {
-        return -1;
-    }
-    *width = READ_REG(INPUT_VALUE_OFF + CH_OFF(channel) + sizeof(uint32_t));
-    // printf("get width = %u\n", *width / MCK_US_TO_TICKS);
-    *width /= MCK_US_TO_TICKS;
     return 0;
 }
 
@@ -225,8 +216,16 @@ int gpio_get_period(uint32_t channel, uint32_t *period) {
         return -1;
     }
     *period = READ_REG(INPUT_VALUE_OFF + CH_OFF(channel));
-    // printf("get period = %u\n", *period / MCK_US_TO_TICKS);
     *period /= MCK_US_TO_TICKS;
+    return 0;
+}
+
+int gpio_get_width(uint32_t channel, uint32_t *width) {
+    if (!gpio_check_input(channel)) {
+        return -1;
+    }
+    *width = READ_REG(INPUT_VALUE_OFF + CH_OFF(channel) + sizeof(uint32_t));
+    *width /= MCK_US_TO_TICKS;
     return 0;
 }
 
@@ -235,5 +234,22 @@ int gpio_get_input_value(uint32_t channel, uint32_t *value) {
         return -1;
     }
     *value = READ_REG(INPUT_VALUE_OFF + CH_OFF(channel));
+    return 0;
+}
+
+int gpio_get_tooth(uint32_t channel, uint32_t *tooth) {
+    if (!gpio_check_input(channel)) {
+        return -1;
+    }
+    *tooth = READ_REG(INPUT_VALUE_OFF + CH_OFF(channel) + sizeof(uint32_t));
+    return 0;
+}
+
+int gpio_get_phase_step(uint32_t channel, uint32_t *step) {
+    if (!gpio_check_input(channel)) {
+        return -1;
+    }
+    *step = READ_REG(INPUT_VALUE_OFF + CH_OFF(channel) + sizeof(uint32_t) +
+                     sizeof(uint32_t));
     return 0;
 }
