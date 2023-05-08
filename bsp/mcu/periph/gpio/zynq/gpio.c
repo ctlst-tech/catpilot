@@ -135,12 +135,22 @@ int gpio_set_pwm_mode_out(uint32_t channel) {
     return 0;
 }
 
-int gpio_set_phase_mode_out(uint32_t channel) {
+int gpio_set_phase_mode_out(uint32_t channel, uint32_t invert,
+                            uint32_t time_mode, uint32_t sync_channel,
+                            uint32_t tooth, uint32_t phase_on,
+                            uint32_t phase_off) {
     if (gpio_add_output(channel)) {
         return -1;
     }
     WRITE_REG(OUT_SETUP_OFF + CH_OFF(channel), IN_OUT_MUX_PHASE_MODE);
-    WRITE_REG(OUT_SETUP_OFF + CH_OFF(channel) + PHASE_CTRL_REG_OFF, 1);
+    WRITE_REG(OUT_SETUP_OFF + CH_OFF(channel) + PHASE_CTRL_REG_OFF,
+              (1 << PHASE_GEN_ENABLE_POS) |
+                  (invert << PHASE_GEN_INV_OUTPUT_POS) |
+                  (time_mode << PHASE_GEN_TIME_MODE_POS) |
+                  (sync_channel << PHASE_GEN_CHN_NUM_START_POS));
+    WRITE_REG(OUT_VALUE_OFF + CH_OFF(channel), tooth);
+    WRITE_REG(OUT_VALUE_OFF + CH_OFF(channel) + BYTES_IN_REG, phase_on);
+    WRITE_REG(OUT_VALUE_OFF + CH_OFF(channel) + 2 * BYTES_IN_REG, phase_off);
     return 0;
 }
 

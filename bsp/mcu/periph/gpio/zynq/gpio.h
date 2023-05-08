@@ -74,7 +74,10 @@
 int gpio_init(uint32_t channel);
 int gpio_set_discrete_mode_out(uint32_t channel);
 int gpio_set_pwm_mode_out(uint32_t channel);
-int gpio_set_phase_mode_out(uint32_t channel);
+int gpio_set_phase_mode_out(uint32_t channel, uint32_t invert,
+                            uint32_t time_mode, uint32_t sync_channel,
+                            uint32_t tooth, uint32_t phase_on,
+                            uint32_t phase_off);
 int gpio_set_discrete_mode_in(uint32_t channel);
 int gpio_set_pwm_mode_in(uint32_t channel);
 int gpio_set_phase_mode_in(uint32_t channel, uint32_t total, uint32_t missing,

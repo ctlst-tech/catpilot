@@ -3,7 +3,7 @@ from fspeclib import *
 Function(
     name='ctlst.io.phase_in',
     title=LocalizedString(
-        en='phase_out'
+        en='phase_in'
     ),
     has_pre_exec_init_call=True,
     custom_cmakefile=True,
