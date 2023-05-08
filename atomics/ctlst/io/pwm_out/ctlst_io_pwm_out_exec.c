@@ -1,9 +1,7 @@
 #include "ctlst_io_pwm_out.h"
 #include "gpio.h"
 
-fspec_rv_t ctlst_io_pwm_out_pre_exec_init(
-    const ctlst_io_pwm_out_optional_inputs_flags_t *input_flags,
-    const ctlst_io_pwm_out_params_t *p) {
+fspec_rv_t ctlst_io_pwm_out_pre_exec_init(const ctlst_io_pwm_out_params_t *p) {
     if (gpio_init(p->channel)) {
         return fspec_rv_invarg;
     }
