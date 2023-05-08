@@ -57,8 +57,8 @@ int adc_ad7606b_stop(ad7606b_instance_t *i);
 int adc_ad7606b_get_status(ad7606b_instance_t *i, uint32_t *status);
 
 int adc_ad7606b_get_adc_raw_value(ad7606b_instance_t *i, uint8_t adc_num, uint8_t channel, int16_t* value);
-int adc_ad7606b_get_adc_value(ad7606b_instance_t *i, uint8_t adc,
-                              uint8_t channel, uint8_t mux, int16_t *value);
+int adc_ad7606b_get_adc_value(ad7606b_instance_t *i, uint32_t adc,
+                              uint32_t channel, uint32_t mux, int16_t *value);
 
 void adc_ad7606b_print_raw_adc_values(ad7606b_instance_t *i);
 void adc_ad7606b_print_all_adc_values(ad7606b_instance_t *i);

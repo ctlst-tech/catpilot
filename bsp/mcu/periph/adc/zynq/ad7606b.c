@@ -84,12 +84,13 @@ void adc_ad7606b_print_all_adc_values(ad7606b_instance_t *i) {
             chn_offset = AD7606B_VIN_1_CHN_MUX_01_ADC_0_ADDR + 4 * 8 * l;
             printf("Adc Chn %d\n", l + 1);
             for (k = 0; k < 8; k++) {
-                reg_value = READ_REG(i->base + chn_offset + k * 4);
+                uint32_t addr = i->base + chn_offset + k * 4;
+                reg_value = READ_REG(addr);
                 value_0 = reg_value & 0xFFFF;
                 value_1 = reg_value >> 16;
-                printf("mux %d v: %2.3f\t", 2 * k,
+                printf("0x%X mux %d v: %2.3f\t", addr, 2 * k,
                        adc_convert_value(value_0, 0));
-                printf("mux %d v: %2.3f\t", 2 * k + 1,
+                printf("mux %d v: %2.3f\t\n", 2 * k + 1,
                        adc_convert_value(value_1, 0));
             }
             printf("\n");
@@ -103,13 +104,21 @@ void adc_ad7606b_print_all_adc_values(ad7606b_instance_t *i) {
     }
 }
 
-int adc_ad7606b_get_adc_value(ad7606b_instance_t *i, uint8_t adc,
-                              uint8_t channel, uint8_t mux, int16_t *value) {
+int adc_ad7606b_get_adc_value(ad7606b_instance_t *i, uint32_t adc,
+                              uint32_t channel, uint32_t mux, int16_t *value) {
     if (channel <= 2) {
         uint32_t chn_offset =
             AD7606B_VIN_1_CHN_MUX_01_ADC_0_ADDR + 4 * 8 * channel;
-        uint32_t reg_value = READ_REG(i->base + chn_offset + mux * 4);
-        *value = (mux % 2 == 0 ? reg_value & 0xFFFF : reg_value >> 16);
+        uint32_t reg = i->base + chn_offset + (mux / 2) * 4;
+        uint32_t reg_value = READ_REG(reg);
+        uint16_t value_0 = reg_value & 0xFFFF;
+        uint16_t value_1 = reg_value >> 16;
+        if(mux % 2 == 0) {
+            *value = value_0;
+        } else {
+            *value = value_1;
+        }
+        // printf("addr = 0x%X, value = %f\n", reg, adc_convert_value(*value, RANGE_10V));
     } else {
         adc_ad7606b_get_raw_adc_value(i, adc, channel, value);
     }
