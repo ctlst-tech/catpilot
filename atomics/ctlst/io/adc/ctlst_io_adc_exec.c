@@ -36,6 +36,12 @@ void ctlst_io_adc_exec(ctlst_io_adc_outputs_t *o,
     } else if (p->channel >= 8 && p->channel < 16) {
         adc_ad7606b_get_adc_value(adc, 1, p->channel - 8, p->mux, &value);
     }
-    o->output = adc_convert_value(value, p->range) * p->scale + p->bias;
+    if (p->range == 5) {
+        o->output = adc_convert_value(value, RANGE_5V) * p->scale + p->bias;
+    } else if (p->range == 10) {
+        o->output = adc_convert_value(value, RANGE_10V) * p->scale + p->bias;
+    } else {
+        o->output = adc_convert_value(value, RANGE_2V5) * p->scale + p->bias;
+    }
     // printf("ch =%d, value = %d, output = %lf\n", p->channel, value, o->output);
 }
