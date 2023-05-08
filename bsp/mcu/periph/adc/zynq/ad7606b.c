@@ -105,11 +105,11 @@ void adc_ad7606b_print_all_adc_values(ad7606b_instance_t *i) {
 
 int adc_ad7606b_get_adc_value(ad7606b_instance_t *i, uint8_t adc,
                               uint8_t channel, uint8_t mux, int16_t *value) {
-    if (channel < 3) {
+    if (channel <= 2) {
         uint32_t chn_offset =
             AD7606B_VIN_1_CHN_MUX_01_ADC_0_ADDR + 4 * 8 * channel;
         uint32_t reg_value = READ_REG(i->base + chn_offset + mux * 4);
-        uint32_t value = (mux % 2 == 0 ? reg_value & 0xFFFF : reg_value >> 16);
+        *value = (mux % 2 == 0 ? reg_value & 0xFFFF : reg_value >> 16);
     } else {
         adc_ad7606b_get_raw_adc_value(i, adc, channel, value);
     }

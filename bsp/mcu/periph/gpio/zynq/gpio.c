@@ -112,7 +112,7 @@ static int gpio_add_input(uint32_t channel) {
         uint32_t reg = 0;
         reg = READ_REG(IO_OFF + FDIO_SETUP_OFF);
         WRITE_REG(IO_OFF + FDIO_SETUP_OFF,
-                  (1 << (channel - GPIO_INPUT_OUTPUT_OFF)) | 0xF);
+                  (1 << (channel - GPIO_INPUT_OUTPUT_OFF)) | reg);
     }
     channels |= (1 << channel) << GPIO_PINS;
     return 0;
@@ -159,6 +159,10 @@ int gpio_set_discrete_mode_in(uint32_t channel) {
         return -1;
     }
     WRITE_REG(INPUT_SETUP_OFF + CH_OFF(channel), IN_OUT_MUX_DISCRETE_MODE);
+    if (channel >= 0 && channel <= 3) {
+        uint32_t reg = READ_REG(CPS_FI_SETUP_OFF);
+        WRITE_REG(CPS_FI_SETUP_OFF, reg | (1 << channel));
+    }
     return 0;
 }
 
@@ -168,6 +172,10 @@ int gpio_set_pwm_mode_in(uint32_t channel) {
     }
     WRITE_REG(INPUT_SETUP_OFF + CH_OFF(channel), IN_OUT_MUX_PWM_MODE);
     WRITE_REG(INPUT_SETUP_OFF + CH_OFF(channel) + PWM_ESTIMATOR_CTRL_OFF, 1);
+    if (channel >= 0 && channel <= 3) {
+        uint32_t reg = READ_REG(CPS_FI_SETUP_OFF);
+        WRITE_REG(CPS_FI_SETUP_OFF, reg | (1 << channel));
+    }
     return 0;
 }
 
@@ -175,6 +183,10 @@ int gpio_set_phase_mode_in(uint32_t channel, uint32_t total, uint32_t missing,
                            uint32_t step) {
     if (gpio_add_input(channel)) {
         return -1;
+    }
+    if (channel >= 0 && channel <= 3) {
+        uint32_t reg = READ_REG(CPS_FI_SETUP_OFF);
+        WRITE_REG(CPS_FI_SETUP_OFF, reg | (1 << channel));
     }
     WRITE_REG(INPUT_SETUP_OFF + CH_OFF(channel), IN_OUT_MUX_PHASE_MODE);
     WRITE_REG(INPUT_SETUP_OFF + CH_OFF(channel) + PH_EST_ALL_TOOTH_NUM_OFF,
