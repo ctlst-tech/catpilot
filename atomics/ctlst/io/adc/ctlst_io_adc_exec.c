@@ -18,7 +18,13 @@ fspec_rv_t ctlst_io_adc_pre_exec_init(const ctlst_io_adc_params_t *p) {
         adc_ad7606b_start(adc);
         adc_ad7606b_set_disc_period(adc, 1000, 100000000);
     }
-    adc_ad7606b_set_range(adc, p->channel, p->range);
+    if (p->range == 5) {
+        adc_ad7606b_set_range(adc, p->channel, RANGE_5V);
+    } else if (p->range == 10) {
+        adc_ad7606b_set_range(adc, p->channel, RANGE_10V);
+    } else {
+        adc_ad7606b_set_range(adc, p->channel, RANGE_2V5);
+    }
     return fspec_rv_ok;
 }
 
