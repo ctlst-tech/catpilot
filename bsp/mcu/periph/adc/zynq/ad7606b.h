@@ -41,6 +41,10 @@
 
 #define AD7606B_REG_MAP_SIZE                  128
 
+#define RANGE_2V5   0x0
+#define RANGE_5V    0x1
+#define RANGE_10V   0x2
+
 typedef struct {
     uintptr_t base;
     uintptr_t phys_base;
@@ -52,11 +56,13 @@ int adc_ad7606b_start(ad7606b_instance_t *i);
 int adc_ad7606b_stop(ad7606b_instance_t *i);
 int adc_ad7606b_get_status(ad7606b_instance_t *i, uint32_t *status);
 
-int adc_ad7606b_get_adc_value(ad7606b_instance_t *i, uint8_t adc_num, uint8_t channel, int16_t* value);
+int adc_ad7606b_get_adc_raw_value(ad7606b_instance_t *i, uint8_t adc_num, uint8_t channel, int16_t* value);
+int adc_ad7606b_get_adc_value(ad7606b_instance_t *i, uint8_t adc,
+                              uint8_t channel, uint8_t mux, int16_t *value);
 
 void adc_ad7606b_print_raw_adc_values(ad7606b_instance_t *i);
 void adc_ad7606b_print_all_adc_values(ad7606b_instance_t *i);
-
+int adc_ad7606b_set_range(ad7606b_instance_t *i, uint32_t channel, uint32_t range);
 int adc_get_error_counter(ad7606b_instance_t *i, uint32_t* err_counter);
 
 float adc_convert_value(int16_t value, int8_t range);

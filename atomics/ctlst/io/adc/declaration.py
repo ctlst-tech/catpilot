@@ -16,6 +16,14 @@ Function(
             default=0
         ),
         Parameter(
+            name='mux',
+            title='Mux number',
+            value_type='core.type.u32',
+            tunable=False,
+            mandatory=False,
+            default=0,
+        ),
+        Parameter(
             name='bias',
             title='Bias',
             value_type='core.type.f64',
@@ -28,6 +36,14 @@ Function(
             value_type='core.type.f64',
             tunable=False,
             default=0
+        ),
+        Parameter(
+            name='range',
+            title='Voltage range',
+            value_type='core.type.u32',
+            tunable=False,
+            mandatory=False,
+            default=0,
         ),
     ],
     inputs=[],

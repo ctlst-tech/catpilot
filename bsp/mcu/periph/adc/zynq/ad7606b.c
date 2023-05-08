@@ -40,8 +40,8 @@ int adc_ad7606b_get_status(ad7606b_instance_t *i, uint32_t *status) {
     return 0;
 }
 
-int adc_ad7606b_get_adc_value(ad7606b_instance_t *i, uint8_t adc,
-                              uint8_t channel, int16_t *value) {
+int adc_ad7606b_get_raw_adc_value(ad7606b_instance_t *i, uint8_t adc,
+                                  uint8_t channel, int16_t *value) {
     uint32_t offset =
         adc ? AD7606B_VIN_12_CHN_ADC_1_OFF : AD7606B_VIN_12_CHN_ADC_0_OFF;
     uint32_t reg_value;
@@ -63,7 +63,7 @@ void adc_ad7606b_print_raw_adc_values(ad7606b_instance_t *i) {
         printf("ADC %d:\n", j + 1);
         for (k = 0; k < 8; k++) {
             int16_t value;
-            adc_ad7606b_get_adc_value(i, j, k, &value);
+            adc_ad7606b_get_raw_adc_value(i, j, k, &value);
             printf("channel #%d: %x %2.3f\t", (k + 1), value,
                    adc_convert_value(value, 0));
             if ((k == 3) || (k == 7)) {
@@ -95,12 +95,25 @@ void adc_ad7606b_print_all_adc_values(ad7606b_instance_t *i) {
             printf("\n");
         }
         for (l = 3; l < 8; l++) {
-            adc_ad7606b_get_adc_value(i, j, l, &value);
+            adc_ad7606b_get_raw_adc_value(i, j, l, &value);
             printf("channel #%d: %x %2.3f\t", (l + 1), value,
                    adc_convert_value(value, 0));
         }
         printf("\n");
     }
+}
+
+int adc_ad7606b_get_adc_value(ad7606b_instance_t *i, uint8_t adc,
+                              uint8_t channel, uint8_t mux, int16_t *value) {
+    if (channel < 3) {
+        uint32_t chn_offset =
+            AD7606B_VIN_1_CHN_MUX_01_ADC_0_ADDR + 4 * 8 * channel;
+        uint32_t reg_value = READ_REG(i->base + chn_offset + mux * 4);
+        uint32_t value = (mux % 2 == 0 ? reg_value & 0xFFFF : reg_value >> 16);
+    } else {
+        adc_ad7606b_get_raw_adc_value(i, adc, channel, value);
+    }
+    return 0;
 }
 
 int adc_get_error_counter(ad7606b_instance_t *i, uint32_t *err_counter) {
@@ -109,14 +122,32 @@ int adc_get_error_counter(ad7606b_instance_t *i, uint32_t *err_counter) {
     return 0;
 }
 
+int adc_ad7606b_set_range(ad7606b_instance_t *i, uint32_t channel, uint32_t range) {
+    uint16_t reg = READ_REG(i->base + AD7606B_CHN_SETUP_OFF);
+    reg &= ~(3 << (channel * 2));
+    if (range == RANGE_2V5) {
+        reg |= RANGE_2V5 << (channel * 2);
+        WRITE_REG(i->base + AD7606B_CHN_SETUP_OFF, reg);
+    } else if (range == RANGE_5V) {
+        reg |= RANGE_5V << (channel * 2);
+        WRITE_REG(i->base + AD7606B_CHN_SETUP_OFF, reg);
+    } else if (range == RANGE_10V) {
+        reg |= RANGE_10V << (channel * 2);
+        WRITE_REG(i->base + AD7606B_CHN_SETUP_OFF, reg);
+    } else {
+        return -1;
+    }
+    return 0;
+}
+
 float adc_convert_value(int16_t value, int8_t range) {
     float range_f;
 
-    if (range == 0) {
+    if (range == RANGE_2V5) {
         range_f = 2.5;
-    } else if (range == 1) {
+    } else if (range == RANGE_5V) {
         range_f = 5.0;
-    } else if (range == 2) {
+    } else if (range == RANGE_10V) {
         range_f = 10.0;
     } else {
         range_f = 100.0;

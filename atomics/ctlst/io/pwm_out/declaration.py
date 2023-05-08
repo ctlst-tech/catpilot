@@ -45,7 +45,6 @@ Function(
             name='input',
             title='Duty',
             value_type='core.type.f64',
-            mandatory=False,
         ),
     ],
     outputs=[],
