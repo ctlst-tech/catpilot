@@ -16,10 +16,12 @@ fspec_rv_t ctlst_io_gpio_out_pre_exec_init(
 void ctlst_io_gpio_out_exec(const ctlst_io_gpio_out_inputs_t *i,
                             const ctlst_io_gpio_out_params_t *p) {
     if (i->optional_inputs_flags.input_bool) {
-        gpio_set_output_value(p->channel, !i->input_bool);
+        gpio_set_output_value(p->channel, 1);
+    } else {
+        gpio_set_output_value(p->channel, 0);
     }
     if (i->optional_inputs_flags.input_float) {
-        gpio_set_output_value(p->channel, i->input_float > 0.5 ? 0 : 1);
+        gpio_set_output_value(p->channel, i->input_float > 0.5 ? 1 : 0);
     } else {
         uint32_t value[1];
         gpio_get_output_value(p->channel, value);
