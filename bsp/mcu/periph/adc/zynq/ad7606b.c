@@ -106,19 +106,27 @@ void adc_ad7606b_print_all_adc_values(ad7606b_instance_t *i) {
 
 int adc_ad7606b_get_adc_value(ad7606b_instance_t *i, uint32_t adc,
                               uint32_t channel, uint32_t mux, int16_t *value) {
+    uint32_t off = 0;
+    if (adc == 0) {
+        off = AD7606B_VIN_1_CHN_MUX_01_ADC_0_ADDR;
+    } else if (adc == 1) {
+        off = AD7606B_VIN_1_CHN_MUX_01_ADC_1_ADDR;
+    } else {
+        return -1;
+    }
     if (channel <= 2) {
-        uint32_t chn_offset =
-            AD7606B_VIN_1_CHN_MUX_01_ADC_0_ADDR + 4 * 8 * channel;
+        uint32_t chn_offset = off + 4 * 8 * channel;
         uint32_t reg = i->base + chn_offset + (mux / 2) * 4;
         uint32_t reg_value = READ_REG(reg);
         uint16_t value_0 = reg_value & 0xFFFF;
         uint16_t value_1 = reg_value >> 16;
-        if(mux % 2 == 0) {
+        if (mux % 2 == 0) {
             *value = value_0;
         } else {
             *value = value_1;
         }
-        // printf("addr = 0x%X, value = %f\n", reg, adc_convert_value(*value, RANGE_10V));
+        // printf("adc = %d, ch = %d, mux = %d, addr = 0x%X, value = %f\n", adc,
+        // channel, mux, reg, adc_convert_value(*value, RANGE_10V));
     } else {
         adc_ad7606b_get_raw_adc_value(i, adc, channel, value);
     }
@@ -131,7 +139,8 @@ int adc_get_error_counter(ad7606b_instance_t *i, uint32_t *err_counter) {
     return 0;
 }
 
-int adc_ad7606b_set_range(ad7606b_instance_t *i, uint32_t channel, uint32_t range) {
+int adc_ad7606b_set_range(ad7606b_instance_t *i, uint32_t channel,
+                          uint32_t range) {
     uint16_t reg = READ_REG(i->base + AD7606B_CHN_SETUP_OFF);
     reg &= ~(3 << (channel * 2));
     if (range == RANGE_2V5) {

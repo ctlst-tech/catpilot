@@ -38,6 +38,7 @@
 #define AD7606B_VIN_78_CHN_ADC_1_OFF          0x0040
 
 #define AD7606B_VIN_1_CHN_MUX_01_ADC_0_ADDR   0x0044
+#define AD7606B_VIN_1_CHN_MUX_01_ADC_1_ADDR   0x00A4
 
 #define AD7606B_REG_MAP_SIZE                  128
 
