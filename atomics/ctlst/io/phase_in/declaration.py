@@ -10,7 +10,7 @@ Function(
     parameters=[
         Parameter(
             name='channel',
-            title='PWM channel',
+            title='Phase channel',
             value_type='core.type.u32',
             tunable=False,
             default=0
