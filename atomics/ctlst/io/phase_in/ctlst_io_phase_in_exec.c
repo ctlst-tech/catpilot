@@ -15,7 +15,9 @@ fspec_rv_t ctlst_io_phase_in_pre_exec_init(
 
 void ctlst_io_phase_in_exec(ctlst_io_phase_in_outputs_t *o,
                             const ctlst_io_phase_in_params_t *p) {
-    gpio_get_period(p->channel, &o->period);
+    uint32_t period;
+    gpio_get_period(p->channel, &period);
     gpio_get_phase_step(p->channel, &o->step);
     gpio_get_tooth(p->channel, &o->tooth);
+    o->period = (double)period;
 }
