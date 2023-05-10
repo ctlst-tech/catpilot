@@ -39,7 +39,7 @@ Function(
         Output(
             name='period',
             title='Period in microseconds',
-            value_type='core.type.u32'
+            value_type='core.type.f64'
         ),
         Output(
             name='tooth',
