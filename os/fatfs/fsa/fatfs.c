@@ -144,8 +144,10 @@ int fatfs_open(struct file *file, const char *path) {
 
     fh = stream_to_fatfs(file);
 
+    FIL tmp_file = {0};
+
     if (fh == NULL) {
-        file->private_data = (FIL *)calloc(sizeof(FIL), 1);
+        file->private_data = &tmp_file;
         fh = stream_to_fatfs(file);
         if (fh == NULL) {
             return -1;
@@ -166,6 +168,11 @@ int fatfs_open(struct file *file, const char *path) {
             f_close(fh);
             return -1;
         }
+    }
+
+    if (!rv) {
+        file->private_data = (FIL *)calloc(sizeof(FIL), 1);
+        memcpy(file->private_data, &tmp_file, sizeof(FIL));
     }
 
     return (rv);
@@ -192,6 +199,10 @@ ssize_t fatfs_write(struct file *file, const char *buf, size_t count) {
     res = f_write(fh, buf, (UINT)count, &size);
 
     if (res != FR_OK) {
+        errno = fatfs_to_errno(res);
+        return -1;
+    }
+    if (size != count) {
         errno = fatfs_to_errno(res);
         return -1;
     }
