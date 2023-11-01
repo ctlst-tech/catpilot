@@ -56,20 +56,22 @@ string(CONCAT COMMON_FLAGS
     # "-Wconversion "
     "-fdata-sections -ffunction-sections -Wl,--gc-sections "
     "-Wno-unused-variable -Wno-unused-function -Wno-unused-parameter -Wno-missing-braces "
+    "-Wl,--wrap=malloc "
+    "-Wl,--wrap=malloc_r "
+    # "-Wl,--wrap=free "
 )
 
 string(CONCAT LINKER_FLAGS
     "${LINK_MAP_CREATION_FLAG} "
     "--specs=nosys.specs -specs=nano.specs "
     "${MCU_FLAGS} "
-    "-Wl,--start-group -lgcc -lc -lg -Wl,--end-group "
     "-Wl,--gc-sections -u _printf_float -T ${LINKER_SCRIPT}")
 
 set(CMAKE_C_COMPILER_WORKS TRUE)
 set(CMAKE_CXX_COMPILER_WORKS TRUE)
 
-set(CMAKE_C_FLAGS_DEBUG "-O2 -g2 ${COMMON_FLAGS}")
-set(CMAKE_CXX_FLAGS_DEBUG "-O2 -g2 ${COMMON_FLAGS}")
+set(CMAKE_C_FLAGS_DEBUG "-O0 -g3 ${COMMON_FLAGS}")
+set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g3 ${COMMON_FLAGS}")
 
 set(CMAKE_C_FLAGS_RELEASE "-O3 -DNDEBUG ${COMMON_FLAGS}")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG ${COMMON_FLAGS}")

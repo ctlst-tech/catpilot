@@ -34,8 +34,7 @@ if (OS STREQUAL "freertos")
         freertos/core/src/queue.c
         freertos/core/src/tasks.c
         freertos/core/src/timers.c
-        freertos/memmang/heap_3.c
-        freertos/memmang/heap.c
+        freertos/memmang/heap_custom.c
         freertos/osa/FreeRTOS-Plus-POSIX/source/FreeRTOS_POSIX_clock.c
         freertos/osa/FreeRTOS-Plus-POSIX/source/FreeRTOS_POSIX_mqueue.c
         freertos/osa/FreeRTOS-Plus-POSIX/source/FreeRTOS_POSIX_pthread_barrier.c

@@ -26,7 +26,7 @@ void ff_memfree (
 	void* mblock	/* Pointer to the memory block to free (no effect if null) */
 )
 {
-	// free(mblock);	/* Free the memory block */
+	free(mblock);	/* Free the memory block */
 }
 
 #endif
