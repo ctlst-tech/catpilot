@@ -57,6 +57,13 @@ int sdcard_get_status(void) {
     return rv;
 }
 
+int sdcard_get_status_with_timeout(void) {
+    xSemaphoreTake(dev->mutex, portMAX_DELAY);
+    int rv = sdio_check_status_with_timeout(dev->sdio, 10000);
+    xSemaphoreGive(dev->mutex);
+    return rv;
+}
+
 uint32_t sdcard_get_sector_count(void) {
     xSemaphoreTake(dev->mutex, portMAX_DELAY);
     sdcard_get_info();

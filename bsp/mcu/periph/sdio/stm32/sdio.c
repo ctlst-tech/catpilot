@@ -37,7 +37,7 @@ int sdio_init(sdio_t *cfg) {
     if ((rv = HAL_SD_Init(&cfg->init))) {
         return rv;
     }
-    if ((rv = HAL_SD_ConfigWideBusOperation(&cfg->init, SDMMC_BUS_WIDE_4B))) {
+    if ((rv = HAL_SD_ConfigSpeedBusOperation(&cfg->init, SDMMC_SPEED_MODE_AUTO))) {
         return rv;
     }
     if ((rv = irq_init(cfg->p.id, cfg->irq_priority, sdio_handler, cfg))) {
@@ -120,6 +120,10 @@ int sdio_write_blocks(sdio_t *cfg, uint8_t *pdata, uint32_t address,
     rv = sdio_check_status_with_timeout(cfg, cfg->timeout);
     if (rv != SUCCESS) {
         goto free;
+    }
+
+    if ((SCB->CCR & SCB_CCR_DC_Msk) != 0U) {
+        SCB_CleanDCache_by_Addr(pdata, num * 512);
     }
 
     rv = HAL_SD_WriteBlocks_DMA(&cfg->init, pdata, address, num);
