@@ -14,6 +14,11 @@
 #define FATFS_SEEK_CUR 1
 #define FATFS_SEEK_END 2
 
+#define FATFS_MAX_FILES 32
+
+FIL fatfs_files[FATFS_MAX_FILES];
+int fatfs_index = 0;
+
 FIL *stream_to_fatfs(FILE *stream) {
     if (stream == NULL || stream->private_data == NULL) {
         return NULL;
@@ -124,6 +129,11 @@ int fatfs_open(struct file *file, const char *path) {
     int rv = 0;
     errno = 0;
 
+    if (fatfs_index >= FATFS_MAX_FILES - 1) {
+        errno = ENOMEM;
+        return -1;
+    }
+
     int flags = file->flags;
 
     if ((flags & O_ACCMODE) == O_RDWR) {
@@ -171,8 +181,11 @@ int fatfs_open(struct file *file, const char *path) {
     }
 
     if (!rv) {
-        file->private_data = (FIL *)calloc(sizeof(FIL), 1);
-        memcpy(file->private_data, &tmp_file, sizeof(FIL));
+        // file->private_data = (FIL *)calloc(sizeof(FIL), 1);
+        // memcpy(file->private_data, &tmp_file, sizeof(FIL));
+        fatfs_files[fatfs_index] = tmp_file;
+        file->private_data = &fatfs_files[fatfs_index];
+        fatfs_index++;
     }
 
     return (rv);
