@@ -234,6 +234,7 @@ void *_sbrk_r(struct _reent *pReent, int incr) {
     if (currentHeapEnd + incr > limit) {
         if (memory_selector == 0) {
             currentHeapEnd = (char *)&_HeapDTCMStart;
+            memory_selector = 1;
         } else {
         // Ooops, no more memory available...
 #if (configUSE_MALLOC_FAILED_HOOK == 1)

@@ -70,9 +70,11 @@ void *board_thread(void *arg) {
     board_settings_t *board_settings = (board_settings_t *)arg;
     if (board_init(board_settings->cli_port, board_settings->cli_baudrate)) {
         LOG_ERROR("BOARD", "Board initialization failed");
+        while(1) sleep(1);
     }
     if (board_settings->callback()) {
         LOG_ERROR("BOARD", "Application error");
+        while(1) sleep(1);
     }
     while (1) {
         sleep(1);
@@ -410,6 +412,12 @@ static int board_fs_init(void) {
         return -1;
     }
     if (board_sd_card_init()) {
+        return -1;
+    }
+    if (mkdir("/fs/logs", 0) && errno != EEXIST) {
+        return -1;
+    }
+    if (mkdir("/fs/cfg", 0) && errno != EEXIST) {
         return -1;
     }
     return 0;
