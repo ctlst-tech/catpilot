@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
 
-add_subdirectory(c-atom)
-
 if (BOARD STREQUAL "cube")
     # FIXME
     include_directories(
@@ -17,11 +15,17 @@ if (BOARD STREQUAL "cube")
     )
     add_subdirectory(bsp)
     add_subdirectory(os)
+    add_subdirectory(c-atom)
     target_link_libraries(c-atom-static PUBLIC os-static)
     target_link_libraries(eswb-static PUBLIC os-static)
+    target_link_libraries(eswb-if INTERFACE os-static)
+    target_link_libraries(fsminst-static PUBLIC os-static)
+    target_link_libraries(fsm-static PUBLIC os-static)
+    target_link_libraries(xml-static PUBLIC os-static)
 elseif (BOARD STREQUAL "ctlst")
     add_subdirectory(bsp)
     add_subdirectory(os)
+    add_subdirectory(c-atom)
     target_link_libraries(c-atom-static PUBLIC os-static)
     target_link_libraries(eswb-static PUBLIC os-static)
 endif()
