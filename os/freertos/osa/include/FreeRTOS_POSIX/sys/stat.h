@@ -5,6 +5,14 @@
 extern "C" {
 #endif
 
+struct stat {
+	off_t st_size;
+    time_t st_mtime;
+    mode_t st_mode;
+};
+
+int stat(const char *path, struct stat *stat);
+
 #ifdef __cplusplus
 }
 #endif

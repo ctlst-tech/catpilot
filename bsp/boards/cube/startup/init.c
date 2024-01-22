@@ -10,6 +10,7 @@
 #include "os.h"
 #include "periph.h"
 #include "serial_bridge.h"
+#include "file.h"
 
 typedef struct {
     int (*callback)(void);
@@ -68,23 +69,29 @@ void board_start_thread(void *param) {
 
 void *board_thread(void *arg) {
     board_settings_t *board_settings = (board_settings_t *)arg;
+    if (board_cli_init(board_settings->cli_port, board_settings->cli_baudrate)) {
+        goto idle;
+    }
     if (board_init(board_settings->cli_port, board_settings->cli_baudrate)) {
-        LOG_ERROR("BOARD", "Board initialization failed");
-        while(1) sleep(1);
+        fprintf(stderr, "----------------------------------------\n");
+        fprintf(stderr, "FATAL ERROR: Board initialization failed\n");
+        fprintf(stderr, "----------------------------------------\n");
+        goto idle;
     }
     if (board_settings->callback()) {
-        LOG_ERROR("BOARD", "Application error");
-        while(1) sleep(1);
+        fprintf(stderr, "----------------------------------------\n");
+        fprintf(stderr, "FATAL ERROR: Application start failed \n");
+        fprintf(stderr, "----------------------------------------\n");
+        goto idle;
     }
+
+idle:
     while (1) {
         sleep(1);
     }
 }
 
 static int board_init(char *cli_port, char *baudrate) {
-    if (board_cli_init(cli_port, baudrate)) {
-        return -1;
-    }
     if (board_fs_init()) {
         return -1;
     }
@@ -140,7 +147,7 @@ int board_cli_init(char *cli_port, char *baudrate) {
         return -1;
     }
     cli->p.stdio = false;
-    if (cli_service_start(CLI_MAX_CMD_LENGTH, 1)) {
+    if (cli_service_start(CLI_MAX_CMD_LENGTH, 10, 1)) {
         return -1;
     }
     if (cli_cmd_init()) {
@@ -392,15 +399,12 @@ static int board_sd_card_init(void) {
                                    .dev = &sdio};
     char name[] = "SDCARD";
     if (sdcard_start(name, &sdio) == NULL) {
-        LOG_ERROR(name, "Initialization failed");
         return -1;
     }
     if (node_mount("/fs", &f_op) == NULL) {
-        LOG_ERROR(name, "Node mount failed");
         return -1;
     }
     if (f_mount(&fs, "/", 1)) {
-        LOG_ERROR(name, "f_mount error");
         return -1;
     }
     return 0;
@@ -408,16 +412,25 @@ static int board_sd_card_init(void) {
 
 static int board_fs_init(void) {
     if (sdio_init(&sdio)) {
-        LOG_ERROR("SDIO", "Initialization failed");
+        fprintf(stderr, "SDIO initialization failed\n");
         return -1;
     }
     if (board_sd_card_init()) {
+        fprintf(stderr, "SD card initialization failed\n");
         return -1;
     }
     if (mkdir("/fs/logs", 0) && errno != EEXIST) {
+        fprintf(stderr, "Failed to mount logs dir\n");
         return -1;
     }
     if (mkdir("/fs/cfg", 0) && errno != EEXIST) {
+        fprintf(stderr, "Failed to mount cfg dir\n");
+        return -1;
+    }
+    if (cli_cmd_reg("log", log_print) == NULL) {
+        return -1;
+    }
+    if (cli_cmd_reg("file", file_commander) == NULL) {
         return -1;
     }
     return 0;
@@ -427,12 +440,12 @@ static int board_services_start(void) {
     serial_bridge_start(15, 1024);
     icm20649 = icm20649_start("ICM20649", 2, 20, &spi1, &gpio_spi1_cs1,
                               &exti_spi1_drdy1);
-    icm20602 = icm20602_start("ICM20602", 2, 20, &spi4, &gpio_spi4_cs2, NULL);
-    icm20948 =
-        icm20948_start("ICM20948", 2, 20, &spi4, &gpio_spi4_cs1, NULL, 0);
+    // icm20602 = icm20602_start("ICM20602", 2, 20, &spi4, &gpio_spi4_cs2, NULL);
+    // icm20948 =
+    //     icm20948_start("ICM20948", 2, 20, &spi4, &gpio_spi4_cs1, NULL, 0);
     cubeio = cubeio_start("CUBEIO", 0, 19, &usart6);
     ms5611_1 = ms5611_start("MS5611_INT", 100, 17, &spi1, &gpio_spi1_cs2);
-    ms5611_2 = ms5611_start("MS5611_EXT", 100, 17, &spi4, &gpio_spi4_cs3);
+    // ms5611_2 = ms5611_start("MS5611_EXT", 100, 17, &spi4, &gpio_spi4_cs3);
     ist8310 = ist8310_start("IST8310_EXT", 100, 17, &i2c1);
     return 0;
 }

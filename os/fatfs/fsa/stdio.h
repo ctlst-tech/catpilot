@@ -23,12 +23,6 @@ typedef off_t fpos_t;
 
 typedef struct file FILE;
 
-struct dirent {
-    char d_name[MAX_NAME_LEN];
-};
-
-typedef struct dirent dirent_t;
-
 #define __SRD 0x0001   /* OK to read */
 #define __SWR 0x0002   /* OK to write */
 #define __SSTR 0x0004  /* this is an sprintf/snprintf string */

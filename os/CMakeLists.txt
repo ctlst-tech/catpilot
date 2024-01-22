@@ -25,6 +25,7 @@ if (OS STREQUAL "freertos")
         freertos/services/monitor
         freertos/services/serial_bridge
         freertos/services/service
+        freertos/services/cd
     )
 
     list(APPEND OS_SRC
@@ -59,6 +60,8 @@ if (OS STREQUAL "freertos")
         freertos/services/monitor/monitor.c
         freertos/services/serial_bridge/serial_bridge.c
         freertos/services/service/service.c
+        freertos/services/ls/ls.c
+        freertos/services/cd/cd.c
     )
 elseif (OS STREQUAL "posix")
     # OS specific sources
@@ -86,6 +89,7 @@ if (FS STREQUAL "fatfs")
         fatfs/fsa/null.c
         fatfs/fsa/printf.c
         fatfs/fsa/stdio.c
+        fatfs/fsa/dirent.c
         fatfs/port/diskio.c
     )
 elseif (FS STREQUAL "posix")

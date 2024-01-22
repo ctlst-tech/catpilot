@@ -69,6 +69,8 @@ pid_t getpid();
 #define SEEK_END 2
 
 off_t  lseek(int fd, off_t offset, int whence);
+int chdir(const char *path);
+char *getcwd(char *buf, size_t size);
 
 #ifdef __cplusplus
 }

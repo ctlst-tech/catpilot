@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 
 #include "ff.h"
 
@@ -152,18 +153,9 @@ int fatfs_open(struct file *file, const char *path) {
         }
     }
 
-    fh = stream_to_fatfs(file);
-
     FIL tmp_file = {0};
-
-    if (fh == NULL) {
-        file->private_data = &tmp_file;
-        fh = stream_to_fatfs(file);
-        if (fh == NULL) {
-            return -1;
-        }
-    }
-
+    file->private_data = &tmp_file;
+    fh = stream_to_fatfs(file);
     res = f_open(fh, path, (BYTE)(fatfs_modes & 0xff));
 
     if (res != FR_OK) {
@@ -270,6 +262,7 @@ int fatfs_close(struct file *file) {
     }
 
     res = f_close(fh);
+
 
     if (res != FR_OK) {
         errno = fatfs_to_errno(res);
@@ -442,23 +435,25 @@ int fatfs_rmdir(const char *pathname) {
     return 0;
 }
 
-static dirent_t _de;
-dirent_t *fatfs_readdir(DIR *dirp) {
-    FILINFO fno;
-    int len;
-    int res;
-    errno = 0;
-
-    _de.d_name[0] = 0;
-    res = f_readdir(dirp, &fno);
-    if (res != FR_OK || fno.fname[0] == 0) {
+int fatfs_chdir(const char *path) {
+    int res = f_chdir(path);
+    if (res != FR_OK) {
         errno = fatfs_to_errno(res);
-        return NULL;
+        return -1;
     }
+    return 0;
+}
 
-    len = strlen(fno.fname);
-    strncpy(_de.d_name, fno.fname, len);
-    _de.d_name[len] = 0;
-
-    return ((dirent_t *)&_de);
+int fatfs_stat(const char *pathname, struct stat *stat) {
+    FILINFO info;
+    int res = f_stat(pathname, &info);
+    if (res != FR_OK) {
+        errno = fatfs_to_errno(res);
+        return -1;
+    }
+    stat->st_size = info.fsize;
+    stat->st_mode = info.fattrib;
+    // TODO: convert FATFS fdate and ftime to mtime;
+    stat->st_mtime = 0;
+    return 0;
 }
