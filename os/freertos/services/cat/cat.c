@@ -9,7 +9,15 @@ static void cat_print_help(void) {
 }
 
 static void cat_print_file_content(const char *path) {
-    int fd = open(path, O_RDONLY);
+    char cur_path[4 * MAX_NAME_LEN];
+    getcwd(cur_path, 4 * MAX_NAME_LEN);
+    char path_ext[4 * MAX_NAME_LEN];
+
+    snprintf(path_ext, 4 * MAX_NAME_LEN, "/%s%s/%s", "fs", cur_path, path);
+    chdir("/");
+
+    int fd = open(path_ext, O_RDONLY);
+    chdir(cur_path);
 
     if (fd < 0) {
         printf("%s\n", strerror(errno));
@@ -21,10 +29,7 @@ static void cat_print_file_content(const char *path) {
     do {
         rb = read(fd, buf, sizeof(buf));
         if (rb > 0) {
-            if (rb < CLI_CAT_MAX_LEGNTH) {
-                buf[rb + 1] = '\0';
-            }
-            printf("%s", buf);
+            write(1, buf, rb);
         } else {
             printf("%s\n", strerror(errno));
         }
