@@ -3,6 +3,20 @@
 static char nl[2] = "\r\n";
 static char inv[2] = "# ";
 
+void cli_add_to_history(struct cli_service *cli) {
+    if (!strncmp(cli->cmd_prev[1], cli->cmd, cli->buf_size - 1)) {
+        return;
+    }
+    for (int i = cli->history_size; i >= 2; --i) {
+        strncpy(cli->cmd_prev[i], cli->cmd_prev[i - 1], cli->buf_size - 1);
+    }
+    strncpy(cli->cmd_prev[1], cli->cmd, cli->buf_size - 1);
+}
+
+char *cli_get_last_command(struct cli_service *cli) {
+    return cli->cmd_prev[cli->history_pos];
+}
+
 void *cli_echo(void *arg) {
     struct cli_service *cli = (struct cli_service *)arg;
     pthread_setname_np((char *)__func__);
@@ -15,7 +29,6 @@ void *cli_echo(void *arg) {
     }
 
     cli->cmd_len = 0;
-    cli->cmd_prev_len = 0;
 
     while (1) {
         cli->rlen = 0;
@@ -26,16 +39,19 @@ void *cli_echo(void *arg) {
         for (int i = 0; i < cli->rlen; i++) {
             if (cli->rbuf[i] == '\r') {
                 cli->cmd[cli->cmd_len] = '\0';
+                if (cli->cmd_len != 0) {
+                    cli_add_to_history(cli);
+                }
                 pthread_mutex_lock(&cli->mutex);
                 pthread_cond_broadcast(&cli->cond);
                 pthread_mutex_unlock(&cli->mutex);
-                if (cli->cmd_len != 0) {
-                    strncpy(cli->cmd_prev, cli->cmd, cli->cmd_len);
-                    cli->cmd_prev_len = cli->cmd_len;
-                }
                 cli->cmd_len = 0;
+                cli->history_pos = 0;
             } else if (cli->rbuf[i] == '\b' || cli->rbuf[i] == 0x7F ||
                        (!strncmp("\033[3~", &cli->rbuf[i], 4))) {
+                if (cli->cmd_len == 0) {
+                    break;
+                }
                 cli->wbuf[cli->wlen] = '\b';
                 cli->wlen++;
                 cli->wbuf[cli->wlen] = ' ';
@@ -45,12 +61,39 @@ void *cli_echo(void *arg) {
                 if (cli->cmd_len > 0) {
                     cli->cmd_len--;
                 }
-            } else if (!strncmp(cli->rbuf, "\033[A", cli->rlen) &&
-                       cli->cmd_len == 0) {
-                strncpy(cli->wbuf, cli->cmd_prev, cli->cmd_prev_len);
-                strncpy(cli->cmd, cli->cmd_prev, cli->cmd_prev_len);
-                cli->wlen = cli->cmd_prev_len;
-                cli->cmd_len = cli->cmd_prev_len;
+            } else if (!strncmp(cli->rbuf, "\033[A", cli->rlen)) {
+                cli->history_pos++;
+                if (cli->history_pos >= cli->history_size) {
+                    cli->history_pos = cli->history_size - 1;
+                }
+                char *last_command = cli_get_last_command(cli);
+                if (strlen(last_command) == 0) {
+                    cli->history_pos--;
+                    break;
+                }
+                for (int j = 0; j < cli->cmd_len; ++j) {
+                    char c[4] = "\b \b";
+                    write(1, c, 3);
+                }
+                strncpy(cli->wbuf, last_command, cli->buf_size);
+                strncpy(cli->cmd, last_command, cli->buf_size);
+                cli->wlen = strlen(last_command);
+                cli->cmd_len = strlen(last_command);
+                break;
+            } else if (!strncmp(cli->rbuf, "\033[B", cli->rlen)) {
+                cli->history_pos--;
+                if (cli->history_pos < 0) {
+                    cli->history_pos = 0;
+                }
+                for (int j = 0; j < cli->cmd_len; ++j) {
+                    char c[4] = "\b \b";
+                    write(1, c, 3);
+                }
+                char *last_command = cli_get_last_command(cli);
+                strncpy(cli->wbuf, last_command, cli->buf_size);
+                strncpy(cli->cmd, last_command, cli->buf_size);
+                cli->wlen = strlen(last_command);
+                cli->cmd_len = strlen(last_command);
                 break;
             } else if (cli->rbuf[i] < ' ' || cli->rbuf[i] > 127) {
                 break;
@@ -83,15 +126,13 @@ void *cli_invoker(void *arg) {
                 cli_cmd_print();
                 write(1, nl, sizeof(nl));
             }
-        } else {
-            write(1, nl, sizeof(nl));
         }
         pthread_mutex_unlock(&cli->mutex);
         write(1, inv, sizeof(inv));
     }
 }
 
-int cli_service_start(int buf_size, int priority) {
+int cli_service_start(int buf_size, int history_size, int priority) {
     static int init = 0;
 
     if (init != 0) {
@@ -109,23 +150,37 @@ int cli_service_start(int buf_size, int priority) {
 
     cli->rbuf = calloc(cli->buf_size, sizeof(char));
     if (cli->rbuf == NULL) {
-        return -1;
+        goto fail;
     }
 
     cli->wbuf = calloc(cli->buf_size, sizeof(char));
     if (cli->wbuf == NULL) {
-        return -1;
+        goto fail;
     }
 
     cli->cmd = calloc(cli->buf_size, sizeof(char));
     if (cli->cmd == NULL) {
-        return -1;
+        goto fail;
     }
 
-    cli->cmd_prev = calloc(cli->buf_size, sizeof(char));
+    cli->cmd_prev = calloc(history_size + 1, sizeof(char *));
     if (cli->cmd_prev == NULL) {
-        return -1;
+        goto fail;
     }
+
+    for (int i = 0; i < (history_size + 1); ++i) {
+        cli->cmd_prev[i] = calloc(cli->buf_size, sizeof(char));
+        if (cli->cmd_prev[i] == NULL) {
+            goto fail;
+        }
+    }
+
+    cli->cmd_prev[0][0] = '\0';
+    if (history_size < 2) {
+        history_size = 2;
+    }
+    cli->history_size = history_size;
+    cli->history_pos = 0;
 
     pthread_mutex_init(&cli->mutex, NULL);
     pthread_cond_init(&cli->cond, NULL);
@@ -143,4 +198,27 @@ int cli_service_start(int buf_size, int priority) {
     pthread_create(&tid, &attr, cli_invoker, cli);
 
     return 0;
+
+fail:
+    if (cli != NULL) {
+        if (cli->rbuf != NULL) {
+            free(cli->rbuf);
+        }
+        if (cli->wbuf != NULL) {
+            free(cli->wbuf);
+        }
+        if (cli->cmd != NULL) {
+            free(cli->cmd);
+        }
+        if (cli->cmd_prev != NULL) {
+            for (int i = 0; i < history_size; ++i) {
+                if (cli->cmd_prev[i] != NULL) {
+                    free(cli->cmd_prev[i]);
+                }
+            }
+            free(cli->cmd_prev);
+        }
+        free(cli);
+    }
+    return -1;
 }

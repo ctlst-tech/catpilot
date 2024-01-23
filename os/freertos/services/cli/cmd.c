@@ -2,6 +2,8 @@
 
 extern int file_commander(int argc, char **argv);
 extern int cat_commander(int argc, char **argv);
+extern int ls_commander(int argc, char **argv);
+extern int cd_commander(int argc, char **argv);
 extern int log_print(int argc, char **argv);
 
 extern void board_reset(void);
@@ -78,13 +80,13 @@ int cli_cmd_init(void) {
     if (cli_cmd_reg("clear", clear) == NULL) {
         return -1;
     }
-    if (cli_cmd_reg("log", log_print) == NULL) {
-        return -1;
-    }
     if (cli_cmd_reg("system", system_commander) == NULL) {
         return -1;
     }
-    if (cli_cmd_reg("file", file_commander) == NULL) {
+    if (cli_cmd_reg("ls", ls_commander) == NULL) {
+        return -1;
+    }
+    if (cli_cmd_reg("cd", cd_commander) == NULL) {
         return -1;
     }
     return 0;

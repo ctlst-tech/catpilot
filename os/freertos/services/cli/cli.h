@@ -31,20 +31,21 @@ struct cli_service {
     char *rbuf;
     char *wbuf;
     char *cmd;
-    char *cmd_prev;
+    char **cmd_prev;
     int rlen;
     int wlen;
     int cmd_len;
-    int cmd_prev_len;
     pthread_mutex_t mutex;
     pthread_cond_t cond;
+    int history_size;
+    int history_pos;
 };
 
 struct cli_node *cli_cmd_reg(char *cmd_name,
                              int (*handler)(int argc, char **argv));
 struct cli_node *cli_cmd_find(char *cmd_name);
 
-int cli_service_start(int buf_size, int priority);
+int cli_service_start(int buf_size, int history_size, int priority);
 int cli_cmd_execute(char *cmd);
 int cli_cmd_print(void);
 int cli_cmd_init(void);
