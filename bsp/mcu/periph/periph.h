@@ -12,5 +12,6 @@
 #include "spi.h"
 #include "tim.h"
 #include "usart.h"
+#include "usb.h"
 
 #endif  // PERIPH_H

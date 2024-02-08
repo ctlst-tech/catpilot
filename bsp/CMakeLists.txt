@@ -32,8 +32,10 @@ if (MCU_FAMILY STREQUAL "stm32")
             mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_flash.c
             mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_flash_ex.c
             mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_gpio.c
+            mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_hcd.c
             mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_i2c.c
             mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_i2c_ex.c
+            mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_pcd.c
             mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_rcc.c
             mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_rcc_ex.c
             mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_sd.c
@@ -59,6 +61,7 @@ if (MCU_FAMILY STREQUAL "stm32")
             boards/${BOARD}/cfg/spi_cfg.c
             boards/${BOARD}/cfg/tim_cfg.c
             boards/${BOARD}/cfg/usart_cfg.c
+            boards/${BOARD}/cfg/usb_cfg.c
             boards/${BOARD}/startup/init.c
             boards/${BOARD}/external.c
         )
@@ -76,6 +79,18 @@ if (MCU_FAMILY STREQUAL "stm32")
         mcu/periph/spi/${MCU_FAMILY}/spi.c
         mcu/periph/tim/${MCU_FAMILY}/tim.c
         mcu/periph/usart/${MCU_FAMILY}/usart.c
+        mcu/periph/usb/${MCU_FAMILY}/usb.c
+        mcu/periph/usb/${MCU_FAMILY}/USB_DEVICE/Target/usbd_conf.c
+        mcu/periph/usb/${MCU_FAMILY}/USB_DEVICE/App/usb_device.c
+        mcu/periph/usb/${MCU_FAMILY}/USB_DEVICE/App/usbd_cdc_if.c
+        mcu/periph/usb/${MCU_FAMILY}/USB_DEVICE/App/usbd_desc.c
+        # mcu/periph/usb/${MCU_FAMILY}/STM32_USB_Device_Library/Class/CDC/Src/usbd_cdc_if_template.c
+        mcu/periph/usb/${MCU_FAMILY}/STM32_USB_Device_Library/Class/CDC/Src/usbd_cdc.c
+        # mcu/periph/usb/${MCU_FAMILY}/STM32_USB_Device_Library/Core/Src/usbd_conf_template.c
+        mcu/periph/usb/${MCU_FAMILY}/STM32_USB_Device_Library/Core/Src/usbd_core.c
+        mcu/periph/usb/${MCU_FAMILY}/STM32_USB_Device_Library/Core/Src/usbd_ctlreq.c
+        # mcu/periph/usb/${MCU_FAMILY}/STM32_USB_Device_Library/Core/Src/usbd_desc_template.c
+        mcu/periph/usb/${MCU_FAMILY}/STM32_USB_Device_Library/Core/Src/usbd_ioreq.c
     )
 
     list(APPEND BSP_INC
@@ -92,6 +107,10 @@ if (MCU_FAMILY STREQUAL "stm32")
         mcu/periph/tim/${MCU_FAMILY}
         mcu/periph/usart/${MCU_FAMILY}
         mcu/periph/usb/${MCU_FAMILY}
+        mcu/periph/usb/${MCU_FAMILY}/USB_DEVICE/Target
+        mcu/periph/usb/${MCU_FAMILY}/USB_DEVICE/App
+        mcu/periph/usb/${MCU_FAMILY}/STM32_USB_Device_Library/Class/CDC/Inc
+        mcu/periph/usb/${MCU_FAMILY}/STM32_USB_Device_Library/Core/Inc
     )
 elseif (MCU_FAMILY STREQUAL "zynq")
     list(APPEND BSP_SRC
