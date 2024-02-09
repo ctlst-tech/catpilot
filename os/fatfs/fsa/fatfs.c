@@ -457,3 +457,13 @@ int fatfs_stat(const char *pathname, struct stat *stat) {
     stat->st_mtime = 0;
     return 0;
 }
+
+int fatfs_remove(const char *pathname) {
+    FILINFO info;
+    int res = f_unlink(pathname);
+    if (res != FR_OK) {
+        errno = fatfs_to_errno(res);
+        return -1;
+    }
+    return 0;
+}

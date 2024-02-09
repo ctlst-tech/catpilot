@@ -20,3 +20,4 @@ int fatfs_rename(const char *oldpath, const char *newpath);
 int fatfs_rmdir(const char *pathname);
 int fatfs_chdir(const char *pathname);
 int fatfs_stat(const char *pathname, struct stat *stat);
+int fatfs_remove(const char *pathname);

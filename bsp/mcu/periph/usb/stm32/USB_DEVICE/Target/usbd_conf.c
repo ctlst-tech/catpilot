@@ -39,7 +39,10 @@
 /* USER CODE END PV */
 
 PCD_HandleTypeDef hpcd_USB_OTG_FS;
-void Error_Handler(void);
+extern void usb_error_handler();
+void Error_Handler(void) {
+  usb_error_handler();
+}
 
 /* External functions --------------------------------------------------------*/
 

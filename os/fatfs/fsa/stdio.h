@@ -54,6 +54,7 @@ void   sync(void);
 int    fsync(int fileno);
 int    mkdir(const char *pathname, mode_t mode);
 int    rmdir(const char *pathname);
+int    remove(const char *path);
 
 int std_stream_init(const char *stream, void *dev,
                     int (*dev_open)(struct file *file, const char *path),

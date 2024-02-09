@@ -3,6 +3,7 @@
 extern int file_commander(int argc, char **argv);
 extern int cat_commander(int argc, char **argv);
 extern int ls_commander(int argc, char **argv);
+extern int rm_commander(int argc, char **argv);
 extern int cd_commander(int argc, char **argv);
 extern int pwd_commander(int argc, char **argv);
 extern int log_print(int argc, char **argv);
@@ -91,6 +92,9 @@ int cli_cmd_init(void) {
         return -1;
     }
     if (cli_cmd_reg("pwd", pwd_commander) == NULL) {
+        return -1;
+    }
+    if (cli_cmd_reg("rm", rm_commander) == NULL) {
         return -1;
     }
     return 0;

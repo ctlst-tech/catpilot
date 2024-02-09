@@ -206,7 +206,7 @@ static int board_clock_init(void) {
     PeriphClkInitStruct.PLL3.PLL3M = 3;
     PeriphClkInitStruct.PLL3.PLL3N = 72;
     PeriphClkInitStruct.PLL3.PLL3P = 3;
-    PeriphClkInitStruct.PLL3.PLL3Q = 6;
+    PeriphClkInitStruct.PLL3.PLL3Q = 12;
     PeriphClkInitStruct.PLL3.PLL3R = 9;
 
     // Use special multiplexing
@@ -381,6 +381,10 @@ static int board_periph_init(void) {
     }
     if (can_init(&can2)) {
         LOG_ERROR("CAN2", "Initialization failed");
+        return -1;
+    }
+    if (usb_init(&usb0)) {
+        LOG_ERROR("USB0", "Initialization failed");
         return -1;
     }
     LOG_INFO("BOARD", "Initialization successful");

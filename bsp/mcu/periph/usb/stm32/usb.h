@@ -18,6 +18,8 @@ typedef struct {
 typedef struct {
     const char name[MAX_NAME_LEN];
     const char alt_name[MAX_NAME_LEN];
+    gpio_t *gpio_tx;
+    gpio_t *gpio_rx;
 } usb_t;
 
 int usb_init(usb_t *cfg);

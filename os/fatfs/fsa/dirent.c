@@ -60,3 +60,6 @@ int stat(const char *path, struct stat *stat) {
     return fatfs_stat(path, stat);
 }
 
+int remove(const char *path) {
+    return fatfs_remove(path);
+}

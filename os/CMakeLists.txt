@@ -28,6 +28,7 @@ if (OS STREQUAL "freertos")
         freertos/services/ls
         freertos/services/cd
         freertos/services/pwd
+        freertos/services/rm
     )
 
     list(APPEND OS_SRC
@@ -65,6 +66,7 @@ if (OS STREQUAL "freertos")
         freertos/services/ls/ls.c
         freertos/services/cd/cd.c
         freertos/services/pwd/pwd.c
+        freertos/services/rm/rm.c
     )
 elseif (OS STREQUAL "posix")
     # OS specific sources
