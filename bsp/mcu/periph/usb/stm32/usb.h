@@ -20,6 +20,9 @@ typedef struct {
     const char alt_name[MAX_NAME_LEN];
     gpio_t *gpio_tx;
     gpio_t *gpio_rx;
+    gpio_t *gpio_vbus;
+    gpio_t *gpio_id;
+    gpio_t *gpio_sof;
 } usb_t;
 
 int usb_init(usb_t *cfg);

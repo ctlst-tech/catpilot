@@ -5,12 +5,12 @@
 #include "cli.h"
 #include "core.h"
 #include "fatfs.h"
+#include "file.h"
 #include "hal.h"
 #include "log.h"
 #include "os.h"
 #include "periph.h"
 #include "serial_bridge.h"
-#include "file.h"
 
 typedef struct {
     int (*callback)(void);
@@ -69,7 +69,8 @@ void board_start_thread(void *param) {
 
 void *board_thread(void *arg) {
     board_settings_t *board_settings = (board_settings_t *)arg;
-    if (board_cli_init(board_settings->cli_port, board_settings->cli_baudrate)) {
+    if (board_cli_init(board_settings->cli_port,
+                       board_settings->cli_baudrate)) {
         goto idle;
     }
     if (board_init(board_settings->cli_port, board_settings->cli_baudrate)) {
@@ -176,6 +177,7 @@ static int board_clock_init(void) {
     RCC_OscInitStruct.PLL.PLLN = 100;
     RCC_OscInitStruct.PLL.PLLP = 2;
     RCC_OscInitStruct.PLL.PLLQ = 8;
+    RCC_OscInitStruct.PLL.PLLR = 2;
     RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
     while (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
     }
@@ -203,13 +205,17 @@ static int board_clock_init(void) {
 
     // PLL3
     PeriphClkInitStruct.PLL3.PLL3FRACN = 0;
-    PeriphClkInitStruct.PLL3.PLL3M = 3;
+    PeriphClkInitStruct.PLL3.PLL3M = 6;
     PeriphClkInitStruct.PLL3.PLL3N = 72;
     PeriphClkInitStruct.PLL3.PLL3P = 3;
-    PeriphClkInitStruct.PLL3.PLL3Q = 12;
+    PeriphClkInitStruct.PLL3.PLL3Q = 6;
     PeriphClkInitStruct.PLL3.PLL3R = 9;
 
     // Use special multiplexing
+    PeriphClkInitStruct.PeriphClockSelection =
+        RCC_PERIPHCLK_I2C123 | RCC_PERIPHCLK_SPI123 | RCC_PERIPHCLK_SPI45 |
+        RCC_PERIPHCLK_USB | RCC_PERIPHCLK_ADC | RCC_PERIPHCLK_SDMMC |
+        RCC_PERIPHCLK_FDCAN;
     PeriphClkInitStruct.I2c123ClockSelection = RCC_I2C123CLKSOURCE_HSI;
     PeriphClkInitStruct.Spi123ClockSelection = RCC_SPI123CLKSOURCE_PLL2;
     PeriphClkInitStruct.Spi45ClockSelection = RCC_SPI45CLKSOURCE_PLL2;
@@ -444,8 +450,8 @@ static int board_services_start(void) {
     serial_bridge_start(15, 1024);
     icm20649 = icm20649_start("ICM20649", 2, 20, &spi1, &gpio_spi1_cs1,
                               &exti_spi1_drdy1);
-    // icm20602 = icm20602_start("ICM20602", 2, 20, &spi4, &gpio_spi4_cs2, NULL);
-    // icm20948 =
+    // icm20602 = icm20602_start("ICM20602", 2, 20, &spi4, &gpio_spi4_cs2,
+    // NULL); icm20948 =
     //     icm20948_start("ICM20948", 2, 20, &spi4, &gpio_spi4_cs1, NULL, 0);
     cubeio = cubeio_start("CUBEIO", 0, 19, &usart6);
     ms5611_1 = ms5611_start("MS5611_INT", 100, 17, &spi1, &gpio_spi1_cs2);
