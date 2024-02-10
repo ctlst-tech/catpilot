@@ -437,32 +437,25 @@ int ferror(FILE *stream) {
     return 0;
 }
 
-int std_stream_init(const char *stream, void *dev,
-                    int (*dev_open)(struct file *file, const char *path),
-                    ssize_t (*dev_write)(struct file *file, const char *buf,
-                                         size_t count),
-                    ssize_t (*dev_read)(struct file *file, char *buf,
-                                        size_t count),
-                    int (*dev_close)(struct file *file)) {
+int std_stream_init(const char *stream, struct file_operations *fops) {
     int fd, flags;
     char stream_name[16];
     char stream_path[16];
     struct file_operations f_op = {0};
 
-    if (stream == NULL || dev == NULL || dev_open == NULL ||
-        dev_write == NULL || dev_read == NULL) {
+    if (stream == NULL || fops == NULL) {
         return -1;
     }
 
-    f_op.open = dev_open;
-    f_op.close = dev_close;
-    f_op.dev = dev;
+    f_op.open = fops->open;
+    f_op.close = fops->close;
+    f_op.dev = fops->dev;
 
     if (!strcmp(stream, "stdin")) {
-        f_op.read = dev_read;
+        f_op.read = fops->read;
         flags = O_RDONLY;
     } else if (!strcmp(stream, "stdout") || !strcmp(stream, "stderr")) {
-        f_op.write = dev_write;
+        f_op.write = fops->write;
         flags = O_WRONLY;
     } else {
         return -1;

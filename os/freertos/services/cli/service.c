@@ -61,7 +61,8 @@ void *cli_echo(void *arg) {
                 if (cli->cmd_len > 0) {
                     cli->cmd_len--;
                 }
-            } else if (!strncmp(cli->rbuf, "\033[A", cli->rlen)) {
+            } else if (!strncmp(cli->rbuf, "\033[A", cli->rlen) ||
+                       !strncmp(cli->rbuf, "[A", cli->rlen)) {
                 cli->history_pos++;
                 if (cli->history_pos >= cli->history_size) {
                     cli->history_pos = cli->history_size - 1;
@@ -80,7 +81,8 @@ void *cli_echo(void *arg) {
                 cli->wlen = strlen(last_command);
                 cli->cmd_len = strlen(last_command);
                 break;
-            } else if (!strncmp(cli->rbuf, "\033[B", cli->rlen)) {
+            } else if (!strncmp(cli->rbuf, "\033[B", cli->rlen) ||
+                       !strncmp(cli->rbuf, "[B", cli->rlen)) {
                 cli->history_pos--;
                 if (cli->history_pos < 0) {
                     cli->history_pos = 0;
@@ -121,7 +123,7 @@ void *cli_invoker(void *arg) {
         pthread_cond_wait(&cli->cond, &cli->mutex);
         write(1, nl, sizeof(nl));
         if (cli_cmd_execute(cli->cmd)) {
-            if (errno != ECHILD) {
+            if (errno != EAGAIN && cli->cmd_len > 0) {
                 printf("Unknown command: \"%s\"\n", cli->cmd);
                 cli_cmd_print();
                 write(1, nl, sizeof(nl));

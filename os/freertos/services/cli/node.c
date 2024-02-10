@@ -86,7 +86,7 @@ int cli_cmd_execute(char *cmd) {
         return -1;
     }
     if (*cmd == '\0') {
-        errno = ECHILD;
+        errno = EAGAIN;
         return -1;
     }
 

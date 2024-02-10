@@ -13,16 +13,37 @@
 
 typedef struct {
     IRQn_Type id;
+    SemaphoreHandle_t tx_sem;
+    SemaphoreHandle_t rx_sem;
+    SemaphoreHandle_t tx_mutex;
+    SemaphoreHandle_t rx_mutex;
+    ring_buf_t *write_buf;
+    ring_buf_t *read_buf;
+    uint8_t *rx_buf;
+    uint8_t *tx_buf;
+    int error;
+    bool periph_init;
+    bool tasks_init;
+    bool port_open;
+    bool stdio;
+    int rx_count;
+    int tx_count;
 } usb_private_t;
 
 typedef struct {
     const char name[MAX_NAME_LEN];
     const char alt_name[MAX_NAME_LEN];
+    struct file_operations fops;
     gpio_t *gpio_tx;
     gpio_t *gpio_rx;
     gpio_t *gpio_vbus;
     gpio_t *gpio_id;
     gpio_t *gpio_sof;
+    int buf_size;
+    int irq_priority;
+    int task_priority;
+    int read_timeout;
+    usb_private_t p;
 } usb_t;
 
 int usb_init(usb_t *cfg);

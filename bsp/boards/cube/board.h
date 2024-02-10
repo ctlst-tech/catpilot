@@ -11,6 +11,7 @@
 #include "sd.h"
 
 #define BOARD_MAX_USART 6
+#define BOARD_MAX_CLI_DEVICES 10
 
 int board_start(int (*callback)(void), size_t stacksize, char *cli_port,
                 char *cli_baudrate);
@@ -112,5 +113,7 @@ extern can_t can1;
 extern can_t can2;
 
 extern usb_t usb0;
+
+extern periph_base_t *cli_dev[BOARD_MAX_CLI_DEVICES];
 
 #endif  // BOARD_H

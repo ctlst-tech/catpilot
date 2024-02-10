@@ -243,6 +243,7 @@ static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length)
   /* USER CODE END 5 */
 }
 
+extern int usb_receive_compl(uint8_t *buf, uint32_t *len);
 /**
   * @brief  Data received over USB OUT endpoint are sent over CDC interface
   *         through this function.
@@ -263,6 +264,7 @@ static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
   /* USER CODE BEGIN 6 */
   USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
   USBD_CDC_ReceivePacket(&hUsbDeviceFS);
+  usb_receive_compl(Buf, Len);
   return (USBD_OK);
   /* USER CODE END 6 */
 }
@@ -292,6 +294,16 @@ uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len)
   return result;
 }
 
+uint8_t CDC_Busy_FS(void)
+{
+  USBD_CDC_HandleTypeDef *hcdc = (USBD_CDC_HandleTypeDef*)hUsbDeviceFS.pClassData;
+  if (hcdc->TxState != 0){
+    return USBD_BUSY;
+  }
+  return USBD_OK;
+}
+
+extern int usb_transmit_compl(uint8_t *buf, uint32_t *len, uint8_t epnum);
 /**
   * @brief  CDC_TransmitCplt_FS
   *         Data transmitted callback
@@ -308,9 +320,7 @@ static int8_t CDC_TransmitCplt_FS(uint8_t *Buf, uint32_t *Len, uint8_t epnum)
 {
   uint8_t result = USBD_OK;
   /* USER CODE BEGIN 13 */
-  UNUSED(Buf);
-  UNUSED(Len);
-  UNUSED(epnum);
+  usb_transmit_compl(Buf, Len, epnum);
   /* USER CODE END 13 */
   return result;
 }

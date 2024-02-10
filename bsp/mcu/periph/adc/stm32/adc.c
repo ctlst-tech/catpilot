@@ -62,6 +62,9 @@ int adc_init(adc_t *cfg) {
 }
 
 float adc_get_volt(adc_t *cfg, uint8_t channel) {
+    if (cfg == NULL || cfg->p.mutex == NULL) {
+        return 0.0;
+    }
     float rv = -1.0;
     xSemaphoreTake(cfg->p.mutex, portMAX_DELAY);
     if (channel < ADC_MAX_CHANNELS) {
@@ -72,6 +75,9 @@ float adc_get_volt(adc_t *cfg, uint8_t channel) {
 }
 
 float adc_get_volt_max(adc_t *cfg, uint8_t channel) {
+    if (cfg == NULL || cfg->p.mutex == NULL) {
+        return 0.0;
+    }
     float rv = -1.0;
     xSemaphoreTake(cfg->p.mutex, portMAX_DELAY);
     if (channel < ADC_MAX_CHANNELS) {
@@ -82,6 +88,9 @@ float adc_get_volt_max(adc_t *cfg, uint8_t channel) {
 }
 
 float adc_get_volt_min(adc_t *cfg, uint8_t channel) {
+    if (cfg == NULL || cfg->p.mutex == NULL) {
+        return 0.0;
+    }
     float rv = -1.0;
     xSemaphoreTake(cfg->p.mutex, portMAX_DELAY);
     if (channel < ADC_MAX_CHANNELS) {
@@ -92,6 +101,9 @@ float adc_get_volt_min(adc_t *cfg, uint8_t channel) {
 }
 
 int adc_reset_stat_channel(adc_t *cfg, uint8_t channel) {
+    if (cfg == NULL || cfg->p.mutex == NULL) {
+        return 0.0;
+    }
     xSemaphoreTake(cfg->p.mutex, portMAX_DELAY);
     if (channel < ADC_MAX_CHANNELS) {
         cfg->p.max[channel] = cfg->p.meas[channel];
@@ -102,6 +114,9 @@ int adc_reset_stat_channel(adc_t *cfg, uint8_t channel) {
 }
 
 int adc_reset_stat(adc_t *cfg) {
+    if (cfg == NULL || cfg->p.mutex == NULL) {
+        return 0.0;
+    }
     for (int i = 0; i < ADC_MAX_CHANNELS; i++) {
         adc_reset_stat_channel(cfg, i);
     }

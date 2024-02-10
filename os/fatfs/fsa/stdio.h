@@ -56,13 +56,7 @@ int    mkdir(const char *pathname, mode_t mode);
 int    rmdir(const char *pathname);
 int    remove(const char *path);
 
-int std_stream_init(const char *stream, void *dev,
-                    int (*dev_open)(struct file *file, const char *path),
-                    ssize_t (*dev_write)(struct file *file, const char *buf,
-                                         size_t count),
-                    ssize_t (*dev_read)(struct file *file, char *buf,
-                                        size_t count),
-                    int (*dev_close)(struct file *file));
+int std_stream_init(const char *stream, struct file_operations *fops);
 int std_stream_deinit(const char *stream);
 
 #include <printf.h>

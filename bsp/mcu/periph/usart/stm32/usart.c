@@ -51,23 +51,20 @@ int usart_init(usart_t *cfg) {
         return rv;
     }
 
-    struct file_operations f_op = {.open = usart_open,
+    struct file_operations fops = {.open = usart_open,
                                    .write = usart_write,
                                    .read = usart_read,
                                    .close = usart_close,
                                    .ioctl = usart_ioctl,
                                    .dev = cfg};
-
     char path[32];
     sprintf(path, "/dev/%s", cfg->name);
-    if (node_mount(path, &f_op) == NULL) {
+    if (node_mount(path, &fops) == NULL) {
         return -1;
     }
 
-    cfg->p.rx_sem = xSemaphoreCreateBinary();
-    if (cfg->p.rx_sem == NULL) {
-        return -1;
-    }
+    cfg->fops = fops;
+
     cfg->p.tx_mutex = xSemaphoreCreateMutex();
     if (cfg->p.tx_mutex == NULL) {
         return -1;

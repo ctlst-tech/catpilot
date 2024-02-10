@@ -68,18 +68,17 @@ void board_start_thread(void *param) {
 }
 
 void *board_thread(void *arg) {
-    board_settings_t *board_settings = (board_settings_t *)arg;
-    if (board_cli_init(board_settings->cli_port,
-                       board_settings->cli_baudrate)) {
+    board_settings_t *bs = (board_settings_t *)arg;
+    if (board_cli_init(bs->cli_port, bs->cli_baudrate)) {
         goto idle;
     }
-    if (board_init(board_settings->cli_port, board_settings->cli_baudrate)) {
+    if (board_init(bs->cli_port, bs->cli_baudrate)) {
         fprintf(stderr, "----------------------------------------\n");
         fprintf(stderr, "FATAL ERROR: Board initialization failed\n");
         fprintf(stderr, "----------------------------------------\n");
         goto idle;
     }
-    if (board_settings->callback()) {
+    if (bs->callback()) {
         fprintf(stderr, "----------------------------------------\n");
         fprintf(stderr, "FATAL ERROR: Application start failed \n");
         fprintf(stderr, "----------------------------------------\n");
@@ -105,9 +104,11 @@ static int board_init(char *cli_port, char *baudrate) {
     if (board_services_start()) {
         return -1;
     }
+
 #ifndef MAINTENANCE_MODE
     board_run_app();
 #endif
+
     while (!board_get_app_status()) {
         sleep(1);
     }
@@ -115,39 +116,48 @@ static int board_init(char *cli_port, char *baudrate) {
 }
 
 int board_cli_init(char *cli_port, char *baudrate) {
-    usart_t *cli = NULL;
+    periph_base_t *cli = NULL;
 
     int baudrate_cmd = atoi(baudrate);
 
-    for (int i = 0; i < BOARD_MAX_USART; i++) {
-        if (usart[i] != NULL) {
-            if (strncmp(cli_port, usart[i]->name, MAX_NAME_LEN) == 0 ||
-                strncmp(cli_port, usart[i]->alt_name, MAX_NAME_LEN) == 0) {
-                cli = usart[i];
-                cli->init.Init.BaudRate = (uint32_t)baudrate_cmd;
+    for (int i = 0; i < BOARD_MAX_CLI_DEVICES; i++) {
+        if (cli_dev[i] != NULL) {
+            if (!strncmp(cli_port, cli_dev[i]->name, MAX_NAME_LEN) ||
+                !strncmp(cli_port, cli_dev[i]->alt_name, MAX_NAME_LEN)) {
+                cli = cli_dev[i];
             }
         }
     }
     if (cli == NULL) {
-        cli = &usart3;
+        cli = (periph_base_t *)&usart3;
     }
-    if (usart_init(cli)) {
+
+    // TODO: add main init handler
+    if (strstr(cli->name, "ttyS")) {
+        usart_t *cli_usart = (usart_t *)cli;
+        cli_usart->init.Init.BaudRate = (uint32_t)baudrate_cmd;
+        if (usart_init(cli_usart)) {
+            return -1;
+        }
+        cli_usart->p.stdio = true;
+    } else if (strstr(cli->name, "ttyUSB")) {
+        usb_t *cli_usb = (usb_t *)cli;
+        if (usb_init(cli_usb)) {
+            return -1;
+        }
+        cli_usb->p.stdio = true;
+    }
+
+    if (std_stream_init("stdin", &cli->fops)) {
         return -1;
     }
-    cli->p.stdio = true;
-    if (std_stream_init("stdin", cli, usart_open, usart_write, usart_read,
-                        usart_close)) {
+    if (std_stream_init("stdout", &cli->fops)) {
         return -1;
     }
-    if (std_stream_init("stdout", cli, usart_open, usart_write, usart_read,
-                        usart_close)) {
+    if (std_stream_init("stderr", &cli->fops)) {
         return -1;
     }
-    if (std_stream_init("stderr", cli, usart_open, usart_write, usart_read,
-                        usart_close)) {
-        return -1;
-    }
-    cli->p.stdio = false;
+    // cli->p.stdio = false;
     if (cli_service_start(CLI_MAX_CMD_LENGTH, 10, 1)) {
         return -1;
     }
@@ -389,10 +399,10 @@ static int board_periph_init(void) {
         LOG_ERROR("CAN2", "Initialization failed");
         return -1;
     }
-    if (usb_init(&usb0)) {
-        LOG_ERROR("USB0", "Initialization failed");
-        return -1;
-    }
+    // if (usb_init(&usb0)) {
+    //     LOG_ERROR("USB0", "Initialization failed");
+    //     return -1;
+    // }
     LOG_INFO("BOARD", "Initialization successful");
     return 0;
 }

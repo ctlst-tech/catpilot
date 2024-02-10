@@ -47,6 +47,7 @@ typedef struct {
 typedef struct {
     const char name[MAX_NAME_LEN];
     const char alt_name[MAX_NAME_LEN];
+    struct file_operations fops;
     UART_HandleTypeDef init;
     dma_t dma_tx;
     dma_t dma_rx;
