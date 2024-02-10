@@ -77,6 +77,9 @@ extern gpio_t gpio_can2_tx;
 extern gpio_t gpio_can2_rx;
 extern gpio_t gpio_otg_fs_dp;
 extern gpio_t gpio_otg_fs_dm;
+extern gpio_t gpio_otg_fs_vbus;
+extern gpio_t gpio_otg_fs_sof;
+extern gpio_t gpio_otg_fs_id;
 
 extern sdio_t sdio;
 extern spi_t spi1;
