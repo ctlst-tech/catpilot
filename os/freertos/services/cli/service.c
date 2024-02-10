@@ -123,7 +123,7 @@ void *cli_invoker(void *arg) {
         pthread_cond_wait(&cli->cond, &cli->mutex);
         write(1, nl, sizeof(nl));
         if (cli_cmd_execute(cli->cmd)) {
-            if (errno != EAGAIN && cli->cmd_len > 0) {
+            if (errno != EAGAIN) {
                 printf("Unknown command: \"%s\"\n", cli->cmd);
                 cli_cmd_print();
                 write(1, nl, sizeof(nl));

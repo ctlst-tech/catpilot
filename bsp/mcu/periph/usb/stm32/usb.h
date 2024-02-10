@@ -28,6 +28,7 @@ typedef struct {
     bool stdio;
     int rx_count;
     int tx_count;
+    bool host_port_state;
 } usb_private_t;
 
 typedef struct {

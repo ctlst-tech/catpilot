@@ -9,7 +9,7 @@
 #include "macros.h"
 #include "os.h"
 
-#define RINGBUFFER_MAX_SIZE 1024
+#define RINGBUFFER_MAX_SIZE 2048
 
 typedef struct {
     uint8_t *write_ptr;

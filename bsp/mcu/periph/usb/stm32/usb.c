@@ -31,8 +31,6 @@ int usb_init(usb_t *cfg) {
         return -1;
     }
 
-    MX_USB_DEVICE_Init();
-
     struct file_operations fops = {.open = usb_open,
                                    .write = usb_write,
                                    .read = usb_read,
@@ -64,6 +62,12 @@ int usb_init(usb_t *cfg) {
     if (cfg->p.tx_buf == NULL) {
         return -1;
     }
+
+    cfg->p.rx_count = 0;
+    cfg->p.tx_count = 0;
+    cfg->p.host_port_state = false;
+
+    MX_USB_DEVICE_Init();
 
     cfg->p.periph_init = true;
     return 0;
@@ -137,7 +141,7 @@ void usb_write_task(void *cfg_ptr) {
     uint16_t length;
     vTaskDelay(2000);
     while (1) {
-        if (CDC_Busy_FS()) {
+        if (CDC_Busy_FS() || !cfg->p.host_port_state) {
             vTaskDelay(10);
             continue;
         }
@@ -234,6 +238,14 @@ int usb_ioctl(FILE *file, int request, va_list args) {
 
 void usb_error_handler() {
     return;
+}
+
+void usb_set_host_com_port() {
+    usb->p.host_port_state = true;
+}
+
+void usb_reset_host_com_port() {
+    usb->p.host_port_state = false;
 }
 
 void OTG_FS_IRQHandler(void) {
