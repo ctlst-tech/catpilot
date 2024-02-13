@@ -88,10 +88,15 @@ if (MCU_FAMILY STREQUAL "stm32")
         mcu/periph/usb/${MCU_FAMILY}/USB_DEVICE/App/usb_device.c
         mcu/periph/usb/${MCU_FAMILY}/USB_DEVICE/App/usbd_cdc_if.c
         mcu/periph/usb/${MCU_FAMILY}/USB_DEVICE/App/usbd_desc.c
+        mcu/periph/usb/${MCU_FAMILY}/USB_DEVICE/App/usbd_storage_if.c
         mcu/periph/usb/${MCU_FAMILY}/STM32_USB_Device_Library/Class/CDC/Src/usbd_cdc.c
         mcu/periph/usb/${MCU_FAMILY}/STM32_USB_Device_Library/Core/Src/usbd_core.c
         mcu/periph/usb/${MCU_FAMILY}/STM32_USB_Device_Library/Core/Src/usbd_ctlreq.c
         mcu/periph/usb/${MCU_FAMILY}/STM32_USB_Device_Library/Core/Src/usbd_ioreq.c
+        mcu/periph/usb/${MCU_FAMILY}/STM32_USB_Device_Library/Class/MSC/Src/usbd_msc_bot.c
+        mcu/periph/usb/${MCU_FAMILY}/STM32_USB_Device_Library/Class/MSC/Src/usbd_msc_data.c
+        mcu/periph/usb/${MCU_FAMILY}/STM32_USB_Device_Library/Class/MSC/Src/usbd_msc_scsi.c
+        mcu/periph/usb/${MCU_FAMILY}/STM32_USB_Device_Library/Class/MSC/Src/usbd_msc.c
     )
 
     list(APPEND BSP_INC
@@ -112,6 +117,7 @@ if (MCU_FAMILY STREQUAL "stm32")
         mcu/periph/usb/${MCU_FAMILY}/USB_DEVICE/App
         mcu/periph/usb/${MCU_FAMILY}/STM32_USB_Device_Library/Class/CDC/Inc
         mcu/periph/usb/${MCU_FAMILY}/STM32_USB_Device_Library/Core/Inc
+        mcu/periph/usb/${MCU_FAMILY}/STM32_USB_Device_Library/Class/MSC/Inc
     )
 elseif (MCU_FAMILY STREQUAL "zynq")
     list(APPEND BSP_SRC
