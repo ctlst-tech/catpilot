@@ -5,10 +5,20 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 
 #include "ff.h"
 
 #undef strerror_r
+
+#define FATFS_SEEK_SET 0
+#define FATFS_SEEK_CUR 1
+#define FATFS_SEEK_END 2
+
+#define FATFS_MAX_FILES 32
+
+FIL fatfs_files[FATFS_MAX_FILES];
+int fatfs_index = 0;
 
 FIL *stream_to_fatfs(FILE *stream) {
     if (stream == NULL || stream->private_data == NULL) {
@@ -120,6 +130,11 @@ int fatfs_open(struct file *file, const char *path) {
     int rv = 0;
     errno = 0;
 
+    if (fatfs_index >= FATFS_MAX_FILES - 1) {
+        errno = ENOMEM;
+        return -1;
+    }
+
     int flags = file->flags;
 
     if ((flags & O_ACCMODE) == O_RDWR) {
@@ -134,20 +149,13 @@ int fatfs_open(struct file *file, const char *path) {
         if (flags & O_TRUNC) {
             fatfs_modes |= FA_CREATE_ALWAYS;
         } else {
-            fatfs_modes |= FA_OPEN_ALWAYS;
+            fatfs_modes |= FA_CREATE_NEW;
         }
     }
 
+    FIL tmp_file = {0};
+    file->private_data = &tmp_file;
     fh = stream_to_fatfs(file);
-
-    if (fh == NULL) {
-        file->private_data = (FIL *)calloc(sizeof(FIL), 1);
-        fh = stream_to_fatfs(file);
-        if (fh == NULL) {
-            return -1;
-        }
-    }
-
     res = f_open(fh, path, (BYTE)(fatfs_modes & 0xff));
 
     if (res != FR_OK) {
@@ -162,6 +170,14 @@ int fatfs_open(struct file *file, const char *path) {
             f_close(fh);
             return -1;
         }
+    }
+
+    if (!rv) {
+        // file->private_data = (FIL *)calloc(sizeof(FIL), 1);
+        // memcpy(file->private_data, &tmp_file, sizeof(FIL));
+        fatfs_files[fatfs_index] = tmp_file;
+        file->private_data = &fatfs_files[fatfs_index];
+        fatfs_index++;
     }
 
     return (rv);
@@ -188,6 +204,10 @@ ssize_t fatfs_write(struct file *file, const char *buf, size_t count) {
     res = f_write(fh, buf, (UINT)count, &size);
 
     if (res != FR_OK) {
+        errno = fatfs_to_errno(res);
+        return -1;
+    }
+    if (size != count) {
         errno = fatfs_to_errno(res);
         return -1;
     }
@@ -243,6 +263,7 @@ int fatfs_close(struct file *file) {
 
     res = f_close(fh);
 
+
     if (res != FR_OK) {
         errno = fatfs_to_errno(res);
         return -1;
@@ -271,6 +292,48 @@ int fatfs_syncfs(struct file *file) {
     }
 
     res = f_sync(fh);
+
+    if (res != FR_OK) {
+        errno = fatfs_to_errno(res);
+        return -1;
+    }
+
+    return 0;
+}
+
+int fatfs_lseek(struct file *file, off_t offset, int whence) {
+    FIL *fh;
+    FRESULT res;
+
+    errno = 0;
+
+    if (file == NULL) {
+        return -1;
+    }
+
+    fh = stream_to_fatfs(file);
+
+    if (fh == NULL) {
+        errno = EBADF;
+        return -1;
+    }
+
+    switch (whence) {
+        case FATFS_SEEK_SET:
+            break;
+
+        case FATFS_SEEK_CUR:
+            break;
+
+        case FATFS_SEEK_END:
+            offset = f_size(fh);
+            break;
+
+        default:
+            break;
+    }
+
+    res = f_lseek(fh, offset);
 
     if (res != FR_OK) {
         errno = fatfs_to_errno(res);
@@ -372,23 +435,35 @@ int fatfs_rmdir(const char *pathname) {
     return 0;
 }
 
-static dirent_t _de;
-dirent_t *fatfs_readdir(DIR *dirp) {
-    FILINFO fno;
-    int len;
-    int res;
-    errno = 0;
-
-    _de.d_name[0] = 0;
-    res = f_readdir(dirp, &fno);
-    if (res != FR_OK || fno.fname[0] == 0) {
+int fatfs_chdir(const char *path) {
+    int res = f_chdir(path);
+    if (res != FR_OK) {
         errno = fatfs_to_errno(res);
-        return NULL;
+        return -1;
     }
+    return 0;
+}
 
-    len = strlen(fno.fname);
-    strncpy(_de.d_name, fno.fname, len);
-    _de.d_name[len] = 0;
+int fatfs_stat(const char *pathname, struct stat *stat) {
+    FILINFO info;
+    int res = f_stat(pathname, &info);
+    if (res != FR_OK) {
+        errno = fatfs_to_errno(res);
+        return -1;
+    }
+    stat->st_size = info.fsize;
+    stat->st_mode = info.fattrib;
+    // TODO: convert FATFS fdate and ftime to mtime;
+    stat->st_mtime = 0;
+    return 0;
+}
 
-    return ((dirent_t *)&_de);
+int fatfs_remove(const char *pathname) {
+    FILINFO info;
+    int res = f_unlink(pathname);
+    if (res != FR_OK) {
+        errno = fatfs_to_errno(res);
+        return -1;
+    }
+    return 0;
 }

@@ -11,6 +11,8 @@
 #include "os.h"
 #include "ring_buf.h"
 
+#define USART_IOCTL_SET_READ_TIMEOUT 0
+
 enum usart_state_t { USART_FREE = 0, USART_TRANSMIT = 1, USART_RECEIVE = 2 };
 
 enum usart_receive_mode_t {
@@ -37,12 +39,15 @@ typedef struct {
     int error;
     bool periph_init;
     bool tasks_init;
+    bool port_open;
     bool use_dma;
+    bool stdio;
 } usart_private_t;
 
 typedef struct {
     const char name[MAX_NAME_LEN];
     const char alt_name[MAX_NAME_LEN];
+    struct file_operations fops;
     UART_HandleTypeDef init;
     dma_t dma_tx;
     dma_t dma_rx;
@@ -50,9 +55,10 @@ typedef struct {
     gpio_t *gpio_tx;
     gpio_t *gpio_rx;
     int buf_size;
-    int timeout;
+    int tx_rx_timeout;
     int irq_priority;
     int task_priority;
+    int read_timeout;
     usart_private_t p;
 } usart_t;
 
@@ -67,5 +73,6 @@ int usart_open(FILE *file, const char *path);
 ssize_t usart_write(FILE *file, const char *buf, size_t count);
 ssize_t usart_read(FILE *file, char *buf, size_t count);
 int usart_close(FILE *file);
+int usart_ioctl(FILE *file, int request, va_list args);
 
 #endif  // USART_H

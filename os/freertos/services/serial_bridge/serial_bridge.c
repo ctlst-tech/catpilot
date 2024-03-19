@@ -4,7 +4,8 @@ static int serial_bridge_priority;
 static int serial_bridge_buf_size;
 
 extern const char *board_get_tty_name(char *path);
-void board_print_tty_name(void);
+extern const char *board_get_cli_tty_name(void);
+extern void board_print_tty_name(void);
 
 typedef struct {
     char src_path[MAX_NAME_LEN];
@@ -27,7 +28,6 @@ int serial_bridge_start(int priority, int buf_size) {
 }
 
 void *serial_bridge_thread(void *arg) {
-    int rv;
     serial_bridge_t *bridge = (serial_bridge_t *)arg;
     bridge->wlen = 0;
     bridge->rlen = 0;
@@ -56,7 +56,6 @@ void *serial_bridge_thread(void *arg) {
 
 static int serial_bridge_open(const char *path, int baudrate) {
     struct termios termios_p;
-    int rv;
 
     int fd = open(path, O_RDWR);
     if (fd < 0) {
@@ -65,6 +64,7 @@ static int serial_bridge_open(const char *path, int baudrate) {
     }
 
     if (baudrate != 0) {
+        int rv;
         rv = tcgetattr(fd, &termios_p);
         if (rv) {
             printf("tcgetattr failed: %s, %s\n", path, strerror(errno));
@@ -124,10 +124,14 @@ void serial_bridge_help(void) {
 int serial_bridge_start_service(char *path1, char *path2, int baudrate1,
                                 int baudrate2) {
     int fd1 = serial_bridge_open(path1, baudrate1);
-    int fd2 = serial_bridge_open(path2, baudrate2);
-
-    if (fd1 < 0 || fd2 < 0) {
+    if (fd1 < 0) {
         printf("serial_bridge_open failed\n");
+        return -1;
+    }
+    int fd2 = serial_bridge_open(path2, baudrate2);
+    if (fd2 < 0) {
+        printf("serial_bridge_open failed\n");
+        close(fd1);
         return -1;
     }
 
@@ -259,15 +263,19 @@ int serial_bridge_commander(int argc, char **argv) {
         return 0;
     }
 
-    snprintf(path1, MAX_NAME_LEN, "/dev/%s", tty_name1);
-    snprintf(path2, MAX_NAME_LEN, "/dev/%s", tty_name2);
+    const char *cli_name = board_get_cli_tty_name();
 
-    if (!strcmp(path1, stdout->node->name) ||
-        !strcmp(path2, stdout->node->name)) {
+    if (!strcmp(tty_name1, cli_name) || !strcmp(tty_name2, cli_name)) {
+        close(0);
+        close(1);
+        close(2);
         std_stream_deinit("stdout");
         std_stream_deinit("stdin");
         std_stream_deinit("stderr");
     }
+
+    snprintf(path1, MAX_NAME_LEN, "/dev/%s", tty_name1);
+    snprintf(path2, MAX_NAME_LEN, "/dev/%s", tty_name2);
 
     serial_bridge_start_service(path1, path2, baudrate[0], baudrate[1]);
 

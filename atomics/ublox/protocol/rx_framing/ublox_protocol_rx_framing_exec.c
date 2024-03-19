@@ -1,5 +1,5 @@
 #include <fcntl.h>
-#include <sys/termios.h>
+#include <termios.h>
 #include <unistd.h>
 
 
@@ -158,13 +158,11 @@ static unsigned ubx_process(ublox_protocol_rx_framing_state_t *s, ublox_protocol
                         out_update_cmd->ubx_frame_updated = 1;
                         s->ubx_frame_cnt++;
 
-
-//                        printf("    %s || UBX. got frame %02X %02X len == %d | rx_bytes % 6d; frame_cnt % 4d; crc_err %d; unframed_bytes % 6d;\n",
-//                               pn,
-//                               ubx_hdr->cls, ubx_hdr->id, ubx_hdr->len,
-//                               s->rx_bytes_cnt, s->ubx_frame_cnt, s->ubx_err_crc_cnt,
-//                               s->rx_unframed_bytes_cnt);
-
+                        // printf("    %s || UBX. got frame %02X %02X len == %d | rx_bytes % 6d; frame_cnt % 4d; crc_err %d; unframed_bytes % 6d;\n",
+                        //        pn,
+                        //        ubx_hdr->cls, ubx_hdr->id, ubx_hdr->len,
+                        //        s->rx_bytes_cnt, s->ubx_frame_cnt, s->ubx_err_crc_cnt,
+                        //        s->rx_unframed_bytes_cnt);
 
                     } else {
                         s->ubx_err_crc_cnt++;

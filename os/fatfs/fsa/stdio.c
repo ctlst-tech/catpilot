@@ -47,6 +47,8 @@ const char *sys_errlist[] = {"OK",
                              "Bad Message",
                              NULL};
 
+const char sys_errtimedout[] = "Connection timed out";
+
 int fd_new(void) {
     int rv = -1;
     for (int i = 0; i < MAX_FILES; i++) {
@@ -59,7 +61,7 @@ int fd_new(void) {
 }
 
 int fd_delete(int fd) {
-    if (fd > MAX_FILES && fd < 0) {
+    if (fd >= MAX_FILES || fd < 0) {
         return -1;
     }
     files[fd] = NULL;
@@ -67,7 +69,7 @@ int fd_delete(int fd) {
 }
 
 int fd_check(int fd) {
-    if (fd < 0 || fd > MAX_FILES) {
+    if (fd < 0 || fd >= MAX_FILES) {
         errno = EBADF;
         return -1;
     }
@@ -96,7 +98,7 @@ int open(const char *pathname, int flags) {
     files[fd]->flags = flags;
 
     char *relative_pathname = strstr(pathname, node->name) + strlen(node->name);
-    while ((*relative_pathname) == '/' && (*relative_pathname) != '\0') {
+    while ((*relative_pathname) == '/') {
         relative_pathname++;
     }
     rv = files[fd]->node->f_op.open(files[fd], relative_pathname);
@@ -147,6 +149,27 @@ ssize_t read(int fd, void *buf, size_t count) {
     }
 
     rv = files[fd]->node->f_op.read(files[fd], buf, count);
+
+    return rv;
+}
+
+int ioctl(int fd, int request, ...) {
+    int rv;
+    errno = 0;
+
+    if (fd_check(fd)) {
+        return -1;
+    }
+
+    if (files[fd] == NULL || files[fd]->node->f_op.ioctl == NULL) {
+        errno = ENOENT;
+        return -1;
+    }
+
+    va_list args;
+    va_start(args, request);
+    rv = files[fd]->node->f_op.ioctl(files[fd], request, args);
+    va_end(args);
 
     return rv;
 }
@@ -335,11 +358,6 @@ int fsync(int fileno) {
         return -1;
     }
 
-    if (fileno > MAX_FILES) {
-        errno = EINVAL;
-        return -1;
-    }
-
     if (files[fileno] == NULL || files[fileno]->node->f_op.fsync == NULL) {
         errno = ENOENT;
         return -1;
@@ -355,8 +373,39 @@ int fsync(int fileno) {
     return 0;
 }
 
+off_t lseek(int fd, off_t offset, int whence) {
+    FILE *stream;
+    errno = 0;
+
+    if (fd_check(fd)) {
+        return -1;
+    }
+
+    if (files[fd] == NULL || files[fd]->node->f_op.lseek == NULL) {
+        errno = ENOENT;
+        return -1;
+    }
+
+    stream = files[fd];
+
+    if (stream->node->f_op.lseek(files[fd], offset, whence)) {
+        return -1;
+    }
+
+    return 0;
+}
+
 char *strerror(int errnum) {
-    return ((char *)sys_errlist[errnum]);
+    const char *ptr = NULL;
+
+    if (errnum >= 0 && errnum < EBADMSG) {
+        ptr = sys_errlist[errno];
+    } else if (errnum == ETIMEDOUT) {
+        ptr = sys_errtimedout;
+    } else {
+        ptr = sys_errlist[EBADMSG];
+    }
+    return (ptr);
 }
 
 void perror(const char *s) {
@@ -364,6 +413,8 @@ void perror(const char *s) {
 
     if (errno >= 0 && errno < EBADMSG) {
         ptr = sys_errlist[errno];
+    } else if (errno == ETIMEDOUT) {
+        ptr = sys_errtimedout;
     } else {
         ptr = sys_errlist[EBADMSG];
     }
@@ -386,29 +437,26 @@ int ferror(FILE *stream) {
     return 0;
 }
 
-int std_stream_init(const char *stream, void *dev,
-                    int (*dev_open)(struct file *file, const char *path),
-                    ssize_t (*dev_write)(struct file *file, const char *buf,
-                                         size_t count),
-                    ssize_t (*dev_read)(struct file *file, char *buf,
-                                        size_t count)) {
-    int fd;
+int std_stream_init(const char *stream, struct file_operations *fops) {
+    int fd, flags;
     char stream_name[16];
     char stream_path[16];
     struct file_operations f_op = {0};
 
-    if (stream == NULL || dev == NULL || dev_open == NULL ||
-        dev_write == NULL || dev_read == NULL) {
+    if (stream == NULL || fops == NULL) {
         return -1;
     }
 
-    f_op.open = dev_open;
-    f_op.dev = dev;
+    f_op.open = fops->open;
+    f_op.close = fops->close;
+    f_op.dev = fops->dev;
 
     if (!strcmp(stream, "stdin")) {
-        f_op.read = dev_read;
+        f_op.read = fops->read;
+        flags = O_RDONLY;
     } else if (!strcmp(stream, "stdout") || !strcmp(stream, "stderr")) {
-        f_op.write = dev_write;
+        f_op.write = fops->write;
+        flags = O_WRONLY;
     } else {
         return -1;
     }
@@ -420,13 +468,54 @@ int std_stream_init(const char *stream, void *dev,
         return -1;
     }
 
-    fd = open((const char *)stream_path, O_RDONLY);
+    fd = open((const char *)stream_path, flags);
 
     if (fd < 0) {
         return -1;
     }
 
     return 0;
+}
+
+int mkdir(const char *pathname, mode_t mode) {
+    int fd, rv;
+
+    struct node *node = node_find(pathname, NODE_MODE_NEAREST_PATH);
+    errno = 0;
+
+    if (node == NULL || node->f_op.mkdir == NULL) {
+        errno = ENOENT;
+        return -1;
+    }
+
+    char *relative_pathname = strstr(pathname, node->name) + strlen(node->name);
+    while ((*relative_pathname) == '/') {
+        relative_pathname++;
+    }
+    rv = node->f_op.mkdir(relative_pathname, mode);
+
+    return rv;
+}
+
+int rmdir(const char *pathname) {
+    int fd, rv;
+
+    struct node *node = node_find(pathname, NODE_MODE_NEAREST_PATH);
+    errno = 0;
+
+    if (node == NULL || node->f_op.rmdir == NULL) {
+        errno = ENOENT;
+        return -1;
+    }
+
+    char *relative_pathname = strstr(pathname, node->name) + strlen(node->name);
+    while ((*relative_pathname) == '/') {
+        relative_pathname++;
+    }
+
+    rv = node->f_op.rmdir(relative_pathname);
+
+    return rv;
 }
 
 extern struct node null_node;

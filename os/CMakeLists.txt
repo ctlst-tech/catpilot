@@ -6,7 +6,6 @@ if (OS STREQUAL "freertos")
     list(APPEND OS_INC
         freertos
         freertos/cfg
-        freertos/cli
         freertos/core/inc
         freertos/inc
         freertos/osa
@@ -19,11 +18,17 @@ if (OS STREQUAL "freertos")
         freertos/osa/include/private
         freertos/osa/FreeRTOS-Plus-POSIX/include
         freertos/osa/FreeRTOS-Plus-POSIX/include/portable
+        freertos/services/cat
         freertos/services/cli
+        freertos/services/file
         freertos/services/misc
         freertos/services/monitor
         freertos/services/serial_bridge
         freertos/services/service
+        freertos/services/ls
+        freertos/services/cd
+        freertos/services/pwd
+        freertos/services/rm
     )
 
     list(APPEND OS_SRC
@@ -33,8 +38,7 @@ if (OS STREQUAL "freertos")
         freertos/core/src/queue.c
         freertos/core/src/tasks.c
         freertos/core/src/timers.c
-        freertos/memmang/heap_3.c
-        freertos/memmang/heap.c
+        freertos/memmang/heap_custom.c
         freertos/osa/FreeRTOS-Plus-POSIX/source/FreeRTOS_POSIX_clock.c
         freertos/osa/FreeRTOS-Plus-POSIX/source/FreeRTOS_POSIX_mqueue.c
         freertos/osa/FreeRTOS-Plus-POSIX/source/FreeRTOS_POSIX_pthread_barrier.c
@@ -51,15 +55,25 @@ if (OS STREQUAL "freertos")
         freertos/services/misc/bit.c
         freertos/services/misc/log.c
         freertos/services/misc/ring_buf.c
+        freertos/services/cat/cat.c
         freertos/services/cli/cmd.c
         freertos/services/cli/node.c
         freertos/services/cli/service.c
+        freertos/services/file/file.c
         freertos/services/monitor/monitor.c
         freertos/services/serial_bridge/serial_bridge.c
         freertos/services/service/service.c
+        freertos/services/ls/ls.c
+        freertos/services/cd/cd.c
+        freertos/services/pwd/pwd.c
+        freertos/services/rm/rm.c
     )
 elseif (OS STREQUAL "posix")
     # OS specific sources
+elseif (OS STREQUAL "qnx")
+    list(APPEND OS_SRC
+        qnx/string.c
+    )
 else ()
     message(FATAL_ERROR "Operation system is not selected!")
 endif ()
@@ -80,9 +94,12 @@ if (FS STREQUAL "fatfs")
         fatfs/fsa/null.c
         fatfs/fsa/printf.c
         fatfs/fsa/stdio.c
+        fatfs/fsa/dirent.c
         fatfs/port/diskio.c
     )
 elseif (FS STREQUAL "posix")
+    # FS specific sources
+elseif (FS STREQUAL "qnx")
     # FS specific sources
 else ()
     message(FATAL_ERROR "File system is not selected!")

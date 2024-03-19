@@ -45,7 +45,6 @@ extern uint32_t rcc_system_clock;
 #define posixconfigENABLE_PTHREAD_COND_T 1
 #define posixconfigENABLE_PTHREAD_MUTEX_T 1
 #define posixconfigENABLE_PTHREAD_MUTEXATTR_T 1
-#define configUSE_POSIX_ERRNO 1
 
 /* Run time and task stats gathering related definitions. */
 #ifdef OS_MONITOR

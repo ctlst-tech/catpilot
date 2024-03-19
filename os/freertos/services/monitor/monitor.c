@@ -58,7 +58,7 @@ static void monitor_print_all(void) {
     monitor_print_thread_stat();
     monitor_print_mem_stat();
     monitor_print_volt_stat();
-    printf("---------------------------------------------------------\n\n");
+    printf("---------------------------------------------------------\n");
 }
 
 static void monitor_print_non_stop() {

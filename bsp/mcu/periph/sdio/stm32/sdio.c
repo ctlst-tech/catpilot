@@ -37,7 +37,7 @@ int sdio_init(sdio_t *cfg) {
     if ((rv = HAL_SD_Init(&cfg->init))) {
         return rv;
     }
-    if ((rv = HAL_SD_ConfigWideBusOperation(&cfg->init, SDMMC_BUS_WIDE_4B))) {
+    if ((rv = HAL_SD_ConfigSpeedBusOperation(&cfg->init, SDMMC_SPEED_MODE_AUTO))) {
         return rv;
     }
     if ((rv = irq_init(cfg->p.id, cfg->irq_priority, sdio_handler, cfg))) {
@@ -46,11 +46,13 @@ int sdio_init(sdio_t *cfg) {
     if ((rv = irq_enable(cfg->p.id))) {
         return rv;
     }
+    cfg->p.mutex = xSemaphoreCreateMutex();
     if (cfg->p.mutex == NULL) {
-        cfg->p.mutex = xSemaphoreCreateMutex();
+        return -1;
     }
+    cfg->p.sem = xSemaphoreCreateBinary();
     if (cfg->p.sem == NULL) {
-        cfg->p.sem = xSemaphoreCreateBinary();
+        return -1;
     }
 
     return rv;
@@ -87,6 +89,10 @@ int sdio_read_blocks(sdio_t *cfg, uint8_t *pdata, uint32_t address,
         rv = ETIMEDOUT;
     }
 
+    if (cfg->init.ErrorCode) {
+        rv |= cfg->init.ErrorCode;
+    }
+
 free:
     cfg->p.state = SDIO_FREE;
     xSemaphoreGive(cfg->p.mutex);
@@ -116,6 +122,10 @@ int sdio_write_blocks(sdio_t *cfg, uint8_t *pdata, uint32_t address,
         goto free;
     }
 
+    if ((SCB->CCR & SCB_CCR_DC_Msk) != 0U) {
+        SCB_CleanDCache_by_Addr(pdata, num * 512);
+    }
+
     rv = HAL_SD_WriteBlocks_DMA(&cfg->init, pdata, address, num);
     if (rv != HAL_OK) {
         goto free;
@@ -123,6 +133,10 @@ int sdio_write_blocks(sdio_t *cfg, uint8_t *pdata, uint32_t address,
 
     if (!xSemaphoreTake(cfg->p.sem, pdMS_TO_TICKS(cfg->timeout))) {
         rv = ETIMEDOUT;
+    }
+
+    if (cfg->init.ErrorCode) {
+        rv |= cfg->init.ErrorCode;
     }
 
 free:
@@ -135,15 +149,10 @@ free:
 int sdio_check_status_with_timeout(sdio_t *cfg, uint32_t timeout) {
     uint32_t status;
     uint32_t start = xTaskGetTickCount();
-    uint32_t dt;
-
-    dt = xTaskGetTickCount() - start;
-
-    if (dt > 100) {
-        vTaskDelay(0);
-    }
+    uint32_t dt = 0;
 
     while (dt < timeout) {
+        dt = xTaskGetTickCount() - start;
         status = HAL_SD_GetCardState(&cfg->init);
         if (status == HAL_SD_CARD_TRANSFER) {
             return 0;
@@ -185,7 +194,7 @@ void sdio_handler(void *area) {
     sdio_t *cfg = (sdio_t *)area;
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     HAL_SD_IRQHandler(&cfg->init);
-    if(cfg->init.State == HAL_SD_STATE_READY) {
+    if (cfg->init.State == HAL_SD_STATE_READY) {
         xSemaphoreGiveFromISR(cfg->p.sem, &xHigherPriorityTaskWoken);
         if (xHigherPriorityTaskWoken == pdTRUE) {
             portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
@@ -194,7 +203,7 @@ void sdio_handler(void *area) {
 }
 
 void HAL_SD_ErrorCallback(SD_HandleTypeDef *hsd) {
-    while (1);
+    // TODO: add handler
 }
 
 static int sdio_id_init(sdio_t *cfg) {

@@ -1,77 +1,101 @@
 #include <pthread.h>
+#include <sys/ioctl.h>
 
 #include "board.h"
 #include "cli.h"
 #include "core.h"
 #include "fatfs.h"
+#include "file.h"
 #include "hal.h"
 #include "log.h"
 #include "os.h"
 #include "periph.h"
 #include "serial_bridge.h"
 
-int board_clock_init(void);
-int board_monitor_init(void);
-int board_cli_init(char *cli_port, char *baudrate);
-int board_periph_init(void);
-int board_fs_init(void);
-int board_services_start(void);
+typedef struct {
+    int (*callback)(void);
+    size_t stacksize;
+    char *cli_port;
+    char *cli_baudrate;
+} board_settings_t;
 
-uint32_t rcc_system_clock = 400000000;
-uint32_t *board_monitor_counter;
+// Threads
+void board_start_thread(void *param);
+void *board_thread(void *arg);
 
+// Private functions
+static int board_clock_init(void);
+static int board_monitor_init(void);
+static int board_init(char *cli_port, char *baudrate);
+static int board_cli_init(char *cli_port, char *baudrate);
+static int board_fs_init(void);
+static int board_periph_init(void);
+static int board_gpio_init(void);
+static int board_services_start(void);
+
+// Private data
+static board_settings_t board_settings;
 static FATFS fs;
 
-typedef struct {
-    void *(*thread)(void *arg);
-    size_t stacksize;
-} main_thread_t;
-main_thread_t main_thread;
+// External functions
+extern int board_get_app_status(void);
+extern int board_run_app(void);
 
-void board_start_thread(void *param);
-
-#ifdef MAINTENANCE_MODE
-int board_app_status = 0;
-#else
-int board_app_status = 1;
-#endif
-
-int board_get_app_status(void) {
-    return board_app_status;
-}
-
-void board_run_app(void) {
-    board_app_status = 1;
-}
-
-void board_reset(void) {
-    NVIC_SystemReset();
-}
-
-int board_get_voltage(float *buf, int length) {
-    for (int i = 0; i < length; i++) {
-        buf[i] = adc_get_volt(&adc1, i);
-    }
-    return 0;
-}
-
-int board_start(void *(*thread)(void *arg), size_t stacksize) {
+int board_start(int (*callback)(void), size_t stacksize, char *cli_port,
+                char *cli_baudrate) {
     HAL_Init();
     board_clock_init();
     board_monitor_init();
-    main_thread.thread = thread;
-    main_thread.stacksize = stacksize;
+    board_settings.callback = callback;
+    board_settings.stacksize = stacksize;
+    board_settings.cli_port = cli_port;
+    board_settings.cli_baudrate = cli_baudrate;
     xTaskCreate(board_start_thread, "board_start_thread",
-                configMINIMAL_STACK_SIZE, &main_thread, 3, NULL);
+                configMINIMAL_STACK_SIZE, &board_settings, 3, NULL);
     vTaskStartScheduler();
     return 0;
 }
 
-int board_init(char *cli_port, char *baudrate) {
-    if (board_cli_init(cli_port, baudrate)) {
+void board_start_thread(void *param) {
+    board_settings_t *board_setting = (board_settings_t *)param;
+    pthread_t tid;
+    pthread_attr_t attr;
+    pthread_attr_init(&attr);
+    pthread_attr_setstacksize(&attr, board_setting->stacksize);
+    pthread_create(&tid, &attr, board_thread, param);
+    pthread_join(tid, NULL);
+    pthread_exit(NULL);
+}
+
+void *board_thread(void *arg) {
+    board_settings_t *bs = (board_settings_t *)arg;
+    if (board_cli_init(bs->cli_port, bs->cli_baudrate)) {
+        goto idle;
+    }
+    if (board_init(bs->cli_port, bs->cli_baudrate)) {
+        fprintf(stderr, "----------------------------------------\n");
+        fprintf(stderr, "FATAL ERROR: Board initialization failed\n");
+        fprintf(stderr, "----------------------------------------\n");
+        goto idle;
+    }
+    if (bs->callback()) {
+        fprintf(stderr, "----------------------------------------\n");
+        fprintf(stderr, "FATAL ERROR: Application start failed \n");
+        fprintf(stderr, "----------------------------------------\n");
+        goto idle;
+    }
+
+idle:
+    while (1) {
+        sleep(1);
+    }
+}
+
+static int board_init(char *cli_port, char *baudrate) {
+    if (board_fs_init()) {
         return -1;
     }
-    if (board_fs_init()) {
+    if (log_init("log", "/fs/logs", LOG_TO_FILE, 512)) {
         return -1;
     }
     if (board_periph_init()) {
@@ -80,104 +104,70 @@ int board_init(char *cli_port, char *baudrate) {
     if (board_services_start()) {
         return -1;
     }
-    if (!board_app_status) {
-        board_debug_mode();
+
+#ifndef MAINTENANCE_MODE
+    board_run_app();
+#endif
+
+    while (!board_get_app_status()) {
+        sleep(1);
     }
     return 0;
 }
 
-void board_debug_mode(void) {
-    while (1) {
-        if (board_app_status) {
-            break;
-        }
-        sleep(1);
-    }
-}
-
-void board_start_thread(void *param) {
-    main_thread_t *main_thread = (main_thread_t *)param;
-    pthread_t tid;
-    pthread_attr_t attr;
-    int arg = 0;
-
-    pthread_attr_init(&attr);
-    pthread_attr_setstacksize(&attr, main_thread->stacksize);
-    pthread_create(&tid, &attr, main_thread->thread, &arg);
-    pthread_join(tid, NULL);
-    pthread_exit(NULL);
-}
-
-const char *board_get_tty_name(char *path) {
-    for (int i = 0; i < BOARD_MAX_USART; i++) {
-        if (usart[i] != NULL) {
-            if (strncmp(path, usart[i]->name, MAX_NAME_LEN) == 0 ||
-                strncmp(path, usart[i]->alt_name, MAX_NAME_LEN) == 0) {
-                return usart[i]->name;
-            }
-        }
-    }
-    return NULL;
-}
-
-void board_print_tty_name(void) {
-    for (int i = 0; i < BOARD_MAX_USART; i++) {
-        if (usart[i] != NULL) {
-            printf("%s: %s\n", usart[i]->name, usart[i]->alt_name);
-        }
-    }
-}
-
 int board_cli_init(char *cli_port, char *baudrate) {
-    usart_t *cli = NULL;
+    periph_base_t *cli = NULL;
 
     int baudrate_cmd = atoi(baudrate);
 
-    for (int i = 0; i < BOARD_MAX_USART; i++) {
-        if (usart[i] != NULL) {
-            if (strncmp(cli_port, usart[i]->name, MAX_NAME_LEN) == 0 ||
-                strncmp(cli_port, usart[i]->alt_name, MAX_NAME_LEN) == 0) {
-                cli = usart[i];
-                cli->init.Init.BaudRate = baudrate_cmd;
+    for (int i = 0; i < BOARD_MAX_CLI_DEVICES; i++) {
+        if (cli_dev[i] != NULL) {
+            if (!strncmp(cli_port, cli_dev[i]->name, MAX_NAME_LEN) ||
+                !strncmp(cli_port, cli_dev[i]->alt_name, MAX_NAME_LEN)) {
+                cli = cli_dev[i];
             }
         }
     }
-
     if (cli == NULL) {
-        cli = &usart3;
+        cli = (periph_base_t *)&usart3;
     }
 
-    if (usart_init(cli)) {
+    // TODO: add main init handler
+    if (strstr(cli->name, "ttyS")) {
+        usart_t *cli_usart = (usart_t *)cli;
+        cli_usart->init.Init.BaudRate = (uint32_t)baudrate_cmd;
+        if (usart_init(cli_usart)) {
+            return -1;
+        }
+        cli_usart->p.stdio = true;
+    } else if (strstr(cli->name, "ttyUSB")) {
+        usb_t *cli_usb = (usb_t *)cli;
+        if (usb_init(cli_usb)) {
+            return -1;
+        }
+        cli_usb->p.stdio = true;
+    }
+
+    if (std_stream_init("stdin", &cli->fops)) {
         return -1;
     }
-    if (std_stream_init("stdin", cli, usart_open, usart_write, usart_read)) {
+    if (std_stream_init("stdout", &cli->fops)) {
         return -1;
     }
-    if (std_stream_init("stdout", cli, usart_open, usart_write, usart_read)) {
+    if (std_stream_init("stderr", &cli->fops)) {
         return -1;
     }
-    if (std_stream_init("stderr", cli, usart_open, usart_write, usart_read)) {
-        return -1;
-    }
-    if (cli_service_start(CLI_MAX_CMD_LENGTH, 1)) {
+    // cli->p.stdio = false;
+    if (cli_service_start(CLI_MAX_CMD_LENGTH, 10, 1)) {
         return -1;
     }
     if (cli_cmd_init()) {
         return -1;
     }
-
     return 0;
 }
 
-void HAL_Delay(uint32_t Delay) {
-    vTaskDelay(Delay);
-}
-
-uint32_t HAL_GetTick(void) {
-    return xTaskGetTickCount();
-}
-
-int board_clock_init(void) {
+static int board_clock_init(void) {
     RCC_OscInitTypeDef RCC_OscInitStruct = {0};
     RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
     RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
@@ -197,6 +187,7 @@ int board_clock_init(void) {
     RCC_OscInitStruct.PLL.PLLN = 100;
     RCC_OscInitStruct.PLL.PLLP = 2;
     RCC_OscInitStruct.PLL.PLLQ = 8;
+    RCC_OscInitStruct.PLL.PLLR = 2;
     RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
     while (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
     }
@@ -224,19 +215,24 @@ int board_clock_init(void) {
 
     // PLL3
     PeriphClkInitStruct.PLL3.PLL3FRACN = 0;
-    PeriphClkInitStruct.PLL3.PLL3M = 3;
+    PeriphClkInitStruct.PLL3.PLL3M = 6;
     PeriphClkInitStruct.PLL3.PLL3N = 72;
     PeriphClkInitStruct.PLL3.PLL3P = 3;
     PeriphClkInitStruct.PLL3.PLL3Q = 6;
     PeriphClkInitStruct.PLL3.PLL3R = 9;
 
     // Use special multiplexing
+    PeriphClkInitStruct.PeriphClockSelection =
+        RCC_PERIPHCLK_I2C123 | RCC_PERIPHCLK_SPI123 | RCC_PERIPHCLK_SPI45 |
+        RCC_PERIPHCLK_USB | RCC_PERIPHCLK_ADC | RCC_PERIPHCLK_SDMMC |
+        RCC_PERIPHCLK_FDCAN;
     PeriphClkInitStruct.I2c123ClockSelection = RCC_I2C123CLKSOURCE_HSI;
     PeriphClkInitStruct.Spi123ClockSelection = RCC_SPI123CLKSOURCE_PLL2;
     PeriphClkInitStruct.Spi45ClockSelection = RCC_SPI45CLKSOURCE_PLL2;
     PeriphClkInitStruct.UsbClockSelection = RCC_USBCLKSOURCE_PLL3;
     PeriphClkInitStruct.AdcClockSelection = RCC_ADCCLKSOURCE_PLL2;
     PeriphClkInitStruct.SdmmcClockSelection = RCC_SDMMCCLKSOURCE_PLL;
+    PeriphClkInitStruct.FdcanClockSelection = RCC_FDCANCLKSOURCE_HSE;
 
     while (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct)) {
     }
@@ -244,7 +240,7 @@ int board_clock_init(void) {
     return 0;
 }
 
-int board_monitor_init(void) {
+static int board_monitor_init(void) {
 #ifdef OS_MONITOR
     if (tim_init(&tim2)) {
         return -1;
@@ -255,7 +251,7 @@ int board_monitor_init(void) {
     return 0;
 }
 
-int board_gpio_init(void) {
+static int board_gpio_init(void) {
     if (gpio_init(&gpio_periph_en)) {
         return -1;
     }
@@ -346,7 +342,7 @@ int board_gpio_init(void) {
     return 0;
 }
 
-int board_periph_init(void) {
+static int board_periph_init(void) {
     if (board_gpio_init()) {
         LOG_ERROR("GPIO", "Initialization failed");
         return -1;
@@ -395,6 +391,18 @@ int board_periph_init(void) {
         LOG_ERROR("ADC1", "Initialization failed");
         return -1;
     }
+    if (can_init(&can1)) {
+        LOG_ERROR("CAN1", "Initialization failed");
+        return -1;
+    }
+    if (can_init(&can2)) {
+        LOG_ERROR("CAN2", "Initialization failed");
+        return -1;
+    }
+    // if (usb_init(&usb0)) {
+    //     LOG_ERROR("USB0", "Initialization failed");
+    //     return -1;
+    // }
     LOG_INFO("BOARD", "Initialization successful");
     return 0;
 }
@@ -405,52 +413,59 @@ static int board_sd_card_init(void) {
                                    .read = fatfs_read,
                                    .close = fatfs_close,
                                    .fsync = fatfs_syncfs,
+                                   .mkdir = fatfs_mkdir,
+                                   .rmdir = fatfs_rmdir,
+                                   .lseek = fatfs_lseek,
                                    .dev = &sdio};
     char name[] = "SDCARD";
     if (sdcard_start(name, &sdio) == NULL) {
-        LOG_ERROR(name, "Initialization failed");
         return -1;
     }
     if (node_mount("/fs", &f_op) == NULL) {
-        LOG_ERROR(name, "Node mount failed");
         return -1;
     }
     if (f_mount(&fs, "/", 1)) {
-        LOG_ERROR(name, "f_mount error");
         return -1;
     }
     return 0;
 }
 
-int board_fs_init(void) {
+static int board_fs_init(void) {
     if (sdio_init(&sdio)) {
-        LOG_ERROR("SDIO", "Initialization failed");
+        fprintf(stderr, "SDIO initialization failed\n");
         return -1;
     }
     if (board_sd_card_init()) {
+        fprintf(stderr, "SD card initialization failed\n");
+        return -1;
+    }
+    if (mkdir("/fs/logs", 0) && errno != EEXIST) {
+        fprintf(stderr, "Failed to mount logs dir\n");
+        return -1;
+    }
+    if (mkdir("/fs/cfg", 0) && errno != EEXIST) {
+        fprintf(stderr, "Failed to mount cfg dir\n");
+        return -1;
+    }
+    if (cli_cmd_reg("log", log_print) == NULL) {
+        return -1;
+    }
+    if (cli_cmd_reg("file", file_commander) == NULL) {
         return -1;
     }
     return 0;
 }
 
-int board_services_start(void) {
+static int board_services_start(void) {
     serial_bridge_start(15, 1024);
     icm20649 = icm20649_start("ICM20649", 2, 20, &spi1, &gpio_spi1_cs1,
                               &exti_spi1_drdy1);
-    icm20602 = icm20602_start("ICM20602", 2, 20, &spi4, &gpio_spi4_cs2, NULL);
-    icm20948 =
-        icm20948_start("ICM20948", 2, 20, &spi4, &gpio_spi4_cs1, NULL, 0);
+    // icm20602 = icm20602_start("ICM20602", 2, 20, &spi4, &gpio_spi4_cs2,
+    // NULL); icm20948 =
+    //     icm20948_start("ICM20948", 2, 20, &spi4, &gpio_spi4_cs1, NULL, 0);
     cubeio = cubeio_start("CUBEIO", 0, 19, &usart6);
     ms5611_1 = ms5611_start("MS5611_INT", 100, 17, &spi1, &gpio_spi1_cs2);
-    ms5611_2 = ms5611_start("MS5611_EXT", 100, 17, &spi4, &gpio_spi4_cs3);
+    // ms5611_2 = ms5611_start("MS5611_EXT", 100, 17, &spi4, &gpio_spi4_cs3);
     ist8310 = ist8310_start("IST8310_EXT", 100, 17, &i2c1);
     return 0;
-}
-
-int board_fail(void) {
-    LOG_ERROR("BOARD", "Fatal error");
-    while (1) {
-        vTaskDelay(1000);
-    }
-    return -1;
 }

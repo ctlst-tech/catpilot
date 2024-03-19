@@ -1,5 +1,11 @@
 #include "cli.h"
 
+extern int file_commander(int argc, char **argv);
+extern int cat_commander(int argc, char **argv);
+extern int ls_commander(int argc, char **argv);
+extern int rm_commander(int argc, char **argv);
+extern int cd_commander(int argc, char **argv);
+extern int pwd_commander(int argc, char **argv);
 extern int log_print(int argc, char **argv);
 
 extern void board_reset(void);
@@ -64,6 +70,9 @@ int system_commander(int argc, char **argv) {
 int cli_cmd_init(void) {
     printf("%s", logo);
 
+    if(cli_cmd_reg("cat", cat_commander) == NULL) {
+        return -1;
+    }
     if (cli_cmd_reg("help", help) == NULL) {
         return -1;
     }
@@ -73,10 +82,19 @@ int cli_cmd_init(void) {
     if (cli_cmd_reg("clear", clear) == NULL) {
         return -1;
     }
-    if (cli_cmd_reg("log", log_print) == NULL) {
+    if (cli_cmd_reg("system", system_commander) == NULL) {
         return -1;
     }
-    if (cli_cmd_reg("system", system_commander) == NULL) {
+    if (cli_cmd_reg("ls", ls_commander) == NULL) {
+        return -1;
+    }
+    if (cli_cmd_reg("cd", cd_commander) == NULL) {
+        return -1;
+    }
+    if (cli_cmd_reg("pwd", pwd_commander) == NULL) {
+        return -1;
+    }
+    if (cli_cmd_reg("rm", rm_commander) == NULL) {
         return -1;
     }
     return 0;

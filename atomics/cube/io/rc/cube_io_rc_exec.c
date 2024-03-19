@@ -29,7 +29,7 @@ void cube_io_rc_exec(cube_io_rc_outputs_t *o)
 {
     double rc[16];
 
-    gpio_set(&gpio_fmu_pwm[2]);
+    // gpio_set(&gpio_fmu_pwm[2]);
 
     cubeio_get_rc(cubeio, rc);
     o->rc_channel1 = rc[0];

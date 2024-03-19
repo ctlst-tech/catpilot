@@ -11,16 +11,12 @@
 #include "sd.h"
 
 #define BOARD_MAX_USART 6
+#define BOARD_MAX_CLI_DEVICES 10
 
-int board_start(void *(*thread)(void *arg), size_t stacksize);
-int board_init(char *cli_port, char *baudrate);
-void board_debug_mode(void);
-int board_fail(void);
+int board_start(int (*callback)(void), size_t stacksize, char *cli_port,
+                char *cli_baudrate);
 
-extern uint32_t rcc_system_clock;
 extern uint32_t *board_monitor_counter;
-
-extern exti_t exti_spi1_drdy1;
 
 extern gpio_t gpio_brick1_valid;
 extern gpio_t gpio_brick2_valid;
@@ -76,6 +72,15 @@ extern gpio_t gpio_i2c1_scl;
 extern gpio_t gpio_i2c1_sda;
 extern gpio_t gpio_i2c2_scl;
 extern gpio_t gpio_i2c2_sda;
+extern gpio_t gpio_can1_tx;
+extern gpio_t gpio_can1_rx;
+extern gpio_t gpio_can2_tx;
+extern gpio_t gpio_can2_rx;
+extern gpio_t gpio_otg_fs_dp;
+extern gpio_t gpio_otg_fs_dm;
+extern gpio_t gpio_otg_fs_vbus;
+extern gpio_t gpio_otg_fs_sof;
+extern gpio_t gpio_otg_fs_id;
 
 extern sdio_t sdio;
 extern spi_t spi1;
@@ -103,5 +108,12 @@ extern ms5611_t *ms5611_2;
 extern ist8310_t *ist8310;
 
 extern adc_t adc1;
+
+extern can_t can1;
+extern can_t can2;
+
+extern usb_t usb0;
+
+extern periph_base_t *cli_dev[BOARD_MAX_CLI_DEVICES];
 
 #endif  // BOARD_H

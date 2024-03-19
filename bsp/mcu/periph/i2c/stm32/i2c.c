@@ -61,14 +61,17 @@ int i2c_init(i2c_t *cfg) {
         return rv;
     }
 
+    cfg->p.mutex = xSemaphoreCreateMutex();
     if (cfg->p.mutex == NULL) {
-        cfg->p.mutex = xSemaphoreCreateMutex();
+        return -1;
     }
+    cfg->p.cs_mutex = xSemaphoreCreateMutex();
     if (cfg->p.cs_mutex == NULL) {
-        cfg->p.cs_mutex = xSemaphoreCreateMutex();
+        return -1;
     }
+    cfg->p.sem = xSemaphoreCreateBinary();
     if (cfg->p.sem == NULL) {
-        cfg->p.sem = xSemaphoreCreateBinary();
+        return -1;
     }
     return rv;
 }
@@ -76,8 +79,12 @@ int i2c_init(i2c_t *cfg) {
 int i2c_transmit(i2c_t *cfg, uint8_t address, uint8_t *pdata, uint16_t length) {
     int rv = 0;
 
-    if (length == 0) return EINVAL;
-    if (pdata == NULL) return EINVAL;
+    if (length == 0) {
+        return EINVAL;
+    }
+    if (pdata == NULL) {
+        return EINVAL;
+    }
 
     if (xSemaphoreTake(cfg->p.mutex, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
         return ETIMEDOUT;
@@ -87,12 +94,11 @@ int i2c_transmit(i2c_t *cfg, uint8_t address, uint8_t *pdata, uint16_t length) {
 
     cfg->p.state = I2C_TRANSMIT;
 
-    HAL_I2C_Master_Transmit_DMA(&cfg->init, address, pdata, length);
+    rv = HAL_I2C_Master_Transmit_DMA(&cfg->init, address, pdata, length);
 
-    if (rv == HAL_OK && !xSemaphoreTake(cfg->p.sem, pdMS_TO_TICKS(cfg->timeout))) {
+    if (rv == HAL_OK &&
+        !xSemaphoreTake(cfg->p.sem, pdMS_TO_TICKS(cfg->timeout))) {
         rv = ETIMEDOUT;
-    } else {
-        rv = 0;
     }
 
     cfg->p.state = I2C_FREE;
@@ -104,8 +110,12 @@ int i2c_transmit(i2c_t *cfg, uint8_t address, uint8_t *pdata, uint16_t length) {
 int i2c_receive(i2c_t *cfg, uint8_t address, uint8_t *pdata, uint16_t length) {
     int rv = 0;
 
-    if (length == 0) return EINVAL;
-    if (pdata == NULL) return EINVAL;
+    if (length == 0) {
+        return EINVAL;
+    }
+    if (pdata == NULL) {
+        return EINVAL;
+    }
 
     if (xSemaphoreTake(cfg->p.mutex, pdMS_TO_TICKS(cfg->timeout)) == pdFALSE) {
         return ETIMEDOUT;
@@ -115,12 +125,11 @@ int i2c_receive(i2c_t *cfg, uint8_t address, uint8_t *pdata, uint16_t length) {
 
     cfg->p.state = I2C_RECEIVE;
 
-    HAL_I2C_Master_Receive_DMA(&cfg->init, address, pdata, length);
+    rv = HAL_I2C_Master_Receive_DMA(&cfg->init, address, pdata, length);
 
-    if (rv == HAL_OK && !xSemaphoreTake(cfg->p.sem, pdMS_TO_TICKS(cfg->timeout))) {
+    if (rv == HAL_OK &&
+        !xSemaphoreTake(cfg->p.sem, pdMS_TO_TICKS(cfg->timeout))) {
         rv = ETIMEDOUT;
-    } else {
-        rv = 0;
     }
 
     cfg->p.state = I2C_FREE;
@@ -149,16 +158,13 @@ void i2c_er_handler(void *area) {
 void i2c_dma_tx_handler(void *area) {
     i2c_t *cfg = (i2c_t *)area;
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-
     HAL_DMA_IRQHandler(&cfg->dma_tx.init);
 }
 
 void i2c_dma_rx_handler(void *area) {
     i2c_t *cfg = (i2c_t *)area;
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-
     HAL_DMA_IRQHandler(&cfg->dma_rx.init);
-
 }
 
 static int i2c_id_init(i2c_t *cfg) {

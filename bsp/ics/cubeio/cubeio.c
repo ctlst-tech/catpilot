@@ -24,10 +24,13 @@ void cubeio_update_safety_options(cubeio_t *dev);
 uint16_t cubeio_scale_output(double out, cubeio_range_cfg_t *cfg);
 double cubeio_scale_input(uint16_t in, cubeio_range_cfg_t *cfg);
 
+#warning GPIO_FMU_DEBUG
+extern gpio_t gpio_fmu_pwm[6];
+
 // Public functions
 cubeio_t *cubeio_start(char *name, uint32_t period, uint32_t priority,
                        usart_t *usart) {
-    if (usart == NULL || name == NULL || priority <= 0) {
+    if (usart == NULL || name == NULL) {
         return NULL;
     }
 
@@ -191,7 +194,7 @@ static void cubeio_fsm(void *area) {
                 dev->sync.last_rc_read_ms =
                     xTaskGetTickCount() * portTICK_PERIOD_MS;
                 // DEBUG
-                gpio_reset(&gpio_fmu_pwm[2]);
+                // gpio_reset(&gpio_fmu_pwm[2]);
             }
             if (dev->sync.now - dev->sync.last_status_read_ms > 50) {
                 cubeio_read_regs(dev, PAGE_STATUS, 0,
@@ -269,9 +272,7 @@ uint16_t cubeio_get_pwm_channel(cubeio_t *dev, uint8_t channel) {
 }
 
 void cubeio_set_safety_mask(cubeio_t *dev, uint16_t safety_mask) {
-    if (dev->pwm_out.safety_mask != safety_mask) {
-        dev->pwm_out.safety_mask = safety_mask;
-    }
+    dev->pwm_out.safety_mask = safety_mask;
     cubeio_push_event(dev, CUBEIO_SET_SAFETY_MASK);
 }
 
@@ -345,8 +346,8 @@ void cubeio_enable_sbus_out(cubeio_t *dev, uint16_t freq) {
 static int cubeio_write_regs(cubeio_t *dev, uint8_t page, uint8_t offset,
                              uint8_t count, uint16_t *regs) {
     int rv;
-    cubeio_packet_t tx_pkt = {};
-    cubeio_packet_t rx_pkt = {};
+    cubeio_packet_t tx_pkt = {0};
+    cubeio_packet_t rx_pkt = {0};
 
     tx_pkt.count = count;
     tx_pkt.code = PKT_CODE_WRITE;
@@ -387,8 +388,8 @@ static int cubeio_write_regs(cubeio_t *dev, uint8_t page, uint8_t offset,
 static int cubeio_read_regs(cubeio_t *dev, uint8_t page, uint8_t offset,
                             uint8_t count, uint16_t *regs) {
     int rv;
-    cubeio_packet_t tx_pkt = {};
-    cubeio_packet_t rx_pkt = {};
+    cubeio_packet_t tx_pkt = {0};
+    cubeio_packet_t rx_pkt = {0};
 
     tx_pkt.count = count;
     tx_pkt.code = PKT_CODE_READ;
@@ -504,7 +505,7 @@ uint16_t cubeio_scale_output(double out, cubeio_range_cfg_t *cfg) {
 }
 
 double cubeio_scale_input(uint16_t in, cubeio_range_cfg_t *cfg) {
-    double rv;
+    double rv = 0.0;
     if (in < cfg->min || in > cfg->max) {
         rv = 0;
     } else if (cfg->type == CUBEIO_CHANNEL_UNIPOLAR) {

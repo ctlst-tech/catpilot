@@ -18,8 +18,7 @@ static void ms5611_process_meas(ms5611_t *dev);
 // Public functions
 ms5611_t *ms5611_start(const char *name, uint32_t period, uint32_t priority,
                        spi_t *spi, gpio_t *cs) {
-    if (spi == NULL || cs == NULL || name == NULL || period <= 0 ||
-        priority <= 0) {
+    if (spi == NULL || cs == NULL || name == NULL) {
         return NULL;
     }
 
@@ -120,7 +119,6 @@ static void ms5611_exchange(ms5611_t *dev, uint8_t *tx_buf, uint8_t *rx_buf,
 }
 
 static void ms5611_reset(ms5611_t *dev) {
-    uint8_t reg = CMD_MS5611_RESET;
     ms5611_exchange(dev, (uint8_t *)&CMD_MS5611_RESET, NULL, 1);
 }
 
@@ -132,7 +130,7 @@ uint16_t ms5611_read_prom(ms5611_t *dev, uint8_t word) {
 }
 
 static int ms5611_read_calib(ms5611_t *dev) {
-    uint16_t prom[MS5611_PROM_SIZE] = {};
+    uint16_t prom[MS5611_PROM_SIZE] = {0};
 
     for (int i = 0; i < MS5611_PROM_SIZE; i++) {
         prom[i] = ms5611_read_prom(dev, i);
@@ -159,7 +157,7 @@ static int ms5611_read_calib(ms5611_t *dev) {
 }
 
 static uint32_t ms5611_read_adc(ms5611_t *dev) {
-    uint8_t data[4] = {};
+    uint8_t data[4] = {0};
     data[0] = CMD_MS5611_READ_ADC;
     ms5611_exchange(dev, data, data, sizeof(data));
     uint32_t reg = (data[1] << 16) | (data[2] << 8) | data[3];
@@ -242,7 +240,7 @@ static void ms5611_process_meas(ms5611_t *dev) {
 
     // Low temperature compensation
     if (TEMP < 2000) {
-        T2 = (dT * dT) / (1 << 31);
+        T2 = (dT * dT) / ((int64_t)1 << 31);
         OFF2 = 5 * (TEMP - 2000) * (TEMP - 2000) / 2;
         SENS2 = 5 * (TEMP - 2000) * (TEMP - 2000) / 4;
         if (TEMP < -1500) {

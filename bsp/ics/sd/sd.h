@@ -12,6 +12,7 @@ typedef struct {
     char name[MAX_NAME_LEN];
     sdio_t *sdio;
     HAL_SD_CardInfoTypeDef info;
+    SemaphoreHandle_t mutex;
 } sdcard_t;
 
 sdcard_t *sdcard_start(char *name, sdio_t *sdio);
