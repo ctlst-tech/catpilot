@@ -25,7 +25,7 @@ void *board_thread(void *arg);
 // Private functions
 static int board_clock_init(void);
 static int board_monitor_init(void);
-static int board_init(char *cli_port, char *baudrate);
+int board_init(char *cli_port, char *baudrate);
 static int board_cli_init(char *cli_port, char *baudrate);
 static int board_fs_init(void);
 static int board_periph_init(void);
@@ -79,7 +79,7 @@ void *board_thread(void *arg) {
     return NULL;
 }
 
-static int board_init(char *cli_port, char *baudrate) {
+int board_init(char *cli_port, char *baudrate) {
     if (board_cli_init(cli_port, baudrate)) {
         return -1;
     }
