@@ -4,12 +4,21 @@
 #include "icm20602.h"
 #include "icm20649.h"
 #include "icm20948.h"
+#include "icm42688.h"
+#include "icm45686.h"
+#include "ak09916.h"
+#include "ak09918.h"
 #include "ms5611.h"
 #include "ist8310.h"
 
 icm20649_t *icm20649;
 icm20602_t *icm20602;
 icm20948_t *icm20948;
+icm42688_t *icm42688;
+icm45686_t *icm45686;
+icm45686_t *icm45686_sec;
+ak09916_t *ak09916;
+ak09918_t *ak09918;
 cubeio_t *cubeio;
 ms5611_t *ms5611_1;
 ms5611_t *ms5611_2;

@@ -12,6 +12,7 @@
 
 #define CUBEIO_PKT_MAX_REGS 22
 #define CUBEIO_MAX_CHANNELS 16
+//#define OLD_PROTOCOL
 
 #pragma pack(push, 1)
 typedef struct {
@@ -24,32 +25,11 @@ typedef struct {
 } cubeio_packet_t;
 #pragma pack(pop)
 
+#ifdef OLD_PROTOCOL
 typedef struct {
     uint16_t protocol_version;
     uint16_t protocol_version2;
 } cubeio_page_config_t;
-
-typedef struct {
-    uint8_t num_channels;
-    uint16_t pwm[CUBEIO_MAX_CHANNELS];
-    uint16_t failsafe_pwm[CUBEIO_MAX_CHANNELS];
-    uint8_t heater_duty;
-    uint16_t safety_mask;
-} cubeio_pwm_out_t;
-
-typedef struct {
-    uint16_t pwm[CUBEIO_MAX_CHANNELS];
-} cubeio_pwm_in_t;
-
-typedef struct {
-    uint16_t freq;
-    uint16_t chmask;
-    uint16_t default_freq;
-    uint16_t sbus_rate_hz;
-    uint8_t oneshot_enabled;
-    uint8_t brushed_enabled;
-} cubeio_rate_t;
-
 typedef struct {
     uint16_t freemem;
     uint32_t timestamp_ms;
@@ -66,14 +46,64 @@ typedef struct {
     uint8_t err_uart;
 } cubeio_page_reg_status_t;
 
+#else
+
 typedef struct {
-    uint8_t count;
-    uint8_t flags_failsafe : 1;
-    uint8_t flags_rc_ok : 1;
-    uint8_t rc_protocol;
-    uint16_t channel[CUBEIO_MAX_CHANNELS];
-    int16_t rssi;
-} cubeio_page_rc_input_t;
+    uint16_t protocol_version;
+    uint16_t protocol_version2;
+    uint32_t mcuid;
+    uint32_t cpuid;
+} cubeio_page_config_t;
+
+typedef struct {
+    uint16_t freemem;
+    uint16_t freemstack;
+    uint16_t freepstack;
+    uint32_t timestamp_ms;
+    uint16_t vservo;
+    uint16_t vrssi;
+    uint32_t num_errors;
+    uint32_t total_pkts;
+    uint32_t total_ticks;
+    uint32_t total_events;
+    uint8_t flag_safety_off;
+    uint8_t rcout_mask;
+    uint8_t rcout_mode;
+    uint8_t err_crc;
+    uint8_t err_bad_opcode;
+    uint8_t err_read;
+    uint8_t err_write;
+    uint8_t err_uart;
+    uint8_t err_lock;
+    uint8_t spare;
+} cubeio_page_reg_status_t;
+
+
+#endif
+
+enum output_mode {
+    MODE_PWM_NONE,
+    MODE_PWM_NORMAL,
+    MODE_PWM_ONESHOT,
+    MODE_PWM_ONESHOT125,
+    MODE_PWM_BRUSHED,
+    MODE_PWM_DSHOT150,
+    MODE_PWM_DSHOT300,
+    MODE_PWM_DSHOT600,
+    MODE_PWM_DSHOT1200,
+    MODE_NEOPIXEL,  // same as MODE_PWM_DSHOT at 800kHz but it's an LED
+    MODE_PROFILED,  // same as MODE_PWM_DSHOT using separate clock and data
+    MODE_NEOPIXELRGB,  // same as MODE_NEOPIXEL but RGB ordering
+};
+
+typedef struct {
+    uint16_t mask;
+    uint16_t mode;
+    uint16_t bdmask;
+    uint16_t esc_type;
+    uint16_t reversible_mask;
+} cubeio_page_mode_out_t;
+
 
 /*
   data for mixing on FMU failsafe
@@ -109,6 +139,26 @@ typedef struct {
 
     uint8_t pad;
 } cubeio_page_mixing_t;
+typedef struct {
+    uint8_t num_channels;
+    uint16_t pwm[CUBEIO_MAX_CHANNELS];
+    uint16_t failsafe_pwm[CUBEIO_MAX_CHANNELS];
+    uint8_t heater_duty;
+    uint16_t safety_mask;
+} cubeio_pwm_out_t;
+
+typedef struct {
+    uint16_t pwm[CUBEIO_MAX_CHANNELS];
+} cubeio_pwm_in_t;
+
+typedef struct {
+    uint16_t freq;
+    uint16_t chmask;
+    uint16_t default_freq;
+    uint16_t sbus_rate_hz;
+    uint8_t oneshot_enabled;
+    uint8_t brushed_enabled;
+} cubeio_rate_t;
 
 typedef struct __attribute__((packed, aligned(2))) {
     uint8_t channel_mask;
@@ -120,6 +170,15 @@ typedef struct {
     uint16_t min;
     uint16_t max;
 } cubeio_range_cfg_t;
+
+typedef struct {
+    uint8_t count;
+    uint8_t flags_failsafe : 1;
+    uint8_t flags_rc_ok : 1;
+    uint8_t rc_protocol;
+    uint16_t channel[CUBEIO_MAX_CHANNELS];
+    int16_t rssi;
+} cubeio_page_rc_input_t;
 
 // Sync
 typedef struct {
@@ -183,6 +242,7 @@ typedef struct {
     cubeio_packet_t rx_packet;
     cubeio_eventmask_t eventmask;
     cubeio_page_config_t config;
+    cubeio_page_mode_out_t mode;
     cubeio_pwm_out_t pwm_out;
     cubeio_pwm_in_t pwm_in;
     cubeio_rate_t rate;

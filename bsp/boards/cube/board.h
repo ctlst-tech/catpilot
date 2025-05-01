@@ -5,6 +5,10 @@
 #include "icm20602.h"
 #include "icm20649.h"
 #include "icm20948.h"
+#include "icm42688.h"
+#include "icm45686.h"
+#include "ak09916.h"
+#include "ak09918.h"
 #include "ist8310.h"
 #include "ms5611.h"
 #include "periph.h"
@@ -36,6 +40,7 @@ extern gpio_t gpio_spi1_mosi;
 extern gpio_t gpio_spi1_cs1;
 extern exti_t exti_spi1_drdy1;
 extern gpio_t gpio_spi1_cs2;
+extern gpio_t gpio_spi1_cs3;
 extern gpio_t gpio_spi2_sck;
 extern gpio_t gpio_spi2_miso;
 extern gpio_t gpio_spi2_mosi;
@@ -96,6 +101,11 @@ extern i2c_t i2c2;
 extern icm20649_t *icm20649;
 extern icm20602_t *icm20602;
 extern icm20948_t *icm20948;
+extern icm42688_t *icm42688;
+extern icm45686_t *icm45686;
+extern icm45686_t *icm45686_sec;
+extern ak09916_t *ak09916;
+extern ak09918_t *ak09918;
 extern cubeio_t *cubeio;
 extern ms5611_t *ms5611_1;
 extern ms5611_t *ms5611_2;

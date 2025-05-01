@@ -1,0 +1,243 @@
+#ifndef ICM45686_REG_H
+#define ICM45686_REG_H
+
+#include "bit.h"
+
+#define type_t static const uint8_t
+
+// Bank 0 Register Map
+enum BANK_0
+{
+	ACCEL_DATA_X1_UI = 0x00,
+	TEMP_DATA1_UI = 0x0C,
+	TEMP_DATA0_UI = 0xD,
+	PWR_MGMT0 = 0x10,
+	FIFO_COUNT_0 = 0x12,
+	FIFO_COUNT_1 = 0x13,
+	FIFO_DATA = 0x14,
+
+	INT1_CONFIG0 = 0x16,
+	INT1_CONFIG1 = 0x17,
+	INT1_CONFIG2 = 0x18,
+	INT1_STATUS0 = 0x19,
+	ACCEL_CONFIG0 = 0x1B,
+	GYRO_CONFIG0 = 0x1C,
+	FIFO_CONFIG0 = 0x1D,
+	FIFO_CONFIG1_0 = 0x1E,
+	FIFO_CONFIG1_1 = 0x1F,
+	FIFO_CONFIG2 = 0x20,
+	FIFO_CONFIG3 = 0x21,
+	FIFO_CONFIG4 = 0x22,
+	RTC_CONFIG = 0x26,
+	DMP_EXT_SEN_ODR_CFG = 0x27,
+	EDMP_APEX_EN0 = 0x29,
+	EDMP_APEX_EN1 = 0x2A,
+	APEX_BUFFER_MGMT = 0x2B,
+	INTF_CONFIG0 = 0x2C,
+	INTF_CONFIG1_OVRD = 0x2D,
+	INTF_AUX_CONFIG = 0x2E,
+	IOC_PAD_SCENARIO = 0x2F,
+	IOC_PAD_SCENARIO_AUX_OVRD = 0x30,
+	IOC_PAD_SCENARIO_OVRD = 0x31,
+	DRIVE_CONFIG0 = 0x32,
+	DRIVE_CONFIG1 = 0x33,
+	DRIVE_CONFIG2 = 0x34,
+	INT_APEX_CONFIG1 = 0x3a,
+	INT_APEX_STATUS0 = 0x3b,
+	INT_APEX_STATUS1 = 0x3c,
+
+	INT2_CONFIG0 = 0x56,
+	INT2_CONFIG1 = 0x57,
+	INT2_CONFIG2 = 0x58,
+	INT2_STATUS0 = 0x59,
+
+	WHO_AM_I = 0x72,
+	REG_MISC2 = 0x7F,
+};
+// Register values
+type_t WHOAMI          = 0xE9;
+
+// Power management
+type_t PWR_MGMT_RESET  = BIT0;
+type_t GYRO_MODE_OFF   = 0x00;
+type_t GYRO_MODE_STBY  = 0x01;
+type_t GYRO_MODE_LN    = 0x03;
+type_t ACCEL_MODE_OFF  = 0x00;
+type_t ACCEL_MODE_LP   = 0x02;
+type_t ACCEL_MODE_LN   = 0x03;
+
+
+type_t GYRO_FS_SEL_2000DPS  = (0b0001 << 4);
+type_t GYRO_FS_SEL_1000DPS  = (0b0010 << 4);
+type_t GYRO_FS_SEL_500DPS   = (0b0011 << 4);
+type_t GYRO_FS_SEL_250DPS   = (0b0100 << 4);
+type_t FCHOICE_B_6_4KHZ       = (0b0011);
+
+type_t ACCEL_FS_SEL_32G     = (0x000 << 4);
+type_t ACCEL_FS_SEL_16G     = (0x001 << 4);
+type_t ACCEL_FS_SEL_8G      = (0b010 << 4);
+type_t ACCEL_FS_SEL_4G      = (0b011 << 4);
+type_t ACCEL_FS_SEL_2G      = (0b100 << 4);
+
+enum ACCEL_CONFIG0_BIT
+{
+	ACCEL_UI_FS_SEL_32_G_SET = 0,
+	ACCEL_UI_FS_SEL_32_G_CLEAR = BIT6 | BIT5 | BIT4,
+	ACCEL_UI_FS_SEL_16_G_SET = BIT4,
+	ACCEL_UI_FS_SEL_16_G_CLEAR = BIT6 | BIT5,
+	ACCEL_UI_FS_SEL_8_G_SET = BIT5,
+	ACCEL_UI_FS_SEL_8_G_CLEAR = BIT6 | BIT4,
+	ACCEL_ODR_6400_HZ_SET = BIT0 | BIT1,
+	ACCEL_ODR_6400_HZ_CLEAR = BIT2,
+	ACCEL_ODR_3200_HZ_SET = BIT2,
+	ACCEL_ODR_3200_HZ_CLEAR = BIT0 | BIT1,
+	ACCEL_ODR_1600_HZ_SET = BIT2 | BIT0,
+	ACCEL_ODR_1600_HZ_CLEAR = BIT1,
+	ACCEL_ODR_800_HZ_SET = BIT2 | BIT1,
+	ACCEL_ODR_800_HZ_CLEAR = BIT0,
+};
+
+enum GYRO_CONFIG0_BIT
+{
+	GYRO_UI_FS_SEL_4000_DPS_SET = 0,
+	GYRO_UI_FS_SEL_4000_DPS_CLEAR = BIT7 | BIT6 | BIT5 | BIT4,
+	GYRO_UI_FS_SEL_2000_DPS_SET = BIT4,
+	GYRO_UI_FS_SEL_2000_DPS_CLEAR = BIT7 | BIT6 | BIT5,
+	GYRO_UI_FS_SEL_1000_DPS_SET = BIT5,
+	GYRO_UI_FS_SEL_1000_DPS_CLEAR = BIT7 | BIT6 | BIT4,
+	GYRO_ODR_6400_HZ_SET = BIT0 | BIT1,
+	GYRO_ODR_6400_HZ_CLEAR = BIT2,
+	GYRO_ODR_3200_HZ_SET = BIT2,
+	GYRO_ODR_3200_HZ_CLEAR = BIT0 | BIT1,
+	GYRO_ODR_1600_HZ_SET = BIT2 | BIT0,
+	GYRO_ODR_1600_HZ_CLEAR = BIT1,
+	GYRO_ODR_800_HZ_SET = BIT2 | BIT1,
+	GYRO_ODR_800_HZ_CLEAR = BIT0,
+};
+
+// PWR_MGMT0 bits
+#define PWR_MGMT0_GYRO_MODE_LN    (BIT3 | BIT2)  // Low Noise Mode
+#define PWR_MGMT0_ACCEL_MODE_LN   (BIT1 | BIT0)  // Low Noise Mode
+
+// INT1_STATUS0 bits
+#define INT1_STATUS_RESET_DONE    BIT7
+#define INT1_STATUS_AUX1_AGC      BIT6
+#define INT1_STATUS_AP_AGC_RDY    BIT5
+#define INT1_STATUS_AP_FSYNC      BIT4
+#define INT1_STATUS_AP_AUX1_DRDY  BIT3
+#define INT1_STATUS_AP_DRDY       BIT2
+#define INT1_STATUS_FIFO_THS      BIT1
+#define INT1_STATUS_FIFO_FULL     BIT0
+
+// ACCEL_CONFIG0 bits
+#define ACCEL_UI_FS_SEL_32G_SET    0
+#define ACCEL_UI_FS_SEL_32G_CLEAR  (BIT6 | BIT5 | BIT4)
+#define ACCEL_UI_FS_SEL_16G_SET    BIT4
+#define ACCEL_UI_FS_SEL_16G_CLEAR  (BIT6 | BIT5)
+#define ACCEL_UI_FS_SEL_8G_SET     BIT5
+#define ACCEL_UI_FS_SEL_8G_CLEAR   (BIT6 | BIT4)
+#define ACCEL_ODR_6400HZ_SET       (BIT0 | BIT1)
+#define ACCEL_ODR_6400HZ_CLEAR     BIT2
+#define ACCEL_ODR_3200HZ_SET       BIT2
+#define ACCEL_ODR_3200HZ_CLEAR     (BIT0 | BIT1)
+#define ACCEL_ODR_1600HZ_SET       (BIT2 | BIT0)
+#define ACCEL_ODR_1600HZ_CLEAR     BIT1
+#define ACCEL_ODR_800HZ_SET        (BIT2 | BIT1)
+#define ACCEL_ODR_800HZ_CLEAR      BIT0
+
+
+// GYRO_CONFIG0 bits
+#define GYRO_UI_FS_SEL_4000DPS_SET    0
+#define GYRO_UI_FS_SEL_4000DPS_CLEAR  (BIT7 | BIT6 | BIT5 | BIT4)
+#define GYRO_UI_FS_SEL_2000DPS_SET    BIT4
+#define GYRO_UI_FS_SEL_2000DPS_CLEAR  (BIT7 | BIT6 | BIT5)
+#define GYRO_UI_FS_SEL_1000DPS_SET    BIT5
+#define GYRO_UI_FS_SEL_1000DPS_CLEAR  (BIT7 | BIT6 | BIT4)
+#define GYRO_ODR_6400HZ_SET           (BIT0 | BIT1)
+#define GYRO_ODR_6400HZ_CLEAR         BIT2
+#define GYRO_ODR_3200HZ_SET           BIT2
+#define GYRO_ODR_3200HZ_CLEAR         (BIT0 | BIT1)
+#define GYRO_ODR_1600HZ_SET           (BIT2 | BIT0)
+#define GYRO_ODR_1600HZ_CLEAR         BIT1
+#define GYRO_ODR_800HZ_SET            (BIT2 | BIT1)
+#define GYRO_ODR_800HZ_CLEAR          BIT0
+
+// FIFO configuration bits
+#define FIFO_MODE_BYPASS_SET          0
+#define FIFO_MODE_BYPASS_CLEAR        (BIT6 | BIT7)
+#define FIFO_MODE_STREAM_SET          BIT6
+#define FIFO_MODE_STREAM_CLEAR        BIT7
+#define FIFO_MODE_STOP_ON_FULL_SET    BIT7
+#define FIFO_MODE_STOP_ON_FULL_CLEAR  BIT6
+#define FIFO_DEPTH_2K_SET             (BIT0 | BIT1 | BIT2)
+#define FIFO_DEPTH_2K_CLEAR           (BIT3 | BIT4)
+#define FIFO_DEPTH_8K_SET             (BIT0 | BIT1 | BIT2 | BIT3 | BIT4)
+#define FIFO_DEPTH_8K_CLEAR           0
+
+// FIFO_CONFIG2 bits
+#define FIFO_FLUSH                     BIT7
+#define FIFO_WM_GT_TH_EQUAL           0
+#define FIFO_WM_GT_TH_GREATER_THAN    BIT3
+
+// FIFO_CONFIG3 bits
+#define FIFO_ES1_EN                   BIT5
+#define FIFO_ES0_EN                   BIT4
+#define FIFO_HIRES_EN                 BIT3
+#define FIFO_GYRO_EN                  BIT2
+#define FIFO_ACCEL_EN                 BIT1
+#define FIFO_IF_EN                    BIT0
+
+// FIFO_CONFIG4 bits
+#define FIFO_COMP_EN                  BIT2
+#define FIFO_TMST_FSYNC_EN           BIT1
+
+// RTC_CONFIG bits
+#define RTC_ALIGN                     BIT6
+#define RTC_MODE                      BIT5
+
+// REG_MISC2 bits
+#define SOFT_RST                      BIT1
+
+// FIFO Header bits
+#define FIFO_HEADER_MSG               BIT7
+#define FIFO_HEADER_ACCEL            BIT6
+#define FIFO_HEADER_GYRO             BIT5
+#define FIFO_HEADER_20               BIT4
+#define FIFO_HEADER_TIMESTAMP_FSYNC  (BIT3 | BIT2)
+#define FIFO_HEADER_ODR_ACCEL        BIT1
+#define FIFO_HEADER_ODR_GYRO         BIT0
+
+// Constants for scale calculations
+#define TEMP_45686_SENS          128.0f //132.48f    // LSB/°C
+#define TEMP_45686_OFFSET        25.0f      // °C
+#define TEMP_45686_SENS_MIN     -40.0f      // °C
+#define TEMP_45686_SENS_MAX      85.0f      // °C
+
+// Register read/write flag
+type_t READ = 0x80;
+type_t WRITE = 0x00;
+
+#define SIZE_REG_CFG 9
+
+typedef struct {
+    uint8_t reg;
+    uint8_t setbits;
+    uint8_t clearbits;
+} reg_cfg_t;
+
+// Default configuration
+static const reg_cfg_t reg_cfg[SIZE_REG_CFG] = {
+	{INT1_CONFIG0,   0, 0},  
+	{PWR_MGMT0,   PWR_MGMT0_GYRO_MODE_LN|PWR_MGMT0_ACCEL_MODE_LN, 0},
+
+    {GYRO_CONFIG0,   GYRO_UI_FS_SEL_2000_DPS_SET | GYRO_ODR_6400_HZ_SET, GYRO_UI_FS_SEL_2000_DPS_CLEAR | GYRO_ODR_6400_HZ_CLEAR},  
+	{ACCEL_CONFIG0,   ACCEL_UI_FS_SEL_16_G_SET | ACCEL_ODR_6400_HZ_SET, ACCEL_UI_FS_SEL_16_G_CLEAR | ACCEL_ODR_6400_HZ_CLEAR},  
+	{FIFO_CONFIG4,   0, FIFO_COMP_EN},  
+	{FIFO_CONFIG0,   FIFO_MODE_STOP_ON_FULL_SET | FIFO_DEPTH_2K_SET, FIFO_MODE_STOP_ON_FULL_CLEAR | FIFO_DEPTH_2K_CLEAR},  
+	{FIFO_CONFIG3,   FIFO_HIRES_EN | FIFO_GYRO_EN | FIFO_ACCEL_EN | FIFO_IF_EN, 0},  
+
+	{RTC_CONFIG,   0, 0},  
+	{IOC_PAD_SCENARIO_OVRD,   0, 0},  
+};
+
+#endif  // ICM45686_REG_H 

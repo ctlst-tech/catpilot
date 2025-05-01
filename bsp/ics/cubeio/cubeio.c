@@ -103,6 +103,18 @@ static void cubeio_fsm(void *area) {
                 LOG_ERROR(dev->name, "Arming setup error");
                 dev->state = CUBEIO_FAIL;
             }
+            if (cubeio_write_reg(dev, PAGE_SETUP, PAGE_REG_SETUP_CHANNEL_MASK,
+                            0xFF)) {
+                LOG_ERROR(dev->name, "Error setting all channels to out");
+                dev->state = CUBEIO_FAIL;
+            }
+
+            // if (cubeio_set_clear_reg(dev, PAGE_SETUP, PAGE_REG_SETUP_OUTPUT_MODE,
+            //                 0xFF,
+            //                 0)) {
+            //     LOG_ERROR(dev->name, "Error setting all channels to out");
+            //     dev->state = CUBEIO_FAIL;
+            // }
 
             break;
 
@@ -317,13 +329,13 @@ int cubeio_get_safety_switch_state(cubeio_t *dev) {
 }
 
 void cubeio_force_safety_on(cubeio_t *dev) {
-    dev->page_reg_status.safety_forced_off = SAFETY_ON;
+    //dev->page_reg_status.safety_forced_off = SAFETY_ON;
     cubeio_push_event(dev, CUBEIO_FORCE_SAFETY_ON);
     xSemaphoreGive(dev->sync.timeout_semaphore);
 }
 
 void cubeio_force_safety_off(cubeio_t *dev) {
-    dev->page_reg_status.safety_forced_off = SAFETY_OFF;
+    //dev->page_reg_status.safety_forced_off = SAFETY_OFF;
     cubeio_push_event(dev, CUBEIO_FORCE_SAFETY_OFF);
     xSemaphoreGive(dev->sync.timeout_semaphore);
 }

@@ -41,6 +41,7 @@
 #define PAGE_REG_SETUP_PWM_RATE_MASK        2
 #define PAGE_REG_SETUP_DEFAULTRATE          3
 #define PAGE_REG_SETUP_ALTRATE              4
+#define PAGE_REG_SETUP_OUTPUT_MODE          5
 #define PAGE_REG_SETUP_REBOOT_BL            10
 #define PAGE_REG_SETUP_CRC                  11
 #define PAGE_REG_SETUP_SBUS_RATE            19
@@ -48,6 +49,8 @@
 #define PAGE_REG_SETUP_HEATER_DUTY_CYCLE    21
 #define PAGE_REG_SETUP_DSM_BIND             22
 #define PAGE_REG_SETUP_RC_PROTOCOLS         23
+#define PAGE_REG_SETUP_DSHOT_PERIOD         25
+#define PAGE_REG_SETUP_CHANNEL_MASK         27
 
 #define REBOOT_BL_MAGIC                     14662
 

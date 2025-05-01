@@ -8,7 +8,7 @@ void cube_sensors_icm20948_exec(cube_sensors_icm20948_outputs_t *o)
 {
     gpio_set(&gpio_fmu_pwm[0]);
 
-    icm20948_meas_t meas;
+    icm20948_meas_t meas;   
 
     icm20948_get_meas_block(icm20948, &meas);
 

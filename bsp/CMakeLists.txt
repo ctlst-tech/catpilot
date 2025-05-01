@@ -120,6 +120,26 @@ if (IC_ICM20948 STREQUAL "ON")
     list(APPEND BSP_INC ics/icm20948)
 endif ()
 
+if (IC_ICM42688 STREQUAL "ON")
+    list(APPEND BSP_SRC ics/icm42688/icm42688.c)
+    list(APPEND BSP_INC ics/icm42688)
+endif ()
+
+if (IC_ICM45686 STREQUAL "ON")
+    list(APPEND BSP_SRC ics/icm45686/icm45686.c)
+    list(APPEND BSP_INC ics/icm45686)
+endif ()
+
+if (IC_AK09916 STREQUAL "ON")
+    list(APPEND BSP_SRC ics/ak09916/ak09916.c)
+    list(APPEND BSP_INC ics/ak09916)
+endif ()
+
+if (IC_AK09918 STREQUAL "ON")
+    list(APPEND BSP_SRC ics/ak09918/ak09918.c)
+    list(APPEND BSP_INC ics/ak09918)
+endif ()
+
 if (IC_IST8310 STREQUAL "ON")
     list(APPEND BSP_SRC ics/ist8310/ist8310.c)
     list(APPEND BSP_INC ics/ist8310)

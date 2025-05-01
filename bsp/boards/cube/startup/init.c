@@ -257,6 +257,9 @@ static int board_gpio_init(void) {
     if (gpio_init(&gpio_spi1_cs2)) {
         return -1;
     }
+    if (gpio_init(&gpio_spi1_cs3)) {
+        return -1;
+    }
     if (gpio_init(&gpio_spi2_cs1)) {
         return -1;
     }
@@ -293,6 +296,7 @@ static int board_gpio_init(void) {
 
     gpio_set(&gpio_spi1_cs1);
     gpio_set(&gpio_spi1_cs2);
+    gpio_set(&gpio_spi1_cs3);
     gpio_set(&gpio_spi2_cs1);
     gpio_set(&gpio_spi4_cs1);
     gpio_set(&gpio_spi4_cs2);
@@ -408,14 +412,35 @@ static int board_fs_init(void) {
 
 static int board_services_start(void) {
     serial_bridge_start(15, 1024);
-    icm20649 = icm20649_start("ICM20649", 2, 20, &spi1, &gpio_spi1_cs1,
-                              &exti_spi1_drdy1);
+
+    // Try original ICM20649 configuration
+    icm20649 = icm20649_start("ICM20649", 2, 20, &spi1, &gpio_spi1_cs1, &exti_spi1_drdy1);
     icm20602 = icm20602_start("ICM20602", 2, 20, &spi4, &gpio_spi4_cs2, NULL);
-    icm20948 =
-        icm20948_start("ICM20948", 2, 20, &spi4, &gpio_spi4_cs1, NULL, 0);
-    cubeio = cubeio_start("CUBEIO", 0, 19, &usart6);
+    icm20948 = icm20948_start("ICM20948", 2, 20, &spi4, &gpio_spi4_cs1, NULL, 0);
+    
+    // Initialize barometers
     ms5611_1 = ms5611_start("MS5611_INT", 100, 17, &spi1, &gpio_spi1_cs2);
     ms5611_2 = ms5611_start("MS5611_EXT", 100, 17, &spi4, &gpio_spi4_cs3);
+    
+    // Initialize magnetometer
     ist8310 = ist8310_start("IST8310_EXT", 100, 17, &i2c1);
+    
+    //icm42688 = icm42688_start("ICM42688P", 2, 20, &spi4, &gpio_spi4_cs1, NULL);
+    //icm45686 = icm45686_start("ICM45686", 2, 20, &spi4, &gpio_spi4_cs1, NULL);    
+
+    //ak09916 = ak09916_start("AK09916", 100, 17, &i2c1, 0, 13);
+    //ak09918 = ak09918_start("AK09918", 100, 17, &i2c1, 0, 13);
+
+    icm45686 = icm45686_start("ICM45686", 2, 20, &spi1, &gpio_spi1_cs3);
+    //icm45686 = icm45686_start("ICM45686", 2, 20, &spi4, &gpio_spi4_cs4);
+    //icm45686 = icm45686_start("ICM45686", 2, 20, &spi4, &gpio_spi4_cs2);
+
+    //icm42688 = icm42688_start("ICM42688", 2, 20, &spi1, &gpio_spi4_cs2, NULL);
+    //icm42688 = icm42688_start("ICM42688", 2, 20, &spi1, &gpio_spi4_cs4, NULL);
+    
+    // Initialize CUBEIO
+    cubeio = cubeio_start("CUBEIO", 0, 19, &usart6);
+
+    LOG_INFO("BOARD", "Initialization successful");
     return 0;
 }
