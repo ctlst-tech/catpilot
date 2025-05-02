@@ -4,57 +4,60 @@
 
 #define deg2rad(d) ((d) * (M_PI / 180.0))
 
+typedef struct {
+    double accel_x;
+    double accel_y;
+    double accel_z;
+    double gyro_x;
+    double gyro_y;
+    double gyro_z;
+    double imu_dt;
+} cubeimu_meas_t;
+
+// Define function pointer type
+typedef void (*imu_get_meas_block_fn_t)(void *imu_dev, cubeimu_meas_t *meas);
+
+// Function pointer and selected device
+static imu_get_meas_block_fn_t get_meas_block = NULL;
+static void *selected_imu = NULL;
+
+fspec_rv_t cube_io_rc_pre_exec_init() 
+{
+    if (icm20649)
+    {
+        if (icm20649->state!=ICM20649_FAIL)
+        {
+            get_meas_block = (imu_get_meas_block_fn_t)icm20649_get_meas_block;
+            selected_imu = icm20649;
+            return fspec_rv_ok;
+        }
+    }
+    else if (icm45686)
+    {
+        if (icm45686->state!=ICM45686_FAIL)
+        {
+            get_meas_block = (imu_get_meas_block_fn_t)icm45686_get_meas_block;
+            selected_imu = icm45686;
+            return fspec_rv_ok;
+        }
+    }
+    return fspec_rv_initerr;
+}
+
 void cube_sensors_cubeimu_exec(cube_sensors_cubeimu_outputs_t *o)
 {
-    icm20649_meas_t meas_imu1;
-    icm45686_meas_t meas_imu2;
-    uint8_t use_icm20649 = 0;
-    uint8_t use_icm45686 = 0;
-
-    if (icm20649->state!=ICM20649_FAIL)
+    cubeimu_meas_t meas_imu;
+    gpio_set(&gpio_fmu_pwm[0]);
+    if (get_meas_block && selected_imu)
     {
-        use_icm20649 = 1;
+        get_meas_block(selected_imu, &meas_imu);
     }
-    else if (icm45686->state!=ICM45686_FAIL)
-    {
-        use_icm45686 = 1;
-    }
+    o->wx = deg2rad(meas_imu.gyro_x);
+    o->wy = deg2rad(meas_imu.gyro_y);
+    o->wz = deg2rad(meas_imu.gyro_z);
 
-    if (use_icm20649)
-    {
-        gpio_set(&gpio_fmu_pwm[0]);
-        icm20649_get_meas_block(icm20649, &meas_imu1);
-
-        o->wx = deg2rad(meas_imu1.gyro_x);
-        o->wy = deg2rad(meas_imu1.gyro_y);
-        o->wz = deg2rad(meas_imu1.gyro_z);
-
-        o->ax = -meas_imu1.accel_x;
-        o->ay = -meas_imu1.accel_y;
-        o->az = -meas_imu1.accel_z;
-        gpio_reset(&gpio_fmu_pwm[0]);
-    }
-    else if (use_icm45686)
-    {
-        gpio_set(&gpio_fmu_pwm[0]);
-        icm45686_get_meas_block(icm45686, &meas_imu2);
-
-        o->wx = deg2rad(meas_imu2.gyro_x);
-        o->wy = deg2rad(meas_imu2.gyro_y);
-        o->wz = deg2rad(meas_imu2.gyro_z);
-
-        o->ax = -meas_imu2.accel_x;
-        o->ay = -meas_imu2.accel_y;
-        o->az = -meas_imu2.accel_z;
-        gpio_reset(&gpio_fmu_pwm[0]);
-    }
-    else
-    {
-        o->wx = 0;
-        o->wy = 0;
-        o->wz = 0;
-        o->ax = 0;
-        o->ay = 0;
-        o->az = 0;
-    }   
+    o->ax = -meas_imu.accel_x;
+    o->ay = -meas_imu.accel_y;
+    o->az = -meas_imu.accel_z;
+    gpio_reset(&gpio_fmu_pwm[0]);
 }

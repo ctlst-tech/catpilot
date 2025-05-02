@@ -12,7 +12,7 @@
 
 #define CUBEIO_PKT_MAX_REGS 22
 #define CUBEIO_MAX_CHANNELS 16
-//#define OLD_PROTOCOL
+//#define APM_IO_4_4_SUPPORT
 
 #pragma pack(push, 1)
 typedef struct {
@@ -25,7 +25,7 @@ typedef struct {
 } cubeio_packet_t;
 #pragma pack(pop)
 
-#ifdef OLD_PROTOCOL
+#ifdef APM_IO_4_4_SUPPORT
 typedef struct {
     uint16_t protocol_version;
     uint16_t protocol_version2;

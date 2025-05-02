@@ -3,22 +3,61 @@ cmake_minimum_required(VERSION 3.6)
 project(bsp C ASM)
 
 list(APPEND BSP_INC
-    mcu/core/${MCU_FAMILY}/common
-    mcu/core/${MCU_FAMILY}/${MCU_MODEL}
-    mcu/core/${MCU_FAMILY}/${MCU_MODEL}/common
-    mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal
-    mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/inc
-    boards/${BOARD}
-    boards/${BOARD}/cfg
-    boards/${BOARD}/startup
+        mcu/core/${MCU_FAMILY}/common
+        mcu/core/${MCU_FAMILY}/${MCU_MODEL}
+        mcu/core/${MCU_FAMILY}/${MCU_MODEL}/common
+        mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal
+        mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/inc
 )
 
+if (BOARD STREQUAL "cube" OR BOARD STREQUAL "cubeplus")
+    list(APPEND BSP_INC
+        boards/cube
+        boards/cube/cfg
+        boards/cube/startup
+    )
+    list(APPEND BSP_SRC
+        boards/cube/cfg/adc_cfg.c
+        boards/cube/cfg/can_cfg.c
+        boards/cube/cfg/exti_cfg.c
+        boards/cube/cfg/gpio_cfg.c
+        boards/cube/cfg/i2c_cfg.c
+        boards/cube/cfg/ics_cfg.c
+        boards/cube/cfg/sdio_cfg.c
+        boards/cube/cfg/spi_cfg.c
+        boards/cube/cfg/tim_cfg.c
+        boards/cube/cfg/usart_cfg.c
+        boards/cube/startup/init.c
+        boards/cube/external.c
+    )
+else ()
+    list(APPEND BSP_INC
+        boards/${BOARD}
+        boards/${BOARD}/cfg
+        boards/${BOARD}/startup
+    )
+    list(APPEND BSP_SRC
+        boards/${BOARD}/cfg/adc_cfg.c
+        boards/${BOARD}/cfg/can_cfg.c
+        boards/${BOARD}/cfg/exti_cfg.c
+        boards/${BOARD}/cfg/gpio_cfg.c
+        boards/${BOARD}/cfg/i2c_cfg.c
+        boards/${BOARD}/cfg/ics_cfg.c
+        boards/${BOARD}/cfg/sdio_cfg.c
+        boards/${BOARD}/cfg/spi_cfg.c
+        boards/${BOARD}/cfg/tim_cfg.c
+        boards/${BOARD}/cfg/usart_cfg.c
+        boards/${BOARD}/startup/init.c
+        boards/${BOARD}/external.c
+    )
+endif ()
+
 if (MCU_FAMILY STREQUAL "stm32")
-    if(MCU_MODEL STREQUAL "h753")
+    if(MCU_MODEL STREQUAL "h753" OR MCU_MODEL STREQUAL "h757")
         list(APPEND BSP_SRC
             mcu/core/${MCU_FAMILY}/${MCU_MODEL}/common/system_stm32h7xx.c
             mcu/core/${MCU_FAMILY}/${MCU_MODEL}/common/syscalls.c
-            mcu/core/${MCU_FAMILY}/${MCU_MODEL}/startup/startup_stm32h753xx.s
+            mcu/core/${MCU_FAMILY}/${MCU_MODEL}/startup/startup_stm32${MCU_MODEL}xx.s
         )
         list(APPEND BSP_SRC
             mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal.c
@@ -47,20 +86,6 @@ if (MCU_FAMILY STREQUAL "stm32")
             mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_usart.c
             mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_usart_ex.c
             mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_ll_sdmmc.c
-        )
-        list(APPEND BSP_SRC
-            boards/${BOARD}/cfg/adc_cfg.c
-            boards/${BOARD}/cfg/can_cfg.c
-            boards/${BOARD}/cfg/exti_cfg.c
-            boards/${BOARD}/cfg/gpio_cfg.c
-            boards/${BOARD}/cfg/i2c_cfg.c
-            boards/${BOARD}/cfg/ics_cfg.c
-            boards/${BOARD}/cfg/sdio_cfg.c
-            boards/${BOARD}/cfg/spi_cfg.c
-            boards/${BOARD}/cfg/tim_cfg.c
-            boards/${BOARD}/cfg/usart_cfg.c
-            boards/${BOARD}/startup/init.c
-            boards/${BOARD}/external.c
         )
     endif()
 endif()

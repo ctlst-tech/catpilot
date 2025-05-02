@@ -7,27 +7,15 @@
 void cube_sensors_icm20649_exec(cube_sensors_icm20649_outputs_t *o)
 {
     icm20649_meas_t meas;
-    if (icm20649)
-    {
-        gpio_set(&gpio_fmu_pwm[0]);
-        icm20649_get_meas_block(icm20649, &meas);
+    gpio_set(&gpio_fmu_pwm[0]);
+    icm20649_get_meas_block(icm20649, &meas);
 
-        o->wx = deg2rad(meas.gyro_x);
-        o->wy = deg2rad(meas.gyro_y);
-        o->wz = deg2rad(meas.gyro_z);
+    o->wx = deg2rad(meas.gyro_x);
+    o->wy = deg2rad(meas.gyro_y);
+    o->wz = deg2rad(meas.gyro_z);
 
-        o->ax = -meas.accel_x;
-        o->ay = -meas.accel_y;
-        o->az = -meas.accel_z;
-        gpio_reset(&gpio_fmu_pwm[0]);
-    }
-    else
-    {
-        o->wx = 0;
-        o->wy = 0;
-        o->wz = 0;
-        o->ax = 0;
-        o->ay = 0;
-        o->az = 0;
-    }
+    o->ax = -meas.accel_x;
+    o->ay = -meas.accel_y;
+    o->az = -meas.accel_z;
+    gpio_reset(&gpio_fmu_pwm[0]);
 }

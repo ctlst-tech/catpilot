@@ -6,6 +6,7 @@ Function(
         en='cubeimu'
     ),
     parameters=[],
+    has_pre_exec_init_call=True,
     inputs=[],
     outputs=[
         Output(
