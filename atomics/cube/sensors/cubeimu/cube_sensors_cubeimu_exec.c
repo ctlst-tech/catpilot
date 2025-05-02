@@ -32,7 +32,7 @@ fspec_rv_t cube_sensors_cubeimu_pre_exec_init()
             return fspec_rv_ok;
         }
     }
-    else if (icm45686)
+    if (icm45686)
     {
         if (icm45686->state!=ICM45686_FAIL)
         {
