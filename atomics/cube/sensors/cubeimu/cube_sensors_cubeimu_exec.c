@@ -21,7 +21,7 @@ typedef void (*imu_get_meas_block_fn_t)(void *imu_dev, cubeimu_meas_t *meas);
 static imu_get_meas_block_fn_t get_meas_block = NULL;
 static void *selected_imu = NULL;
 
-fspec_rv_t cube_io_rc_pre_exec_init() 
+fspec_rv_t cube_sensors_cubeimu_pre_exec_init() 
 {
     if (icm20649)
     {
