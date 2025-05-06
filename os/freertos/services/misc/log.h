@@ -5,7 +5,6 @@
 #include <stdarg.h>
 #include <stdbool.h>
 
-#define LOG_MAX_LENGTH 255
 #define LOG_MAX_MODULE_NAME 10
 #define LOG_DEBUG_ENABLE 1
 
@@ -15,11 +14,11 @@
 #define LOG_DEBUG_TYPE 3
 #define LOG_EMPTY_TYPE 4
 
-void log_module(uint8_t msg_type, const char *module, const char *s, ...);
+void log_submit(uint8_t msg_type, const char *module, const char *s, ...);
 void log_enable(bool enable);
 
 #define _LOG(type, module, s, ...) {    \
-    log_module(type, module, s, ##__VA_ARGS__);\
+    log_submit(type, module, s, ##__VA_ARGS__);\
 }
 
 int log_print(int argc, char **argv);
