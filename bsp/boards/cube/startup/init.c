@@ -412,12 +412,11 @@ static int board_fs_init(void) {
 
 static int board_services_start(void) {
     serial_bridge_start(15, 1024);
-
-    // Try original ICM20649 configuration
+#ifdef STM32H753xx
     icm20649 = icm20649_start("ICM20649", 2, 20, &spi1, &gpio_spi1_cs1, &exti_spi1_drdy1);
     icm20602 = icm20602_start("ICM20602", 2, 20, &spi4, &gpio_spi4_cs2, NULL);
     icm20948 = icm20948_start("ICM20948", 2, 20, &spi4, &gpio_spi4_cs1, NULL, 0);
-    
+#endif
     // Initialize barometers
     ms5611_1 = ms5611_start("MS5611_INT", 100, 17, &spi1, &gpio_spi1_cs2);
     ms5611_2 = ms5611_start("MS5611_EXT", 100, 17, &spi4, &gpio_spi4_cs3);
@@ -425,19 +424,10 @@ static int board_services_start(void) {
     // Initialize magnetometer
     ist8310 = ist8310_start("IST8310_EXT", 100, 17, &i2c1);
     
-    //icm42688 = icm42688_start("ICM42688P", 2, 20, &spi4, &gpio_spi4_cs1, NULL);
-    //icm45686 = icm45686_start("ICM45686", 2, 20, &spi4, &gpio_spi4_cs1, NULL);    
-
-    //ak09916 = ak09916_start("AK09916", 100, 17, &i2c1, 0, 13);
-    //ak09918 = ak09918_start("AK09918", 100, 17, &i2c1, 0, 13);
-
+#ifdef STM32H757xx
     icm45686 = icm45686_start("ICM45686", 2, 20, &spi1, &gpio_spi1_cs3);
-    //icm45686 = icm45686_start("ICM45686", 2, 20, &spi4, &gpio_spi4_cs4);
-    //icm45686 = icm45686_start("ICM45686", 2, 20, &spi4, &gpio_spi4_cs2);
+#endif
 
-    //icm42688 = icm42688_start("ICM42688", 2, 20, &spi1, &gpio_spi4_cs2, NULL);
-    //icm42688 = icm42688_start("ICM42688", 2, 20, &spi1, &gpio_spi4_cs4, NULL);
-    
     // Initialize CUBEIO
     cubeio = cubeio_start("CUBEIO", 0, 19, &usart6);
 
