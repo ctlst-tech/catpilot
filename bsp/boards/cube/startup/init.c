@@ -362,14 +362,14 @@ static int board_periph_init(void) {
         LOG_ERROR("ADC1", "Initialization failed");
         return -1;
     }
-    if (can_init(&can1)) {
-        LOG_ERROR("CAN1", "Initialization failed");
-        return -1;
-    }
-    if (can_init(&can2)) {
-        LOG_ERROR("CAN2", "Initialization failed");
-        return -1;
-    }
+    // if (can_init(&can1)) {
+    //     LOG_ERROR("CAN1", "Initialization failed");
+    //     return -1;
+    // }
+    // if (can_init(&can2)) {
+    //     LOG_ERROR("CAN2", "Initialization failed");
+    //     return -1;
+    // }
     LOG_INFO("BOARD", "Initialization successful");
     return 0;
 }

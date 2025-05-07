@@ -92,7 +92,6 @@ endif()
 
 list(APPEND BSP_SRC
     mcu/periph/adc/${MCU_FAMILY}/adc.c
-    mcu/periph/can/${MCU_FAMILY}/can.c
     mcu/periph/dma/${MCU_FAMILY}/dma.c
     mcu/periph/exti/${MCU_FAMILY}/exti.c
     mcu/periph/gpio/${MCU_FAMILY}/gpio.c
