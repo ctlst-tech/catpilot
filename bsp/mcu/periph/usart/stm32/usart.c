@@ -328,6 +328,13 @@ void usart_handler(void *area) {
     usart_t *cfg = (usart_t *)area;
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
+    uint32_t isr = cfg->init.Instance->ISR;
+    if (isr & (USART_ISR_ORE | USART_ISR_FE | USART_ISR_NE | USART_ISR_PE)) {
+        volatile uint8_t dummy = cfg->init.Instance->RDR; // Clear ORE/FE/NE/PE by reading RDR
+        cfg->init.Instance->ICR = USART_ICR_ORECF | USART_ICR_FECF | USART_ICR_NECF | USART_ICR_PECF;
+        cfg->p.error_count++;
+    }
+
     DMA_Stream_TypeDef *dma =
         (DMA_Stream_TypeDef *)((cfg->dma_rx.init.Instance));
 

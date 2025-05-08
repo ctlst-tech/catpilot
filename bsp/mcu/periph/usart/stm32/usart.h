@@ -38,6 +38,7 @@ typedef struct {
     bool periph_init;
     bool tasks_init;
     bool use_dma;
+    int error_count;
 } usart_private_t;
 
 typedef struct {
