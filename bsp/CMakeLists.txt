@@ -71,8 +71,12 @@ if (MCU_FAMILY STREQUAL "stm32")
             mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_flash.c
             mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_flash_ex.c
             mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_gpio.c
+            mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_hcd.c
             mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_i2c.c
             mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_i2c_ex.c
+            mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_pcd.c
+            mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_pcd_ex.c
+            mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_pwr_ex.c
             mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_rcc.c
             mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_rcc_ex.c
             mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_sd.c
@@ -86,9 +90,9 @@ if (MCU_FAMILY STREQUAL "stm32")
             mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_usart.c
             mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_hal_usart_ex.c
             mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_ll_sdmmc.c
+            mcu/core/${MCU_FAMILY}/${MCU_MODEL}/hal/src/stm32h7xx_ll_usb.c
         )
     endif()
-endif()
 
 list(APPEND BSP_SRC
     mcu/periph/adc/${MCU_FAMILY}/adc.c
@@ -103,21 +107,37 @@ list(APPEND BSP_SRC
     mcu/periph/usart/${MCU_FAMILY}/usart.c
 )
 
-list(APPEND BSP_INC
-    mcu/periph
-    mcu/periph/adc/${MCU_FAMILY}
-    mcu/periph/can/${MCU_FAMILY}
-    mcu/periph/dma/${MCU_FAMILY}
-    mcu/periph/exti/${MCU_FAMILY}
-    mcu/periph/gpio/${MCU_FAMILY}
-    mcu/periph/i2c/${MCU_FAMILY}
-    mcu/periph/irq/${MCU_FAMILY}
-    mcu/periph/sdio/${MCU_FAMILY}
-    mcu/periph/spi/${MCU_FAMILY}
-    mcu/periph/tim/${MCU_FAMILY}
-    mcu/periph/usart/${MCU_FAMILY}
-    mcu/periph/usb/${MCU_FAMILY}
-)
+    list(APPEND BSP_INC
+        mcu/periph
+        mcu/periph/adc/${MCU_FAMILY}
+        mcu/periph/can/${MCU_FAMILY}
+        mcu/periph/dma/${MCU_FAMILY}
+        mcu/periph/exti/${MCU_FAMILY}
+        mcu/periph/gpio/${MCU_FAMILY}
+        mcu/periph/i2c/${MCU_FAMILY}
+        mcu/periph/irq/${MCU_FAMILY}
+        mcu/periph/sdio/${MCU_FAMILY}
+        mcu/periph/spi/${MCU_FAMILY}
+        mcu/periph/tim/${MCU_FAMILY}
+        mcu/periph/usart/${MCU_FAMILY}
+        mcu/periph/usb/${MCU_FAMILY}
+        mcu/periph/usb/${MCU_FAMILY}/USB_DEVICE/Target
+        mcu/periph/usb/${MCU_FAMILY}/USB_DEVICE/App
+        mcu/periph/usb/${MCU_FAMILY}/STM32_USB_Device_Library/Class/CDC/Inc
+        mcu/periph/usb/${MCU_FAMILY}/STM32_USB_Device_Library/Core/Inc
+    )
+elseif (MCU_FAMILY STREQUAL "zynq")
+    list(APPEND BSP_SRC
+        mcu/periph/adc/${MCU_FAMILY}/ad7606b.c
+        mcu/periph/gpio/${MCU_FAMILY}/gpio.c
+        mcu/periph/spi/${MCU_FAMILY}/spiplr.c
+    )
+    list(APPEND BSP_INC 
+        mcu/periph/adc/${MCU_FAMILY}
+        mcu/periph/gpio/${MCU_FAMILY}
+        mcu/periph/spi/${MCU_FAMILY}
+    )
+endif()
 
 if (IC_CUBEIO STREQUAL "ON")
     list(APPEND BSP_SRC ics/cubeio/cubeio.c)
@@ -182,6 +202,14 @@ endif ()
 if (IC_SD STREQUAL "ON")
     list(APPEND BSP_SRC ics/sd/sd.c)
     list(APPEND BSP_INC ics/sd)
+endif ()
+
+if (IC_CTLST STREQUAL "ON")
+    list(APPEND BSP_SRC ics/ctlst/adxrs450.c)
+    list(APPEND BSP_SRC ics/ctlst/ad7190.c)
+    list(APPEND BSP_SRC ics/ctlst/ctlst_periph.c)
+    list(APPEND BSP_SRC ics/ctlst/ctlst_nav.c)
+    list(APPEND BSP_INC ics/ctlst)
 endif ()
 
 add_library(bsp-static STATIC ${BSP_SRC})

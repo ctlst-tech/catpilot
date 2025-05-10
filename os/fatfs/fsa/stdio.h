@@ -23,12 +23,6 @@ typedef off_t fpos_t;
 
 typedef struct file FILE;
 
-struct dirent {
-    char d_name[MAX_NAME_LEN];
-};
-
-typedef struct dirent dirent_t;
-
 #define __SRD 0x0001   /* OK to read */
 #define __SWR 0x0002   /* OK to write */
 #define __SSTR 0x0004  /* this is an sprintf/snprintf string */
@@ -60,13 +54,9 @@ void   sync(void);
 int    fsync(int fileno);
 int    mkdir(const char *pathname, mode_t mode);
 int    rmdir(const char *pathname);
+int    remove(const char *path);
 
-int std_stream_init(const char *stream, void *dev,
-                    int (*dev_open)(struct file *file, const char *path),
-                    ssize_t (*dev_write)(struct file *file, const char *buf,
-                                         size_t count),
-                    ssize_t (*dev_read)(struct file *file, char *buf,
-                                        size_t count));
+int std_stream_init(const char *stream, struct file_operations *fops);
 int std_stream_deinit(const char *stream);
 
 #include <printf.h>

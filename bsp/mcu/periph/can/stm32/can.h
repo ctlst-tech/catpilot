@@ -11,7 +11,10 @@
 #include "ring_buf.h"
 
 #define CAN_IOCTL_SET_TX_MSG_ID 0x01
-#define CAN_IOCTL_SET_RX_FILTER_ID 0x02
+#define CAN_IOCTL_SET_TX_MSG_TYPE 0x02
+#define CAN_IOCTL_SET_RX_FILTER_ID 0x10
+#define CAN_IOCTL_SET_RX_FILTER_ID_LOW 0x11
+#define CAN_IOCTL_SET_RX_FILTER_ID_HIGH 0x12
 
 #define CAN_DEFAULT_TX_MSG_ID 0x00
 #define CAN_DEFAULT_RX_FILTER_ID 0x1FFFFFFF
@@ -43,7 +46,9 @@ typedef struct {
     void *can;
     char *channel_name;
     uint32_t id;
-    uint32_t id_filter;
+    uint32_t id_filter_low;
+    uint32_t id_filter_high;
+    uint32_t type;
     QueueHandle_t tx_queue;
     QueueHandle_t rx_queue;
 } can_channel_t;
@@ -75,7 +80,8 @@ typedef struct {
     FDCAN_HandleTypeDef init;
     gpio_t *tx;
     gpio_t *rx;
-    int timeout;
+    int tx_timeout;
+    int rx_timeout;
     int irq_priority;
     int task_priority;
     int queue_size;

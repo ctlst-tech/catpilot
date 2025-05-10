@@ -1,26 +1,40 @@
 #include "cat.h"
 
-static char buffer[1024];
+#define CLI_CAT_MAX_LEGNTH 1024
+
+static char buf[CLI_CAT_MAX_LEGNTH + 1];
 
 static void cat_print_help(void) {
     printf("Usage: cat [path_to_file]\n");
 }
 
 static void cat_print_file_content(const char *path) {
-    int fd = open(path, O_RDONLY);
+    char cur_path[4 * MAX_NAME_LEN];
+    getcwd(cur_path, 4 * MAX_NAME_LEN);
+    char path_ext[4 * MAX_NAME_LEN];
+
+    snprintf(path_ext, 4 * MAX_NAME_LEN, "/%s%s/%s", "fs", cur_path, path);
+    chdir("/");
+
+    int fd = open(path_ext, O_RDONLY);
+    chdir(cur_path);
 
     if (fd < 0) {
         printf("%s\n", strerror(errno));
         return;
     }
 
-    int len = read(fd, buffer, sizeof(buffer));
-    if (len < 0) {
-        printf("%s\n", strerror(errno));
-        return;
-    }
-
-    write(1, buffer, len);
+    int rb = 0;
+    lseek(fd, 0, SEEK_SET);
+    do {
+        rb = read(fd, buf, sizeof(buf));
+        if (rb > 0) {
+            write(1, buf, rb);
+        } else {
+            printf("%s\n", strerror(errno));
+        }
+    } while ((size_t)rb == sizeof(buf));
+    lseek(fd, 0, SEEK_END);
     close(fd);
 }
 

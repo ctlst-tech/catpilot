@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <errno.h>
-#include <sys/termios.h>
+#include <termios.h>
 
 extern int usart_set_speed(void *dev, uint32_t speed);
 extern uint32_t usart_get_speed(void *dev);

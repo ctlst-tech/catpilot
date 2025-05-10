@@ -15,6 +15,7 @@
 #include "sd.h"
 
 #define BOARD_MAX_USART 6
+#define BOARD_MAX_CLI_DEVICES 10
 
 int board_start(int (*callback)(void), size_t stacksize, char *cli_port,
                 char *cli_baudrate);
@@ -80,6 +81,11 @@ extern gpio_t gpio_i2c2_sda;
 // extern gpio_t gpio_can1_rx;
 extern gpio_t gpio_can2_tx;
 extern gpio_t gpio_can2_rx;
+extern gpio_t gpio_otg_fs_dp;
+extern gpio_t gpio_otg_fs_dm;
+extern gpio_t gpio_otg_fs_vbus;
+extern gpio_t gpio_otg_fs_sof;
+extern gpio_t gpio_otg_fs_id;
 
 extern sdio_t sdio;
 extern spi_t spi1;
@@ -115,5 +121,9 @@ extern adc_t adc1;
 
 // extern can_t can1;
 // extern can_t can2;
+
+extern usb_t usb0;
+
+extern periph_base_t *cli_dev[BOARD_MAX_CLI_DEVICES];
 
 #endif  // BOARD_H

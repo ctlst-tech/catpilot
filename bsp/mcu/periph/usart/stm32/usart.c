@@ -51,22 +51,20 @@ int usart_init(usart_t *cfg) {
         return rv;
     }
 
-    struct file_operations f_op = {.open = usart_open,
+    struct file_operations fops = {.open = usart_open,
                                    .write = usart_write,
                                    .read = usart_read,
                                    .close = usart_close,
+                                   .ioctl = usart_ioctl,
                                    .dev = cfg};
-
     char path[32];
     sprintf(path, "/dev/%s", cfg->name);
-    if (node_mount(path, &f_op) == NULL) {
+    if (node_mount(path, &fops) == NULL) {
         return -1;
     }
 
-    cfg->p.rx_sem = xSemaphoreCreateBinary();
-    if (cfg->p.rx_sem == NULL) {
-        return -1;
-    }
+    cfg->fops = fops;
+
     cfg->p.tx_mutex = xSemaphoreCreateMutex();
     if (cfg->p.tx_mutex == NULL) {
         return -1;
@@ -127,7 +125,7 @@ int usart_transmit(usart_t *cfg, uint8_t *pdata, uint16_t length) {
     }
 
     if (rv == HAL_OK &&
-        !xSemaphoreTake(cfg->p.tx_sem, pdMS_TO_TICKS(cfg->timeout))) {
+        !xSemaphoreTake(cfg->p.tx_sem, pdMS_TO_TICKS(cfg->tx_rx_timeout))) {
         rv = ETIMEDOUT;
     }
 
@@ -164,7 +162,7 @@ int usart_receive(usart_t *cfg, uint8_t *pdata, uint16_t length) {
     }
 
     if (rv == HAL_OK &&
-        !xSemaphoreTake(cfg->p.rx_sem, pdMS_TO_TICKS(cfg->timeout))) {
+        !xSemaphoreTake(cfg->p.rx_sem, pdMS_TO_TICKS(cfg->tx_rx_timeout))) {
         rv = ETIMEDOUT;
     }
 
@@ -207,7 +205,7 @@ int usart_transmit_receive(usart_t *cfg, uint8_t *tx_pdata, uint8_t *rx_pdata,
     }
 
     if (rv == HAL_OK &&
-        !xSemaphoreTake(cfg->p.rx_sem, pdMS_TO_TICKS(cfg->timeout))) {
+        !xSemaphoreTake(cfg->p.rx_sem, pdMS_TO_TICKS(cfg->tx_rx_timeout))) {
         rv = ETIMEDOUT;
     }
 
@@ -266,6 +264,11 @@ int usart_open(FILE *file, const char *path) {
 
     errno = 0;
 
+    if (cfg->p.port_open && !cfg->p.stdio) {
+        errno = EACCES;
+        return -1;
+    }
+
     if (cfg->p.tasks_init) {
         return 0;
     }
@@ -280,13 +283,15 @@ int usart_open(FILE *file, const char *path) {
         return -1;
     }
 
+    cfg->p.tasks_init = true;
+    cfg->p.port_open = true;
+
     char name[32];
     snprintf(name, MAX_NAME_LEN, "%s_read_thread", cfg->name);
     xTaskCreate(usart_read_task, name, 512, cfg, cfg->task_priority, NULL);
     snprintf(name, MAX_NAME_LEN, "%s_write_thread", cfg->name);
     xTaskCreate(usart_write_task, name, 512, cfg, cfg->task_priority, NULL);
 
-    cfg->p.tasks_init = true;
     errno = 0;
 
     return 0;
@@ -310,7 +315,12 @@ ssize_t usart_read(FILE *file, char *buf, size_t count) {
     errno = 0;
     usart_t *cfg = (usart_t *)file->node->f_op.dev;
 
-    rv = ring_buf_read(cfg->p.read_buf, (uint8_t *)buf, count);
+    rv = ring_buf_read_timeout(cfg->p.read_buf, (uint8_t *)buf, count,
+                               cfg->read_timeout);
+    if (rv < 0) {
+        errno = ETIMEDOUT;
+        return -1;
+    }
     if (cfg->p.error) {
         errno = EPROTO;
         return -1;
@@ -319,9 +329,39 @@ ssize_t usart_read(FILE *file, char *buf, size_t count) {
 }
 
 int usart_close(FILE *file) {
-    (void)file;
+    usart_t *cfg = file->node->f_op.dev;
     errno = 0;
+    if (cfg->p.port_open) {
+        cfg->p.port_open = false;
+    } else {
+        errno = ENOENT;
+    }
     return 0;
+}
+
+static int usart_ioctl_set_read_timeout(FILE *file, va_list args) {
+    uint32_t read_timeout = va_arg(args, uint32_t);
+    usart_t *dev = (usart_t *)file->node->f_op.dev;
+    dev->read_timeout = read_timeout;
+    return 0;
+}
+
+int usart_ioctl(FILE *file, int request, va_list args) {
+    int rv = 0;
+    usart_t *dev = (usart_t *)file->node->f_op.dev;
+
+    errno = 0;
+
+    switch (request) {
+        case USART_IOCTL_SET_READ_TIMEOUT:
+            usart_ioctl_set_read_timeout(file, args);
+            break;
+        default:
+            errno = ENOENT;
+            rv = -1;
+    }
+
+    return rv;
 }
 
 void usart_handler(void *area) {

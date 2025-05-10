@@ -922,6 +922,9 @@ int fputc_(int c, struct file *stream) {
     if (c == '\n') {
       const char r = '\r';
       stream->node->f_op.write(stream, &r, 1);
+    } else if (c == '\r') {
+      stream->node->f_op.write(stream, (const char *)&c, 1);
+      c = '\n'; 
     }
   }
   return stream->node->f_op.write(stream, (const char *)&c, 1);

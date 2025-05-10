@@ -119,7 +119,56 @@ int ring_buf_read(ring_buf_t *ring_buf, uint8_t *buf, uint16_t length) {
     }
 
     while ((data_size = ring_buf_get_data_size(ring_buf)) < 1) {
-        xSemaphoreTake(ring_buf->w_sem, portMAX_DELAY);
+        if (!xSemaphoreTake(ring_buf->w_sem, portMAX_DELAY)) {
+            return -1;
+        }
+    }
+
+    xSemaphoreTake(ring_buf->rw_mutex, portMAX_DELAY);
+
+    uint16_t size_to_end_of_buf =
+        ring_buf->start_ptr + ring_buf->size - ring_buf->read_ptr;
+
+    length = MIN(length, data_size);
+    uint16_t length_min = MIN(length, size_to_end_of_buf);
+
+    memcpy(buf, ring_buf->read_ptr, length_min);
+    ring_buf->read_ptr += length_min;
+
+    if (length > length_min) {
+        memcpy(buf + length_min, ring_buf->start_ptr, length - length_min);
+        ring_buf->read_ptr = ring_buf->start_ptr + length - length_min;
+    }
+
+    ring_buf->count -= length;
+    rv = length;
+
+    if (rv > 0) {
+        xSemaphoreGive(ring_buf->r_sem);
+    }
+
+    xSemaphoreGive(ring_buf->rw_mutex);
+
+    return rv;
+}
+
+int ring_buf_read_timeout(ring_buf_t *ring_buf, uint8_t *buf, uint32_t length,
+                          uint32_t timeout) {
+    int rv;
+    uint16_t data_size;
+
+    if (ring_buf == NULL || ring_buf->start_ptr == NULL) {
+        return -1;
+    }
+
+    if (timeout == 0) {
+        timeout = portMAX_DELAY;
+    }
+
+    while ((data_size = ring_buf_get_data_size(ring_buf)) < 1) {
+        if (!xSemaphoreTake(ring_buf->w_sem, timeout)) {
+            return -1;
+        }
     }
 
     xSemaphoreTake(ring_buf->rw_mutex, portMAX_DELAY);
