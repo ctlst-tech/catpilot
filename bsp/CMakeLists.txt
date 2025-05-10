@@ -27,6 +27,7 @@ if (BOARD STREQUAL "cube" OR BOARD STREQUAL "cubeplus")
         boards/cube/cfg/spi_cfg.c
         boards/cube/cfg/tim_cfg.c
         boards/cube/cfg/usart_cfg.c
+        boards/cube/cfg/cli_cfg.c
         boards/cube/startup/init.c
         boards/cube/external.c
     )
