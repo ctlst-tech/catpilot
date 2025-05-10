@@ -95,9 +95,10 @@ int board_init(char *cli_port, char *baudrate) {
     if (board_fs_init()) {
         return -1;
     }
-    if (log_init("log", "/fs/logs", LOG_TO_FILE, 512)) {
-        return -1;
-    }
+//    if (log_init("log", "/fs/logs", LOG_TO_FILE, 512)) {
+//        return -1;
+//    }
+
     if (board_periph_init()) {
         return -1;
     }
@@ -142,9 +143,9 @@ int board_cli_init(char *cli_port, char *baudrate) {
         cli_usart->p.stdio = true;
     } else if (strstr(cli->name, "ttyUSB")) {
         usb_t *cli_usb = (usb_t *)cli;
-        if (usb_init(cli_usb)) {
-            return -1;
-        }
+//        if (usb_init(cli_usb)) {
+//            return -1;
+//        }
         cli_usb->p.stdio = true;
     }
 
