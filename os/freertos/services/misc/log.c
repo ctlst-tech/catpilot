@@ -103,7 +103,7 @@ void log_module(uint8_t msg_type, const char *module, const char *s, ...) {
         fsync(log.fd);
     } else {
         if (strlen(string) > log.buf_size - log.offset) {
-            printf("Log buffer overflow!\n");
+            printf("Log buffer overflow! by\n%s\n", string);;
         } else {
             log.offset += sprintf(log.buf + log.offset, "%s", string);
         }

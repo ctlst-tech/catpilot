@@ -95,9 +95,10 @@ int board_init(char *cli_port, char *baudrate) {
     if (board_fs_init()) {
         return -1;
     }
-//    if (log_init("log", "/fs/logs", LOG_TO_FILE, 512)) {
-//        return -1;
-//    }
+
+    if (log_init("log", "/fs/logs", LOG_TO_BUF, 1024)) {
+        return -1;
+    }
 
     if (board_periph_init()) {
         return -1;
