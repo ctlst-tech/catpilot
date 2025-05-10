@@ -198,7 +198,7 @@ int memory_selector = 0;
 
 //! _sbrk_r version supporting reentrant newlib (depends upon above symbols
 //! defined by linker control file).
-void *_sbrk_r(struct _reent *pReent, int incr) {
+void *__wrap__sbrk_r(struct _reent *pReent, int incr) {
 #ifdef MALLOCS_INSIDE_ISRs  // block interrupts during free-storage use
     UBaseType_t usis;       // saved interrupt status
 #endif
@@ -272,7 +272,7 @@ void *_sbrk_r(struct _reent *pReent, int incr) {
 //! non-reentrant sbrk uses is actually reentrant by using current context
 // ... because the current _reent structure is pointed to by global _impure_ptr
 char *sbrk(int incr) {
-    return _sbrk_r(_impure_ptr, incr);
+    return __wrap__sbrk_r(_impure_ptr, incr);
 }
 //! _sbrk is a synonym for sbrk.
 char *_sbrk(int incr) {
@@ -282,20 +282,20 @@ char *_sbrk(int incr) {
 #ifdef MALLOCS_INSIDE_ISRs  // block interrupts during free-storage use
 static UBaseType_t malLock_uxSavedInterruptStatus;
 #endif
-void __malloc_lock(struct _reent *r) {
+void __wrap___malloc_lock(struct _reent *r) {
 #if defined(MALLOCS_INSIDE_ISRs)
     DRN_ENTER_CRITICAL_SECTION(malLock_uxSavedInterruptStatus);
 #else
     bool insideAnISR = xPortIsInsideInterrupt();
     configASSERT(!insideAnISR);  // Make damn sure no more mallocs inside ISRs!!
-    vTaskSuspendAll();
+//    vTaskSuspendAll();
 #endif
 };
-void __malloc_unlock(struct _reent *r) {
+void __wrap___malloc_unlock(struct _reent *r) {
 #if defined(MALLOCS_INSIDE_ISRs)
     DRN_EXIT_CRITICAL_SECTION(malLock_uxSavedInterruptStatus);
 #else
-    (void)xTaskResumeAll();
+//    (void)xTaskResumeAll();
 #endif
 };
 

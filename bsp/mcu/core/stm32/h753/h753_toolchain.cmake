@@ -56,9 +56,11 @@ string(CONCAT COMMON_FLAGS
     # "-Wconversion "
     "-fdata-sections -ffunction-sections -Wl,--gc-sections "
     "-Wno-unused-variable -Wno-unused-function -Wno-unused-parameter -Wno-missing-braces "
-    "-Wl,--wrap=malloc "
-    "-Wl,--wrap=malloc_r "
-    # "-Wl,--wrap=free "
+    "-Wl,--wrap,malloc "
+    "-Wl,--wrap,malloc_r "
+    "-Wl,--wrap,__malloc_lock"
+    "-Wl,--wrap,__malloc_unlock "
+#    "-Wl,--wrap=free "
 )
 
 string(CONCAT LINKER_FLAGS
