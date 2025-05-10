@@ -264,10 +264,11 @@ int usart_open(FILE *file, const char *path) {
 
     errno = 0;
 
-    if (cfg->p.port_open && !cfg->p.stdio) {
-        errno = EACCES;
-        return -1;
-    }
+    // Its ok to open a port twice, e.g. one process can read, other write'
+//    if (cfg->p.port_open && !cfg->p.stdio) {
+//        errno = EACCES;
+//        return -1;
+//    }
 
     if (cfg->p.tasks_init) {
         return 0;
