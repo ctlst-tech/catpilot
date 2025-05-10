@@ -9,5 +9,5 @@ periph_base_t *cli_dev[BOARD_MAX_CLI_DEVICES] = {
     (periph_base_t *)&usart6,
     (periph_base_t *)&usart7,
     (periph_base_t *)&usart8,
-    (periph_base_t *)&usb0,
+//    (periph_base_t *)&usb0,
 };
