@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.15)
 
 add_subdirectory(c-atom)
 
-if (BOARD STREQUAL "cube")
+if (BOARD STREQUAL "cube" OR BOARD STREQUAL "cubeplus")
     # FIXME
     include_directories(
         os/${OS}/core/inc
