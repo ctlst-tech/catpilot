@@ -477,7 +477,20 @@ static int board_services_start(void) {
     ist8310 = ist8310_start("IST8310_EXT", 100, 17, &i2c1);
     
 #ifdef STM32H757xx
-    icm45686 = icm45686_start("ICM45686", 2, 20, &spi1, &gpio_spi1_cs3);
+    //ROTATION_YAW_135 - important!
+    //icm45686 = icm45686_start("ICM45686", 2, 20, &spi1, &gpio_spi1_cs3);
+
+    //ROTATION_ROLL_180_YAW_90     
+    // icm45686 = icm45686_start("ICM45686", 2, 20, &spi4, &gpio_spi4_cs4);
+    // if (icm45686) {
+    //     icm45686_set_rotation(icm45686, ROTATION_ROLL_180_YAW_90);
+    // }
+
+    //ROTATION_YAW_270
+    icm45686 = icm45686_start("ICM45686", 2, 20, &spi4, &gpio_spi4_cs2);
+    if (icm45686) {
+        icm45686_set_rotation(icm45686, ROTATION_YAW_270);
+    }
 #endif
 
     // Initialize CUBEIO

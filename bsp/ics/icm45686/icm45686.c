@@ -339,14 +339,62 @@ static void icm45686_temp_process(icm45686_t *dev) {
 }
 
 static void icm45686_update_meas(icm45686_t *dev) {
-    xSemaphoreTake(dev->sync.mutex, portMAX_DELAY);
-    dev->meas.accel_x = dev->meas_buffer.meas[0].accel_x;
-    dev->meas.accel_y = dev->meas_buffer.meas[0].accel_y;
-    dev->meas.accel_z = dev->meas_buffer.meas[0].accel_z;
-    dev->meas.gyro_x = dev->meas_buffer.meas[0].gyro_x;
-    dev->meas.gyro_y = dev->meas_buffer.meas[0].gyro_y;
-    dev->meas.gyro_z = dev->meas_buffer.meas[0].gyro_z;
-    xSemaphoreGive(dev->sync.mutex);
+    float accel_x, accel_y, accel_z;
+    float gyro_x, gyro_y, gyro_z;
+    
+    // Get raw values first
+    accel_x = dev->meas_buffer.meas[0].accel_x;
+    accel_y = dev->meas_buffer.meas[0].accel_y;
+    accel_z = dev->meas_buffer.meas[0].accel_z;
+    gyro_x = dev->meas_buffer.meas[0].gyro_x;
+    gyro_y = dev->meas_buffer.meas[0].gyro_y;
+    gyro_z = dev->meas_buffer.meas[0].gyro_z;
+
+    // Apply rotations
+    switch (dev->rotation) {
+        case ROTATION_ROLL_180_YAW_90:
+            xSemaphoreTake(dev->sync.mutex, portMAX_DELAY);
+            dev->meas.accel_x = -accel_y;
+            dev->meas.accel_y = -accel_x;
+            dev->meas.accel_z = -accel_z;
+            dev->meas.gyro_x = -gyro_y;
+            dev->meas.gyro_y = -gyro_x;
+            dev->meas.gyro_z = -gyro_z;
+            xSemaphoreGive(dev->sync.mutex);
+            break;
+
+        case ROTATION_YAW_270:
+            xSemaphoreTake(dev->sync.mutex, portMAX_DELAY);
+            dev->meas.accel_x = accel_y;
+            dev->meas.accel_y = -accel_x;
+            dev->meas.accel_z = accel_z;
+            dev->meas.gyro_x = gyro_y;
+            dev->meas.gyro_y = -gyro_x;
+            dev->meas.gyro_z = gyro_z;
+            xSemaphoreGive(dev->sync.mutex);
+            break;
+
+        case ROTATION_NONE:
+        default:
+            xSemaphoreTake(dev->sync.mutex, portMAX_DELAY);
+            dev->meas.accel_x = accel_x;
+            dev->meas.accel_y = accel_y;
+            dev->meas.accel_z = accel_z;
+            dev->meas.gyro_x = gyro_x;
+            dev->meas.gyro_y = gyro_y;
+            dev->meas.gyro_z = gyro_z;
+            xSemaphoreGive(dev->sync.mutex);
+            break;
+    }
+}
+
+// Add new function to set rotation
+void icm45686_set_rotation(icm45686_t *dev, icm45686_rotation_t rotation) {
+    if (dev != NULL) {
+        xSemaphoreTake(dev->sync.mutex, portMAX_DELAY);
+        dev->rotation = rotation;
+        xSemaphoreGive(dev->sync.mutex);
+    }
 }
 
 void icm45686_get_meas_block(icm45686_t *dev, void *ptr) {
