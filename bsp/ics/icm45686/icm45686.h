@@ -90,6 +90,12 @@ enum icm45686_state_t {
     ICM45686_FAIL = 4
 };
 
+typedef enum {
+    ROTATION_NONE = 0,
+    ROTATION_ROLL_180_YAW_90,
+    ROTATION_YAW_270
+} icm45686_rotation_t;
+
 typedef struct {
     char name[MAX_NAME_LEN];
     icm45686_interface_t interface;
@@ -102,11 +108,13 @@ typedef struct {
     icm45686_meas_param_t meas_param;
     enum icm45686_state_t state;
     uint8_t attempt;
+    icm45686_rotation_t rotation;
 } icm45686_t;
 
 icm45686_t *icm45686_start(char *name, uint32_t period, uint32_t priority, spi_t *spi, gpio_t *cs);
 void icm45686_get_meas_block(icm45686_t *dev, void *ptr);
 void icm45686_get_meas_non_block(icm45686_t *dev, void *ptr);
 void icm45686_stat(icm45686_t *dev);
+void icm45686_set_rotation(icm45686_t *dev, icm45686_rotation_t rotation);
 
-#endif  // ICM45686_H 
+#endif  // ICM45686_H
