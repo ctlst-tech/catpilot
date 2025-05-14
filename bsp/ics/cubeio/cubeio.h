@@ -12,7 +12,7 @@
 
 #define CUBEIO_PKT_MAX_REGS 22
 #define CUBEIO_MAX_CHANNELS 16
-//#define APM_IO_4_4_SUPPORT
+#define APM_IO_4_4_SUPPORT
 
 #pragma pack(push, 1)
 typedef struct {
