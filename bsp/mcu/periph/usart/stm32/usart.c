@@ -105,89 +105,94 @@ int usart_init(usart_t *cfg) {
 
 int usart_transmit(usart_t *cfg, uint8_t *pdata, uint16_t length) {
     int rv = 0;
+    cfg->program_counter = 1;
     if (length == 0 || pdata == NULL) {
         return EINVAL;
     }
-
+    cfg->program_counter = 2;
     if (xSemaphoreTake(cfg->p.tx_mutex, 0) == pdFALSE) {
         return EBUSY;
     }
-
+    cfg->program_counter = 3;
     xSemaphoreTake(cfg->p.tx_sem, 0);
-
+    cfg->program_counter = 4;
     cfg->p.tx_state = USART_TRANSMIT;
     cfg->p.tx_count = 0;
-
+    cfg->program_counter = 5;
     if (cfg->p.use_dma) {
         rv = HAL_UART_Transmit_DMA(&cfg->init, pdata, length);
     } else {
         rv = HAL_UART_Transmit_IT(&cfg->init, pdata, length);
     }
-
+    cfg->program_counter = 6;
     if (rv == HAL_OK &&
         !xSemaphoreTake(cfg->p.tx_sem, pdMS_TO_TICKS(cfg->tx_rx_timeout))) {
+        cfg->program_counter = 7;
         rv = ETIMEDOUT;
     }
-
+    cfg->program_counter = 8;
     cfg->p.tx_state = USART_FREE;
     xSemaphoreGive(cfg->p.tx_mutex);
-
+    cfg->program_counter = 9;
     return rv;
 }
 
 int usart_receive(usart_t *cfg, uint8_t *pdata, uint16_t length) {
     int rv = 0;
-
+    cfg->program_counter = 10;
     if (length == 0 || pdata == NULL) {
         return EINVAL;
     }
-
+    cfg->program_counter = 11;
     if (xSemaphoreTake(cfg->p.rx_mutex, 0) == pdFALSE) {
         return EBUSY;
     }
-
+    cfg->program_counter = 12;
     xSemaphoreTake(cfg->p.rx_sem, 0);
-
+    cfg->program_counter = 13;
     cfg->p.rx_state = USART_RECEIVE;
     cfg->p.rx_count = 0;
-
+    cfg->program_counter = 14;
     if (cfg->mode == USART_IDLE) {
         SET_BIT(cfg->init.Instance->ICR, USART_ICR_IDLECF);
         SET_BIT(cfg->init.Instance->CR1, USART_CR1_IDLEIE);
     }
+    cfg->program_counter = 15;
     if (cfg->p.use_dma) {
         rv = HAL_UART_Receive_DMA(&cfg->init, pdata, length);
     } else {
         rv = HAL_UART_Receive_IT(&cfg->init, pdata, length);
     }
-
+    cfg->program_counter = 16;
     if (rv == HAL_OK &&
         !xSemaphoreTake(cfg->p.rx_sem, pdMS_TO_TICKS(cfg->tx_rx_timeout))) {
         rv = ETIMEDOUT;
     }
-
+    cfg->program_counter = 17;
     cfg->p.rx_state = USART_FREE;
     xSemaphoreGive(cfg->p.rx_mutex);
-
+    cfg->program_counter = 18;
     return rv;
 }
 
 int usart_transmit_receive(usart_t *cfg, uint8_t *tx_pdata, uint8_t *rx_pdata,
                            uint16_t tx_length, uint16_t rx_length) {
     int rv = 0;
-
+    cfg->program_counter = 19;
     if (tx_length == 0 || rx_length == 0 || tx_pdata == NULL ||
         rx_pdata == NULL) {
+            cfg->program_counter = 20;
         return EINVAL;
     }
-
+    cfg->program_counter = 21;
     if ((xSemaphoreTake(cfg->p.tx_mutex, 0) == pdFALSE) ||
         (xSemaphoreTake(cfg->p.rx_mutex, 0) == pdFALSE)) {
+            cfg->program_counter = 22;
         return EBUSY;
     }
-
+    cfg->program_counter = 23;
     xSemaphoreTake(cfg->p.rx_sem, 0);
-
+    cfg->program_counter = 24;
     cfg->p.tx_state = USART_TRANSMIT;
     cfg->p.rx_state = USART_RECEIVE;
     cfg->p.tx_count = 0;
@@ -195,7 +200,7 @@ int usart_transmit_receive(usart_t *cfg, uint8_t *tx_pdata, uint8_t *rx_pdata,
 
     SET_BIT(cfg->init.Instance->ICR, USART_ICR_IDLECF);
     SET_BIT(cfg->init.Instance->CR1, USART_CR1_IDLEIE);
-
+    cfg->program_counter = 25;
     if (cfg->p.use_dma) {
         rv = HAL_UART_Receive_DMA(&cfg->init, rx_pdata, rx_length);
         rv |= HAL_UART_Transmit_DMA(&cfg->init, tx_pdata, tx_length);
@@ -203,15 +208,17 @@ int usart_transmit_receive(usart_t *cfg, uint8_t *tx_pdata, uint8_t *rx_pdata,
         rv = HAL_UART_Receive_IT(&cfg->init, rx_pdata, rx_length);
         rv |= HAL_UART_Transmit_IT(&cfg->init, tx_pdata, tx_length);
     }
-
+    cfg->program_counter = 26;
     if (rv == HAL_OK &&
         !xSemaphoreTake(cfg->p.rx_sem, pdMS_TO_TICKS(cfg->tx_rx_timeout))) {
         rv = ETIMEDOUT;
     }
-
+    cfg->program_counter = 27;
     cfg->p.tx_state = USART_FREE;
     cfg->p.rx_state = USART_FREE;
+    cfg->program_counter = 28;
     xSemaphoreGive(cfg->p.tx_mutex);
+    cfg->program_counter = 29;
     xSemaphoreGive(cfg->p.rx_mutex);
 
     return rv;
@@ -235,11 +242,15 @@ void usart_read_task(void *cfg_ptr) {
     usart_t *cfg = (usart_t *)cfg_ptr;
     uint8_t *buf = cfg->p.dma_rx_buf;
     while (1) {
+        cfg->program_counter = 30;
         if (usart_receive(cfg, buf, cfg->buf_size)) {
             cfg->p.error = ERROR;
+            cfg->program_counter = 31;
         } else {
             cfg->p.error = SUCCESS;
+            cfg->program_counter = 32;
         }
+        cfg->program_counter = 33;
         ring_buf_write(cfg->p.read_buf, buf,
                        MIN(cfg->p.rx_count, cfg->buf_size));
     }
@@ -250,10 +261,14 @@ void usart_write_task(void *cfg_ptr) {
     uint8_t *buf = cfg->p.dma_tx_buf;
     uint16_t length;
     while (1) {
+        cfg->program_counter = 34;
         length = ring_buf_read(cfg->p.write_buf, buf, cfg->buf_size);
+        cfg->program_counter = 35;
         if (usart_transmit(cfg, buf, length)) {
+            cfg->program_counter = 36;
             cfg->p.error = ERROR;
         } else {
+            cfg->program_counter = 37;
             cfg->p.error = SUCCESS;
         }
     }

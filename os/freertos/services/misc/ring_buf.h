@@ -17,6 +17,11 @@ typedef struct {
     uint8_t *start_ptr;
     uint16_t size;
     uint16_t count;
+    int g_semaphore_taken;
+    int panic_counter;
+    int g_semaphore_taken2;
+    int panic_counter2;
+    int program_counter;
     SemaphoreHandle_t cont_mutex;
     SemaphoreHandle_t rw_mutex;
     SemaphoreHandle_t r_sem;
