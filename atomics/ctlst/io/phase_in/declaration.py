@@ -52,5 +52,6 @@ Function(
             value_type='core.type.u32'
         )],
     state=[],
-    parameter_constraints=[]
+    parameter_constraints=[],
+    target_link_libraries=['bsp-static']
 )

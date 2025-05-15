@@ -109,5 +109,6 @@ Function(
     parameter_constraints=[
         ParameterValue('freq') >= 1,
         ParameterValue('freq') <= 500,
-    ]
+    ],
+    target_link_libraries=['bsp-static']
 )

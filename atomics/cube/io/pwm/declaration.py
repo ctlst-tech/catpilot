@@ -232,4 +232,5 @@ Function(
         ),
     ],
     parameter_constraints=[],
+    target_link_libraries=['bsp-static']
 )

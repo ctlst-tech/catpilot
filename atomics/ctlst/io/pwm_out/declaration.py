@@ -49,5 +49,6 @@ Function(
     ],
     outputs=[],
     state=[],
-    parameter_constraints=[]
+    parameter_constraints=[],
+    target_link_libraries=['bsp-static']
 )

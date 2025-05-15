@@ -31,6 +31,8 @@ if (BOARD STREQUAL "cube" OR BOARD STREQUAL "cubeplus")
         boards/cube/startup/init.c
         boards/cube/external.c
     )
+elseif (BOARD STREQUAL "host")
+
 else ()
     list(APPEND BSP_INC
         boards/${BOARD}
