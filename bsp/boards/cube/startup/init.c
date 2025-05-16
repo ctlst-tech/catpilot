@@ -297,7 +297,19 @@ static int board_clock_init(void) {
     return 0;
 }
 
+static int board_monitor_init(void) {
+#ifdef OS_MONITOR
+    if (tim_init(&tim2)) {
+        return -1;
+    }
+    board_monitor_counter = &tim2.counter;
+    tim_start(&tim2);
+#endif
+    return 0;
+}
+
 static int board_gpio_init(void) {
+   
     return 0;
 }
 

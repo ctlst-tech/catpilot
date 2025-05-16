@@ -60,7 +60,6 @@ typedef struct {
     int irq_priority;
     int task_priority;
     int read_timeout;
-    int program_counter;
     usart_private_t p;
 } usart_t;
 
