@@ -164,8 +164,20 @@ int usart_receive(usart_t *cfg, uint8_t *pdata, uint16_t length) {
         rv = HAL_UART_Receive_IT(&cfg->init, pdata, length);
     }
 
-    if (rv == HAL_OK &&
-        !xSemaphoreTake(cfg->p.rx_sem, pdMS_TO_TICKS(cfg->tx_rx_timeout))) {
+    while (rv != HAL_OK) {
+        // Recover UART
+        HAL_UART_DeInit(&cfg->init);
+        HAL_UART_Init(&cfg->init);
+
+        // Retry receive
+        if (cfg->p.use_dma) {
+            rv = HAL_UART_Receive_DMA(&cfg->init, pdata, length);
+        } else {
+            rv = HAL_UART_Receive_IT(&cfg->init, pdata, length);
+        }
+    }
+
+    if (!xSemaphoreTake(cfg->p.rx_sem, pdMS_TO_TICKS(cfg->tx_rx_timeout))) {
         rv = ETIMEDOUT;
     }
 

@@ -11,27 +11,6 @@
 #include "os.h"
 #include "periph.h"
 #include "serial_bridge.h"
-#include "task.h"
-
-// Add timeout detection
-static uint32_t last_task_switch_time = 0;
-static const uint32_t TASK_SWITCH_TIMEOUT_MS = 5000; // 5 seconds timeout
-
-static void check_task_switches(void) {
-    static uint32_t last_total_switches = 0;
-    uint32_t current_switches = xTaskGetSchedulerState();
-    
-    if (current_switches == last_total_switches) {
-        if ((xTaskGetTickCount() - last_task_switch_time) > pdMS_TO_TICKS(TASK_SWITCH_TIMEOUT_MS)) {
-            printf("WARNING: No task switches for %lu ms!\n", TASK_SWITCH_TIMEOUT_MS);
-            // You could trigger system reset here
-            // NVIC_SystemReset();
-        }
-    } else {
-        last_total_switches = current_switches;
-        last_task_switch_time = xTaskGetTickCount();
-    }
-}
 
 typedef struct {
     int (*callback)(void);
@@ -46,6 +25,7 @@ void *board_thread(void *arg);
 
 // Private functions
 static int board_clock_init(void);
+static int board_monitor_init(void);
 int board_init(char *cli_port, char *baudrate);
 static int board_cli_init(char *cli_port, char *baudrate);
 static int board_fs_init(void);
@@ -65,6 +45,7 @@ int board_start(int (*callback)(void), size_t stacksize, char *cli_port,
                 char *cli_baudrate) {
     HAL_Init();
     board_clock_init();
+    board_monitor_init();
     board_settings.callback = callback;
     board_settings.stacksize = stacksize;
     board_settings.cli_port = cli_port;
@@ -86,6 +67,8 @@ void board_start_thread(void *param) {
     pthread_exit(NULL);
 }
 
+static volatile uint32_t uptime_counter = 0;
+
 void *board_thread(void *arg) {
     board_settings_t *bs = (board_settings_t *)arg;
     if (board_cli_init(bs->cli_port, bs->cli_baudrate)) {
@@ -106,13 +89,11 @@ void *board_thread(void *arg) {
 
 idle:
     while (1) {
-        printf("IDLE\n");
         sleep(1);
     }
 }
 
 int board_init(char *cli_port, char *baudrate) {
-    static volatile uint32_t uptime_counter = 0;
     if (board_fs_init()) {
         return -1;
     }
@@ -134,39 +115,7 @@ int board_init(char *cli_port, char *baudrate) {
 
     while (!board_get_app_status()) {
         uptime_counter+=1;
-        
-        // FreeRTOS Debug Info
-        uint32_t free_heap = xPortGetFreeHeapSize();
-        UBaseType_t tasks_count = uxTaskGetNumberOfTasks();
-        
-        printf("====== System Status [%lu s] ======\n", uptime_counter);
-        printf("Free heap: %lu bytes\n", free_heap);
-        printf("Active tasks: %lu\n", tasks_count);
-
-        // UART Status
-        char *uart_states[] = {"RESET", "READY", "BUSY_TX", "BUSY_RX", "BUSY", "TIMEOUT", "ERROR"};
-        usart_t *uarts[] = {&usart3, &usart4, &usart6, &usart7, &usart8};
-        char *uart_names[] = {"USART3", "USART4", "USART6", "USART7", "USART8"};
-
-        printf("\n=== UART Status ===\n");
-        for (int i = 0; i < 5; i++) {
-            printf("%s:\n", uart_names[i]);
-            printf("  State: %s\n", uart_states[uarts[i]->init.gState & 0x0F]);
-            printf("  RX State: %s\n", uart_states[uarts[i]->init.RxState & 0x0F]);
-            printf("  TX pending: %lu\n", uarts[i]->init.TxXferCount);
-            printf("  RX pending: %lu\n", uarts[i]->init.RxXferCount);
-            printf("  Errors: 0x%lx\n", uarts[i]->init.ErrorCode);
-        }
-
-        // Task Stack Usage
-        printf("\n=== Task Stack Usage ===\n");
-        char task_list[500];
-        vTaskList(task_list);
-        printf("Task          State  Priority  Stack   Num\n");
-        printf("*******************************************\n");
-        printf("%s\n", task_list);
-
-        // Add watchdog reset here if needed
+        //printf("uptime_counter: %lu\n", uptime_counter);
         sleep(1);
     }
     return 0;
@@ -309,13 +258,107 @@ static int board_monitor_init(void) {
 }
 
 static int board_gpio_init(void) {
-   
+    if (gpio_init(&gpio_periph_en)) {
+        return -1;
+    }
+    if (gpio_init(&gpio_sensors_en)) {
+        return -1;
+    }
+
+    gpio_reset(&gpio_sensors_en);
+    gpio_set(&gpio_periph_en);
+    vTaskDelay(20);
+    gpio_set(&gpio_sensors_en);
+    gpio_reset(&gpio_periph_en);
+    vTaskDelay(20);
+
+    if (gpio_init(&gpio_fmu_pwm[0])) {
+        return -1;
+    }
+    if (gpio_init(&gpio_fmu_pwm[1])) {
+        return -1;
+    }
+    if (gpio_init(&gpio_fmu_pwm[2])) {
+        return -1;
+    }
+    if (gpio_init(&gpio_fmu_pwm[3])) {
+        return -1;
+    }
+    if (gpio_init(&gpio_fmu_pwm[4])) {
+        return -1;
+    }
+    if (gpio_init(&gpio_fmu_pwm[5])) {
+        return -1;
+    }
+    if (gpio_init(&gpio_spi1_cs1)) {
+        return -1;
+    }
+    if (gpio_init(&gpio_spi1_cs2)) {
+        return -1;
+    }
+    if (gpio_init(&gpio_spi1_cs3)) {
+        return -1;
+    }
+    if (gpio_init(&gpio_spi2_cs1)) {
+        return -1;
+    }
+    if (gpio_init(&gpio_spi4_cs1)) {
+        return -1;
+    }
+    if (gpio_init(&gpio_spi4_cs2)) {
+        return -1;
+    }
+    if (gpio_init(&gpio_spi4_cs3)) {
+        return -1;
+    }
+    if (gpio_init(&gpio_spi4_cs4)) {
+        return -1;
+    }
+    if (gpio_init(&gpio_adc_inp4)) {
+        return -1;
+    }
+    if (gpio_init(&gpio_adc_inp8)) {
+        return -1;
+    }
+    if (gpio_init(&gpio_adc_inp13)) {
+        return -1;
+    }
+    if (gpio_init(&gpio_adc_inp14)) {
+        return -1;
+    }
+    if (gpio_init(&gpio_adc_inp15)) {
+        return -1;
+    }
+    if (gpio_init(&gpio_adc_inp18)) {
+        return -1;
+    }
+
+    gpio_set(&gpio_spi1_cs1);
+    gpio_set(&gpio_spi1_cs2);
+    gpio_set(&gpio_spi1_cs3);
+    gpio_set(&gpio_spi2_cs1);
+    gpio_set(&gpio_spi4_cs1);
+    gpio_set(&gpio_spi4_cs2);
+    gpio_set(&gpio_spi4_cs3);
+    gpio_set(&gpio_spi4_cs4);
+
+    gpio_reset(&gpio_fmu_pwm[0]);
+    gpio_reset(&gpio_fmu_pwm[1]);
+    gpio_reset(&gpio_fmu_pwm[2]);
+    gpio_reset(&gpio_fmu_pwm[3]);
+    gpio_reset(&gpio_fmu_pwm[4]);
+    gpio_reset(&gpio_fmu_pwm[5]);
+
     return 0;
 }
 
 static int board_periph_init(void) {
     if (board_gpio_init()) {
         LOG_ERROR("GPIO", "Initialization failed");
+        return -1;
+    }
+    if (usart_init(&usart2)) {
+        LOG_ERROR("USART2", "Initialization failed");
         return -1;
     }
     if (usart_init(&usart3)) {
@@ -338,7 +381,38 @@ static int board_periph_init(void) {
         LOG_ERROR("USART8", "Initialization failed");
         return -1;
     }
-
+    if (spi_init(&spi1)) {
+        LOG_ERROR("SPI1", "Initialization failed");
+        return -1;
+    }
+    if (spi_init(&spi4)) {
+        LOG_ERROR("SPI4", "Initialization failed");
+        return -1;
+    }
+    if (i2c_init(&i2c1)) {
+        LOG_ERROR("I2C1", "Initialization failed");
+        return -1;
+    }
+    if (i2c_init(&i2c2)) {
+        LOG_ERROR("I2C2", "Initialization failed");
+        return -1;
+    }
+    if (adc_init(&adc1)) {
+        LOG_ERROR("ADC1", "Initialization failed");
+        return -1;
+    }
+    // if (can_init(&can1)) {
+    //     LOG_ERROR("CAN1", "Initialization failed");
+    //     return -1;
+    // }
+    // if (can_init(&can2)) {
+    //     LOG_ERROR("CAN2", "Initialization failed");
+    //     return -1;
+    // }
+    // if (usb_init(&usb0)) {
+    //     LOG_ERROR("USB0", "Initialization failed");
+    //     return -1;
+    // }
     LOG_INFO("BOARD", "Initialization successful");
     return 0;
 }
@@ -375,9 +449,57 @@ static int board_fs_init(void) {
         fprintf(stderr, "SD card initialization failed\n");
         return -1;
     }
+    if (mkdir("/fs/logs", 0) && errno != EEXIST) {
+        fprintf(stderr, "Failed to mount logs dir\n");
+        return -1;
+    }
+    if (mkdir("/fs/cfg", 0) && errno != EEXIST) {
+        fprintf(stderr, "Failed to mount cfg dir\n");
+        return -1;
+    }
+    if (cli_cmd_reg("log", log_print) == NULL) {
+        return -1;
+    }
+    if (cli_cmd_reg("file", file_commander) == NULL) {
+        return -1;
+    }
     return 0;
 }
 
 static int board_services_start(void) {
+    serial_bridge_start(15, 1024);
+#ifdef STM32H753xx
+    icm20649 = icm20649_start("ICM20649", 2, 20, &spi1, &gpio_spi1_cs1, &exti_spi1_drdy1);
+    //icm20602 = icm20602_start("ICM20602", 2, 20, &spi4, &gpio_spi4_cs2, NULL);
+    //icm20948 = icm20948_start("ICM20948", 2, 20, &spi4, &gpio_spi4_cs1, NULL, 0);
+#endif
+    // Initialize barometers
+    ms5611_1 = ms5611_start("MS5611_INT", 100, 17, &spi1, &gpio_spi1_cs2);
+    // ms5611_2 = ms5611_start("MS5611_EXT", 100, 17, &spi4, &gpio_spi4_cs3);
+    
+    // Initialize magnetometer
+    ist8310 = ist8310_start("IST8310_EXT", 100, 17, &i2c1);
+    
+#ifdef STM32H757xx
+    //ROTATION_YAW_135 - important!
+    //icm45686 = icm45686_start("ICM45686", 2, 20, &spi1, &gpio_spi1_cs3);
+
+    //ROTATION_ROLL_180_YAW_90     
+    // icm45686 = icm45686_start("ICM45686", 2, 20, &spi4, &gpio_spi4_cs4);
+    // if (icm45686) {
+    //     icm45686_set_rotation(icm45686, ROTATION_ROLL_180_YAW_90);
+    // }
+
+    //ROTATION_YAW_270
+    icm45686 = icm45686_start("ICM45686", 2, 20, &spi4, &gpio_spi4_cs2);
+    if (icm45686) {
+        icm45686_set_rotation(icm45686, ROTATION_YAW_270);
+    }
+#endif
+
+    // Initialize CUBEIO
+    cubeio = cubeio_start("CUBEIO", 0, 19, &usart6);
+
+    LOG_INFO("BOARD", "Initialization successful");
     return 0;
 }
