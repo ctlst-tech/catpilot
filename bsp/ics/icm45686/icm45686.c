@@ -202,6 +202,7 @@ static int icm45686_configure(icm45686_t *dev) {
             LOG_ERROR(dev->name, "Register 0x%02X configuration failed", reg_cfg[i].reg);
             return 0;
         }
+        vTaskDelay(pdMS_TO_TICKS(2));
     }
 
     uint8_t data[4];

@@ -41,6 +41,11 @@ adc_t adc1 = {
             .cfg.Rank = ADC_REGULAR_RANK_1,
             .cfg.SamplingTime = ADC_SAMPLETIME_810CYCLES_5,
             .cfg.SingleDiff = ADC_SINGLE_ENDED,
+            .cal = {
+                .scale = 14.3f,
+                .offset = 0.0f,
+                .enabled = 1
+            }
         },
         {
             .status = ENABLE,
@@ -48,6 +53,11 @@ adc_t adc1 = {
             .cfg.Rank = ADC_REGULAR_RANK_2,
             .cfg.SamplingTime = ADC_SAMPLETIME_810CYCLES_5,
             .cfg.SingleDiff = ADC_SINGLE_ENDED,
+            .cal = {
+                .scale = 50.0f,
+                .offset = 0.4278f,
+                .enabled = 1
+            }
         },
         {
             .status = ENABLE,
@@ -55,6 +65,11 @@ adc_t adc1 = {
             .cfg.Rank = ADC_REGULAR_RANK_3,
             .cfg.SamplingTime = ADC_SAMPLETIME_810CYCLES_5,
             .cfg.SingleDiff = ADC_SINGLE_ENDED,
+            .cal = {
+                .scale = 2.0f,
+                .offset = 0.0f,
+                .enabled = 1
+            }
         },
         {
             .status = ENABLE,
@@ -62,6 +77,11 @@ adc_t adc1 = {
             .cfg.Rank = ADC_REGULAR_RANK_4,
             .cfg.SamplingTime = ADC_SAMPLETIME_810CYCLES_5,
             .cfg.SingleDiff = ADC_SINGLE_ENDED,
+            .cal = {
+                .scale = 14.3f,
+                .offset = 0.0f,
+                .enabled = 1
+            }
         },
         {
             .status = ENABLE,
@@ -69,6 +89,11 @@ adc_t adc1 = {
             .cfg.Rank = ADC_REGULAR_RANK_5,
             .cfg.SamplingTime = ADC_SAMPLETIME_810CYCLES_5,
             .cfg.SingleDiff = ADC_SINGLE_ENDED,
+            .cal = {
+                .scale = 50.0f,
+                .offset = 0.4278f,
+                .enabled = 1
+            }
         },
         {
             .status = ENABLE,

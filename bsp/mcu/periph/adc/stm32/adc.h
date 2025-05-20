@@ -11,9 +11,17 @@
 
 #define ADC_MAX_CHANNELS 16
 
+// Add calibration structure
+typedef struct {
+    float scale;         // Scaling factor
+    float offset;        // Offset value
+    uint8_t enabled;     // Calibration enabled flag
+} adc_calibration_t;
+
 typedef struct {
     int status;
     ADC_ChannelConfTypeDef cfg;
+    adc_calibration_t cal;    // Add calibration parameters
 } adc_channel_t;
 
 typedef struct {
@@ -40,5 +48,9 @@ float adc_get_volt_max(adc_t *cfg, uint8_t channel);
 float adc_get_volt_min(adc_t *cfg, uint8_t channel);
 int adc_reset_stat(adc_t *adc);
 int adc_reset_stat_channel(adc_t *adc, uint8_t channel);
+// Add new function prototypes
+int adc_set_calibration(adc_t *cfg, uint8_t channel, float scale, float offset);
+int adc_disable_calibration(adc_t *cfg, uint8_t channel);
+float adc_get_volt_calibrated(adc_t *cfg, uint8_t channel);
 
 #endif  // ADC_H

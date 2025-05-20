@@ -167,7 +167,10 @@ void adc_dma_handler(void *area) {
 
     if (xSemaphoreTakeFromISR(cfg->p.mutex, &xHigherPriorityTaskWoken)) {
         for (int i = 0; i < ADC_MAX_CHANNELS; i++) {
-            cfg->p.meas[i] = (float)cfg->p.raw[i] / 0xFFFF * 3.3;
+            float raw_voltage = (float)cfg->p.raw[i] / 0xFFFF * 3.3;
+            cfg->p.meas[i] = cfg->channel[i].cal.enabled ? 
+                             ((raw_voltage- cfg->channel[i].cal.offset) * cfg->channel[i].cal.scale)  :
+                             raw_voltage;
             if (cfg->p.meas[i] > cfg->p.max[i]) {
                 cfg->p.max[i] = cfg->p.meas[i];
             }
