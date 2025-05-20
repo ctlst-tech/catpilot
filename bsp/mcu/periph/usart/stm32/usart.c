@@ -124,7 +124,9 @@ int usart_transmit(usart_t *cfg, uint8_t *pdata, uint16_t length) {
         rv = HAL_UART_Transmit_IT(&cfg->init, pdata, length);
     }
 
-    if (rv == HAL_OK &&
+    if (((rv == HAL_OK) || (cfg->init.RxState==HAL_UART_STATE_BUSY_TX) 
+                        || (cfg->init.RxState==HAL_UART_STATE_BUSY_TX_RX)
+                        || (cfg->init.RxState==HAL_UART_STATE_BUSY)) &&
         !xSemaphoreTake(cfg->p.tx_sem, pdMS_TO_TICKS(cfg->tx_rx_timeout))) {
         rv = ETIMEDOUT;
     }
@@ -161,7 +163,9 @@ int usart_receive(usart_t *cfg, uint8_t *pdata, uint16_t length) {
         rv = HAL_UART_Receive_IT(&cfg->init, pdata, length);
     }
 
-    if (rv == HAL_OK &&
+    if (((rv == HAL_OK) || (cfg->init.RxState==HAL_UART_STATE_BUSY_RX) 
+                        || (cfg->init.RxState==HAL_UART_STATE_BUSY_TX_RX)
+                        || (cfg->init.RxState==HAL_UART_STATE_BUSY)) &&
         !xSemaphoreTake(cfg->p.rx_sem, pdMS_TO_TICKS(cfg->tx_rx_timeout))) {
         rv = ETIMEDOUT;
     }
@@ -236,7 +240,7 @@ void usart_read_task(void *cfg_ptr) {
     uint8_t *buf = cfg->p.dma_rx_buf;
     while (1) {
         if (usart_receive(cfg, buf, cfg->buf_size)) {
-            cfg->p.error = ERROR;
+            cfg->p.error = 0x80 | ERROR;
         } else {
             cfg->p.error = SUCCESS;
         }
@@ -252,7 +256,7 @@ void usart_write_task(void *cfg_ptr) {
     while (1) {
         length = ring_buf_read(cfg->p.write_buf, buf, cfg->buf_size);
         if (usart_transmit(cfg, buf, length)) {
-            cfg->p.error = ERROR;
+            cfg->p.error = 0x40 | ERROR;
         } else {
             cfg->p.error = SUCCESS;
         }

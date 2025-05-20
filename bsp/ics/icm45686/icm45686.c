@@ -204,6 +204,24 @@ static int icm45686_configure(icm45686_t *dev) {
         }
     }
 
+    uint8_t data[4];
+    data[0] = IREG_ADDR_15_8 & ~READ;
+    data[1] = (IPREG_SYS1_REG_172 & 0xFF00) >> 8;
+    data[2] = IPREG_SYS1_REG_172 & 0xFF;
+    data[3] = 0b111; //
+
+    icm45686_chip_select(dev);
+    spi_transmit(dev->interface.spi, data, sizeof(data));
+    icm45686_chip_deselect(dev);
+
+    data[0] = IREG_ADDR_15_8 & ~READ;
+    data[1] = (IPREG_SYS1_REG_166 & 0xFF00) >> 8;
+    data[2] = IPREG_SYS1_REG_166 & 0xFF;
+    data[3] = 0b00100000; //1: Interpolator off and FIR filter on
+
+    icm45686_chip_select(dev);
+    spi_transmit(dev->interface.spi, data, sizeof(data));
+    icm45686_chip_deselect(dev);
     // Configure accelerometer and gyroscope
     icm45686_accel_configure(dev);
     icm45686_gyro_configure(dev);
