@@ -5,7 +5,7 @@
 void cube_sensors_ak09916_exec(cube_sensors_ak09916_outputs_t* o)
 {
     ak09916_meas_t meas;
-    ak09916_get_meas_non_block(ak09916, &meas);
+    ak09916_get_meas_block(ak09916, &meas);
     o->mx = meas.mag_x;
     o->my = meas.mag_y;
     o->mz = meas.mag_z;

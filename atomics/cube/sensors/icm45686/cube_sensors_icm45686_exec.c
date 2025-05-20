@@ -8,7 +8,7 @@ void cube_sensors_icm45686_exec(cube_sensors_icm45686_outputs_t* o)
 {
     icm45686_meas_t meas;
     gpio_set(&gpio_fmu_pwm[0]);
-    icm45686_get_meas_non_block(icm45686, &meas);
+    icm45686_get_meas_block(icm45686, &meas);
     
     o->wx = deg2rad(meas.gyro_x);
     o->wy = deg2rad(meas.gyro_y);

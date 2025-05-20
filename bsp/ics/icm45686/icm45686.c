@@ -209,7 +209,7 @@ static int icm45686_configure(icm45686_t *dev) {
     data[0] = IREG_ADDR_15_8 & ~READ;
     data[1] = (IPREG_SYS1_REG_172 & 0xFF00) >> 8;
     data[2] = IPREG_SYS1_REG_172 & 0xFF;
-    data[3] = 0b111; //
+    data[3] = 0b10; //0b111; //
 
     icm45686_chip_select(dev);
     spi_transmit(dev->interface.spi, data, sizeof(data));
