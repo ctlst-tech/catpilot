@@ -114,6 +114,8 @@ int cli_cmd_execute(char *cmd) {
 
     rv = cli_node->handler(argc, argv);
 
+    errno = 0;
+
     return rv;
 }
 
