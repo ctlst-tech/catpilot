@@ -123,10 +123,30 @@ void *cli_invoker(void *arg) {
         pthread_cond_wait(&cli->cond, &cli->mutex);
         write(1, nl, sizeof(nl));
         if (cli_cmd_execute(cli->cmd)) {
-            if (errno != EAGAIN) {
-                printf("Unknown command: \"%s\"\n", cli->cmd);
-                cli_cmd_print();
-                write(1, nl, sizeof(nl));
+            switch (errno) {
+                case 0:
+                    break;
+                case EINVAL:
+                    printf("Error: Invalid command (null)\n");
+                    cli_cmd_print();
+                    break;
+
+                case EAGAIN:
+                    // simply new line
+                    break;
+
+                case ENOENT:
+                    printf("Unknown command: \"%s\"\n", cli->cmd);
+                    cli_cmd_print();
+                    break;
+                case ESRCH:
+                    printf("Error: Command handler not implemented\n");
+                    cli_cmd_print();
+                    break;
+                default:
+                    printf("Error: Unknown error occurred with command \"%s\"\n", cli->cmd);
+                    cli_cmd_print();
+                    break;
             }
         }
         pthread_mutex_unlock(&cli->mutex);
